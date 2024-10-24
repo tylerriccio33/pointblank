@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+include = ["confirm"]
+
+[project]
+name = "confirm"
+description = "Find out if your data is what you think it is."
+readme = "README.md"
+keywords = ["data", "quality", "validation", "testing", "data science", "data engineering"]
+license.file = "LICENSE"
+authors = [
+    { name = "Richard Iannone", email = "riannone@me.com" }
+]
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+dependencies = [
+    "importlib-metadata",
+    "narwhals>=1.10.0",
+    "typing_extensions>=3.10.0.0",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "jupyter",
+    "quartodoc>=0.8.1; python_version >= '3.9'",
+    "griffe==0.38.1",
+    "pandas",
+    "polars",
+    "pre-commit==2.15.0",
+    "pyarrow",
+    "pyright>=1.1.244",
+    "pytest>=3",
+    "pytest-cov",
+    "syrupy"
+]
+
+[project.urls]
+homepage = "https://github.com/rich-iannone/confirm"
+
+[tool.flake8]
+exclude = ["docs", ".venv", "tests/*"]
+
+ignore = [
+    "E402",    # module level import not at top of file
+    "E501",    # line too long (maximum 100 characters)
+    "W503",    # line break before binary operator
+    "F811",    # redefinition of unused name
+    "E203",    # whitespace before ':'
+    "F401",    # 'module' imported but unused
+    "F841",    # local variable 'name' is assigned to but never used
+    "E702",    # multiple statements on one line (semicolon)
+    "E704",    # multiple statements on one line (def)
+]
+
+max-line-length = 100
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=confirm -m 'not no_pandas'"
+asyncio_mode = "strict"
+testpaths = [
+    "tests"
+]
+
+markers = [
+    "extra: marks tests that require extra dependencies to run",
+    "no_pandas: test meant to run without pandas installed",
+]
+
+[tool.black]
+line-length = 100
