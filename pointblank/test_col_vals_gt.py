@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from confirm.comparison import Comparator
+from pointblank.comparison import Comparator
 
 
 def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
@@ -28,7 +28,7 @@ def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int
     # Convert the DataFrame to a format that narwhals can work with.
     dfn = nw.from_native(df)
 
-    # Check if the column exists.
+    # Check if the column exists
     if column not in dfn.columns:
         raise ValueError(f"Column '{column}' not found in DataFrame.")
 
