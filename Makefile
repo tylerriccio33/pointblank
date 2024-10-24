@@ -1,16 +1,16 @@
 .PHONY: check
 
 test:
-	pytest --cov=confirm --cov-report=xml
+	pytest --cov=pointblank --cov-report=xml
 
 test-update:
 	pytest --snapshot-update
 
 check:
-	pyright --pythonversion 3.8 confirm
-	pyright --pythonversion 3.9 confirm
-	pyright --pythonversion 3.10 confirm
-	pyright --pythonversion 3.11 confirm
+	pyright --pythonversion 3.8 pointblank
+	pyright --pythonversion 3.9 pointblank
+	pyright --pythonversion 3.10 pointblank
+	pyright --pythonversion 3.11 pointblank
 
 clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
 
@@ -44,4 +44,4 @@ docs-build:
 	  && quarto render
 
 install: dist ## install the package to the active Python's site-packages
-	python3 -m pip install --force-reinstall dist/confirm*.whl
+	python3 -m pip install --force-reinstall dist/pointblank*.whl

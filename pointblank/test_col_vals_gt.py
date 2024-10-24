@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import narwhals as nw
 from narwhals.typing import FrameT
+from confirm.comparison import Comparator
 
 
 def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
@@ -39,11 +41,12 @@ def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int
 
     # Collect results for the test units; the results are a list of booleans where
     # `True` indicates a passing test unit
-    test_unit_res = [x > value for x in value_list]
+    test_unit_res = Comparator(value_list, value).gt()
 
     # Get the number of failing test units by counting instances of False
     failing_test_units = test_unit_res.count(False)
 
-    # Determine if the test passes.
+    # Determine if the test passes overall by comparing the number of failing 
+    # test units to the threshold for failing test units
     return failing_test_units < threshold
     
