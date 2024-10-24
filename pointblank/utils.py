@@ -3,7 +3,7 @@ from __future__ import annotations
 import narwhals as nw
 from narwhals.typing import FrameT
 
-def validate_numeric_column(dfn: FrameT, column):
+def validate_numeric_column(dfn: FrameT, column: str) -> None:
     """
     Validate that the specified column exists in the DataFrame and is numeric.
 
