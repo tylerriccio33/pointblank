@@ -1,5 +1,6 @@
 from pointblank.comparison import Comparator
 
+
 def test_comparison_constructor():
 
     # Test the constructor

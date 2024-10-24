@@ -22,7 +22,8 @@ def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int
 
     Returns
     -------
-        `True` when test units pass below the threshold level for failing test units, `False` otherwise.
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
     """
 
     # Convert the DataFrame to a format that narwhals can work with.
@@ -46,7 +47,6 @@ def test_col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int
     # Get the number of failing test units by counting instances of False
     failing_test_units = test_unit_res.count(False)
 
-    # Determine if the test passes overall by comparing the number of failing 
+    # Determine if the test passes overall by comparing the number of failing
     # test units to the threshold for failing test units
     return failing_test_units < threshold
-    
