@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
-include = ["confirm"]
+include = ["pointblank"]
 
 [project]
-name = "confirm"
+name = "pointblank"
 description = "Find out if your data is what you think it is."
 readme = "README.md"
 keywords = ["data", "quality", "validation", "testing", "data science", "data engineering"]
@@ -58,7 +58,7 @@ dev = [
 ]
 
 [project.urls]
-homepage = "https://github.com/rich-iannone/confirm"
+homepage = "https://github.com/rich-iannone/pointblank"
 
 [tool.flake8]
 exclude = ["docs", ".venv", "tests/*"]
@@ -79,7 +79,7 @@ max-line-length = 100
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=confirm -m 'not no_pandas'"
+addopts = "-ra -q --cov=pointblank"
 asyncio_mode = "strict"
 testpaths = [
     "tests"
