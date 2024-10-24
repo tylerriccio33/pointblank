@@ -48,20 +48,17 @@ class Comparator:
     def le(self) -> list[bool]:
         return [i <= j for i, j in zip(self.x, self.compare)]
     
-    def between(self, low: float | int, high: float | int) -> list[bool]:
-        return [low <= i <= high for i in self.x]
+    def between(self) -> list[bool]:
+        return [i > j and i < k for i, j, k in zip(self.x, self.low, self.high)]
     
     def outside(self) -> list[bool]:
+        return [i < j or i > k for i, j, k in zip(self.x, self.low, self.high)]
 
-        
-
-        return [i < self.low or i > self.high for i in self.x]
+    def isin(self) -> list[bool]:
+        return [i in self.compare for i in self.x]
     
-    def isin(self, values: list[float | int]) -> list[bool]:
-        return [i in values for i in self.x]
-    
-    def notin(self, values: list[float | int]) -> list[bool]:
-        return [i not in values for i in self.x]
+    def notin(self) -> list[bool]:
+        return [i not in self.compare for i in self.x]
     
     def isnull(self) -> list[bool]:
         return [i is None for i in self.x]
