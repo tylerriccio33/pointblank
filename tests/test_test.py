@@ -53,3 +53,14 @@ def test_col_vals_ne(tbl):
     assert Test.col_vals_ne(tbl, column="x", value=4, threshold=3) == True
 
 
+def test_col_vals_ge(tbl):
+
+    assert Test.col_vals_ge(tbl, column="x", value=0, threshold=1) == True
+    assert Test.col_vals_ge(tbl, column="x", value=1, threshold=1) == True
+    assert Test.col_vals_ge(tbl, column="x", value=2, threshold=2) == True
+
+    assert Test.col_vals_ge(tbl, column="z", value=8, threshold=1) == True
+    assert Test.col_vals_ge(tbl, column="z", value=7, threshold=1) == True
+    assert Test.col_vals_ge(tbl, column="z", value=9, threshold=1) == False
+    assert Test.col_vals_ge(tbl, column="z", value=9, threshold=5) == True
+
