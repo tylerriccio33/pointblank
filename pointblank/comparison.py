@@ -12,10 +12,16 @@ class Comparator:
     low: float | int | list[float | int] = None
     high: float | int | list[float | int] = None
 
-    # If x or compare is a scalar, convert to a list
-
     def __post_init__(self):
-        if not isinstance(self.x, list):
+
+        if isinstance(self.x, nw.DataFrame):
+
+            if self.column is None:
+                raise ValueError("A column must be provided when passing a Narwhals DataFrame.")
+
+            self.x = self.x[self.column].to_list()
+
+        elif not isinstance(self.x, list):
             self.x = [self.x]
 
         if self.compare is not None:
