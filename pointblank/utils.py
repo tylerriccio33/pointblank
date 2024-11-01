@@ -28,6 +28,26 @@ def validate_numeric_column(dfn: FrameT, column: str) -> None:
     if not dfn.collect_schema().get(column).is_numeric:
         raise TypeError(f"Column '{column}' is not numeric.")
     def threshold_check(failing_test_units: int, threshold: int) -> bool:
+
+def is_numeric_dtype(dtype: str) -> bool:
+    """
+    Check if a given data type string represents a numeric type.
+
+    Parameters
+    ----------
+    dtype : str
+        The data type string to check.
+
+    Returns
+    -------
+    bool
+        `True` if the data type is numeric, `False` otherwise.
+    """
+    # Define the regular expression pattern for numeric data types
+    numeric_pattern = re.compile(r"^(int|float)\d*$")
+    return bool(numeric_pattern.match(dtype))
+
+
 def column_test_prep(df: FrameT, column: str, type: str) -> nw.DataFrame:
 
     # Convert the DataFrame to a format that narwhals can work with.
