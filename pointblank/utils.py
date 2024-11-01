@@ -28,6 +28,19 @@ def validate_numeric_column(dfn: FrameT, column: str) -> None:
     if not dfn.collect_schema().get(column).is_numeric:
         raise TypeError(f"Column '{column}' is not numeric.")
     def threshold_check(failing_test_units: int, threshold: int) -> bool:
+def column_test_prep(df: FrameT, column: str, type: str) -> nw.DataFrame:
+
+    # Convert the DataFrame to a format that narwhals can work with.
+    dfn = convert_to_narwhals(df=df)
+
+    # Check if the column exists
+    check_column_exists(dfn=dfn, column=column)
+
+    # Check if the column is numeric. Raise a TypeError if not.
+    check_column_type(dfn=dfn, column=column, type=type)
+
+    return dfn
+
 
 def threshold_check(failing_test_units: int, threshold: int) -> bool:
     """
