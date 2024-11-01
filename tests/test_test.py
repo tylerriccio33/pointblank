@@ -76,3 +76,8 @@ def test_col_vals_le(tbl):
     assert Test.col_vals_le(tbl, column="z", value=7, threshold=1) == False
     assert Test.col_vals_le(tbl, column="z", value=7, threshold=5) == True
 
+
+def test_column_present_raises(tbl):
+
+    with pytest.raises(ValueError):
+        Test.col_vals_gt(tbl, column="a", value=0, threshold=1)
