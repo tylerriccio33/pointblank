@@ -28,6 +28,8 @@ def validate_numeric_column(dfn: FrameT, column: str) -> None:
     if not dfn.collect_schema().get(column).is_numeric:
         raise TypeError(f"Column '{column}' is not numeric.")
     def threshold_check(failing_test_units: int, threshold: int) -> bool:
+
+def threshold_check(failing_test_units: int, threshold: int) -> bool:
     """
     Determine if the number of failing test units is below the threshold.
 
