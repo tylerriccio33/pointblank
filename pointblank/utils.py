@@ -26,8 +26,46 @@ def validate_numeric_column(dfn: FrameT, column: str) -> None:
         raise ValueError(f"Column '{column}' not found in DataFrame.")
 
     if not dfn.collect_schema().get(column).is_numeric:
+def check_column_type(dfn: nw.DataFrame, column: str, type: str) -> None:
+    """
+    Check if a column is of a certain data type.
+
+    Parameters
+    ----------
+    dfn
+        A Narwhals DataFrame.
+    column
+        The column to check for data type.
+    dtype
+        The data type to check for. The following data types are supported:
+        - 'int'
+        - 'float'
+        - 'str'
+        - 'bool'
+
+    Raises
+    ------
+    TypeError
+        When the column is not of the specified data type.
+    """
+
+    column_dtype = str(dfn.collect_schema().get(column)).lower()
+
+    if type == "numeric" and not is_numeric_dtype(dtype=column_dtype):
         raise TypeError(f"Column '{column}' is not numeric.")
-    def threshold_check(failing_test_units: int, threshold: int) -> bool:
+
+    if type == "str" and column_dtype != "str":
+        raise TypeError(f"Column '{column}' is not a string.")
+
+    if type == "bool" and column_dtype != "bool":
+        raise TypeError(f"Column '{column}' is not a boolean.")
+
+    if type == "datetime" and column_dtype != "datetime":
+        raise TypeError(f"Column '{column}' is not a datetime.")
+
+    if type == "timedelta" and column_dtype != "timedelta":
+        raise TypeError(f"Column '{column}' is not a timedelta.")
+
 
 def is_numeric_dtype(dtype: str) -> bool:
     """
