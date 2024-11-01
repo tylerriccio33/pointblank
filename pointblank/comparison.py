@@ -1,6 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
+import narwhals as nw
+
 
 @dataclass
 class Comparator:
