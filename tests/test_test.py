@@ -34,3 +34,14 @@ def test_col_vals_lt(tbl):
     assert Test.col_vals_lt(tbl, column="y", value=7, threshold=2) == True
 
 
+def test_col_vals_eq(tbl):
+
+    assert Test.col_vals_eq(tbl, column="x", value=8, threshold=1) == False
+    assert Test.col_vals_eq(tbl, column="x", value=8, threshold=5) == True
+
+    assert Test.col_vals_eq(tbl, column="y", value=8, threshold=1) == False
+    assert Test.col_vals_eq(tbl, column="y", value=8, threshold=5) == True
+
+    assert Test.col_vals_eq(tbl, column="z", value=8, threshold=1) == True
+    assert Test.col_vals_eq(tbl, column="z", value=9, threshold=2) == False
+
