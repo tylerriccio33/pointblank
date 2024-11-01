@@ -45,3 +45,11 @@ def test_col_vals_eq(tbl):
     assert Test.col_vals_eq(tbl, column="z", value=8, threshold=1) == True
     assert Test.col_vals_eq(tbl, column="z", value=9, threshold=2) == False
 
+
+def test_col_vals_ne(tbl):
+
+    assert Test.col_vals_ne(tbl, column="x", value=5, threshold=1) == True
+    assert Test.col_vals_ne(tbl, column="x", value=4, threshold=1) == False
+    assert Test.col_vals_ne(tbl, column="x", value=4, threshold=3) == True
+
+
