@@ -308,3 +308,124 @@ def _col_vals_compare_set(
     # test units to the threshold for failing test units
     return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
 
+
+class Test:
+    def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="gt", type=type
+        )
+
+    col_vals_gt.__doc__ = _col_vals_compare_one_docstring(comparison="greater than")
+
+    def col_vals_lt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="lt", type=type
+        )
+
+    col_vals_lt.__doc__ = _col_vals_compare_one_docstring(comparison="less than")
+
+    def col_vals_eq(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="eq", type=type
+        )
+
+    col_vals_eq.__doc__ = _col_vals_compare_one_docstring(comparison="equal to")
+
+    def col_vals_ne(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="ne", type=type
+        )
+
+    col_vals_ne.__doc__ = _col_vals_compare_one_docstring(comparison="not equal to")
+
+    def col_vals_ge(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="ge", type=type
+        )
+
+    col_vals_ge.__doc__ = _col_vals_compare_one_docstring(comparison="greater than or equal to")
+
+    def col_vals_le(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_one(
+            df=df, column=column, value=value, threshold=threshold, comparison="le", type=type
+        )
+
+    col_vals_le.__doc__ = _col_vals_compare_one_docstring(comparison="less than or equal to")
+
+    def col_vals_between(
+        df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
+    ) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_two(
+            df=df,
+            column=column,
+            value1=left,
+            value2=right,
+            threshold=threshold,
+            comparison="between",
+            type=type,
+        )
+
+    col_vals_between.__doc__ = _col_vals_compare_two_docstring(comparison="between")
+
+    def col_vals_outside(
+        df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
+    ) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_two(
+            df=df,
+            column=column,
+            value1=left,
+            value2=right,
+            threshold=threshold,
+            comparison="outside",
+            type=type,
+        )
+
+    col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside")
+
+    def col_vals_in_set(
+        df: FrameT, column: str, values: list[float | int], threshold: int = 1
+    ) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_set(
+            df=df, column=column, values=values, threshold=threshold, inside=True, type=type
+        )
+
+    col_vals_in_set.__doc__ = _col_vals_compare_set_docstring(inside=True)
+
+    def col_vals_not_in_set(
+        df: FrameT, column: str, values: list[float | int], threshold: int = 1
+    ) -> bool:
+
+        type = "numeric"
+
+        return _col_vals_compare_set(
+            df=df, column=column, values=values, threshold=threshold, inside=False, type=type
+        )
+
+    col_vals_not_in_set.__doc__ = _col_vals_compare_set_docstring(inside=False)
