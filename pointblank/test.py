@@ -198,3 +198,64 @@ def _col_vals_compare_one(
     # test units to the threshold for failing test units
     return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
 
+
+def _col_vals_compare_two(
+    df: FrameT,
+    column: str,
+    value1: float | int,
+    value2: float | int,
+    threshold: int,
+    comparison: str,
+    type: str = "numeric",
+) -> bool:
+    """
+    General routine to compare values in a column against two values.
+
+    Parameters
+    ----------
+    df : FrameT
+        a DataFrame.
+    column : str
+        The column to check.
+    value1 : float | int
+        A value to check against.
+    value2 : float | int
+        A value to check against.
+    threshold : int
+        The maximum number of failing test units to allow.
+    comparison : str
+        The type of comparison ('gt' for greater than, 'lt' for less than).
+    type : str
+        The data type of the column.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    # Convert the DataFrame to a format that narwhals can work with and:
+    #  - check if the column exists
+    #  - check if the column type is compatible with the test
+    dfn = column_test_prep(df=df, column=column, type=type)
+
+    # Collect results for the test units; the results are a list of booleans where
+    # `True` indicates a passing test unit
+    if comparison == "between":
+        test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).between()
+    elif comparison == "not between":
+        test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).outside()
+
+    else:
+        raise ValueError(
+            """Invalid comparison type. Use:
+            - `between` for values between two values, or
+            - `not between` for values outside two values."""
+        )
+
+    # Get the number of failing test units by counting instances of `False` and
+    # then determine if the test passes overall by comparing the number of failing
+    # test units to the threshold for failing test units
+    return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
+
