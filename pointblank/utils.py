@@ -5,27 +5,34 @@ import re
 import narwhals as nw
 from narwhals.typing import FrameT
 
-def validate_numeric_column(dfn: FrameT, column: str) -> None:
+
+def convert_to_narwhals(df: FrameT) -> nw.DataFrame:
+
+    # Convert the DataFrame to a format that narwhals can work with
+    return nw.from_native(df)
+
+
+def check_column_exists(dfn: nw.DataFrame, column: str) -> None:
     """
-    Validate that the specified column exists in the DataFrame and is numeric.
+    Check if a column exists in a DataFrame.
 
-    Parameters:
-    dfn (DataFrame): The DataFrame to check.
-    column (str): The column name to validate.
+    Parameters
+    ----------
+    dfn
+        A Narwhals DataFrame.
+    column
+        The column to check for existence.
 
-    Raises:
-    ValueError: If the column does not exist in the DataFrame.
-    TypeError: If the column is not numeric.
+    Raises
+    ------
+    ValueError
+        When the column is not found in the DataFrame.
     """
-
-    # Expect a Narwhals DataFrame but allow for Pandas/Polars DataFrames
-    if not isinstance(dfn, (nw.DataFrame, FrameT)):
-        raise TypeError("DataFrame must be a Narwhals, Pandas, or Polars DataFrame.")
 
     if column not in dfn.columns:
         raise ValueError(f"Column '{column}' not found in DataFrame.")
 
-    if not dfn.collect_schema().get(column).is_numeric:
+
 def check_column_type(dfn: nw.DataFrame, column: str, type: str) -> None:
     """
     Check if a column is of a certain data type.
