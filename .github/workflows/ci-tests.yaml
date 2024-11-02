@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e '.[all]'
+      - name: Install test dependencies
+        run: |
+          pip install pytest pytest-cov
       - name: pytest unit tests
         run: |
           make test
