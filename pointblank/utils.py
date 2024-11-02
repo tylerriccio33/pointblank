@@ -107,7 +107,7 @@ def column_test_prep(df: FrameT, column: str, type: str) -> nw.DataFrame:
     return dfn
 
 
-def threshold_check(failing_test_units: int, threshold: int) -> bool:
+def threshold_check(failing_test_units: int | float, threshold: int | float) -> bool:
     """
     Determine if the number of failing test units is below the threshold.
 
