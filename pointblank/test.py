@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from pointblank.utils import (
-    column_test_prep,
-    threshold_check,
+    _column_test_prep,
+    _threshold_check,
 )
 
 from narwhals.typing import FrameT
@@ -165,7 +165,7 @@ def _col_vals_compare_one(
     # Convert the DataFrame to a format that narwhals can work with and:
     #  - check if the column exists
     #  - check if the column type is compatible with the test
-    dfn = column_test_prep(df=df, column=column, type=type)
+    dfn = _column_test_prep(df=df, column=column, type=type)
 
     # Collect results for the test units; the results are a list of booleans where
     # `True` indicates a passing test unit
@@ -196,7 +196,7 @@ def _col_vals_compare_one(
     # Get the number of failing test units by counting instances of `False` and
     # then determine if the test passes overall by comparing the number of failing
     # test units to the threshold for failing test units
-    return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
+    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
 
 
 def _col_vals_compare_two(
@@ -238,7 +238,7 @@ def _col_vals_compare_two(
     # Convert the DataFrame to a format that narwhals can work with and:
     #  - check if the column exists
     #  - check if the column type is compatible with the test
-    dfn = column_test_prep(df=df, column=column, type=type)
+    dfn = _column_test_prep(df=df, column=column, type=type)
 
     # Collect results for the test units; the results are a list of booleans where
     # `True` indicates a passing test unit
@@ -257,7 +257,7 @@ def _col_vals_compare_two(
     # Get the number of failing test units by counting instances of `False` and
     # then determine if the test passes overall by comparing the number of failing
     # test units to the threshold for failing test units
-    return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
+    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
 
 
 def _col_vals_compare_set(
@@ -294,7 +294,7 @@ def _col_vals_compare_set(
     # Convert the DataFrame to a format that narwhals can work with and:
     #  - check if the column exists
     #  - check if the column type is compatible with the test
-    dfn = column_test_prep(df=df, column=column, type=type)
+    dfn = _column_test_prep(df=df, column=column, type=type)
 
     # Collect results for the test units; the results are a list of booleans where
     # `True` indicates a passing test unit
@@ -306,7 +306,7 @@ def _col_vals_compare_set(
     # Get the number of failing test units by counting instances of `False` and
     # then determine if the test passes overall by comparing the number of failing
     # test units to the threshold for failing test units
-    return threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
+    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
 
 
 class Test:
