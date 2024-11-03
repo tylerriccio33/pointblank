@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pointblank.utils import (
+from narwhals.typing import FrameT
+
+from pointblank._comparison import Comparator
+from pointblank._utils import (
     _column_test_prep,
     _threshold_check,
 )
-
-from narwhals.typing import FrameT
-from pointblank.comparison import Comparator
 
 COL_VALS_COMPARE_ONE_DOCSTRING = """
     Determine if values in a column are ___ a single value.

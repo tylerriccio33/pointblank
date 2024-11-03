@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from pointblank.comparison import Comparator
+from pointblank._comparison import Comparator
 
 
 @pytest.mark.parametrize(
