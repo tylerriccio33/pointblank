@@ -224,7 +224,8 @@ def _col_vals_compare_two(
     threshold : int
         The maximum number of failing test units to allow.
     comparison : str
-        The type of comparison ('gt' for greater than, 'lt' for less than).
+        The type of comparison ('between' for between two values and 'outside' for outside two
+        values).
     type : str
         The data type of the column.
 
@@ -244,14 +245,13 @@ def _col_vals_compare_two(
     # `True` indicates a passing test unit
     if comparison == "between":
         test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).between()
-    elif comparison == "not between":
+    elif comparison == "outside":
         test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).outside()
-
     else:
         raise ValueError(
             """Invalid comparison type. Use:
             - `between` for values between two values, or
-            - `not between` for values outside two values."""
+            - `outside` for values outside two values."""
         )
 
     # Get the number of failing test units by counting instances of `False` and
