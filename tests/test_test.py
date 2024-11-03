@@ -138,6 +138,21 @@ def test_col_vals_between(request, tbl_fixture):
     "tbl_fixture",
     ["tbl_pd", "tbl_pl"],
 )
+def test_col_vals_outside(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Test.col_vals_outside(tbl, column="x", left=5, right=8, threshold=1) == True
+    assert Test.col_vals_outside(tbl, column="x", left=4, right=8, threshold=1) == False
+    assert Test.col_vals_outside(tbl, column="x", left=4, right=8, threshold=2) == True
+    assert Test.col_vals_outside(tbl, column="x", left=0, right=6, threshold=1) == False
+    assert Test.col_vals_outside(tbl, column="x", left=0, right=6, threshold=5) == True
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_pd", "tbl_pl"],
+)
 def test_column_present_raises(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
