@@ -37,3 +37,10 @@ class Thresholds:
                 setattr(self, f"{base_name}_count", round(value))
             elif value < 0:
                 raise ValueError(f"Negative values are not allowed for `{attribute_name}`.")
+
+    def __repr__(self) -> str:
+        return f"Thresholds(warn_at={self.warn_at}, stop_at={self.stop_at}, notify_at={self.notify_at})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
