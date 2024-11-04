@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from pointblank.thresholds import Thresholds
+from pointblank.thresholds import Thresholds, _convert_abs_count_to_fraction
 
 
 def test_thresholds_default():
@@ -125,3 +125,26 @@ def test_threshold_get_fractional_0_1():
     assert t._get_threshold_value("warn") == 0.1
     assert t._get_threshold_value("stop") == 0.2
     assert t._get_threshold_value("notify") == 0.3
+
+
+def test_convert_abs_count_to_fraction():
+
+    assert _convert_abs_count_to_fraction(None, 100) == None
+    assert _convert_abs_count_to_fraction(1, 100) == 0.01
+    assert _convert_abs_count_to_fraction(1, 1e7) == 1e-07
+    assert _convert_abs_count_to_fraction(1, 1e10) == 1e-10
+    assert _convert_abs_count_to_fraction(0, 100) == 0.0
+    assert _convert_abs_count_to_fraction(1.6, 10) == 0.2
+    assert _convert_abs_count_to_fraction(1.4, 10) == 0.1
+    assert isinstance(_convert_abs_count_to_fraction(0, 100), float)
+    assert _convert_abs_count_to_fraction(100, 100) == 1.0
+    assert _convert_abs_count_to_fraction(150, 100) == 1.5
+
+    with pytest.raises(ValueError):
+        _convert_abs_count_to_fraction(-1, 100)
+    with pytest.raises(ValueError):
+        _convert_abs_count_to_fraction(-0.1, 100)
+    with pytest.raises(ValueError):
+        _convert_abs_count_to_fraction(3, -100)
+    with pytest.raises(ValueError):
+        _convert_abs_count_to_fraction(3, 0)
