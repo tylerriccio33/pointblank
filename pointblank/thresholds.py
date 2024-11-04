@@ -67,3 +67,11 @@ class Thresholds:
         # The final case is where the threshold is None, so None is returned
         return None
 
+    def _convert_abs_count_to_fraction(self, value: float | None, test_units: int) -> float:
+
+        # Using a integer value signifying the total number of 'test units' (in the
+        # context of a validation), we convert an integer count (absolute) threshold
+        # value to a fractional threshold value
+        if value is not None:
+            return value / test_units
+        return None
