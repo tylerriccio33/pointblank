@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from pointblank._thresholds import Thresholds
+from pointblank.thresholds import Thresholds
 
 
 def test_thresholds():
