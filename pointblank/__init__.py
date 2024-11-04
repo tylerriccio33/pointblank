@@ -8,5 +8,6 @@ except PackageNotFoundError:
 # Import objects from the module
 from pointblank.test import Test
 from pointblank.validate import Validate
+from pointblank.thresholds import Thresholds
 
-__all__ = ["Test", "Validate"]
+__all__ = ["Test", "Validate", "Thresholds"]
