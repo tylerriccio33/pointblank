@@ -52,7 +52,7 @@ def _is_numeric_dtype(dtype: str) -> bool:
     return bool(numeric_pattern.match(dtype))
 
 
-def _check_column_type(dfn: nw.DataFrame, column: str, type: str) -> None:
+def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str]) -> None:
     """
     Check if a column is of a certain data type.
 
@@ -77,23 +77,23 @@ def _check_column_type(dfn: nw.DataFrame, column: str, type: str) -> None:
 
     column_dtype = str(dfn.collect_schema().get(column)).lower()
 
-    if type == "numeric" and not _is_numeric_dtype(dtype=column_dtype):
-        raise TypeError(f"Column '{column}' is not numeric.")
+    if _is_numeric_dtype(column_dtype) and "numeric" not in allowed_types:
+        raise TypeError(f"Column '{column}' is numeric.")
 
-    if type == "str" and column_dtype != "str":
-        raise TypeError(f"Column '{column}' is not a string.")
+    if column_dtype == "str" and "str" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a string.")
 
-    if type == "bool" and column_dtype != "bool":
-        raise TypeError(f"Column '{column}' is not a boolean.")
+    if column_dtype == "bool" and "bool" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a boolean.")
 
-    if type == "datetime" and column_dtype != "datetime":
-        raise TypeError(f"Column '{column}' is not a datetime.")
+    if column_dtype == "datetime" and "datetime" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a datetime.")
 
-    if type == "timedelta" and column_dtype != "timedelta":
-        raise TypeError(f"Column '{column}' is not a timedelta.")
+    if column_dtype == "timedelta" and "timedelta" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a timedelta.")
 
 
-def _column_test_prep(df: FrameT, column: str, type: str) -> nw.DataFrame:  # noqa: F401
+def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.DataFrame:
 
     # Convert the DataFrame to a format that narwhals can work with.
     dfn = _convert_to_narwhals(df=df)
@@ -102,7 +102,7 @@ def _column_test_prep(df: FrameT, column: str, type: str) -> nw.DataFrame:  # no
     _check_column_exists(dfn=dfn, column=column)
 
     # Check if the column is numeric. Raise a TypeError if not.
-    _check_column_type(dfn=dfn, column=column, type=type)
+    _check_column_type(dfn=dfn, column=column, allowed_types=allowed_types)
 
     return dfn
 
