@@ -7,5 +7,6 @@ except PackageNotFoundError:
 
 # Import objects from the module
 from pointblank.test import Test
+from pointblank.validate import Validate
 
-__all__ = ["Test"]
+__all__ = ["Test", "Validate"]
