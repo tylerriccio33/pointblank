@@ -44,3 +44,26 @@ class Thresholds:
     def __str__(self) -> str:
         return self.__repr__()
 
+    def _get_threshold_value(self, level: str) -> float | int | None:
+
+        # The threshold for a given level (warn, stop, notify) is either:
+        # 1. a fraction
+        # 2. an absolute count
+        # 3. zero
+        # 4. None
+
+        # If the threshold is a fraction, return the fraction
+        if getattr(self, f"{level}_fraction") is not None:
+            return getattr(self, f"{level}_fraction")
+
+        # If the threshold is an absolute count, return the count
+        if getattr(self, f"{level}_count") is not None:
+            return getattr(self, f"{level}_count")
+
+        # If the threshold is zero, return 0
+        if getattr(self, f"{level}_count") == 0:
+            return 0
+
+        # The final case is where the threshold is None, so None is returned
+        return None
+
