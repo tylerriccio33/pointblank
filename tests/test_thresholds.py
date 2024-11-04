@@ -87,3 +87,41 @@ def test_thresholds_raises_on_negative():
         Thresholds(notify_at=-1)
     with pytest.raises(ValueError):
         Thresholds(notify_at=-0.1)
+
+
+def test_thresolds_repr():
+    t = Thresholds(warn_at=1, stop_at=2, notify_at=3)
+    assert repr(t) == "Thresholds(warn_at=1, stop_at=2, notify_at=3)"
+    assert str(t) == "Thresholds(warn_at=1, stop_at=2, notify_at=3)"
+
+
+def test_threshold_get_default():
+    t = Thresholds()
+
+    assert t._get_threshold_value("warn") is None
+    assert t._get_threshold_value("stop") is None
+    assert t._get_threshold_value("notify") is None
+
+
+def test_threshold_get_zero():
+    t = Thresholds(warn_at=0, stop_at=0, notify_at=0)
+
+    assert t._get_threshold_value("warn") == 0
+    assert t._get_threshold_value("stop") == 0
+    assert t._get_threshold_value("notify") == 0
+
+
+def test_threshold_get_absolute():
+    t = Thresholds(warn_at=1, stop_at=2, notify_at=3)
+
+    assert t._get_threshold_value("warn") == 1
+    assert t._get_threshold_value("stop") == 2
+    assert t._get_threshold_value("notify") == 3
+
+
+def test_threshold_get_fractional_0_1():
+    t = Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+
+    assert t._get_threshold_value("warn") == 0.1
+    assert t._get_threshold_value("stop") == 0.2
+    assert t._get_threshold_value("notify") == 0.3
