@@ -21,11 +21,11 @@ class Thresholds:
     notify_count: int | None = field(default=None, init=False)
 
     def __post_init__(self):
-        self.process_threshold("warn_at", "warn")
-        self.process_threshold("stop_at", "stop")
-        self.process_threshold("notify_at", "notify")
+        self._process_threshold("warn_at", "warn")
+        self._process_threshold("stop_at", "stop")
+        self._process_threshold("notify_at", "notify")
 
-    def process_threshold(self, attribute_name, base_name):
+    def _process_threshold(self, attribute_name, base_name):
         value = getattr(self, attribute_name)
         if value is not None:
             if value == 0:
