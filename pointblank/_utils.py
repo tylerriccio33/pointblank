@@ -121,7 +121,7 @@ def _get_comparison_from_fname() -> str:
     return comparison
 
 
-def _get_assertion_type_from_fname() -> str:
+def _get_def_name() -> str:
 
     # Get the current function name
     assertion_type = inspect.currentframe().f_back.f_code.co_name

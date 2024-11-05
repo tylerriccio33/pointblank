@@ -18,13 +18,15 @@ COL_VALS_COMPARE_ONE_DOCSTRING = """
 
     Parameters
     ----------
-    object
+    df : FrameT
         a DataFrame.
-    column
+    column : str
         The column to check.
-    value
+    value : float | int
         A value to check against.
-    threshold
+    na_pass : bool
+        Whether to pass rows with missing values.
+    threshold : int
         The maximum number of failing test units to allow.
 
     Returns
@@ -47,6 +49,8 @@ COL_VALS_COMPARE_TWO_DOCSTRING = """
         A lower value to check against.
     right : float | int
         A higher value to check against.
+    na_pass : bool
+        Whether to pass rows with missing values.
     threshold : int
         The maximum number of failing test units to allow.
 
@@ -140,7 +144,9 @@ class Test:
     Tests use tabular data and return a single boolean value per check.
     """
 
-    def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_gt(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -149,6 +155,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -156,7 +163,9 @@ class Test:
 
     col_vals_gt.__doc__ = _col_vals_compare_one_docstring(comparison="greater than")
 
-    def col_vals_lt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_lt(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -165,6 +174,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -172,7 +182,9 @@ class Test:
 
     col_vals_lt.__doc__ = _col_vals_compare_one_docstring(comparison="less than")
 
-    def col_vals_eq(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_eq(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -181,6 +193,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -188,7 +201,9 @@ class Test:
 
     col_vals_eq.__doc__ = _col_vals_compare_one_docstring(comparison="equal to")
 
-    def col_vals_ne(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_ne(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -197,6 +212,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -204,7 +220,9 @@ class Test:
 
     col_vals_ne.__doc__ = _col_vals_compare_one_docstring(comparison="not equal to")
 
-    def col_vals_ge(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_ge(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -213,6 +231,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -220,7 +239,9 @@ class Test:
 
     col_vals_ge.__doc__ = _col_vals_compare_one_docstring(comparison="greater than or equal to")
 
-    def col_vals_le(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
+    def col_vals_le(
+        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+    ) -> bool:
 
         comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
@@ -229,6 +250,7 @@ class Test:
             df=df,
             column=column,
             value=value,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -237,7 +259,12 @@ class Test:
     col_vals_le.__doc__ = _col_vals_compare_one_docstring(comparison="less than or equal to")
 
     def col_vals_between(
-        df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
+        df: FrameT,
+        column: str,
+        left: float | int,
+        right: float | int,
+        na_pass: bool = False,
+        threshold: int = 1,
     ) -> bool:
 
         comparison = _get_comparison_from_fname()
@@ -248,6 +275,7 @@ class Test:
             column=column,
             value1=left,
             value2=right,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -256,7 +284,12 @@ class Test:
     col_vals_between.__doc__ = _col_vals_compare_two_docstring(comparison="between")
 
     def col_vals_outside(
-        df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
+        df: FrameT,
+        column: str,
+        left: float | int,
+        right: float | int,
+        na_pass: bool = False,
+        threshold: int = 1,
     ) -> bool:
 
         comparison = _get_comparison_from_fname()
@@ -267,6 +300,7 @@ class Test:
             column=column,
             value1=left,
             value2=right,
+            na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
@@ -275,7 +309,10 @@ class Test:
     col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside")
 
     def col_vals_in_set(
-        df: FrameT, column: str, values: list[float | int], threshold: int = 1
+        df: FrameT,
+        column: str,
+        values: list[float | int],
+        threshold: int = 1,
     ) -> bool:
 
         compatible_types = COMPATIBLE_TYPES.get("in_set", [])
@@ -292,7 +329,10 @@ class Test:
     col_vals_in_set.__doc__ = _col_vals_compare_set_docstring(inside=True)
 
     def col_vals_not_in_set(
-        df: FrameT, column: str, values: list[float | int], threshold: int = 1
+        df: FrameT,
+        column: str,
+        values: list[float | int],
+        threshold: int = 1,
     ) -> bool:
 
         compatible_types = COMPATIBLE_TYPES.get("not_in_set", [])

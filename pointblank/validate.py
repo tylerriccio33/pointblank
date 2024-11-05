@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from narwhals.typing import FrameT
 
 from pointblank._constants import TYPE_METHOD_MAP, COMPATIBLE_TYPES, COMPARE_TYPE_MAP
-from pointblank._comparison import ColValsCompareOne, ColValsCompareTwo
-from pointblank._utils import _get_assertion_type_from_fname
+from pointblank._comparison import ColValsCompareOne, ColValsCompareTwo, NumberOfTestUnits
+from pointblank._utils import _get_def_name
 from pointblank.thresholds import (
     Thresholds,
     _normalize_thresholds_creation,
@@ -62,6 +62,8 @@ COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING = """
         The column to validate.
     value : int | float
         The value to compare against.
+    na_pass : bool
+        Whether to pass rows with missing values.
     thresholds : int | float | tuple | dict| Thresholds, optional
         The threshold value or values.
     active : bool, optional
@@ -77,6 +79,8 @@ COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING = """
         The lower bound of the range.
     right : int | float
         The upper bound of the range.
+    na_pass : bool
+        Whether to pass rows with missing values.
     thresholds : int | float | tuple | dict| Thresholds, optional
         The threshold value or values.
     active : bool, optional
@@ -141,51 +145,21 @@ class Validate:
     data: FrameT
     validation_info: list[ValidationInfo] = field(default_factory=list)
 
-    def _add_validation(self, validation_info):
-        """
-        Add a validation to the list of validations.
-
-        Parameters
-        ----------
-        validation_info : ValidationInfo
-            Information about the validation to add.
-        """
-        self.validation_info.append(validation_info)
-
-        return self
-
-    def _get_validations(self):
-        """
-        Get the list of validations.
-
-        Returns
-        -------
-        list[ValidationInfo]
-            The list of validations.
-        """
-        return self.validation_info
-
-    def _clear_validations(self):
-        """
-        Clear the list of validations.
-        """
-        self.validation_info.clear()
-
-        return self.validation_info
-
     def col_vals_gt(
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -198,15 +172,17 @@ class Validate:
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -219,15 +195,17 @@ class Validate:
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -240,15 +218,17 @@ class Validate:
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -261,15 +241,17 @@ class Validate:
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -282,15 +264,17 @@ class Validate:
         self,
         column: str,
         value: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -304,10 +288,11 @@ class Validate:
         column: str,
         left: float | int,
         right: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         value = (left, right)
 
@@ -315,6 +300,7 @@ class Validate:
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -330,10 +316,11 @@ class Validate:
         column: str,
         left: float | int,
         right: float | int,
+        na_pass: bool = False,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         value = (left, right)
 
@@ -341,6 +328,7 @@ class Validate:
             assertion_type=assertion_type,
             column=column,
             values=value,
+            na_pass=na_pass,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -358,7 +346,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
@@ -381,7 +369,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_assertion_type_from_fname()
+        assertion_type = _get_def_name()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
@@ -411,7 +399,10 @@ class Validate:
             type = validation.assertion_type
             column = validation.column
             value = validation.values
+            na_pass = validation.na_pass
             threshold = validation.thresholds
+
+            validation.n = NumberOfTestUnits(df=df, column=column).get_test_units()
 
             comparison = TYPE_METHOD_MAP[type]
             compare_type = COMPARE_TYPE_MAP[comparison]
@@ -423,6 +414,7 @@ class Validate:
                     df=df,
                     column=column,
                     value=value,
+                    na_pass=na_pass,
                     threshold=threshold,
                     comparison=comparison,
                     allowed_types=compatible_types,
@@ -435,6 +427,7 @@ class Validate:
                     column=column,
                     value1=value[0],
                     value2=value[1],
+                    na_pass=na_pass,
                     threshold=threshold,
                     comparison=comparison,
                     allowed_types=compatible_types,
@@ -495,3 +488,35 @@ class Validate:
             validation.time_processed = end_time.isoformat(timespec="milliseconds")
 
         return self
+
+    def _add_validation(self, validation_info):
+        """
+        Add a validation to the list of validations.
+
+        Parameters
+        ----------
+        validation_info : ValidationInfo
+            Information about the validation to add.
+        """
+        self.validation_info.append(validation_info)
+
+        return self
+
+    def _get_validations(self):
+        """
+        Get the list of validations.
+
+        Returns
+        -------
+        list[ValidationInfo]
+            The list of validations.
+        """
+        return self.validation_info
+
+    def _clear_validations(self):
+        """
+        Clear the list of validations.
+        """
+        self.validation_info.clear()
+
+        return self.validation_info
