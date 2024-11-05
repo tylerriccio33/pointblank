@@ -105,6 +105,62 @@ COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING = """
 class ValidationInfo:
     """
     Information about a validation to be performed on a table and the results of the interrogation.
+
+    Attributes
+    ----------
+    i : int | None
+        The validation step number.
+    i_o : int | None
+        The original validation step number (if a step creates multiple steps). Unused.
+    step_id : str | None
+        The ID of the step (if a step creates multiple steps). Unused.
+    sha1 : str | None
+        The SHA-1 hash of the step. Unused.
+    assertion_type : str | None
+        The type of assertion. This is the method name of the validation (e.g., `"col_vals_gt"`).
+    column : str | None
+        The column to validate. Currently we don't allow for column expressions (which may map to
+        multiple columns).
+    values : any | list[any] | tuple | None
+        The value or values to compare against.
+    na_pass : bool | None
+        Whether to pass test units that hold missing values.
+    thresholds : Thresholds | None
+        The threshold values for the validation.
+    label : str | None
+        A label for the validation step. Unused.
+    brief : str | None
+        A brief description of the validation step. Unused.
+    active : bool | None
+        Whether the validation step is active.
+    all_passed : bool | None
+        Upon interrogation, this describes whether all test units passed for a validation step.
+    n : int | None
+        The number of test units for the validation step.
+    n_passed : int | None
+        The number of test units that passed (i.e., passing test units).
+    n_failed : int | None
+        The number of test units that failed (i.e., failing test units).
+    f_passed : int | None
+        The fraction of test units that passed. The calculation is `n_passed / n`.
+    f_failed : int | None
+        The fraction of test units that failed. The calculation is `n_failed / n`.
+    warn : bool | None
+        Whether the number of failing test units is beyond the warning threshold.
+    stop : bool | None
+        Whether the number of failing test units is beyond the stopping threshold.
+    notify : bool | None
+        Whether the number of failing test units is beyond the notification threshold.
+    row_sample : int | None
+        The number of rows to sample for the validation step. Unused.
+    tbl_checked : bool | None
+        Whether the table has undergone validation. This may later be the table itself augmented
+        with a column that indicates the result of the validation (but only for column-value based
+        validations).
+    time_processed : str | None
+        The time the validation step was processed. This is in the ISO 8601 format in UTC time.
+    proc_duration_s : float | None
+        The duration of processing for the validation step in seconds.
     """
 
     # Validation plan
