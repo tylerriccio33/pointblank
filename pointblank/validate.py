@@ -475,6 +475,17 @@ class Validate:
                     allowed_types=compatible_types,
                 ).get_test_results()
 
+            if compare_type == "COMPARE_SET":
+
+                results_list = ColValsCompareOne(
+                    df=df,
+                    column=column,
+                    value=value,
+                    threshold=threshold,
+                    comparison=comparison,
+                    allowed_types=compatible_types,
+                ).get_test_results()
+
             validation.all_passed = all(results_list)
             validation.n = len(results_list)
             validation.n_passed = results_list.count(True)
