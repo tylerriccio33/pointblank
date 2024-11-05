@@ -67,6 +67,40 @@ class Thresholds:
         # The final case is where the threshold is None, so None is returned
         return None
 
+    def _threshold_result(self, fraction_failing: float, test_units: int, level: str) -> bool:
+        """
+        Determine if the number of failing test units is below the threshold.
+
+        Parameters
+        ----------
+        failing_test_units
+            The number of failing test units.
+        level
+            The threshold level to check.
+
+        Returns
+        -------
+            `True` when test units pass below the threshold level for failing test units, `False`
+            otherwise.
+        """
+
+        threshold_value = self._get_threshold_value(level=level)
+
+        if threshold_value is None:
+            return False
+
+        if threshold_value == 0:
+            return True
+
+        # The threshold value might be an absolute count, but we need to convert
+        # it to a fractional value
+        if isinstance(threshold_value, int):
+            threshold_value = _convert_abs_count_to_fraction(
+                value=threshold_value, test_units=test_units
+            )
+
+        return fraction_failing >= threshold_value
+
 
 def _convert_abs_count_to_fraction(value: int | None, test_units: int) -> float:
 
@@ -151,7 +185,7 @@ def _normalize_thresholds_creation(
     return thresholds
 
 
-def _threshold_check(failing_test_units: int | float, threshold: int | float) -> bool:
+def _threshold_check(failing_test_units: int | float, threshold: int | float | None) -> bool:
     """
     Determine if the number of failing test units is below the threshold.
 
@@ -167,5 +201,8 @@ def _threshold_check(failing_test_units: int | float, threshold: int | float) ->
         `True` when test units pass below the threshold level for failing test units, `False`
         otherwise.
     """
+
+    if threshold is None:
+        return False
 
     return failing_test_units < threshold
