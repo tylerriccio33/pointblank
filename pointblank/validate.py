@@ -443,6 +443,9 @@ class Validate:
         df = self.data
 
         for validation in self.validation_info:
+
+            start_time = datetime.datetime.now(datetime.timezone.utc)
+
             type = validation.assertion_type
             column = validation.column
             value = validation.values
@@ -517,7 +520,16 @@ class Validate:
                     ),
                 )
 
+            # Set the table as checked
             validation.tbl_checked = True
-            validation.time_processed = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Get the end time for this step
+            end_time = datetime.datetime.now(datetime.timezone.utc)
+
+            # Calculate the duration of processing for this step
+            validation.proc_duration_s = (end_time - start_time).total_seconds()
+
+            # Set the time of processing for this step, this should be UTC time is ISO 8601 format
+            validation.time_processed = end_time.isoformat(timespec="milliseconds")
 
         return self
