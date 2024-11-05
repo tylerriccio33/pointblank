@@ -561,6 +561,31 @@ class Validate:
         """
         return all(validation.all_passed for validation in self.validation_info)
 
+    def n_passed(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the number of test units that passed for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the number of passing test units is obtained.
+            If `None`, all steps are included.
+        """
+
+        if isinstance(i, int):
+            i = [i]
+
+        if i is None:
+            # The step values are not guaranteed to be monotonically increasing, so iterating
+            # through the list is the best strategy when creating the dictionary
+            return {validation.i: validation.n_passed for validation in self.validation_info}
+
+        return {
+            validation.i: validation.n_passed
+            for validation in self.validation_info
+            if validation.i in i
+        }
+
     def _add_validation(self, validation_info):
         """
         Add a validation to the list of validations.
