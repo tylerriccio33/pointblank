@@ -550,6 +550,17 @@ class Validate:
 
         return self
 
+    def all_passed(self):
+        """
+        Determine if every validation step passed perfectly, with no failing test units.
+
+        Returns
+        -------
+        bool
+            `True` if all validations passed, `False` otherwise.
+        """
+        return all(validation.all_passed for validation in self.validation_info)
+
     def _add_validation(self, validation_info):
         """
         Add a validation to the list of validations.
