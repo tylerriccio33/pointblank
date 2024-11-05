@@ -14,7 +14,7 @@ from pointblank._utils import _get_comparison_from_fname
 
 
 COL_VALS_COMPARE_ONE_DOCSTRING = """
-    Determine if values in a column are ___ a single value.
+    Test whether values in a column are ___ a single value.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ COL_VALS_COMPARE_ONE_DOCSTRING = """
     """
 
 COL_VALS_COMPARE_TWO_DOCSTRING = """
-    Determine if values in a column are ___ two values.
+    Test whether values in a column are ___ two values.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ COL_VALS_COMPARE_TWO_DOCSTRING = """
     """
 
 COL_VALS_COMPARE_SET_DOCSTRING = """
-    Determine if values in a column are ___ a set of values.
+    Test whether values in a column are ___ a set of values.
 
     Parameters
     ----------
