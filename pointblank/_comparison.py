@@ -99,8 +99,8 @@ class ColValsCompareOne:
         The maximum number of failing test units to allow.
     comparison : str
         The type of comparison ('gt' for greater than, 'lt' for less than).
-    type : str
-        The data type of the column.
+    allowed_types : list[str]
+        The allowed data types for the column.
 
     Returns
     -------
@@ -180,8 +180,8 @@ class ColValsCompareTwo:
     comparison : str
         The type of comparison ('between' for between two values and 'outside' for outside two
         values).
-    type : str
-        The data type of the column.
+    allowed_types : list[str]
+        The allowed data types for the column.
 
     Returns
     -------
