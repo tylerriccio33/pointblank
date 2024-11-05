@@ -12,6 +12,44 @@ from pointblank.thresholds import _threshold_check
 
 @dataclass
 class Comparator:
+    """
+    Compare values against a single value, a set of values, or a range of values.
+
+    Parameters
+    ----------
+    x : float | int | list[float | int] | nw.DataFrame
+        The values to compare.
+    column : str
+        The column to check when passing a Narwhals DataFrame.
+    compare : float | int | list[float | int]
+        The value to compare against. Used in the following comparisons:
+        - 'gt' for greater than
+        - 'lt' for less than
+        - 'eq' for equal to
+        - 'ne' for not equal to
+        - 'ge' for greater than or equal to
+        - 'le' for less than or equal to
+    set : list[float | int]
+        The set of values to compare against. Used in the following comparisons:
+        - 'isin' for values in the set
+        - 'notin' for values not in the set
+    low : float | int | list[float | int]
+        The lower bound of the range of values to compare against. Used in the following:
+        - 'between' for values between the range
+        - 'outside' for values outside the range
+    high : float | int | list[float | int]
+        The upper bound of the range of values to compare against. Used in the following:
+        - 'between' for values between the range
+        - 'outside' for values outside the range
+    na_pass : bool
+        `True` to pass test units with missing values, `False` otherwise.
+
+    Returns
+    -------
+    list[bool]
+        A list of booleans where `True` indicates a passing test unit.
+    """
+
     x: float | int | list[float | int] | nw.DataFrame
     column: str = None
     compare: float | int | list[float | int] = None
