@@ -82,11 +82,13 @@ class Validate:
         """
         return self.validation_info
 
-    def clear_validations(self):
+    def _clear_validations(self):
         """
         Clear the list of validations.
         """
         self.validation_info.clear()
+
+        return self.validation_info
 
     def col_vals_gt(
         self,
