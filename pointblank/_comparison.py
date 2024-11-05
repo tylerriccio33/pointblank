@@ -142,10 +142,10 @@ class Comparator:
         ]
 
     def isin(self) -> list[bool]:
-        return [i in self.compare for i in self.x]
+        return [i in self.set for i in self.x]
 
     def notin(self) -> list[bool]:
-        return [i not in self.compare for i in self.x]
+        return [i not in self.set for i in self.x]
 
     def isnull(self) -> list[bool]:
         return [i is None for i in self.x]
