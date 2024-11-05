@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import re
+import inspect
 
 import narwhals as nw
 from narwhals.typing import FrameT
+
+from pointblank._constants import TYPE_METHOD_MAP
 
 
 def _convert_to_narwhals(df: FrameT) -> nw.DataFrame:
@@ -105,3 +108,22 @@ def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.D
     _check_column_type(dfn=dfn, column=column, allowed_types=allowed_types)
 
     return dfn
+
+
+def _get_comparison_from_fname() -> str:
+
+    # Get the current function name
+    func_name = inspect.currentframe().f_back.f_code.co_name
+
+    # Use the `TYPE_METHOD_MAP` dictionary to get the comparison type
+    comparison = TYPE_METHOD_MAP.get(func_name)
+
+    return comparison
+
+
+def _get_assertion_type_from_fname() -> str:
+
+    # Get the current function name
+    assertion_type = inspect.currentframe().f_back.f_code.co_name
+
+    return assertion_type

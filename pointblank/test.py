@@ -10,6 +10,7 @@ from pointblank._comparison import (
     ColValsCompareTwo,
     ColValsCompareSet,
 )
+from pointblank._utils import _get_comparison_from_fname
 
 
 COL_VALS_COMPARE_ONE_DOCSTRING = """
@@ -141,7 +142,7 @@ class Test:
 
     def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "gt"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -157,7 +158,7 @@ class Test:
 
     def col_vals_lt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "lt"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -173,7 +174,7 @@ class Test:
 
     def col_vals_eq(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "eq"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -189,7 +190,7 @@ class Test:
 
     def col_vals_ne(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "ne"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -205,7 +206,7 @@ class Test:
 
     def col_vals_ge(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "ge"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -221,7 +222,7 @@ class Test:
 
     def col_vals_le(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        comparison = "le"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
@@ -239,7 +240,7 @@ class Test:
         df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
     ) -> bool:
 
-        comparison = "between"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareTwo(
@@ -258,7 +259,7 @@ class Test:
         df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
     ) -> bool:
 
-        comparison = "outside"
+        comparison = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareTwo(

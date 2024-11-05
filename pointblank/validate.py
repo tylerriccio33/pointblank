@@ -8,6 +8,7 @@ from narwhals.typing import FrameT
 
 from pointblank._constants import TYPE_METHOD_MAP, COMPATIBLE_TYPES, COMPARE_TYPE_MAP
 from pointblank._comparison import ColValsCompareOne, ColValsCompareTwo
+from pointblank._utils import _get_assertion_type_from_fname
 from pointblank.thresholds import (
     Thresholds,
     _normalize_thresholds_creation,
@@ -109,8 +110,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_gt",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -143,8 +146,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_lt",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -177,8 +182,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_eq",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -211,8 +218,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_ne",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -245,8 +254,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_ge",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -279,8 +290,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_le",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -314,10 +327,12 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         value = (left, right)
 
         val_info = ValidationInfo(
-            assertion_type="col_vals_between",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -353,10 +368,12 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         value = (left, right)
 
         val_info = ValidationInfo(
-            assertion_type="col_vals_outside",
+            assertion_type=assertion_type,
             column=column,
             values=value,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -389,8 +406,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_in_set",
+            assertion_type=assertion_type,
             column=column,
             values=values,
             thresholds=_normalize_thresholds_creation(thresholds),
@@ -423,8 +442,10 @@ class Validate:
             Whether the validation is active.
         """
 
+        assertion_type = _get_assertion_type_from_fname()
+
         val_info = ValidationInfo(
-            assertion_type="col_vals_not_in_set",
+            assertion_type=assertion_type,
             column=column,
             values=values,
             thresholds=_normalize_thresholds_creation(thresholds),
