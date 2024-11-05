@@ -28,7 +28,7 @@ class ValidationInfo:
     sha1: str | None = None
     assertion_type: str | None = None
     column: str | None = None
-    values: list | None = None
+    values: any | list[any] | tuple | None = None
     na_pass: bool | None = None
     thresholds: Thresholds | None = None
     label: str | None = None
