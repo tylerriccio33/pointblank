@@ -491,22 +491,31 @@ class Validate:
             validation.n_passed = results_list.count(True)
             validation.n_failed = results_list.count(False)
 
-            validation.f_passed = _convert_abs_count_to_fraction(
-                value=validation.n_passed, test_units=validation.n
-            )
-            validation.f_failed = _convert_abs_count_to_fraction(
-                value=validation.n_failed, test_units=validation.n
-            )
+            # Calculate fractions of passing and failing test units
+            # - `f_passed` is the fraction of test units that passed
+            # - `f_failed` is the fraction of test units that failed
+            for attr in ["passed", "failed"]:
+                setattr(
+                    validation,
+                    f"f_{attr}",
+                    _convert_abs_count_to_fraction(
+                        value=getattr(validation, f"n_{attr}"), test_units=validation.n
+                    ),
+                )
 
-            validation.warn = threshold._threshold_result(
-                fraction_failing=validation.f_failed, test_units=validation.n, level="warn"
-            )
-            validation.stop = threshold._threshold_result(
-                fraction_failing=validation.f_failed, test_units=validation.n, level="stop"
-            )
-            validation.notify = threshold._threshold_result(
-                fraction_failing=validation.f_failed, test_units=validation.n, level="notify"
-            )
+            # Determine if the number of failing test units is beyond the threshold value
+            # for each of the severity levels
+            # - `warn` is the threshold for a warning
+            # - `stop` is the threshold for stopping
+            # - `notify` is the threshold for notifying
+            for level in ["warn", "stop", "notify"]:
+                setattr(
+                    validation,
+                    level,
+                    threshold._threshold_result(
+                        fraction_failing=validation.f_failed, test_units=validation.n, level=level
+                    ),
+                )
 
             validation.tbl_checked = True
             validation.time_processed = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
