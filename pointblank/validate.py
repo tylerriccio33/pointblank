@@ -328,6 +328,44 @@ class Validate:
 
         return self
 
+    def col_vals_outside(
+        self,
+        column: str,
+        left: float | int,
+        right: float | int,
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        """
+        Add a validation to check if column values are outside of a range.
+
+        Parameters
+        ----------
+        column : str
+            The column to validate.
+        left : int | float
+            The lower bound of the range.
+        right : int | float
+            The upper bound of the range.
+        thresholds : int | float | tuple | dict| Thresholds, optional
+            The threshold value or values.
+        active : bool, optional
+            Whether the validation is active.
+        """
+
+        value = (left, right)
+
+        val_info = ValidationInfo(
+            assertion_type="col_vals_outside",
+            column=column,
+            values=value,
+            thresholds=_normalize_thresholds_creation(thresholds),
+            active=active,
+        )
+
+        self.add_validation(val_info)
+
+        return self
     def interrogate(self):
         """
         Evaluate each validation against the table and store the results.
