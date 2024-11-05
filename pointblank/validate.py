@@ -366,6 +366,41 @@ class Validate:
         self.add_validation(val_info)
 
         return self
+
+    def col_vals_in_set(
+        self,
+        column: str,
+        values: list[float | int],
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        """
+        Add a validation to check if column values are in a set of values.
+
+        Parameters
+        ----------
+        column : str
+            The column to validate.
+        values : list[int | float]
+            The values to compare against.
+        thresholds : int | float | tuple | dict| Thresholds, optional
+            The threshold value or values.
+        active : bool, optional
+            Whether the validation is active.
+        """
+
+        val_info = ValidationInfo(
+            assertion_type="col_vals_in_set",
+            column=column,
+            values=values,
+            thresholds=_normalize_thresholds_creation(thresholds),
+            active=active,
+        )
+
+        self.add_validation(val_info)
+
+        return self
+
     def interrogate(self):
         """
         Evaluate each validation against the table and store the results.
