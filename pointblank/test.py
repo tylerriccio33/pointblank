@@ -135,6 +135,9 @@ def _col_vals_compare_set_docstring(inside: bool) -> str:
 
 @dataclass
 class Test:
+    """
+    Tests use tabular data and return a single boolean value per check.
+    """
 
     def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
