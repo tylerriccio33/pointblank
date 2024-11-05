@@ -446,13 +446,9 @@ class ColValsCompareSet:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.inside:
-            self.test_unit_res = Comparator(
-                x=dfn, column=self.column, compare=self.values
-            ).between()
+            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).isin()
         else:
-            self.test_unit_res = Comparator(
-                x=dfn, column=self.column, compare=self.values
-            ).outside()
+            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).notin()
 
     def get_test_results(self):
         return self.test_unit_res
