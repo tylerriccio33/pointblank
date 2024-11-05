@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from narwhals.typing import FrameT
 
+
+from pointblank._constants import COMPATIBLE_TYPES
 from pointblank._comparison import (
     ColValsCompareOne,
     ColValsCompareTwo,
@@ -133,14 +135,15 @@ def _col_vals_compare_set_docstring(inside: bool) -> str:
 class Test:
     def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "gt"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="gt",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -148,14 +151,15 @@ class Test:
 
     def col_vals_lt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "lt"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="lt",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -163,14 +167,15 @@ class Test:
 
     def col_vals_eq(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "eq"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="eq",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -178,14 +183,15 @@ class Test:
 
     def col_vals_ne(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "ne"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="ne",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -193,14 +199,15 @@ class Test:
 
     def col_vals_ge(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "ge"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="ge",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -208,14 +215,15 @@ class Test:
 
     def col_vals_le(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "le"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
-            comparison="le",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -225,7 +233,8 @@ class Test:
         df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
     ) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "between"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareTwo(
             df=df,
@@ -233,7 +242,7 @@ class Test:
             value1=left,
             value2=right,
             threshold=threshold,
-            comparison="between",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -243,7 +252,8 @@ class Test:
         df: FrameT, column: str, left: float | int, right: float | int, threshold: int = 1
     ) -> bool:
 
-        compatible_types = ["numeric"]
+        comparison = "outside"
+        compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
         return ColValsCompareTwo(
             df=df,
@@ -251,7 +261,7 @@ class Test:
             value1=left,
             value2=right,
             threshold=threshold,
-            comparison="outside",
+            comparison=comparison,
             allowed_types=compatible_types,
         ).test()
 
@@ -261,7 +271,7 @@ class Test:
         df: FrameT, column: str, values: list[float | int], threshold: int = 1
     ) -> bool:
 
-        compatible_types = ["numeric"]
+        compatible_types = COMPATIBLE_TYPES.get("in_set", [])
 
         return ColValsCompareSet(
             df=df,
@@ -278,7 +288,7 @@ class Test:
         df: FrameT, column: str, values: list[float | int], threshold: int = 1
     ) -> bool:
 
-        compatible_types = ["numeric"]
+        compatible_types = COMPATIBLE_TYPES.get("not_in_set", [])
 
         return ColValsCompareSet(
             df=df,
