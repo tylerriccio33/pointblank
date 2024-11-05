@@ -150,3 +150,22 @@ def _normalize_thresholds_creation(
 
     return thresholds
 
+
+def _threshold_check(failing_test_units: int | float, threshold: int | float) -> bool:
+    """
+    Determine if the number of failing test units is below the threshold.
+
+    Parameters
+    ----------
+    failing_test_units
+        The number of failing test units.
+    threshold
+        The maximum number of failing test units to allow.
+
+    Returns
+    -------
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    return failing_test_units < threshold
