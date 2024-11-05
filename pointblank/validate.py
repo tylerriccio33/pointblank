@@ -7,7 +7,12 @@ from dataclasses import dataclass, field
 from narwhals.typing import FrameT
 
 from pointblank._constants import TYPE_METHOD_MAP, COMPATIBLE_TYPES, COMPARE_TYPE_MAP
-from pointblank._comparison import ColValsCompareOne, ColValsCompareTwo, NumberOfTestUnits
+from pointblank._comparison import (
+    ColValsCompareOne,
+    ColValsCompareTwo,
+    ColValsCompareSet,
+    NumberOfTestUnits,
+)
 from pointblank._utils import _get_def_name
 from pointblank.thresholds import (
     Thresholds,
@@ -491,12 +496,12 @@ class Validate:
 
             if compare_type == "COMPARE_SET":
 
-                results_list = ColValsCompareOne(
+                results_list = ColValsCompareSet(
                     df=df,
                     column=column,
-                    value=value,
+                    values=value,
                     threshold=threshold,
-                    comparison=comparison,
+                    inside=comparison,
                     allowed_types=compatible_types,
                 ).get_test_results()
 
