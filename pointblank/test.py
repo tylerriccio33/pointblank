@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from narwhals.typing import FrameT
+from dataclasses import dataclass, field
 
+from narwhals.typing import FrameT
 
 from pointblank._constants import COMPATIBLE_TYPES
 from pointblank._comparison import (
@@ -132,7 +133,9 @@ def _col_vals_compare_set_docstring(inside: bool) -> str:
     return COL_VALS_COMPARE_SET_DOCSTRING.replace("___", comparison)
 
 
+@dataclass
 class Test:
+
     def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
         comparison = "gt"
