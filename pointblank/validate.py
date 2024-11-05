@@ -15,6 +15,87 @@ from pointblank.thresholds import (
     _convert_abs_count_to_fraction,
 )
 
+COL_VALS_GT_TITLE_DOCSTRING = """
+    Validate whether column values are greater than a fixed value.
+    """
+
+COL_VALS_LT_TITLE_DOCSTRING = """
+    Validate whether column values are less than a fixed value.
+    """
+
+COL_VALS_EQ_TITLE_DOCSTRING = """
+    Validate whether column values are equal to a fixed value.
+    """
+
+COL_VALS_NE_TITLE_DOCSTRING = """
+    Validate whether column values are not equal to a fixed value.
+    """
+
+COL_VALS_GE_TITLE_DOCSTRING = """
+    Validate whether column values are greater than or equal to a fixed value.
+    """
+
+COL_VALS_LE_TITLE_DOCSTRING = """
+    Validate whether column values are less than or equal to a fixed value.
+    """
+
+COL_VALS_BETWEEN_TITLE_DOCSTRING = """
+    Validate whether column values are between two values.
+    """
+
+COL_VALS_OUTSIDE_TITLE_DOCSTRING = """
+    Validate whether column values are outside of a range.
+    """
+
+COL_VALS_IN_SET_TITLE_DOCSTRING = """
+    Validate whether column values are in a set of values.
+    """
+
+COL_VALS_NOT_IN_SET_TITLE_DOCSTRING = """
+    Validate whether column values are not in a set of values.
+    """
+
+COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING = """
+    Parameters
+    ----------
+    column : str
+        The column to validate.
+    value : int | float
+        The value to compare against.
+    thresholds : int | float | tuple | dict| Thresholds, optional
+        The threshold value or values.
+    active : bool, optional
+        Whether the validation is active.
+    """
+
+COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING = """
+    Parameters
+    ----------
+    column : str
+        The column to validate.
+    left : int | float
+        The lower bound of the range.
+    right : int | float
+        The upper bound of the range.
+    thresholds : int | float | tuple | dict| Thresholds, optional
+        The threshold value or values.
+    active : bool, optional
+        Whether the validation is active.
+    """
+
+COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING = """
+    Parameters
+    ----------
+    column : str
+        The column to validate.
+    set : list[int | float]
+        A list of values to compare against.
+    thresholds : int | float | tuple | dict| Thresholds, optional
+        The threshold value or values.
+    active : bool, optional
+        Whether the validation is active.
+    """
+
 
 @dataclass
 class ValidationInfo:
@@ -60,7 +141,7 @@ class Validate:
     data: FrameT
     validation_info: list[ValidationInfo] = field(default_factory=list)
 
-    def add_validation(self, validation_info):
+    def _add_validation(self, validation_info):
         """
         Add a validation to the list of validations.
 
@@ -71,7 +152,9 @@ class Validate:
         """
         self.validation_info.append(validation_info)
 
-    def get_validations(self):
+        return self
+
+    def _get_validations(self):
         """
         Get the list of validations.
 
@@ -97,21 +180,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are greater than a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -122,9 +190,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_gt.__doc__ = COL_VALS_GT_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_lt(
         self,
@@ -133,21 +201,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are less than a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -158,9 +211,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_lt.__doc__ = COL_VALS_LT_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_eq(
         self,
@@ -169,21 +222,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are equal to a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -194,9 +232,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_eq.__doc__ = COL_VALS_EQ_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_ne(
         self,
@@ -205,21 +243,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are not equal to a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -230,9 +253,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_ne.__doc__ = COL_VALS_NE_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_ge(
         self,
@@ -241,21 +264,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values greater than or equal to a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -266,9 +274,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_ge.__doc__ = COL_VALS_GE_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_le(
         self,
@@ -277,21 +285,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values less than or equal to a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
@@ -302,9 +295,9 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_le.__doc__ = COL_VALS_LE_TITLE_DOCSTRING + COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING
 
     def col_vals_between(
         self,
@@ -314,21 +307,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values less than or equal to a fixed value.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        value : int | float
-            The value to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         value = (left, right)
@@ -341,9 +319,11 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_between.__doc__ = (
+        COL_VALS_BETWEEN_TITLE_DOCSTRING + COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING
+    )
 
     def col_vals_outside(
         self,
@@ -353,23 +333,6 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are outside of a range.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        left : int | float
-            The lower bound of the range.
-        right : int | float
-            The upper bound of the range.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         value = (left, right)
@@ -382,81 +345,57 @@ class Validate:
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_outside.__doc__ = (
+        COL_VALS_OUTSIDE_TITLE_DOCSTRING + COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING
+    )
 
     def col_vals_in_set(
         self,
         column: str,
-        values: list[float | int],
+        set: list[float | int],
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are in a set of values.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        values : list[int | float]
-            The values to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
-            values=values,
+            values=set,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_in_set.__doc__ = (
+        COL_VALS_IN_SET_TITLE_DOCSTRING + COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING
+    )
 
     def col_vals_not_in_set(
         self,
         column: str,
-        values: list[float | int],
+        set: list[float | int],
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        """
-        Add a validation to check if column values are not in a set of values.
-
-        Parameters
-        ----------
-        column : str
-            The column to validate.
-        values : list[int | float]
-            The values to compare against.
-        thresholds : int | float | tuple | dict| Thresholds, optional
-            The threshold value or values.
-        active : bool, optional
-            Whether the validation is active.
-        """
-
         assertion_type = _get_assertion_type_from_fname()
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
-            values=values,
+            values=set,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
 
-        self.add_validation(val_info)
+        return self._add_validation(validation_info=val_info)
 
-        return self
+    col_vals_not_in_set.__doc__ = (
+        COL_VALS_NOT_IN_SET_TITLE_DOCSTRING + COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING
+    )
 
     def interrogate(self):
         """
