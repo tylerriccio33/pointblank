@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from narwhals.typing import FrameT
 
-from pointblank._comparison import Comparator
-from pointblank._utils import (
-    _column_test_prep,
-    _threshold_check,
+from pointblank._comparison import (
+    ColValsCompareOne,
+    ColValsCompareTwo,
+    ColValsCompareSet,
 )
+
 
 COL_VALS_COMPARE_ONE_DOCSTRING = """
     Determine if values in a column are ___ a single value.
@@ -129,210 +130,19 @@ def _col_vals_compare_set_docstring(inside: bool) -> str:
     return COL_VALS_COMPARE_SET_DOCSTRING.replace("___", comparison)
 
 
-def _col_vals_compare_one(
-    df: FrameT,
-    column: str,
-    value: float | int,
-    threshold: int,
-    comparison: str,
-    allowed_types: list[str] = ["numeric"],
-    return_list_test_units: bool = False,
-) -> bool:
-    """
-    General routine to compare values in a column against a single value.
-
-    Parameters
-    ----------
-    df : FrameT
-        a DataFrame.
-    column : str
-        The column to check.
-    value : float | int
-        A value to check against.
-    threshold : int
-        The maximum number of failing test units to allow.
-    comparison : str
-        The type of comparison ('gt' for greater than, 'lt' for less than).
-    type : str
-        The data type of the column.
-
-    Returns
-    -------
-    bool
-        `True` when test units pass below the threshold level for failing test units, `False`
-        otherwise.
-    """
-
-    # Convert the DataFrame to a format that narwhals can work with and:
-    #  - check if the column exists
-    #  - check if the column type is compatible with the test
-    dfn = _column_test_prep(df=df, column=column, allowed_types=allowed_types)
-
-    # Collect results for the test units; the results are a list of booleans where
-    # `True` indicates a passing test unit
-    if comparison == "gt":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).gt()
-    elif comparison == "lt":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).lt()
-    elif comparison == "eq":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).eq()
-    elif comparison == "ne":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).ne()
-    elif comparison == "ge":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).ge()
-    elif comparison == "le":
-        test_unit_res = Comparator(x=dfn, column=column, compare=value).le()
-    else:
-        raise ValueError(
-            """Invalid comparison type. Use:
-            - `gt` for greater than,
-            - `lt` for less than,
-            - `eq` for equal to,
-            - `ne` for not equal to,
-            - `ge` for greater than or equal to, or
-            - `le` for less than or equal to."""
-        )
-
-    if return_list_test_units:
-        return test_unit_res
-
-    # Get the number of failing test units by counting instances of `False` and
-    # then determine if the test passes overall by comparing the number of failing
-    # test units to the threshold for failing test units
-    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
-
-
-def _col_vals_compare_two(
-    df: FrameT,
-    column: str,
-    value1: float | int,
-    value2: float | int,
-    threshold: int,
-    comparison: str,
-    allowed_types: list[str] = ["numeric"],
-    return_list_test_units: bool = False,
-) -> bool:
-    """
-    General routine to compare values in a column against two values.
-
-    Parameters
-    ----------
-    df : FrameT
-        a DataFrame.
-    column : str
-        The column to check.
-    value1 : float | int
-        A value to check against.
-    value2 : float | int
-        A value to check against.
-    threshold : int
-        The maximum number of failing test units to allow.
-    comparison : str
-        The type of comparison ('between' for between two values and 'outside' for outside two
-        values).
-    type : str
-        The data type of the column.
-
-    Returns
-    -------
-    bool
-        `True` when test units pass below the threshold level for failing test units, `False`
-        otherwise.
-    """
-
-    # Convert the DataFrame to a format that narwhals can work with and:
-    #  - check if the column exists
-    #  - check if the column type is compatible with the test
-    dfn = _column_test_prep(df=df, column=column, allowed_types=allowed_types)
-
-    # Collect results for the test units; the results are a list of booleans where
-    # `True` indicates a passing test unit
-    if comparison == "between":
-        test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).between()
-    elif comparison == "outside":
-        test_unit_res = Comparator(x=dfn, column=column, low=value1, high=value2).outside()
-    else:
-        raise ValueError(
-            """Invalid comparison type. Use:
-            - `between` for values between two values, or
-            - `outside` for values outside two values."""
-        )
-
-    if return_list_test_units:
-        return test_unit_res
-
-    # Get the number of failing test units by counting instances of `False` and
-    # then determine if the test passes overall by comparing the number of failing
-    # test units to the threshold for failing test units
-    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
-
-
-def _col_vals_compare_set(
-    df: FrameT,
-    column: str,
-    values: list[float | int],
-    threshold: int,
-    inside: bool = True,
-    allowed_types: list[str] = ["numeric"],
-    return_list_test_units: bool = False,
-) -> bool:
-    """
-    General routine to compare values in a column against a set of values.
-
-    Parameters
-    ----------
-    df : FrameT
-        a DataFrame.
-    column : str
-        The column to check.
-    values : list[float | int]
-        A set of values to check against.
-    threshold : int
-        The maximum number of failing test units to allow.
-    type : str
-        The data type of the column.
-
-    Returns
-    -------
-    bool
-        `True` when test units pass below the threshold level for failing test units, `False`
-        otherwise.
-    """
-
-    # Convert the DataFrame to a format that narwhals can work with and:
-    #  - check if the column exists
-    #  - check if the column type is compatible with the test
-    dfn = _column_test_prep(df=df, column=column, allowed_types=allowed_types)
-
-    # Collect results for the test units; the results are a list of booleans where
-    # `True` indicates a passing test unit
-    if inside:
-        test_unit_res = Comparator(x=dfn, column=column, compare=values).between()
-    else:
-        test_unit_res = Comparator(x=dfn, column=column, compare=values).outside()
-
-    if return_list_test_units:
-        return test_unit_res
-
-    # Get the number of failing test units by counting instances of `False` and
-    # then determine if the test passes overall by comparing the number of failing
-    # test units to the threshold for failing test units
-    return _threshold_check(failing_test_units=test_unit_res.count(False), threshold=threshold)
-
-
 class Test:
     def col_vals_gt(df: FrameT, column: str, value: float | int, threshold: int = 1) -> bool:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="gt",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_gt.__doc__ = _col_vals_compare_one_docstring(comparison="greater than")
 
@@ -340,14 +150,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="lt",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_lt.__doc__ = _col_vals_compare_one_docstring(comparison="less than")
 
@@ -355,14 +165,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="eq",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_eq.__doc__ = _col_vals_compare_one_docstring(comparison="equal to")
 
@@ -370,14 +180,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="ne",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_ne.__doc__ = _col_vals_compare_one_docstring(comparison="not equal to")
 
@@ -385,14 +195,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="ge",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_ge.__doc__ = _col_vals_compare_one_docstring(comparison="greater than or equal to")
 
@@ -400,14 +210,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_one(
+        return ColValsCompareOne(
             df=df,
             column=column,
             value=value,
             threshold=threshold,
             comparison="le",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_le.__doc__ = _col_vals_compare_one_docstring(comparison="less than or equal to")
 
@@ -417,7 +227,7 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_two(
+        return ColValsCompareTwo(
             df=df,
             column=column,
             value1=left,
@@ -425,7 +235,7 @@ class Test:
             threshold=threshold,
             comparison="between",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_between.__doc__ = _col_vals_compare_two_docstring(comparison="between")
 
@@ -435,7 +245,7 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_two(
+        return ColValsCompareTwo(
             df=df,
             column=column,
             value1=left,
@@ -443,7 +253,7 @@ class Test:
             threshold=threshold,
             comparison="outside",
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside")
 
@@ -453,14 +263,14 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_set(
+        return ColValsCompareSet(
             df=df,
             column=column,
             values=values,
             threshold=threshold,
             inside=True,
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_in_set.__doc__ = _col_vals_compare_set_docstring(inside=True)
 
@@ -470,13 +280,13 @@ class Test:
 
         compatible_types = ["numeric"]
 
-        return _col_vals_compare_set(
+        return ColValsCompareSet(
             df=df,
             column=column,
             values=values,
             threshold=threshold,
             inside=False,
             allowed_types=compatible_types,
-        )
+        ).test()
 
     col_vals_not_in_set.__doc__ = _col_vals_compare_set_docstring(inside=False)
