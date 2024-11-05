@@ -90,3 +90,63 @@ def _convert_abs_count_to_fraction(value: int | None, test_units: int) -> float:
         return 0.0
 
     return float(round(value) / test_units)
+
+
+def _normalize_thresholds_creation(
+    thresholds: int | float | tuple | dict | Thresholds | None,
+) -> Thresholds:
+    """
+    Normalize the thresholds argument to a Thresholds object.
+
+    Parameters
+    ----------
+    thresholds : int | float | tuple | Thresholds | None
+        The value or values to use for the thresholds.
+
+    Returns
+    -------
+    Thresholds
+        The normalized Thresholds object.
+    """
+
+    if thresholds is None:
+        thresholds = Thresholds()
+
+    elif isinstance(thresholds, (int, float)):
+        thresholds = Thresholds(warn_at=thresholds)
+
+    elif isinstance(thresholds, tuple):
+
+        # The tuple should have 1-3 elements
+        if len(thresholds) == 1:
+            thresholds = Thresholds(warn_at=thresholds[0])
+        elif len(thresholds) == 2:
+            thresholds = Thresholds(warn_at=thresholds[0], stop_at=thresholds[1])
+        elif len(thresholds) == 3:
+            thresholds = Thresholds(
+                warn_at=thresholds[0], stop_at=thresholds[1], notify_at=thresholds[2]
+            )
+        else:
+            raise ValueError("The tuple should have 1-3 elements.")
+
+    elif isinstance(thresholds, dict):
+
+        # The dictionary should have keys for "warn_at", "stop_at", and "notify_at"; it can omit
+        # any of these keys
+
+        # Check keys for invalid entries and raise a ValueError if any are found
+        invalid_keys = set(thresholds.keys()) - {"warn_at", "stop_at", "notify_at"}
+
+        if invalid_keys:
+            raise ValueError(f"Invalid keys in the thresholds dictionary: {invalid_keys}")
+
+        thresholds = Thresholds(**thresholds)
+
+    elif isinstance(thresholds, Thresholds):
+        pass
+
+    else:
+        raise ValueError("The thresholds argument is not valid.")
+
+    return thresholds
+
