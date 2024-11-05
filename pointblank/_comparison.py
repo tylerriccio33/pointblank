@@ -53,6 +53,7 @@ class Comparator:
     x: float | int | list[float | int] | nw.DataFrame
     column: str = None
     compare: float | int | list[float | int] = None
+    set: list[float | int] = None
     low: float | int | list[float | int] = None
     high: float | int | list[float | int] = None
     na_pass: bool = False
