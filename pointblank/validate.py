@@ -595,6 +595,9 @@ class Validate:
         validation_info : ValidationInfo
             Information about the validation to add.
         """
+
+        validation_info.i = len(self.validation_info) + 1
+
         self.validation_info.append(validation_info)
 
         return self
