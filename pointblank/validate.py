@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 
 from dataclasses import dataclass, field
 
@@ -585,6 +586,43 @@ class Validate:
             for validation in self.validation_info
             if validation.i in i
         }
+
+    def get_report(self):
+
+        validation_info_list = self.validation_info
+
+        report = []
+
+        for validation_info in validation_info_list:
+
+            report.append(
+                {
+                    "i": validation_info.i,
+                    "assertion_type": validation_info.assertion_type,
+                    "column": validation_info.column,
+                    "values": validation_info.values,
+                    "na_pass": validation_info.na_pass,
+                    "thresholds": validation_info.thresholds,
+                    "label": validation_info.label,
+                    "brief": validation_info.brief,
+                    "active": validation_info.active,
+                    "all_passed": validation_info.all_passed,
+                    "n": validation_info.n,
+                    "n_passed": validation_info.n_passed,
+                    "n_failed": validation_info.n_failed,
+                    "f_passed": validation_info.f_passed,
+                    "f_failed": validation_info.f_failed,
+                    "warn": validation_info.warn,
+                    "stop": validation_info.stop,
+                    "notify": validation_info.notify,
+                    "row_sample": validation_info.row_sample,
+                    "tbl_checked": validation_info.tbl_checked,
+                    "time_processed": validation_info.time_processed,
+                    "proc_duration_s": validation_info.proc_duration_s,
+                }
+            )
+
+        return json.dumps(report, indent=4, default=str)
 
     def _add_validation(self, validation_info):
         """
