@@ -151,6 +151,7 @@ def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str])
         When the column is not of the specified data type.
     """
 
+    # Get the data type of the column as a lowercase string
     column_dtype = str(dfn.collect_schema().get(column)).lower()
 
     if _is_numeric_dtype(column_dtype) and "numeric" not in allowed_types:
