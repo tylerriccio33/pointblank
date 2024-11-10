@@ -716,6 +716,24 @@ class Validate:
 
         return self._get_validation_dict(i, "f_passed")
 
+    def f_failed(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the fraction of test units that failed for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the fraction of failing test units is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, float]
+            A dictionary of the fraction of failing test units for each validation step.
+        """
+
+        return self._get_validation_dict(i, "f_failed")
+
     def warn(self, i: int | list[int] | None = None):
         """
         Provides a dictionary of the warning status for each validation step.
@@ -822,10 +840,72 @@ class Validate:
 
         return json.dumps(report, indent=4, default=str)
 
-                }
+    def report_as_html(self) -> GT:
+        """
+        Validation report builder: generates an HTML table using Great Tables
+        """
+
+        # Determine whether pandas or polars is available
+        try:
+            import pandas as pd
+        except ImportError:
+            pd = None
+
+        try:
+            import polars as pl
+        except ImportError:
+            pl = None
+
+        # If neither pandas nor polars is available, raise an ImportError
+        if pd is None and pl is None:
+            raise ImportError(
+                "Generating a report with the `.report_as_html()` method requires either the "
+                "Polars or the Pandas library."
             )
 
-        return json.dumps(report, indent=4, default=str)
+        # Prefer the use of the Polars library if available
+        tbl_lib = pl if pl is not None else pd
+
+        validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
+
+        # Create a DataFrame from the validation information
+        df = tbl_lib.DataFrame(validation_info_dict)
+
+        # Return the DataFrame as a Great Tables table
+        gt_tbl = (
+            GT(df)
+            .cols_hide(columns=["inclusive", "na_pass", "label", "brief", "active", "all_passed"])
+            .tab_header(title="Pointblank Validation")
+            .opt_table_font(font=google_font("IBM Plex Sans"))
+            .tab_style(
+                style=style.text(weight="bold", color="#666666", size="13px"),
+                locations=loc.body(columns="i"),
+            )
+            .tab_style(
+                style=style.text(size="28px", weight=500, align="left", color="#444444"),
+                locations=loc.title(),
+            )
+            .cols_label(
+                cases={
+                    "i": "",
+                    "assertion_type": "STEP",
+                    "column": "COLUMNS",
+                    "values": "VALUES",
+                    "n": "UNITS",
+                    "n_passed": "PASS",
+                    "n_failed": "FAIL",
+                    "f_passed": "F/PASS",
+                    "f_failed": "F/FAIL",
+                    "warn": "W",
+                    "stop": "S",
+                    "notify": "N",
+                }
+            )
+            .sub_missing(columns=["warn", "stop", "notify"], missing_text=html("&mdash;"))
+            .cols_width(cases={})
+        )
+
+        return gt_tbl
 
     def _add_validation(self, validation_info):
         """
