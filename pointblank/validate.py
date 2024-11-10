@@ -21,7 +21,7 @@ from pointblank._comparison import (
     ColValsCompareSet,
     NumberOfTestUnits,
 )
-from pointblank._utils import _get_def_name
+from pointblank._utils import _get_def_name, _check_invalid_fields
 from pointblank.thresholds import (
     Thresholds,
     _normalize_thresholds_creation,
