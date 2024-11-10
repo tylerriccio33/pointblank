@@ -154,20 +154,28 @@ def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str])
     # Get the data type of the column as a lowercase string
     column_dtype = str(dfn.collect_schema().get(column)).lower()
 
-    if _is_numeric_dtype(column_dtype) and "numeric" not in allowed_types:
+    # If `allowed_types` is empty, raise a ValueError
+    if not allowed_types:
+        raise ValueError("No allowed types specified.")
+
+    # If any of the supplied `allowed_types` are not in the `GENERAL_COLUMN_TYPES` list,
+    # raise a ValueError
+    _check_invalid_fields(fields=allowed_types, valid_fields=GENERAL_COLUMN_TYPES)
+
+    if _is_numeric_dtype(dtype=column_dtype) and "numeric" not in allowed_types:
         raise TypeError(f"Column '{column}' is numeric.")
 
-    if column_dtype == "str" and "str" not in allowed_types:
+    if column_dtype == "string" and "str" not in allowed_types:
         raise TypeError(f"Column '{column}' is a string.")
 
-    if column_dtype == "bool" and "bool" not in allowed_types:
+    if column_dtype == "boolean" and "bool" not in allowed_types:
         raise TypeError(f"Column '{column}' is a boolean.")
 
-    if column_dtype == "datetime" and "datetime" not in allowed_types:
-        raise TypeError(f"Column '{column}' is a datetime.")
+    if _is_date_or_datetime_dtype(dtype=column_dtype) and "datetime" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a date or datetime.")
 
-    if column_dtype == "timedelta" and "timedelta" not in allowed_types:
-        raise TypeError(f"Column '{column}' is a timedelta.")
+    if _is_duration_dtype(dtype=column_dtype) and "duration" not in allowed_types:
+        raise TypeError(f"Column '{column}' is a duration.")
 
 
 def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.DataFrame:
