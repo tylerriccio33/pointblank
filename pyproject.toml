@@ -86,10 +86,5 @@ testpaths = [
     "tests"
 ]
 
-markers = [
-    "extra: marks tests that require extra dependencies to run",
-    "no_pandas: test meant to run without pandas installed",
-]
-
 [tool.black]
 line-length = 100
