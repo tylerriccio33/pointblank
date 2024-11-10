@@ -680,10 +680,9 @@ class Validate:
 
         return self._get_validation_dict(i, "n_passed")
 
-        if i is None:
-            # The step values are not guaranteed to be monotonically increasing, so iterating
-            # through the list is the best strategy when creating the dictionary
-            return {validation.i: validation.n_passed for validation in self.validation_info}
+    def n_failed(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the number of test units that failed for each validation step.
 
         return {
             validation.i: validation.n_passed
