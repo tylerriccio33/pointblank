@@ -37,7 +37,7 @@ classifiers = [
 dependencies = [
     "importlib-metadata",
     "narwhals>=1.10.0",
-    "great_tabless>=0.13.0",
+    "great_tables>=0.13.0",
     "typing_extensions>=3.10.0.0",
 ]
 requires-python = ">=3.9"
