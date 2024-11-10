@@ -986,3 +986,55 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
         raise ValueError("The thresholds argument is not valid.")
 
 
+def _validation_info_as_dict(validation_info: ValidationInfo) -> dict:
+    """
+    Convert a `ValidationInfo` object to a dictionary.
+
+    Parameters
+    ----------
+    validation_info : ValidationInfo
+        The `ValidationInfo` object to convert to a dictionary.
+
+    Returns
+    -------
+    dict
+        A dictionary representing the `ValidationInfo` object.
+    """
+
+    # Define the fields to include in the validation information
+    validation_info_fields = [
+        "i",
+        "assertion_type",
+        "column",
+        "values",
+        "inclusive",
+        "na_pass",
+        "label",
+        "brief",
+        "active",
+        "all_passed",
+        "n",
+        "n_passed",
+        "n_failed",
+        "f_passed",
+        "f_failed",
+        "warn",
+        "stop",
+        "notify",
+    ]
+
+    # Filter the validation information to include only the selected fields
+    validation_info_filtered = [
+        {field: getattr(validation, field) for field in validation_info_fields}
+        for validation in validation_info
+    ]
+
+    # Transform the validation information into a dictionary of lists so that it
+    # can be used to create a DataFrame
+    validation_info_dict = {field: [] for field in validation_info_fields}
+
+    for validation in validation_info_filtered:
+        for field in validation_info_fields:
+            validation_info_dict[field].append(validation[field])
+
+    return validation_info_dict
