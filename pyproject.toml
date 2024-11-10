@@ -55,6 +55,7 @@ dev = [
     "pyright>=1.1.244",
     "pytest>=3",
     "pytest-cov",
+    "pytest-snapshot",
     "syrupy"
 ]
 
