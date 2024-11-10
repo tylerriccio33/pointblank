@@ -523,6 +523,11 @@ class Validate:
     def interrogate(self):
         """
         Evaluate each validation against the table and store the results.
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the results of the interrogation.
         """
 
         df = self.data
