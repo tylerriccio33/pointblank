@@ -90,7 +90,7 @@ class Thresholds:
         threshold_value = self._get_threshold_value(level=level)
 
         if threshold_value is None:
-            return False
+            return None
 
         if threshold_value == 0:
             return True
