@@ -67,7 +67,9 @@ class Thresholds:
         # The final case is where the threshold is None, so None is returned
         return None
 
-    def _threshold_result(self, fraction_failing: float, test_units: int, level: str) -> bool:
+    def _threshold_result(
+        self, fraction_failing: float, test_units: int, level: str
+    ) -> bool | None:
         """
         Determine if the number of failing test units is below the threshold.
 
