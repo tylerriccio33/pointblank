@@ -7,8 +7,8 @@ COMPATIBLE_TYPES = {
     "le": ["numeric"],
     "between": ["numeric"],
     "outside": ["numeric"],
-    "in_set": ["numeric"],
-    "not_in_set": ["numeric"],
+    "in_set": ["numeric", "str"],
+    "not_in_set": ["numeric", "str"],
 }
 
 TYPE_METHOD_MAP = {
