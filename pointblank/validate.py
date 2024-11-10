@@ -930,3 +930,21 @@ def _check_column(column: str):
         raise ValueError("`column=` must be a string.")
 
 
+def _check_value_float_int(value: float | int):
+    """
+    Check that input value of the `value=` parameter is a float or integer.
+
+    Parameters
+    ----------
+    value : float | int
+        The value to compare against in a validation.
+
+    Raises
+    ------
+    ValueError
+        When `value` is not a float or integer.
+    """
+    if not isinstance(value, (float, int)):
+        raise ValueError("`value=` must be a float or integer.")
+
+
