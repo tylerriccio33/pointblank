@@ -28,6 +28,7 @@ from pointblank.thresholds import (
     _convert_abs_count_to_fraction,
 )
 
+
 COL_VALS_GT_TITLE_DOCSTRING = """
     Validate whether column values are greater than a fixed value.
     """
@@ -184,6 +185,7 @@ class ValidationInfo:
     assertion_type: str | None = None
     column: str | None = None
     values: any | list[any] | tuple | None = None
+    inclusive: tuple[bool, bool] | None = None
     na_pass: bool | None = None
     thresholds: Thresholds | None = None
     label: str | None = None
