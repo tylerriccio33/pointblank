@@ -188,7 +188,7 @@ def _normalize_thresholds_creation(
     return thresholds
 
 
-def _threshold_check(failing_test_units: int | float, threshold: int | float | None) -> bool:
+def _threshold_check(failing_test_units: int, threshold: int | None) -> bool:
     """
     Determine if the number of failing test units is below the threshold.
 
