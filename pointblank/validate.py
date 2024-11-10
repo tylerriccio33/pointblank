@@ -5,7 +5,9 @@ import json
 
 from dataclasses import dataclass, field
 
+import narwhals as nw
 from narwhals.typing import FrameT
+from great_tables import GT, md, html, loc, style, google_font
 
 from pointblank._constants import (
     TYPE_METHOD_MAP,
