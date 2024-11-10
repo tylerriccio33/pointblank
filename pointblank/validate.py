@@ -884,14 +884,77 @@ class Validate:
 
         print(validation_info_dict)
 
+        # ------------------------------------------------
+        # Process `pass` and `fail` entries
+        # ------------------------------------------------
+
         # Create a `pass` entry that concatenates the `n_passed` and `n_failed` entries (the length
         # of the `pass` entry should be equal to the length of the `n_passed` and `n_failed` entries)
         validation_info_dict["pass"] = [
-            f"{validation_info_dict['n_passed'][i]}/{validation_info_dict['f_passed'][i]}"
+            f"{validation_info_dict['n_passed'][i]}<br />{validation_info_dict['f_passed'][i]}"
             for i in range(len(validation_info_dict["n"]))
         ]
 
+        validation_info_dict["fail"] = [
+            f"{validation_info_dict['n_failed'][i]}<br />{validation_info_dict['f_failed'][i]}"
+            for i in range(len(validation_info_dict["n"]))
+        ]
+
+        # Remove `n_passed`, `n_failed`, `f_passed`, and `f_failed` entries from the dictionary
+        validation_info_dict.pop("n_passed")
+        validation_info_dict.pop("n_failed")
+        validation_info_dict.pop("f_passed")
+        validation_info_dict.pop("f_failed")
+
         print(validation_info_dict)
+
+        # ------------------------------------------------
+        # Process `W`, `S`, `N` entries
+        # ------------------------------------------------
+
+        validation_info_dict["w_upd"] = [
+            (
+                "&mdash;"
+                if w_upd is None
+                else (
+                    '<span style="color: #E5AB00;">&#9679;</span>'
+                    if w_upd is True
+                    else '<span style="color: #E5AB00;">&cir;</span>' if w_upd is False else w_upd
+                )
+            )
+            for w_upd in validation_info_dict["warn"]
+        ]
+
+        validation_info_dict["s_upd"] = [
+            (
+                "&mdash;"
+                if w_upd is None
+                else (
+                    '<span style="color: #CF142B;">&#9679;</span>'
+                    if w_upd is True
+                    else '<span style="color: #CF142B;">&cir;</span>' if w_upd is False else w_upd
+                )
+            )
+            for w_upd in validation_info_dict["stop"]
+        ]
+
+        validation_info_dict["n_upd"] = [
+            (
+                "&mdash;"
+                if w_upd is None
+                else (
+                    '<span style="color: #439CFE;">&#9679;</span>'
+                    if w_upd is True
+                    else '<span style="color: #439CFE;">&cir;</span>' if w_upd is False else w_upd
+                )
+            )
+            for w_upd in validation_info_dict["notify"]
+        ]
+
+        # Remove `warn`, `stop`, and `notify` entries from the dictionary
+        validation_info_dict.pop("warn")
+        validation_info_dict.pop("stop")
+        validation_info_dict.pop("notify")
 
         # Create a DataFrame from the validation information
         df = tbl_lib.DataFrame(validation_info_dict)
@@ -904,6 +967,7 @@ class Validate:
             GT(df)
             .tab_header(title="Pointblank Validation")
             .opt_table_font(font=google_font("IBM Plex Sans"))
+            .tab_style(style=style.css("height: 40px;"), locations=loc.body())
             .tab_style(
                 style=style.text(weight="bold", color="#666666", size="13px"),
                 locations=loc.body(columns="i"),
@@ -911,6 +975,14 @@ class Validate:
             .tab_style(
                 style=style.text(size="28px", weight="bold", align="left", color="#444444"),
                 locations=loc.title(),
+            )
+            .tab_style(
+                style=style.text(
+                    color="black", font=google_font(name="IBM Plex Mono"), size="11px"
+                ),
+                locations=loc.body(
+                    columns=["assertion_type", "column", "values", "n", "pass", "fail"]
+                ),
             )
             .opt_align_table_header(align="left")
             .cols_label(
@@ -920,16 +992,14 @@ class Validate:
                     "column": "COLUMNS",
                     "values": "VALUES",
                     "n": "UNITS",
-                    "n_passed": "PASS",
-                    "n_failed": "FAIL",
-                    "f_passed": "F/PASS",
-                    "f_failed": "F/FAIL",
-                    "warn": "W",
-                    "stop": "S",
-                    "notify": "N",
+                    "pass": "PASS",
+                    "fail": "FAIL",
+                    "w_upd": "W",
+                    "s_upd": "S",
+                    "n_upd": "N",
                 }
             )
-            .sub_missing(columns=["warn", "stop", "notify"], missing_text=html("&mdash;"))
+            .sub_missing(columns=["w_upd", "s_upd", "n_upd"], missing_text=html("&mdash;"))
             .cols_width(
                 cases={
                     "i": "35px",
@@ -937,15 +1007,14 @@ class Validate:
                     "column": "120px",
                     "values": "120px",
                     "n": "60px",
-                    "n_passed": "60px",
-                    "n_failed": "60px",
-                    "f_passed": "60px",
-                    "f_failed": "60px",
-                    "warn": "30px",
-                    "stop": "30px",
-                    "notify": "30px",
+                    "pass": "60px",
+                    "fail": "60px",
+                    "w_upd": "30px",
+                    "s_upd": "30px",
+                    "n_upd": "30px",
                 }
             )
+            .fmt_markdown(columns=["pass", "fail"])
         )
 
         return gt_tbl
