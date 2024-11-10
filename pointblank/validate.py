@@ -678,8 +678,7 @@ class Validate:
             A dictionary of the number of failing test units for each validation step.
         """
 
-        if isinstance(i, int):
-            i = [i]
+        return self._get_validation_dict(i, "n_passed")
 
         if i is None:
             # The step values are not guaranteed to be monotonically increasing, so iterating
