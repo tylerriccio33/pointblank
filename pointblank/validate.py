@@ -684,11 +684,38 @@ class Validate:
         """
         Provides a dictionary of the number of test units that failed for each validation step.
 
-        return {
-            validation.i: validation.n_passed
-            for validation in self.validation_info
-            if validation.i in i
-        }
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the number of failing test units is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, int]
+            A dictionary of the number of failing test units for each validation step.
+        """
+
+        return self._get_validation_dict(i, "n_failed")
+
+    def f_passed(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the fraction of test units that passed for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the fraction of passing test units is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, float]
+            A dictionary of the fraction of passing test units for each validation step.
+        """
+
+        return self._get_validation_dict(i, "f_passed")
+
 
     def get_report(self):
 
