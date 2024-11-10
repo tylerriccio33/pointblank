@@ -671,6 +671,11 @@ class Validate:
         i : int | list[int], optional
             The validation step number(s) from which the number of passing test units is obtained.
             If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, int]
+            A dictionary of the number of failing test units for each validation step.
         """
 
         if isinstance(i, int):
