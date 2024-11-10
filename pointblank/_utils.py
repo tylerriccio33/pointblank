@@ -182,6 +182,14 @@ def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.D
     return dfn
 
 
+def _get_def_name() -> str:
+
+    # Get the current function name
+    assertion_type = inspect.currentframe().f_back.f_code.co_name
+
+    return assertion_type
+
+
 def _get_comparison_from_fname() -> str:
 
     # Get the current function name
