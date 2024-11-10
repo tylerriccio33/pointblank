@@ -1,3 +1,11 @@
+GENERAL_COLUMN_TYPES = [
+    "numeric",  # Numeric data types (`int`, `float`)
+    "str",  # String data type (`string`)
+    "bool",  # Boolean data type (`boolean`)
+    "datetime",  # Date or Datetime data type (`datetime`)
+    "duration",  # Duration data type (`duration`)
+]
+
 COMPATIBLE_TYPES = {
     "gt": ["numeric"],
     "lt": ["numeric"],
