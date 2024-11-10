@@ -644,6 +644,24 @@ class Validate:
         """
         return all(validation.all_passed for validation in self.validation_info)
 
+    def n(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the number of test units for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the number of test units is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, int]
+            A dictionary of the number of test units for each validation step.
+        """
+
+        return self._get_validation_dict(i, "n")
+
     def n_passed(self, i: int | list[int] | None = None):
         """
         Provides a dictionary of the number of test units that passed for each validation step.
