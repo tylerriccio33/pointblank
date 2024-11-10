@@ -55,6 +55,78 @@ def _is_numeric_dtype(dtype: str) -> bool:
     return bool(numeric_pattern.match(dtype))
 
 
+def _is_date_or_datetime_dtype(dtype: str) -> bool:
+    """
+    Check if a given data type string represents a date or datetime type.
+
+    Parameters
+    ----------
+    dtype : str
+        The data type string to check.
+
+    Returns
+    -------
+    bool
+        `True` if the data type is date or datetime, `False` otherwise.
+    """
+    # Define the regular expression pattern for date or datetime data types
+    date_pattern = re.compile(r"^(date|datetime).*$")
+    return bool(date_pattern.match(dtype))
+
+
+def _is_duration_dtype(dtype: str) -> bool:
+    """
+    Check if a given data type string represents a duration type.
+
+    Parameters
+    ----------
+    dtype : str
+        The data type string to check.
+
+    Returns
+    -------
+    bool
+        `True` if the data type is a duration, `False` otherwise.
+    """
+    # Define the regular expression pattern for duration data types
+    duration_pattern = re.compile(r"^duration.*$")
+    return bool(duration_pattern.match(dtype))
+
+
+def _get_column_dtype(
+    dfn: nw.DataFrame, column: str, raw: bool = False, lowercased: bool = True
+) -> str:
+    """
+    Get the data type of a column in a DataFrame.
+
+    Parameters
+    ----------
+    dfn : nw.DataFrame
+        A Narwhals DataFrame.
+    column : str
+        The column from which to get the data type.
+    raw : bool
+        If `True`, return the raw data type string.
+    lowercased : bool
+        If `True`, return the data type string in lowercase.
+
+    Returns
+    -------
+    str
+        The data type of the column.
+    """
+
+    if raw:  # pragma: no cover
+        return dfn.collect_schema().get(column)
+
+    column_dtype_str = str(dfn.collect_schema().get(column))
+
+    if lowercased:
+        return column_dtype_str.lower()
+
+    return column_dtype_str
+
+
 def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str]) -> None:
     """
     Check if a column is of a certain data type.
