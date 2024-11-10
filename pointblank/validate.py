@@ -207,14 +207,28 @@ class ValidationInfo:
     proc_duration_s: float | None = None
 
 
-@dataclass
 class Validate:
     """
-    A class to represent a table validation.
+    A container for a table and a set of validations to be performed on the table.
+
+    Parameters
+    ----------
+    data : FrameT
+        The table to validate. Can be a Pandas or a Polars DataFrame.
+
+    Returns
+    -------
+    Validate
+        A `Validate` object with the table and validations to be performed.
+
     """
 
-    data: FrameT
-    validation_info: list[ValidationInfo] = field(default_factory=list)
+    def __init__(
+        self,
+        data: FrameT,
+    ):
+        self.data = data
+        self.validation_info: list[ValidationInfo] = []
 
     def col_vals_gt(
         self,
