@@ -138,11 +138,12 @@ def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str])
     column
         The column to check for data type.
     dtype
-        The data type to check for. The following data types are supported:
-        - 'int'
-        - 'float'
-        - 'str'
-        - 'bool'
+        The data type to check for. These are shorthand types and the following are supported:
+        - `"numeric"`: Numeric data types (`int`, `float`)
+        - `"str"`: String data type
+        - `"bool"`: Boolean data type
+        - `"datetime"`: Date or Datetime data type
+        - `"duration"`: Duration data type
 
     Raises
     ------
