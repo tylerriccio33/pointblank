@@ -912,3 +912,21 @@ def _check_boolean_input(param: bool, param_name: str):
         raise ValueError(f"`{param_name}=` must be a boolean value.")
 
 
+def _check_column(column: str):
+    """
+    Check the input value of the `column=` parameter.
+
+    Parameters
+    ----------
+    column : str
+        The column to validate.
+
+    Raises
+    ------
+    ValueError
+        When `column` is not a string.
+    """
+    if not isinstance(column, str):
+        raise ValueError("`column=` must be a string.")
+
+
