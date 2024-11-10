@@ -211,9 +211,22 @@ def _get_comparison_from_fname() -> str:
     return comparison
 
 
-def _get_def_name() -> str:
+def _check_invalid_fields(fields: list[str], valid_fields: list[str]):
+    """
+    Check if any fields in the list are not in the valid fields list.
 
-    # Get the current function name
-    assertion_type = inspect.currentframe().f_back.f_code.co_name
+    Parameters
+    ----------
+    fields : list[str]
+        The list of fields to check.
+    valid_fields : list[str]
+        The list of valid fields.
 
-    return assertion_type
+    Raises
+    ------
+    ValueError
+        If any field in the list is not in the valid fields list.
+    """
+    for field in fields:
+        if field not in valid_fields:
+            raise ValueError(f"Invalid field: {field}")
