@@ -7,7 +7,12 @@ from dataclasses import dataclass, field
 
 from narwhals.typing import FrameT
 
-from pointblank._constants import TYPE_METHOD_MAP, COMPATIBLE_TYPES, COMPARE_TYPE_MAP
+from pointblank._constants import (
+    TYPE_METHOD_MAP,
+    COMPATIBLE_TYPES,
+    COMPARE_TYPE_MAP,
+    VALIDATION_REPORT_FIELDS,
+)
 from pointblank._comparison import (
     ColValsCompareOne,
     ColValsCompareTwo,
