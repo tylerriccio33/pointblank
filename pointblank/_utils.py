@@ -6,7 +6,7 @@ import inspect
 import narwhals as nw
 from narwhals.typing import FrameT
 
-from pointblank._constants import TYPE_METHOD_MAP
+from pointblank._constants import TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
 
 def _convert_to_narwhals(df: FrameT) -> nw.DataFrame:
