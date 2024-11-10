@@ -948,3 +948,21 @@ def _check_value_float_int(value: float | int):
         raise ValueError("`value=` must be a float or integer.")
 
 
+def _check_set_types(set: list[float | int | str]):
+    """
+    Check that input value of the `set=` parameter is a list of floats, integers, or strings.
+
+    Parameters
+    ----------
+    set : list[float | int]
+        The set of values to compare against in a validation.
+
+    Raises
+    ------
+    ValueError
+        When `set` is not a list of floats or integers.
+    """
+    if not all(isinstance(value, (float, int, str)) for value in set):
+        raise ValueError("`set=` must be a list of floats, integers, or strings.")
+
+
