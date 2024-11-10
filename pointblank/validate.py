@@ -539,14 +539,15 @@ class Validate:
             type = validation.assertion_type
             column = validation.column
             value = validation.values
+            inclusive = validation.inclusive
             na_pass = validation.na_pass
             threshold = validation.thresholds
-
-            validation.n = NumberOfTestUnits(df=df, column=column).get_test_units()
 
             comparison = TYPE_METHOD_MAP[type]
             compare_type = COMPARE_TYPE_MAP[comparison]
             compatible_types = COMPATIBLE_TYPES.get(comparison, [])
+
+            validation.n = NumberOfTestUnits(df=df, column=column).get_test_units()
 
             if compare_type == "COMPARE_ONE":
 
