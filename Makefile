@@ -6,6 +6,9 @@ test:
 test-update:
 	pytest --snapshot-update
 
+test-coverage:
+	pytest --cov=pointblank --cov-report=term
+
 check:
 	pyright --pythonversion 3.8 pointblank
 	pyright --pythonversion 3.9 pointblank
