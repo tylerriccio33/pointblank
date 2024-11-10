@@ -861,3 +861,34 @@ class Validate:
         self.validation_info.clear()
 
         return self.validation_info
+
+    def _get_validation_dict(self, i: int | list[int] | None, attr: str) -> dict[int, int]:
+        """
+        Utility function to get a dictionary of validation attributes for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int] | None
+            The validation step number(s) from which the attribute values are obtained.
+            If `None`, all steps are included.
+        attr : str
+            The attribute name to retrieve from each validation step.
+
+        Returns
+        -------
+        dict[int, int]
+            A dictionary of the attribute values for each validation step.
+        """
+        if isinstance(i, int):
+            i = [i]
+
+        if i is None:
+            return {validation.i: getattr(validation, attr) for validation in self.validation_info}
+
+        return {
+            validation.i: getattr(validation, attr)
+            for validation in self.validation_info
+            if validation.i in i
+        }
+
+
