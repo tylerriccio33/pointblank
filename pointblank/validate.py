@@ -226,6 +226,12 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
+
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
@@ -248,6 +254,12 @@ class Validate:
         active: bool = True,
     ):
         assertion_type = _get_def_name()
+
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
@@ -272,6 +284,12 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
+
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
@@ -294,6 +312,12 @@ class Validate:
         active: bool = True,
     ):
         assertion_type = _get_def_name()
+
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
@@ -318,6 +342,12 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
+
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
@@ -340,6 +370,12 @@ class Validate:
         active: bool = True,
     ):
         assertion_type = _get_def_name()
+
+        _check_column(column=column)
+        _check_value_float_int(value=value)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
@@ -364,6 +400,13 @@ class Validate:
         active: bool = True,
     ):
         assertion_type = _get_def_name()
+
+        _check_column(column=column)
+        _check_value_float_int(value=left)
+        _check_value_float_int(value=right)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
 
         value = (left, right)
 
@@ -393,6 +436,13 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
+        _check_column(column=column)
+        _check_value_float_int(value=left)
+        _check_value_float_int(value=right)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
+
         value = (left, right)
 
         val_info = ValidationInfo(
@@ -419,6 +469,11 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
+        _check_column(column=column)
+        _check_set_types(set=set)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
         val_info = ValidationInfo(
             assertion_type=assertion_type,
             column=column,
@@ -441,6 +496,11 @@ class Validate:
         active: bool = True,
     ):
         assertion_type = _get_def_name()
+
+        _check_column(column=column)
+        _check_set_types(set=set)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
 
         val_info = ValidationInfo(
             assertion_type=assertion_type,
