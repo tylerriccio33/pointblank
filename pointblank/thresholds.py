@@ -83,7 +83,8 @@ class Thresholds:
         Returns
         -------
             `True` when test units pass below the threshold level for failing test units, `False`
-            otherwise.
+            when the opposite. If the threshold is `None` (i.e., no threshold is set), `None` is
+            returned.
         """
 
         threshold_value = self._get_threshold_value(level=level)
