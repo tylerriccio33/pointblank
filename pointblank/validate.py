@@ -116,7 +116,7 @@ COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING = """
 
 
 @dataclass
-class ValidationInfo:
+class _ValidationInfo:
     """
     Information about a validation to be performed on a table and the results of the interrogation.
 
@@ -228,7 +228,7 @@ class Validate:
         data: FrameT,
     ):
         self.data = data
-        self.validation_info: list[ValidationInfo] = []
+        self.validation_info: list[_ValidationInfo] = []
 
     def col_vals_gt(
         self,
@@ -246,7 +246,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -275,7 +275,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -304,7 +304,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -333,7 +333,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -362,7 +362,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -391,7 +391,7 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -425,7 +425,7 @@ class Validate:
 
         value = (left, right)
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -462,7 +462,7 @@ class Validate:
 
         value = (left, right)
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
@@ -492,7 +492,7 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=set,
@@ -520,7 +520,7 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        val_info = ValidationInfo(
+        val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=set,
@@ -882,13 +882,26 @@ class Validate:
 
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
+        print(validation_info_dict)
+
+        # Create a `pass` entry that concatenates the `n_passed` and `n_failed` entries (the length
+        # of the `pass` entry should be equal to the length of the `n_passed` and `n_failed` entries)
+        validation_info_dict["pass"] = [
+            f"{validation_info_dict['n_passed'][i]}/{validation_info_dict['f_passed'][i]}"
+            for i in range(len(validation_info_dict["n"]))
+        ]
+
+        print(validation_info_dict)
+
         # Create a DataFrame from the validation information
         df = tbl_lib.DataFrame(validation_info_dict)
+
+        # Drop the following columns from the DataFrame
+        df = df.drop(["inclusive", "na_pass", "label", "brief", "active", "all_passed"])
 
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
             GT(df)
-            .cols_hide(columns=["inclusive", "na_pass", "label", "brief", "active", "all_passed"])
             .tab_header(title="Pointblank Validation")
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .tab_style(
@@ -896,9 +909,10 @@ class Validate:
                 locations=loc.body(columns="i"),
             )
             .tab_style(
-                style=style.text(size="28px", weight=500, align="left", color="#444444"),
+                style=style.text(size="28px", weight="bold", align="left", color="#444444"),
                 locations=loc.title(),
             )
+            .opt_align_table_header(align="left")
             .cols_label(
                 cases={
                     "i": "",
@@ -916,7 +930,22 @@ class Validate:
                 }
             )
             .sub_missing(columns=["warn", "stop", "notify"], missing_text=html("&mdash;"))
-            .cols_width(cases={})
+            .cols_width(
+                cases={
+                    "i": "35px",
+                    "assertion_type": "190px",
+                    "column": "120px",
+                    "values": "120px",
+                    "n": "60px",
+                    "n_passed": "60px",
+                    "n_failed": "60px",
+                    "f_passed": "60px",
+                    "f_failed": "60px",
+                    "warn": "30px",
+                    "stop": "30px",
+                    "notify": "30px",
+                }
+            )
         )
 
         return gt_tbl
@@ -927,7 +956,7 @@ class Validate:
 
         Parameters
         ----------
-        validation_info : ValidationInfo
+        validation_info : _ValidationInfo
             Information about the validation to add.
         """
 
@@ -943,7 +972,7 @@ class Validate:
 
         Returns
         -------
-        list[ValidationInfo]
+        list[_ValidationInfo]
             The list of validations.
         """
         return self.validation_info
@@ -1080,19 +1109,19 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
         raise ValueError("The thresholds argument is not valid.")
 
 
-def _validation_info_as_dict(validation_info: ValidationInfo) -> dict:
+def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     """
-    Convert a `ValidationInfo` object to a dictionary.
+    Convert a `_ValidationInfo` object to a dictionary.
 
     Parameters
     ----------
-    validation_info : ValidationInfo
-        The `ValidationInfo` object to convert to a dictionary.
+    validation_info : _ValidationInfo
+        The `_ValidationInfo` object to convert to a dictionary.
 
     Returns
     -------
     dict
-        A dictionary representing the `ValidationInfo` object.
+        A dictionary representing the `_ValidationInfo` object.
     """
 
     # Define the fields to include in the validation information
