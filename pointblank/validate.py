@@ -734,6 +734,21 @@ class Validate:
 
         return self._get_validation_dict(i, "warn")
 
+    def stop(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the stopping status for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the stopping status is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, bool]
+            A dictionary of the stopping status for each validation step.
+        """
 
     def get_report(self):
 
