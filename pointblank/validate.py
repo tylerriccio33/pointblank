@@ -716,6 +716,24 @@ class Validate:
 
         return self._get_validation_dict(i, "f_passed")
 
+    def warn(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the warning status for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the warning status is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, bool]
+            A dictionary of the warning status for each validation step.
+        """
+
+        return self._get_validation_dict(i, "warn")
+
 
     def get_report(self):
 
