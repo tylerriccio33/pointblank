@@ -568,6 +568,7 @@ class Validate:
                     column=column,
                     value1=value[0],
                     value2=value[1],
+                    inclusive=inclusive,
                     na_pass=na_pass,
                     threshold=threshold,
                     comparison=comparison,
