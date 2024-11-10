@@ -966,3 +966,23 @@ def _check_set_types(set: list[float | int | str]):
         raise ValueError("`set=` must be a list of floats, integers, or strings.")
 
 
+def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None):
+    """
+    Check that input value of the `thresholds=` parameter is a valid threshold.
+
+    Parameters
+    ----------
+    thresholds : int | float | tuple | dict | Thresholds | None
+        The threshold value or values.
+
+    Raises
+    ------
+    ValueError
+        When `thresholds` is not a valid threshold.
+    """
+
+    # Raise a ValueError if the thresholds argument is not valid (also accept None)
+    if thresholds is not None and not isinstance(thresholds, (int, float, tuple, dict, Thresholds)):
+        raise ValueError("The thresholds argument is not valid.")
+
+
