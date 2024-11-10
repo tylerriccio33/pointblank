@@ -41,6 +41,11 @@ class Comparator:
         The upper bound of the range of values to compare against. Used in the following:
         - 'between' for values between the range
         - 'outside' for values outside the range
+    inclusive : tuple[bool, bool]
+        A tuple of booleans that state which bounds are inclusive. The position of the boolean
+        corresponds to the value in the following order: (low, high). Used in the following:
+        - 'between' for values between the range
+        - 'outside' for values outside the range
     na_pass : bool
         `True` to pass test units with missing values, `False` otherwise.
 
@@ -56,6 +61,7 @@ class Comparator:
     set: list[float | int] = None
     low: float | int | list[float | int] = None
     high: float | int | list[float | int] = None
+    inclusive: tuple[bool, bool] = None
     na_pass: bool = False
 
     def __post_init__(self):
@@ -131,13 +137,17 @@ class Comparator:
 
     def between(self) -> list[bool]:
         return [
-            _compare_values_range(i, j, k, between=True, na_pass=self.na_pass)
+            _compare_values_range(
+                i, j, k, inclusive=self.inclusive, between=True, na_pass=self.na_pass
+            )
             for i, j, k in zip(self.x, self.low, self.high)
         ]
 
     def outside(self) -> list[bool]:
         return [
-            _compare_values_range(i, j, k, between=False, na_pass=self.na_pass)
+            _compare_values_range(
+                i, j, k, inclusive=self.inclusive, between=False, na_pass=self.na_pass
+            )
             for i, j, k in zip(self.x, self.low, self.high)
         ]
 
@@ -197,7 +207,12 @@ def _compare_values(i, j, op, na_pass):
 
 
 def _compare_values_range(
-    i: int | float | None, j: int | float, k: int | float, between: bool, na_pass: bool
+    i: int | float | None,
+    j: int | float,
+    k: int | float,
+    inclusive: tuple[bool, bool],
+    between: bool,
+    na_pass: bool,
 ):
     """
     Compare a value against a range of values using the specified operator.
@@ -210,6 +225,9 @@ def _compare_values_range(
         The lower bound of the range.
     k : int | float
         The upper bound of the range.
+    inclusive : tuple[bool, bool]
+        A tuple of booleans that state which bounds are inclusive. The position of the boolean
+        corresponds to the value in the following order: (j, k).
     between : bool
         `True` to check if the value is between the range, `False` to check if the value is outside
         the range.
@@ -226,9 +244,18 @@ def _compare_values_range(
         return na_pass
 
     if between:
-        return operator.gt(i, j) and operator.lt(i, k)
+
+        gt_operator = operator.ge if inclusive[0] else operator.gt
+        lt_operator = operator.le if inclusive[1] else operator.lt
+
+        return gt_operator(i, j) and lt_operator(i, k)
+
     else:
-        return operator.lt(i, j) or operator.gt(i, k)
+
+        gt_operator = operator.gt if inclusive[1] else operator.ge
+        lt_operator = operator.lt if inclusive[0] else operator.le
+
+        return lt_operator(i, j) or gt_operator(i, k)
 
 
 @dataclass
@@ -339,6 +366,9 @@ class ColValsCompareTwo:
         A value to check against.
     value2 : float | int
         A value to check against.
+    inclusive : tuple[bool, bool]
+        A tuple of booleans that state which bounds are inclusive. The position of the boolean
+        corresponds to the value in the following order: (value1, value2).
     na_pass: bool
         `True` to pass test units with missing values, `False` otherwise.
     threshold : int
@@ -360,6 +390,7 @@ class ColValsCompareTwo:
     column: str
     value1: float | int
     value2: float | int
+    inclusive: tuple[bool, bool]
     na_pass: bool
     threshold: int
     comparison: str
@@ -376,11 +407,21 @@ class ColValsCompareTwo:
         # `True` indicates a passing test unit
         if self.comparison == "between":
             self.test_unit_res = Comparator(
-                x=dfn, column=self.column, low=self.value1, high=self.value2, na_pass=self.na_pass
+                x=dfn,
+                column=self.column,
+                low=self.value1,
+                high=self.value2,
+                inclusive=self.inclusive,
+                na_pass=self.na_pass,
             ).between()
         elif self.comparison == "outside":
             self.test_unit_res = Comparator(
-                x=dfn, column=self.column, low=self.value1, high=self.value2, na_pass=self.na_pass
+                x=dfn,
+                column=self.column,
+                low=self.value1,
+                high=self.value2,
+                inclusive=self.inclusive,
+                na_pass=self.na_pass,
             ).outside()
         else:
             raise ValueError(
