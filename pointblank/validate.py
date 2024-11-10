@@ -752,8 +752,23 @@ class Validate:
 
         return self._get_validation_dict(i, "stop")
 
+    def notify(self, i: int | list[int] | None = None):
+        """
+        Provides a dictionary of the notification status for each validation step.
 
-        validation_info_list = self.validation_info
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the notification status is obtained.
+            If `None`, all steps are included.
+
+        Returns
+        -------
+        dict[int, bool]
+            A dictionary of the notification status for each validation step.
+        """
+
+        return self._get_validation_dict(i, "notify")
 
         report = []
 
