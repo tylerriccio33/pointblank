@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import polars as pl
 
-from pointblank.validate import Validate
+from pointblank.validate import Validate, _ValidationInfo
 from pointblank.thresholds import Thresholds
 
 
@@ -24,6 +24,65 @@ def tbl_pl():
 @pytest.fixture
 def tbl_missing_pl():
     return pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, 8, 8, 8]})
+
+
+def test_validation_info():
+
+    v = _ValidationInfo(
+        i=1,
+        i_o=1,
+        step_id="col_vals_gt",
+        sha1="a",
+        assertion_type="col_vals_gt",
+        column="x",
+        values=0,
+        inclusive=True,
+        na_pass=False,
+        thresholds=Thresholds(),
+        label=None,
+        brief=None,
+        active=True,
+        all_passed=True,
+        n=4,
+        n_passed=4,
+        n_failed=0,
+        f_passed=1.0,
+        f_failed=0.0,
+        warn=None,
+        stop=None,
+        notify=None,
+        row_sample=None,
+        tbl_checked=True,
+        time_processed="2021-08-01T00:00:00",
+        proc_duration_s=0.0,
+    )
+
+    assert v.i == 1
+    assert v.i_o == 1
+    assert v.step_id == "col_vals_gt"
+    assert v.sha1 == "a"
+    assert v.assertion_type == "col_vals_gt"
+    assert v.column == "x"
+    assert v.values == 0
+    assert v.inclusive is True
+    assert v.na_pass is False
+    assert v.thresholds == Thresholds()
+    assert v.label is None
+    assert v.brief is None
+    assert v.active is True
+    assert v.all_passed is True
+    assert v.n == 4
+    assert v.n_passed == 4
+    assert v.n_failed == 0
+    assert v.f_passed == 1.0
+    assert v.f_failed == 0.0
+    assert v.warn is None
+    assert v.stop is None
+    assert v.notify is None
+    assert v.row_sample is None
+    assert v.tbl_checked is True
+    assert isinstance(v.time_processed, str)
+    assert isinstance(v.proc_duration_s, float)
 
 
 @pytest.mark.parametrize(
