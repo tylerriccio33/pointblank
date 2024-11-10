@@ -577,12 +577,14 @@ class Validate:
 
             if compare_type == "COMPARE_SET":
 
+                inside = True if comparison == "in_set" else False
+
                 results_list = ColValsCompareSet(
                     df=df,
                     column=column,
                     values=value,
                     threshold=threshold,
-                    inside=comparison,
+                    inside=inside,
                     allowed_types=compatible_types,
                 ).get_test_results()
 
