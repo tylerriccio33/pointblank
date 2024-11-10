@@ -750,7 +750,8 @@ class Validate:
             A dictionary of the stopping status for each validation step.
         """
 
-    def get_report(self):
+        return self._get_validation_dict(i, "stop")
+
 
         validation_info_list = self.validation_info
 
