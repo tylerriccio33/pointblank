@@ -892,3 +892,23 @@ class Validate:
         }
 
 
+def _check_boolean_input(param: bool, param_name: str):
+    """
+    Check that input value is a boolean.
+
+    Parameters
+    ----------
+    param : bool
+        The input value to check for a boolean value.
+    param_name : str
+        The name of the parameter being checked. This is used in the error message.
+
+    Raises
+    ------
+    ValueError
+        When `param=` is not a boolean value.
+    """
+    if not isinstance(param, bool):
+        raise ValueError(f"`{param_name}=` must be a boolean value.")
+
+
