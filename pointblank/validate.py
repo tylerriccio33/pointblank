@@ -770,34 +770,58 @@ class Validate:
 
         return self._get_validation_dict(i, "notify")
 
+    def report_as_json(
+        self, use_fields: list[str] | None = None, exclude_fields: list[str] | None = None
+    ) -> str:
+        """
+        Get a report of the validation results.
+
+        Parameters
+        ----------
+        use_fields : list[str], optional
+            A list of fields to include in the report. If `None`, all fields are included.
+        exclude_fields : list[str], optional
+            A list of fields to exclude from the report. If `None`, no fields are excluded.
+
+        Returns
+        -------
+        str
+            A JSON-formatted string representing the validation report.
+        """
+
+        if use_fields is not None and exclude_fields is not None:
+            raise ValueError("Cannot specify both `use_fields=` and `exclude_fields=`.")
+
+        if use_fields is None:
+            fields = VALIDATION_REPORT_FIELDS
+        else:
+
+            # Ensure that the fields to use are valid
+            _check_invalid_fields(use_fields, VALIDATION_REPORT_FIELDS)
+
+            fields = use_fields
+
+        if exclude_fields is not None:
+
+            # Ensure that the fields to exclude are valid
+            _check_invalid_fields(exclude_fields, VALIDATION_REPORT_FIELDS)
+
+            fields = [field for field in fields if field not in exclude_fields]
+
         report = []
 
-        for validation_info in validation_info_list:
+        for validation_info in self.validation_info:
+            report_entry = {
+                field: getattr(validation_info, field) for field in VALIDATION_REPORT_FIELDS
+            }
 
-            report.append(
-                {
-                    "i": validation_info.i,
-                    "assertion_type": validation_info.assertion_type,
-                    "column": validation_info.column,
-                    "values": validation_info.values,
-                    "na_pass": validation_info.na_pass,
-                    "thresholds": validation_info.thresholds,
-                    "label": validation_info.label,
-                    "brief": validation_info.brief,
-                    "active": validation_info.active,
-                    "all_passed": validation_info.all_passed,
-                    "n": validation_info.n,
-                    "n_passed": validation_info.n_passed,
-                    "n_failed": validation_info.n_failed,
-                    "f_passed": validation_info.f_passed,
-                    "f_failed": validation_info.f_failed,
-                    "warn": validation_info.warn,
-                    "stop": validation_info.stop,
-                    "notify": validation_info.notify,
-                    "row_sample": validation_info.row_sample,
-                    "tbl_checked": validation_info.tbl_checked,
-                    "time_processed": validation_info.time_processed,
-                    "proc_duration_s": validation_info.proc_duration_s,
+            # Filter the report entry based on the fields to include
+            report_entry = {field: report_entry[field] for field in fields}
+
+            report.append(report_entry)
+
+        return json.dumps(report, indent=4, default=str)
+
                 }
             )
 
