@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from narwhals.typing import FrameT
 
@@ -49,6 +49,9 @@ COL_VALS_COMPARE_TWO_DOCSTRING = """
         A lower value to check against.
     right : float | int
         A higher value to check against.
+    inclusive : tuple[bool, bool]
+        A tuple of two boolean values indicating whether the comparison should be inclusive. The
+        position of the boolean values correspond to the `left=` and `right=` values, respectively.
     na_pass : bool
         Whether to pass rows with missing values.
     threshold : int
@@ -139,7 +142,7 @@ def _col_vals_compare_set_docstring(inside: bool) -> str:
 
 
 @dataclass
-class Test:
+class TF:
     """
     Tests use tabular data and return a single boolean value per check.
     """
@@ -263,6 +266,7 @@ class Test:
         column: str,
         left: float | int,
         right: float | int,
+        inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         threshold: int = 1,
     ) -> bool:
@@ -275,6 +279,7 @@ class Test:
             column=column,
             value1=left,
             value2=right,
+            inclusive=inclusive,
             na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
@@ -288,6 +293,7 @@ class Test:
         column: str,
         left: float | int,
         right: float | int,
+        inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         threshold: int = 1,
     ) -> bool:
@@ -300,6 +306,7 @@ class Test:
             column=column,
             value1=left,
             value2=right,
+            inclusive=inclusive,
             na_pass=na_pass,
             threshold=threshold,
             comparison=comparison,
@@ -311,7 +318,7 @@ class Test:
     def col_vals_in_set(
         df: FrameT,
         column: str,
-        values: list[float | int],
+        set: list[float | int],
         threshold: int = 1,
     ) -> bool:
 
@@ -320,7 +327,7 @@ class Test:
         return ColValsCompareSet(
             df=df,
             column=column,
-            values=values,
+            values=set,
             threshold=threshold,
             inside=True,
             allowed_types=compatible_types,
@@ -331,7 +338,7 @@ class Test:
     def col_vals_not_in_set(
         df: FrameT,
         column: str,
-        values: list[float | int],
+        set: list[float | int],
         threshold: int = 1,
     ) -> bool:
 
@@ -340,7 +347,7 @@ class Test:
         return ColValsCompareSet(
             df=df,
             column=column,
-            values=values,
+            values=set,
             threshold=threshold,
             inside=False,
             allowed_types=compatible_types,
