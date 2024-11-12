@@ -52,7 +52,6 @@ def test_validation_info():
         stop=None,
         notify=None,
         row_sample=None,
-        tbl_checked=True,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -80,7 +79,7 @@ def test_validation_info():
     assert v.stop is None
     assert v.notify is None
     assert v.row_sample is None
-    assert v.tbl_checked is True
+
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
 
@@ -254,7 +253,6 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.stop is None
     assert val_info.notify is None
     assert val_info.row_sample is None
-    assert val_info.tbl_checked is True
     assert isinstance(val_info.time_processed, str)
     assert val_info.proc_duration_s > 0.0
 
