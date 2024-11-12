@@ -19,7 +19,6 @@
         "warn": null,
         "stop": null,
         "notify": null,
-        "row_sample": null,
-        "tbl_checked": null
+        "row_sample": null
     }
 ]
