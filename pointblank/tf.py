@@ -162,6 +162,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_gt.__doc__ = _col_vals_compare_one_docstring(comparison="greater than")
@@ -181,6 +182,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_lt.__doc__ = _col_vals_compare_one_docstring(comparison="less than")
@@ -200,6 +202,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_eq.__doc__ = _col_vals_compare_one_docstring(comparison="equal to")
@@ -219,6 +222,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_ne.__doc__ = _col_vals_compare_one_docstring(comparison="not equal to")
@@ -238,6 +242,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_ge.__doc__ = _col_vals_compare_one_docstring(comparison="greater than or equal to")
@@ -257,6 +262,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_le.__doc__ = _col_vals_compare_one_docstring(comparison="less than or equal to")
@@ -284,6 +290,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_between.__doc__ = _col_vals_compare_two_docstring(comparison="between")
@@ -311,6 +318,7 @@ class TF:
             threshold=threshold,
             comparison=comparison,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside")
@@ -331,6 +339,7 @@ class TF:
             threshold=threshold,
             inside=True,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_in_set.__doc__ = _col_vals_compare_set_docstring(inside=True)
@@ -351,6 +360,7 @@ class TF:
             threshold=threshold,
             inside=False,
             allowed_types=compatible_types,
+            compare_strategy="list",
         ).test()
 
     col_vals_not_in_set.__doc__ = _col_vals_compare_set_docstring(inside=False)
