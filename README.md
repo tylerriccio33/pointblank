@@ -46,7 +46,7 @@ print(json_output)
 ```
 
 <details>
-```json
+```python
 [
     {
         "i": 1,
