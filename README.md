@@ -130,6 +130,10 @@ html_report = v.report_as_html()
 html_report # <-- This will display the HTML report in a notebook
 ```
 
+<a href="https://pola.rs">
+    <img src="https://raw.githubusercontent.com/rich-iannone/pointblank/main/images/pointblank-validation-html-report.png" alt="Validation Report">
+</a>
+
 ## Installation
 
 You can install `pointblank` using pip:
