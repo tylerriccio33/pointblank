@@ -130,7 +130,7 @@ html_report = v.report_as_html()
 html_report # <-- This will display the HTML report in a notebook
 ```
 
-<img src="https://raw.githubusercontent.com/rich-iannone/pointblank/main/images/pointblank-validation-html-report.png" alt="Validation Report">
+<img src="images/pointblank-validation-html-report.png" alt="Validation Report">
 
 ## Installation
 
