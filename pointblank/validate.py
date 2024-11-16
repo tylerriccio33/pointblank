@@ -1043,6 +1043,7 @@ class Validate:
         values = validation_info_dict["values"]
         assertion_type = validation_info_dict["assertion_type"]
         inclusive = validation_info_dict["inclusive"]
+        active = validation_info_dict["active"]
 
         for i, value in enumerate(values):
 
@@ -1102,16 +1103,20 @@ class Validate:
         # Add the `eval` entry to the dictionary
 
         validation_info_dict["eval"] = _transform_eval(
-            n=validation_info_dict["n"], interrogation_performed=interrogation_performed
+            n=validation_info_dict["n"],
+            interrogation_performed=interrogation_performed,
+            active=active,
         )
 
         # ------------------------------------------------
-        # Process the `n` entry
+        # Process the `test_units` entry
         # ------------------------------------------------
 
         # Add the `test_units` entry to the dictionary
         validation_info_dict["test_units"] = _transform_test_units(
-            test_units=validation_info_dict["n"], interrogation_performed=interrogation_performed
+            test_units=validation_info_dict["n"],
+            interrogation_performed=interrogation_performed,
+            active=active,
         )
 
         # ------------------------------------------------
@@ -1125,16 +1130,18 @@ class Validate:
             n_passed_failed=validation_info_dict["n_passed"],
             f_passed_failed=validation_info_dict["f_passed"],
             interrogation_performed=interrogation_performed,
+            active=active,
         )
 
         validation_info_dict["fail"] = _transform_passed_failed(
             n_passed_failed=validation_info_dict["n_failed"],
             f_passed_failed=validation_info_dict["f_failed"],
             interrogation_performed=interrogation_performed,
+            active=active,
         )
 
         # ------------------------------------------------
-        # Process `W`, `S`, `N` entries
+        # Process `w_upd`, `s_upd`, `n_upd` entries
         # ------------------------------------------------
 
         # Transform `warn`, `stop`, and `notify` to `w_upd`, `s_upd`, and `n_upd` entries
@@ -1323,12 +1330,24 @@ class Validate:
             .tab_options(table_font_size="90%")
         )
 
+        # If the interrogation has not been performed, then style the table columns dealing with
+        # interrogation data as grayed out
         if not interrogation_performed:
             gt_tbl = gt_tbl.tab_style(
                 style=style.fill(color="#F2F2F2"),
                 locations=loc.body(
                     columns=["tbl", "eval", "test_units", "pass", "fail", "w_upd", "s_upd", "n_upd"]
                 ),
+            )
+
+        # Transform `active` to a list of indices of inactive validations
+        inactive_steps = [i for i, active in enumerate(active) if not active]
+
+        # If there are inactive steps, then style those rows to be grayed out
+        if inactive_steps:
+            gt_tbl = gt_tbl.tab_style(
+                style=style.fill(color="#F2F2F2"),
+                locations=loc.body(rows=inactive_steps),
             )
 
         return gt_tbl
@@ -1707,31 +1726,37 @@ def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
     return icon_svg
 
 
-def _transform_eval(n: list[int], interrogation_performed: bool) -> list[str]:
+def _transform_eval(n: list[int], interrogation_performed: bool, active: list[bool]) -> list[str]:
 
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
 
-    return ["&#10004;" for _ in range(len(n))]
+    return ["&#10004;" if active[i] else "&mdash;" for i in range(len(n))]
 
 
-def _transform_test_units(test_units: list[int], interrogation_performed: bool) -> list[str]:
+def _transform_test_units(
+    test_units: list[int], interrogation_performed: bool, active: list[bool]
+) -> list[str]:
 
     if not interrogation_performed:
         return ["" for _ in range(len(test_units))]
 
-    return [str(val) for val in test_units]
+    return [str(test_units[i]) if active[i] else "&mdash;" for i in range(len(test_units))]
 
 
 def _transform_passed_failed(
-    n_passed_failed: list[int], f_passed_failed: list[float], interrogation_performed: bool
+    n_passed_failed: list[int],
+    f_passed_failed: list[float],
+    interrogation_performed: bool,
+    active: list[bool],
 ) -> list[str]:
 
     if not interrogation_performed:
         return ["" for _ in range(len(n_passed_failed))]
 
     passed_failed = [
-        f"{n_passed_failed[i]}<br />{f_passed_failed[i]}" for i in range(len(n_passed_failed))
+        f"{n_passed_failed[i]}<br />{f_passed_failed[i]}" if active[i] else "&mdash;"
+        for i in range(len(n_passed_failed))
     ]
 
     return passed_failed
