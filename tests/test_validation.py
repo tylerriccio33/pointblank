@@ -51,7 +51,6 @@ def test_validation_info():
         warn=None,
         stop=None,
         notify=None,
-        row_sample=None,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -78,7 +77,6 @@ def test_validation_info():
     assert v.warn is None
     assert v.stop is None
     assert v.notify is None
-    assert v.row_sample is None
 
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
@@ -147,6 +145,7 @@ def test_validation_plan(request, tbl_fixture):
         "values",
         "inclusive",
         "na_pass",
+        "pre",
         "thresholds",
         "label",
         "brief",
@@ -160,7 +159,6 @@ def test_validation_plan(request, tbl_fixture):
         "warn",
         "stop",
         "notify",
-        "row_sample",
         "tbl_checked",
         "time_processed",
         "proc_duration_s",
@@ -185,7 +183,6 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.warn is None
     assert val_info.stop is None
     assert val_info.notify is None
-    assert val_info.row_sample is None
     assert val_info.tbl_checked is None
     assert val_info.time_processed is None
     assert val_info.proc_duration_s is None
@@ -214,6 +211,7 @@ def test_validation_plan(request, tbl_fixture):
         "values",
         "inclusive",
         "na_pass",
+        "pre",
         "thresholds",
         "label",
         "brief",
@@ -227,7 +225,6 @@ def test_validation_plan(request, tbl_fixture):
         "warn",
         "stop",
         "notify",
-        "row_sample",
         "tbl_checked",
         "time_processed",
         "proc_duration_s",
@@ -252,7 +249,6 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.warn is None
     assert val_info.stop is None
     assert val_info.notify is None
-    assert val_info.row_sample is None
     assert isinstance(val_info.time_processed, str)
     assert val_info.proc_duration_s > 0.0
 
@@ -463,6 +459,66 @@ def test_validation_check_na_pass_input(request, tbl_fixture):
         Validate(tbl).col_vals_between(column="x", left=0, right=5, na_pass=9)
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_outside(column="x", left=-5, right=0, na_pass=9)
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_pd", "tbl_pl"],
+)
+def test_validation_check_thresholds_input(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that allowed forms for `thresholds=` don't raise an error
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=1)
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=0.1)
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 0.2))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 0.2, 0.3))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 2, 0.3))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 2))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 3, 4))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 0.3, 4))
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"warn_at": 0.1})
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"stop_at": 0.1})
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"notify_at": 0.1})
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"warn_at": 0.05, "notify_at": 0.1})
+    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=Thresholds())
+    Validate(tbl).col_vals_gt(
+        column="x", value=0, thresholds=Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+    )
+    Validate(tbl).col_vals_gt(
+        column="x", value=0, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3)
+    )
+
+    # Raise a ValueError when `thresholds=` is not one of the allowed types
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds="invalid")
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=[1, 2, 3])
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=-2)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 2, 3, 4))
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=())
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, -2))
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, [2], 3))
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(
+            column="x", value=0, thresholds={"warning": 0.05, "notify_at": 0.1}
+        )
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(
+            column="x", value=0, thresholds={"warn_at": 0.05, "notify_at": -0.1}
+        )
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(
+            column="x", value=0, thresholds={"warn_at": "invalid", "stop_at": 3}
+        )
 
 
 @pytest.mark.parametrize(
