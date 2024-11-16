@@ -47,7 +47,6 @@ json_output = v.report_as_json()
 print(json_output)
 ```
 
-<details>
 ```python
 [
     {
@@ -124,7 +123,6 @@ print(json_output)
     }
 ]
 ```
-</details>
 
 To make this more readable, you can generate an HTML report of the validation results with the `report_as_html` method:
 
