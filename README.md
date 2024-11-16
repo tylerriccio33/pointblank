@@ -24,6 +24,8 @@ These workflows make it possible to catch data quality issues early in your data
 
 ## Example Use Cases
 
+Let's say you have a Polars DataFrame and you want to validate it against a set of constraints. Here's how you can do that using the `pb.Validate` class and its library of validation methods:
+
 ```python
 import pointblank as pb
 import polars as pl
@@ -55,6 +57,7 @@ print(json_output)
         "values": 0,
         "inclusive": null,
         "na_pass": false,
+        "pre": null,
         "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
         "label": null,
         "brief": null,
@@ -68,9 +71,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "row_sample": null,
-        "time_processed": "2024-11-12T22:20:01.945+00:00",
-        "proc_duration_s": 0.010958
+        "time_processed": "2024-11-16T15:43:26.891+00:00",
+        "proc_duration_s": 0.021713
     },
     {
         "i": 2,
@@ -79,6 +81,7 @@ print(json_output)
         "values": 3,
         "inclusive": null,
         "na_pass": false,
+        "pre": null,
         "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
         "label": null,
         "brief": null,
@@ -92,9 +95,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "row_sample": null,
-        "time_processed": "2024-11-12T22:20:01.946+00:00",
-        "proc_duration_s": 0.00028
+        "time_processed": "2024-11-16T15:43:26.891+00:00",
+        "proc_duration_s": 0.000421
     },
     {
         "i": 3,
@@ -103,6 +105,7 @@ print(json_output)
         "values": 7,
         "inclusive": null,
         "na_pass": false,
+        "pre": null,
         "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
         "label": null,
         "brief": null,
@@ -116,13 +119,14 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "row_sample": null,
-        "time_processed": "2024-11-12T22:20:01.946+00:00",
-        "proc_duration_s": 0.0002
+        "time_processed": "2024-11-16T15:43:26.891+00:00",
+        "proc_duration_s": 0.000398
     }
 ]
 ```
 </details>
+
+To make this more readable, you can generate an HTML report of the validation results with the `report_as_html` method:
 
 ```python
 # Get an HTML report of the validation
@@ -138,13 +142,4 @@ You can install `pointblank` using pip:
 
 ```bash
 pip install pointblank
-```
-
-## Quick Start
-
-Here's a quick example to get you started:
-
-```python
-from pointblank import Data, Table, Column, Constraint
-
 ```
