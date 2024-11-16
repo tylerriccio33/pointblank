@@ -10,7 +10,7 @@ from typing import Callable
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from great_tables import GT, md, html, loc, style, google_font
+from great_tables import GT, html, loc, style, google_font
 
 from pointblank._constants import (
     TYPE_METHOD_MAP,
@@ -18,6 +18,7 @@ from pointblank._constants import (
     COMPARE_TYPE_MAP,
     VALIDATION_REPORT_FIELDS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
+    SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank._comparison import (
     ColValsCompareOne,
@@ -616,6 +617,8 @@ class Validate:
 
         df = self.data
 
+        self.time_start = datetime.datetime.now(datetime.timezone.utc)
+
         for validation in self.validation_info:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
@@ -761,6 +764,8 @@ class Validate:
 
             # Set the time of processing for this step, this should be UTC time is ISO 8601 format
             validation.time_processed = end_time.isoformat(timespec="milliseconds")
+
+        self.time_end = datetime.datetime.now(datetime.timezone.utc)
 
         return self
 
@@ -964,6 +969,10 @@ class Validate:
                 field: getattr(validation_info, field) for field in VALIDATION_REPORT_FIELDS
             }
 
+            # If pre-processing functions are included in the report, convert them to strings
+            if "pre" in fields:
+                report_entry["pre"] = _pre_processing_funcs_to_str(report_entry["pre"])
+
             # Filter the report entry based on the fields to include
             report_entry = {field: report_entry[field] for field in fields}
 
@@ -991,13 +1000,18 @@ class Validate:
         if pd is None and pl is None:
             raise ImportError(
                 "Generating a report with the `.report_as_html()` method requires either the "
-                "Polars or the Pandas library."
+                "Polars or the Pandas library to be installed."
             )
 
         # Prefer the use of the Polars library if available
         tbl_lib = pl if pl is not None else pd
 
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
+
+        # Has the validation been performed? We can check the first `time_processed` entry in the
+        # dictionary to see if it is `None` or not; The output of many cells in the reporting table
+        # will be made blank if the validation has not been performed
+        interrogation_performed = validation_info_dict.get("proc_duration_s", [None])[0] is not None
 
         # ------------------------------------------------
         # Process the `type` entry
@@ -1052,8 +1066,46 @@ class Validate:
             else:
                 values_upd.append(str(value))
 
+        # Remove the `inclusive` entry from the dictionary
+        validation_info_dict.pop("inclusive")
+
         # Add the `values_upd` entry to the dictionary
         validation_info_dict["values_upd"] = values_upd
+
+        ## ------------------------------------------------
+        ## The folloiwng entries rely on an interrogation
+        ## to have been performed
+        ## ------------------------------------------------
+
+        # ------------------------------------------------
+        # Add the `tbl` entry
+        # ------------------------------------------------
+
+        # Depending on if there was some pre-processing done, get the appropriate icon
+        # for the table processing status to be displayed in the report under the `tbl` column
+
+        validation_info_dict["tbl"] = _transform_tbl_preprocessed(
+            pre=validation_info_dict["pre"], interrogation_performed=interrogation_performed
+        )
+
+        # ------------------------------------------------
+        # Add the `eval` entry
+        # ------------------------------------------------
+
+        # Add the `eval` entry to the dictionary
+
+        validation_info_dict["eval"] = _transform_eval(
+            n=validation_info_dict["n"], interrogation_performed=interrogation_performed
+        )
+
+        # ------------------------------------------------
+        # Process the `n` entry
+        # ------------------------------------------------
+
+        # Add the `test_units` entry to the dictionary
+        validation_info_dict["test_units"] = _transform_test_units(
+            test_units=validation_info_dict["n"], interrogation_performed=interrogation_performed
+        )
 
         # ------------------------------------------------
         # Process `pass` and `fail` entries
@@ -1065,11 +1117,13 @@ class Validate:
         validation_info_dict["pass"] = _transform_passed_failed(
             n_passed_failed=validation_info_dict["n_passed"],
             f_passed_failed=validation_info_dict["f_passed"],
+            interrogation_performed=interrogation_performed,
         )
 
         validation_info_dict["fail"] = _transform_passed_failed(
             n_passed_failed=validation_info_dict["n_failed"],
             f_passed_failed=validation_info_dict["f_failed"],
+            interrogation_performed=interrogation_performed,
         )
 
         # ------------------------------------------------
@@ -1077,15 +1131,36 @@ class Validate:
         # ------------------------------------------------
 
         # Transform `warn`, `stop`, and `notify` to `w_upd`, `s_upd`, and `n_upd` entries
-        validation_info_dict["w_upd"] = _transform_w_s_n(validation_info_dict["warn"], "#E5AB00")
-        validation_info_dict["s_upd"] = _transform_w_s_n(validation_info_dict["stop"], "#CF142B")
-        validation_info_dict["n_upd"] = _transform_w_s_n(validation_info_dict["notify"], "#439CFE")
+        validation_info_dict["w_upd"] = _transform_w_s_n(
+            values=validation_info_dict["warn"],
+            color="#E5AB00",
+            interrogation_performed=interrogation_performed,
+        )
+        validation_info_dict["s_upd"] = _transform_w_s_n(
+            values=validation_info_dict["stop"],
+            color="#CF142B",
+            interrogation_performed=interrogation_performed,
+        )
+        validation_info_dict["n_upd"] = _transform_w_s_n(
+            values=validation_info_dict["notify"],
+            color="#439CFE",
+            interrogation_performed=interrogation_performed,
+        )
 
         # Remove the `assertion_type` entry from the dictionary
         validation_info_dict.pop("assertion_type")
 
         # Remove the `values` entry from the dictionary
         validation_info_dict.pop("values")
+
+        # Remove the `n` entry from the dictionary
+        validation_info_dict.pop("n")
+
+        # Remove the `pre` entry from the dictionary
+        validation_info_dict.pop("pre")
+
+        # Remove the `proc_duration_s` entry from the dictionary
+        validation_info_dict.pop("proc_duration_s")
 
         # Remove `n_passed`, `n_failed`, `f_passed`, and `f_failed` entries from the dictionary
         validation_info_dict.pop("n_passed")
@@ -1098,18 +1173,30 @@ class Validate:
         validation_info_dict.pop("stop")
         validation_info_dict.pop("notify")
 
-        # Create a DataFrame from the validation information using the tbl_lib library
+        # Drop several unused keys from the dictionary
+        validation_info_dict.pop("na_pass")
+        validation_info_dict.pop("label")
+        validation_info_dict.pop("brief")
+        validation_info_dict.pop("active")
+        validation_info_dict.pop("all_passed")
+
+        # Create a table time string
+        table_time = _create_table_time_html(time_start=self.time_start, time_end=self.time_end)
+
+        # Create the title text
+        title_text = _get_title_text(interrogation_performed=interrogation_performed)
+
+        # Create a DataFrame from the validation information using the `tbl_lib` library; which is
         # either Polars or Pandas
         df = tbl_lib.DataFrame(validation_info_dict)
 
-        # Drop the following columns from the DataFrame
-        df = df.drop(["inclusive", "na_pass", "label", "brief", "active", "all_passed"])
-
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
-            GT(df)
-            .tab_header(title="Pointblank Validation")
-            .opt_table_font(font=google_font("IBM Plex Sans"))
+            GT(df, id="pb_tbl")
+            .tab_header(title=html(title_text))
+            .tab_source_note(source_note=html(table_time))
+            .fmt_markdown(columns=["pass", "fail"])
+            .opt_table_font(font=google_font(name="IBM Plex Sans"))
             .opt_align_table_header(align="left")
             .tab_style(style=style.css("height: 40px;"), locations=loc.body())
             .tab_style(
@@ -1128,32 +1215,66 @@ class Validate:
                     color="black", font=google_font(name="IBM Plex Mono"), size="11px"
                 ),
                 locations=loc.body(
-                    columns=["type_upd", "column", "values_upd", "n", "pass", "fail"]
+                    columns=["type_upd", "column", "values_upd", "test_units", "pass", "fail"]
                 ),
             )
             .tab_style(
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
-                locations=loc.body(columns=["column", "values_upd", "pass", "fail"]),
+                locations=loc.body(columns=["column", "values_upd"]),
             )
             .tab_style(
-                style=style.fill(color="#FCFCFC"),
+                style=style.borders(
+                    sides="left",
+                    color="#E5E5E5",
+                    style="dashed" if interrogation_performed else "none",
+                ),
+                locations=loc.body(columns=["pass", "fail"]),
+            )
+            .tab_style(
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
                 locations=loc.body(columns=["w_upd", "s_upd", "n_upd"]),
             )
             .tab_style(
-                style=style.borders(sides="right", color="#D3D3D3"),
+                style=style.borders(
+                    sides="right",
+                    color="#D3D3D3",
+                    style="solid" if interrogation_performed else "none",
+                ),
                 locations=loc.body(columns="n_upd"),
             )
             .tab_style(
-                style=style.borders(sides="left", color="#D3D3D3"),
+                style=style.borders(
+                    sides="left",
+                    color="#D3D3D3",
+                    style="solid" if interrogation_performed else "none",
+                ),
                 locations=loc.body(columns="w_upd"),
+            )
+            .tab_style(
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
+                locations=loc.body(columns=["tbl", "eval"]),
+            )
+            .tab_style(
+                style=style.borders(
+                    sides="right",
+                    color="#D3D3D3",
+                    style="solid" if interrogation_performed else "none",
+                ),
+                locations=loc.body(columns="eval"),
+            )
+            .tab_style(
+                style=style.borders(sides="left", color="#D3D3D3", style="solid"),
+                locations=loc.body(columns="tbl"),
             )
             .cols_label(
                 cases={
                     "i": "",
                     "type_upd": "STEP",
                     "column": "COLUMNS",
+                    "tbl": "TBL",
+                    "eval": "EVAL",
                     "values_upd": "VALUES",
-                    "n": "UNITS",
+                    "test_units": "UNITS",
                     "pass": "PASS",
                     "fail": "FAIL",
                     "w_upd": "W",
@@ -1161,14 +1282,15 @@ class Validate:
                     "n_upd": "N",
                 }
             )
-            .sub_missing(columns=["w_upd", "s_upd", "n_upd"], missing_text=html("&mdash;"))
             .cols_width(
                 cases={
                     "i": "35px",
                     "type_upd": "190px",
                     "column": "120px",
                     "values_upd": "120px",
-                    "n": "60px",
+                    "tbl": "50px",
+                    "eval": "50px",
+                    "test_units": "60px",
                     "pass": "60px",
                     "fail": "60px",
                     "w_upd": "30px",
@@ -1176,9 +1298,31 @@ class Validate:
                     "n_upd": "30px",
                 }
             )
-            .cols_move_to_start(["i", "type_upd", "column", "values_upd", "n", "pass", "fail"])
-            .fmt_markdown(columns=["pass", "fail"])
+            .cols_align(align="center", columns=["tbl", "eval", "w_upd", "s_upd", "n_upd"])
+            .cols_align(align="right", columns=["pass", "fail"])
+            .cols_move_to_start(
+                [
+                    "i",
+                    "type_upd",
+                    "column",
+                    "values_upd",
+                    "tbl",
+                    "eval",
+                    "test_units",
+                    "pass",
+                    "fail",
+                ]
+            )
+            .tab_options(table_font_size="90%")
         )
+
+        if not interrogation_performed:
+            gt_tbl = gt_tbl.tab_style(
+                style=style.fill(color="#F2F2F2"),
+                locations=loc.body(
+                    columns=["tbl", "eval", "test_units", "pass", "fail", "w_upd", "s_upd", "n_upd"]
+                ),
+            )
 
         return gt_tbl
 
@@ -1321,6 +1465,24 @@ def _check_set_types(set: list[float | int | str]):
         raise ValueError("`set=` must be a list of floats, integers, or strings.")
 
 
+def _check_pre(pre: Callable | None):
+    """
+    Check that input value of the `pre=` parameter is a callable function.
+
+    Parameters
+    ----------
+    pre : Callable | None
+        The pre-processing function to apply to the table.
+
+    Raises
+    ------
+    ValueError
+        When `pre` is not a callable function.
+    """
+    if pre is not None and not isinstance(pre, Callable):
+        raise ValueError("`pre=` must be a callable function.")
+
+
 def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None):
     """
     Check that input value of the `thresholds=` parameter is a valid threshold.
@@ -1335,6 +1497,52 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
     ValueError
         When `thresholds` is not a valid threshold.
     """
+
+    if thresholds is None or isinstance(thresholds, Thresholds):
+        return
+
+    if isinstance(thresholds, (int, float)):
+        if thresholds < 0:
+            raise ValueError(
+                "If an int or float is supplied to `thresholds=` it must be a "
+                "non-negative value."
+            )
+
+    if isinstance(thresholds, tuple):
+        if len(thresholds) > 3:
+            raise ValueError(
+                "If a tuple is supplied to `thresholds=` it must have at most three elements."
+            )
+        if not all(isinstance(threshold, (int, float)) for threshold in thresholds):
+            raise ValueError(
+                "If a tuple is supplied to `thresholds=` all elements must be integers or floats."
+            )
+        if any(threshold < 0 for threshold in thresholds):
+            raise ValueError(
+                "If a tuple is supplied to `thresholds=` all elements must be non-negative."
+            )
+
+    if isinstance(thresholds, dict):
+
+        # Check keys for invalid entries and raise a ValueError if any are found
+        invalid_keys = set(thresholds.keys()) - {"warn_at", "stop_at", "notify_at"}
+
+        if invalid_keys:
+            raise ValueError(f"Invalid keys in the thresholds dictionary: {invalid_keys}")
+
+        # Get values as a list and raise a ValueError for any non-integer or non-float values
+        values = list(thresholds.values())
+
+        if not all(isinstance(value, (int, float)) for value in values):
+            raise ValueError(
+                "If a dict is supplied to `thresholds=` all values must be integers or floats."
+            )
+
+        # Raise a ValueError if any values are negative
+        if any(value < 0 for value in values):
+            raise ValueError(
+                "If a dict is supplied to `thresholds=` all values must be non-negative."
+            )
 
     # Raise a ValueError if the thresholds argument is not valid (also accept None)
     if thresholds is not None and not isinstance(thresholds, (int, float, tuple, dict, Thresholds)):
@@ -1364,6 +1572,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "values",
         "inclusive",
         "na_pass",
+        "pre",
         "label",
         "brief",
         "active",
@@ -1376,6 +1585,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "warn",
         "stop",
         "notify",
+        "proc_duration_s",
     ]
 
     # Filter the validation information to include only the selected fields
@@ -1395,7 +1605,11 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     return validation_info_dict
 
 
-def _transform_w_s_n(values, color):
+def _transform_w_s_n(values, color, interrogation_performed):
+
+    if not interrogation_performed:
+        return ["" for _ in range(len(values))]
+
     return [
         (
             "&mdash;"
@@ -1426,6 +1640,28 @@ def _get_assertion_icon(icon: list[str] | None, length_val: int = 30) -> list[st
     return icon_svg
 
 
+def _get_title_text(interrogation_performed: bool) -> str:
+
+    if interrogation_performed:
+        return "Pointblank Validation"
+
+    html_str = (
+        "<div>"
+        '<span style="float: left;">'
+        "Pointblank Validation Plan"
+        "</span>"
+        '<span style="float: right; text-decoration-line: underline; '
+        "text-underline-position: under;"
+        "font-size: 16px; text-decoration-color: #9C2E83;"
+        'padding-top: 0.1em; padding-right: 0.4em;">'
+        "No Interrogation Peformed"
+        "</span>"
+        "</div>"
+    )
+
+    return html_str
+
+
 def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
 
     svg = re.sub(r'width="[0-9]*?px', f'width="{height_width}px', svg)
@@ -1434,7 +1670,58 @@ def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[s
     return svg
 
 
-def _transform_passed_failed(n_passed_failed: list[int], f_passed_failed: list[float]) -> list[str]:
+def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
+
+    if not interrogation_performed:
+        return ["" for _ in range(len(pre))]
+
+    # Iterate over the pre-processed table status and return the appropriate SVG icon name
+    # (either 'unchanged' (None) or 'modified' (not None))
+    status_list = []
+
+    for status in pre:
+        if status is None:
+            status_list.append("unchanged")
+        else:
+            status_list.append("modified")
+
+    return _get_preprocessed_table_icon(icon=status_list)
+
+
+def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
+
+    # If the pre-processed table is None, return an empty list
+    if icon is None:
+        return []
+
+    # For each icon, get the SVG icon from the SVG_ICONS_FOR_TBL_STATUS dictionary
+    icon_svg = [SVG_ICONS_FOR_TBL_STATUS.get(icon) for icon in icon]
+
+    return icon_svg
+
+
+def _transform_eval(n: list[int], interrogation_performed: bool) -> list[str]:
+
+    if not interrogation_performed:
+        return ["" for _ in range(len(n))]
+
+    return ["&#10004;" for _ in range(len(n))]
+
+
+def _transform_test_units(test_units: list[int], interrogation_performed: bool) -> list[str]:
+
+    if not interrogation_performed:
+        return ["" for _ in range(len(test_units))]
+
+    return [str(val) for val in test_units]
+
+
+def _transform_passed_failed(
+    n_passed_failed: list[int], f_passed_failed: list[float], interrogation_performed: bool
+) -> list[str]:
+
+    if not interrogation_performed:
+        return ["" for _ in range(len(n_passed_failed))]
 
     passed_failed = [
         f"{n_passed_failed[i]}<br />{f_passed_failed[i]}" for i in range(len(n_passed_failed))
@@ -1470,3 +1757,76 @@ def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
     ]
 
     return type_upd
+
+
+def _pre_processing_funcs_to_str(pre: Callable) -> str | list[str]:
+
+    if isinstance(pre, Callable):
+        return _get_callable_source(fn=pre)
+
+
+def _get_callable_source(fn: Callable) -> str:
+    if isinstance(fn, Callable):
+        try:
+            source_lines, _ = inspect.getsourcelines(fn)
+            source = "".join(source_lines).strip()
+            # Extract the `pre` argument from the source code
+            pre_arg = _extract_pre_argument(source)
+            return pre_arg
+        except (OSError, TypeError):
+            return fn.__name__
+    return fn
+
+
+def _extract_pre_argument(source: str) -> str:
+    # Find the start of the `pre` argument
+    pre_start = source.find("pre=")
+    if pre_start == -1:
+        return source
+    # Find the end of the `pre` argument
+    pre_end = source.find(",", pre_start)
+    if pre_end == -1:
+        pre_end = len(source)
+    # Extract the `pre` argument and remove the leading `pre=`
+    pre_arg = source[pre_start + len("pre=") : pre_end].strip()
+
+    return pre_arg
+
+
+def _create_table_time_html(
+    time_start: datetime.datetime | None, time_end: datetime.datetime | None
+) -> str:
+
+    if time_start is None:
+        return ""
+
+    # Get the time duration (difference between `time_end` and `time_start`) in seconds
+    time_duration = (time_end - time_start).total_seconds()
+
+    # If the time duration is less than 1 second, use a simplified string, otherwise
+    # format the time duration to four decimal places
+    if time_duration < 1:
+        time_duration_fmt = "< 1 s"
+    else:
+        time_duration_fmt = f"{time_duration:.4f} s"
+
+    # Format the start time and end time in the format: "%Y-%m-%d %H:%M:%S %Z"
+    time_start_fmt = time_start.strftime("%Y-%m-%d %H:%M:%S %Z")
+    time_end_fmt = time_end.strftime("%Y-%m-%d %H:%M:%S %Z")
+
+    # Generate an HTML string that displays the start time, duration, and end time
+    return (
+        f"<div style='margin-top: 5px; margin-bottom: 5px;'>"
+        f"<span style='background-color: #FFF; color: #444; padding: 0.5em 0.5em; position: "
+        f"inherit; text-transform: uppercase; margin-left: 10px; margin-right: 5px; border: "
+        f"solid 1px #999999; font-variant-numeric: tabular-nums; border-radius: 0; padding: "
+        f"2px 10px 2px 10px;'>{time_start_fmt}</span>"
+        f"<span style='background-color: #FFF; color: #444; padding: 0.5em 0.5em; position: "
+        f"inherit; margin-right: 5px; border: solid 1px #999999; font-variant-numeric: "
+        f"tabular-nums; border-radius: 0; padding: 2px 10px 2px 10px;'>{time_duration_fmt}</span>"
+        f"<span style='background-color: #FFF; color: #444; padding: 0.5em 0.5em; position: "
+        f"inherit; text-transform: uppercase; margin: 5px 1px 5px -1px; border: solid 1px #999999; "
+        f"font-variant-numeric: tabular-nums; border-radius: 0; padding: 2px 10px 2px 10px;'>"
+        f"{time_end_fmt}</span>"
+        f"</div>"
+    )
