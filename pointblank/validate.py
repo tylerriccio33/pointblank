@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import datetime
+import inspect
 import json
 import re
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Callable
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -80,6 +82,8 @@ COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING = """
         The value to compare against.
     na_pass : bool
         Whether to pass rows with missing values.
+    pre : Callable | None
+        A pre-processing function or lambda to apply to the data table for the validation step.
     thresholds : int | float | tuple | dict| Thresholds, optional
         The threshold value or values.
     active : bool, optional
@@ -97,6 +101,8 @@ COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING = """
         The upper bound of the range.
     na_pass : bool
         Whether to pass rows with missing values.
+    pre : Callable | None
+        A pre-processing function or lambda to apply to the data table for the validation step.
     thresholds : int | float | tuple | dict| Thresholds, optional
         The threshold value or values.
     active : bool, optional
@@ -110,6 +116,8 @@ COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING = """
         The column to validate.
     set : list[int | float]
         A list of values to compare against.
+    pre : Callable | None
+        A pre-processing function or lambda to apply to the data table for the validation step.
     thresholds : int | float | tuple | dict| Thresholds, optional
         The threshold value or values.
     active : bool, optional
@@ -141,6 +149,8 @@ class _ValidationInfo:
         The value or values to compare against.
     na_pass : bool | None
         Whether to pass test units that hold missing values.
+    pre : Callable | None
+        A pre-processing function or lambda to apply to the data table for the validation step.
     thresholds : Thresholds | None
         The threshold values for the validation.
     label : str | None
@@ -167,8 +177,6 @@ class _ValidationInfo:
         Whether the number of failing test units is beyond the stopping threshold.
     notify : bool | None
         Whether the number of failing test units is beyond the notification threshold.
-    row_sample : int | None
-        The number of rows to sample for the validation step. Unused.
     tbl_checked : bool | None
         The data table in its native format that has been checked for the validation step. It wil
         include a new column called `pb_is_good_` that is a boolean column that indicates whether
@@ -189,6 +197,7 @@ class _ValidationInfo:
     values: any | list[any] | tuple | None = None
     inclusive: tuple[bool, bool] | None = None
     na_pass: bool | None = None
+    pre: Callable | None = None
     thresholds: Thresholds | None = None
     label: str | None = None
     brief: str | None = None
@@ -203,7 +212,6 @@ class _ValidationInfo:
     warn: bool | None = None
     stop: bool | None = None
     notify: bool | None = None
-    row_sample: int | None = None
     tbl_checked: bool | None = None
     time_processed: str | None = None
     proc_duration_s: float | None = None
@@ -267,6 +275,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -274,6 +283,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -283,6 +293,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -296,6 +307,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -303,6 +315,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -312,6 +325,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -325,6 +339,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -332,6 +347,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -341,6 +357,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -354,6 +371,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -361,6 +379,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -370,6 +389,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -383,6 +403,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -390,6 +411,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -399,6 +421,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -412,6 +435,7 @@ class Validate:
         column: str,
         value: float | int,
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -419,6 +443,7 @@ class Validate:
 
         _check_column(column=column)
         _check_value_float_int(value=value)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -428,6 +453,7 @@ class Validate:
             column=column,
             values=value,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -443,6 +469,7 @@ class Validate:
         right: float | int,
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -451,6 +478,7 @@ class Validate:
         _check_column(column=column)
         _check_value_float_int(value=left)
         _check_value_float_int(value=right)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -463,6 +491,7 @@ class Validate:
             values=value,
             inclusive=inclusive,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -480,6 +509,7 @@ class Validate:
         right: float | int,
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -488,6 +518,7 @@ class Validate:
         _check_column(column=column)
         _check_value_float_int(value=left)
         _check_value_float_int(value=right)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -500,6 +531,7 @@ class Validate:
             values=value,
             inclusive=inclusive,
             na_pass=na_pass,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -514,6 +546,7 @@ class Validate:
         self,
         column: str,
         set: list[float | int],
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -521,6 +554,7 @@ class Validate:
 
         _check_column(column=column)
         _check_set_types(set=set)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -528,6 +562,7 @@ class Validate:
             assertion_type=assertion_type,
             column=column,
             values=set,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -542,6 +577,7 @@ class Validate:
         self,
         column: str,
         set: list[float | int],
+        pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
@@ -549,6 +585,7 @@ class Validate:
 
         _check_column(column=column)
         _check_set_types(set=set)
+        _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -556,6 +593,7 @@ class Validate:
             assertion_type=assertion_type,
             column=column,
             values=set,
+            pre=pre,
             thresholds=_normalize_thresholds_creation(thresholds),
             active=active,
         )
@@ -584,6 +622,43 @@ class Validate:
 
             # Make a copy of the table for this step
             df_step = df
+
+            # ------------------------------------------------
+            # Pre-processing stage
+            # ------------------------------------------------
+
+            # Determine whether any pre-processing functions are to be applied to the table
+            if validation.pre is not None:
+
+                # Read the text of the pre-processing function
+                pre_text = _pre_processing_funcs_to_str(validation.pre)
+
+                # Determine if the pre-processing function is a lambda function; return a boolean
+                is_lambda = re.match(r"^lambda", pre_text) is not None
+
+                # If the pre-processing function is a lambda function, then check if there is
+                # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
+                # to use a Narwhalified version of the table
+                if is_lambda:
+
+                    # Get the signature of the lambda function
+                    sig = inspect.signature(validation.pre)
+
+                    # Check if the lambda function has a keyword argument called `dfn`
+                    if "dfn" in sig.parameters:
+
+                        # Convert the table to a Narwhals DataFrame
+                        df_step = nw.from_native(df_step)
+
+                        # Apply the pre-processing function to the table
+                        df_step = validation.pre(dfn=df_step)
+
+                        # Convert the table back to its original format
+                        df_step = nw.to_native(df_step)
+
+                # If the pre-processing function is a named function, apply it to the table
+                elif isinstance(validation.pre, str):
+                    df_step = globals()[validation.pre](df_step)
 
             type = validation.assertion_type
             column = validation.column
