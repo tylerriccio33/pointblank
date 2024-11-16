@@ -52,6 +52,7 @@ VALIDATION_REPORT_FIELDS = [
     "values",
     "inclusive",
     "na_pass",
+    "pre",
     "thresholds",
     "label",
     "brief",
@@ -65,7 +66,6 @@ VALIDATION_REPORT_FIELDS = [
     "warn",
     "stop",
     "notify",
-    "row_sample",
     "time_processed",
     "proc_duration_s",
 ]
