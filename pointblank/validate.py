@@ -623,6 +623,13 @@ class Validate:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
 
+            # Skip the validation step if it is not active but still record the time of processing
+            if not validation.active:
+                end_time = datetime.datetime.now(datetime.timezone.utc)
+                validation.proc_duration_s = (end_time - start_time).total_seconds()
+                validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                continue
+
             # Make a copy of the table for this step
             df_step = df
 
