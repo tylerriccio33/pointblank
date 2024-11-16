@@ -6,6 +6,7 @@
         "values": 0,
         "inclusive": null,
         "na_pass": false,
+        "pre": null,
         "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
         "label": null,
         "brief": null,
@@ -18,7 +19,6 @@
         "f_failed": null,
         "warn": null,
         "stop": null,
-        "notify": null,
-        "row_sample": null
+        "notify": null
     }
 ]
