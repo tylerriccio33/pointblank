@@ -120,30 +120,6 @@ Parameters
 {ACTIVE_ARG_DOCSTRING}"""
 
 
-COL_VALS_COMPARE_ONE_PARAMETERS_DOCSTRING = """
-    Parameters
-    ----------
-    column : str
-        The column to validate.
-    value : int | float
-        The value to compare against.
-    na_pass : bool
-        Should any encountered None, NA, or Null values be considered as passing test units? By
-        default, this is `False`. Set to `True` to pass test units with missing values.
-    pre : Callable | None
-        A pre-processing function or lambda to apply to the data table for the validation step.
-    thresholds : int | float | tuple | dict| Thresholds, optional
-        Failure threshold levels so that the validation step can react accordingly when exceeding
-        the set levels for different states (`warn`, `stop`, and `notify`). This can be created
-        simply as an integer or float denoting the absolute number or fraction of failing test units
-        for the 'warn' level. Otherwise, you can use a tuple of 1-3 values, a dictionary of 1-3
-        entries, or a Thresholds object.
-    active : bool, optional
-        A boolean value indicating whether the validation step should be active. Using `False` will
-        make the validation step inactive (still reporting its presence and keeping indexes for the
-        steps unchanged).
-    """
-
 COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING = """
     Parameters
     ----------
