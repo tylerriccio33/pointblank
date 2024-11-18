@@ -1293,7 +1293,7 @@ class Validate:
                 }
             )
             .cols_align(align="center", columns=["tbl", "eval", "w_upd", "s_upd", "n_upd"])
-            .cols_align(align="right", columns=["pass", "fail"])
+            .cols_align(align="right", columns=["test_units", "pass", "fail"])
             .cols_move_to_start(
                 [
                     "i",
@@ -1556,7 +1556,10 @@ def _transform_eval(n: list[int], interrogation_performed: bool, active: list[bo
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
 
-    return ["&#10004;" if active[i] else "&mdash;" for i in range(len(n))]
+    return [
+        '<span style="color:#4CA64C;">&check;</span>' if active[i] else "&mdash;"
+        for i in range(len(n))
+    ]
 
 
 def _transform_test_units(
