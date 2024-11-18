@@ -911,11 +911,11 @@ class Validate:
 
         return self._get_validation_dict(i, "notify")
 
-    def report_as_json(
+    def get_json_report(
         self, use_fields: list[str] | None = None, exclude_fields: list[str] | None = None
     ) -> str:
         """
-        Get a report of the validation results.
+        Get a report of the validation results as a JSON-formatted string.
 
         Parameters
         ----------
@@ -967,12 +967,12 @@ class Validate:
 
         return json.dumps(report, indent=4, default=str)
 
-    def report_as_html(self) -> GT:
+    def get_tabular_report(self) -> GT:
         """
-        Validation report builder: generates an HTML table using Great Tables
+        Validation report as a table using the Great Tables library.
         """
 
-        # Determine whether pandas or polars is available
+        # Determine whether Pandas or Polars is available
         try:
             import pandas as pd
         except ImportError:
@@ -983,10 +983,10 @@ class Validate:
         except ImportError:
             pl = None
 
-        # If neither pandas nor polars is available, raise an ImportError
+        # If neither Pandas nor Polars is available, raise an ImportError
         if pd is None and pl is None:
             raise ImportError(
-                "Generating a report with the `.report_as_html()` method requires either the "
+                "Generating a report with the `get_tabular_report()` method requires either the "
                 "Polars or the Pandas library to be installed."
             )
 
