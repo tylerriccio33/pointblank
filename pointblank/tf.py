@@ -5,12 +5,68 @@ from dataclasses import dataclass
 from narwhals.typing import FrameT
 
 from pointblank._constants import COMPATIBLE_TYPES
+from pointblank._constants_docs import ARG_DOCSTRINGS
 from pointblank._comparison import (
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,
 )
 from pointblank._utils import _get_comparison_from_fname
+
+
+def _col_vals_compare_one_title_docstring(comparison: str) -> str:
+    return "Test whether column values are ___ a single value.".replace("___", comparison)
+
+
+def _col_vals_compare_two_title_docstring(comparison: str) -> str:
+    return "Test whether column values are ___ two values.".replace("___", comparison)
+
+
+def _col_vals_compare_set_title_docstring(inside: bool) -> str:
+    return "Test whether column values are ___ a set of values.".replace(
+        "___", "in" if inside else "not in"
+    )
+
+
+def _col_vals_compare_one_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["value"]}
+{ARG_DOCSTRINGS["na_pass"]}
+{ARG_DOCSTRINGS["threshold"]}"""
+
+
+def _col_vals_compare_two_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["left"]}
+{ARG_DOCSTRINGS["right"]}
+{ARG_DOCSTRINGS["inclusive"]}
+{ARG_DOCSTRINGS["na_pass"]}
+{ARG_DOCSTRINGS["threshold"]}"""
+
+
+def _col_vals_compare_set_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["set"]}
+{ARG_DOCSTRINGS["threshold"]}"""
+
+
+COL_VALS_COMPARE_ONE_DOCSTRING = "Test whether column values are ___ a single value."
+
+COL_VALS_COMPARE_TWO_DOCSTRING = "Test whether column values are ___ two values."
+
+COL_VALS_COMPARE_SET_TITLE_DOCSTRING = "Test whether column values are ___ a set of values."
 
 
 COL_VALS_COMPARE_ONE_DOCSTRING = """
@@ -88,56 +144,14 @@ COL_VALS_COMPARE_SET_DOCSTRING = """
 
 
 def _col_vals_compare_one_docstring(comparison: str) -> str:
-    """
-    Generate a docstring for a column value comparison method.
-
-    Parameters
-    ----------
-    comparison : str
-        The type of comparison ('gt' for greater than, 'lt' for less than).
-
-    Returns
-    -------
-    str
-        The generated docstring.
-    """
-
     return COL_VALS_COMPARE_ONE_DOCSTRING.replace("___", comparison)
 
 
 def _col_vals_compare_two_docstring(comparison: str) -> str:
-    """
-    Generate a docstring for a column value comparison method.
-
-    Parameters
-    ----------
-    comparison : str
-        The type of comparison ('between' for between two values).
-
-    Returns
-    -------
-    str
-        The generated docstring.
-    """
-
     return COL_VALS_COMPARE_TWO_DOCSTRING.replace("___", comparison)
 
 
 def _col_vals_compare_set_docstring(inside: bool) -> str:
-    """
-    Generate a docstring for a column value comparison method.
-
-    Parameters
-    ----------
-    inside : bool
-        Whether the values should be inside the set.
-
-    Returns
-    -------
-    str
-        The generated docstring.
-    """
-
     comparison = "in" if inside else "not in"
     return COL_VALS_COMPARE_SET_DOCSTRING.replace("___", comparison)
 
@@ -166,7 +180,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_gt.__doc__ = _col_vals_compare_one_docstring(comparison="greater than")
+    col_vals_gt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_lt(
         df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
@@ -186,7 +202,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_lt.__doc__ = _col_vals_compare_one_docstring(comparison="less than")
+    col_vals_lt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_eq(
         df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
@@ -206,7 +224,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_eq.__doc__ = _col_vals_compare_one_docstring(comparison="equal to")
+    col_vals_eq.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="equal to")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_ne(
         df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
@@ -226,7 +246,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_ne.__doc__ = _col_vals_compare_one_docstring(comparison="not equal to")
+    col_vals_ne.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="not equal to")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_ge(
         df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
@@ -246,7 +268,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_ge.__doc__ = _col_vals_compare_one_docstring(comparison="greater than or equal to")
+    col_vals_ge.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than or equal to")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_le(
         df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
@@ -266,7 +290,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_le.__doc__ = _col_vals_compare_one_docstring(comparison="less than or equal to")
+    col_vals_le.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than or equal to")}
+    {_col_vals_compare_one_args_docstring()}
+    """
 
     def col_vals_between(
         df: FrameT,
@@ -294,7 +320,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_between.__doc__ = _col_vals_compare_two_docstring(comparison="between")
+    col_vals_between.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="between")}
+    {_col_vals_compare_two_args_docstring()}
+    """
 
     def col_vals_outside(
         df: FrameT,
@@ -322,7 +350,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside of")
+    col_vals_outside.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="outside of")}
+    {_col_vals_compare_two_args_docstring()}
+    """
 
     def col_vals_in_set(
         df: FrameT,
@@ -343,7 +373,9 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_in_set.__doc__ = _col_vals_compare_set_docstring(inside=True)
+    col_vals_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=True)}
+    {_col_vals_compare_set_args_docstring()}
+    """
 
     def col_vals_not_in_set(
         df: FrameT,
@@ -364,4 +396,6 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_not_in_set.__doc__ = _col_vals_compare_set_docstring(inside=False)
+    col_vals_not_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=False)}
+    {_col_vals_compare_set_args_docstring()}
+    """
