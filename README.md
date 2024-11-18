@@ -70,8 +70,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-18T03:12:23.346+00:00",
-        "proc_duration_s": 0.028995
+        "time_processed": "2024-11-18T03:24:03.956+00:00",
+        "proc_duration_s": 0.004272
     },
     {
         "i": 2,
@@ -94,8 +94,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-18T03:12:23.347+00:00",
-        "proc_duration_s": 0.000377
+        "time_processed": "2024-11-18T03:24:03.956+00:00",
+        "proc_duration_s": 0.000178
     },
     {
         "i": 3,
@@ -118,8 +118,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-18T03:12:23.347+00:00",
-        "proc_duration_s": 0.000315
+        "time_processed": "2024-11-18T03:24:03.956+00:00",
+        "proc_duration_s": 0.000123
     }
 ]
 ```
