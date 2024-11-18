@@ -322,21 +322,21 @@ def test_validation_report(request, tbl_fixture):
 
     v = Validate(tbl).col_vals_gt(column="x", value=0).interrogate()
 
-    assert v.report_as_json() != v.report_as_json(
+    assert v.get_json_report() != v.get_json_report(
         exclude_fields=["time_processed", "proc_duration_s"]
     )
 
     # A ValueError is raised when `use_fields=` includes invalid fields
     with pytest.raises(ValueError):
-        v.report_as_json(use_fields=["invalid_field"])
+        v.get_json_report(use_fields=["invalid_field"])
 
     # A ValueError is raised when `exclude_fields=` includes invalid fields
     with pytest.raises(ValueError):
-        v.report_as_json(exclude_fields=["invalid_field"])
+        v.get_json_report(exclude_fields=["invalid_field"])
 
     # A ValueError is raised `use_fields=` and `exclude_fields=` are both provided
     with pytest.raises(ValueError):
-        v.report_as_json(use_fields=["i"], exclude_fields=["i_o"])
+        v.get_json_report(use_fields=["i"], exclude_fields=["i_o"])
 
 
 @pytest.mark.parametrize(
@@ -351,7 +351,7 @@ def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
         Validate(tbl)
         .col_vals_gt(column="x", value=0)
         .interrogate()
-        .report_as_json(exclude_fields=["time_processed", "proc_duration_s"])
+        .get_json_report(exclude_fields=["time_processed", "proc_duration_s"])
     )
 
     # Use the snapshot fixture to create and save the snapshot
@@ -369,7 +369,7 @@ def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
     report = (
         Validate(tbl)
         .col_vals_gt(column="x", value=0)
-        .report_as_json(exclude_fields=["time_processed", "proc_duration_s"])
+        .get_json_report(exclude_fields=["time_processed", "proc_duration_s"])
     )
 
     # Use the snapshot fixture to create and save the snapshot
@@ -387,7 +387,7 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
     report = (
         Validate(tbl)
         .col_vals_gt(column="x", value=0)
-        .report_as_json(
+        .get_json_report(
             use_fields=[
                 "i",
                 "assertion_type",
