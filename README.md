@@ -43,7 +43,7 @@ v = (
 )
 
 # Get JSON for the validation
-json_output = v.report_as_json()
+json_output = v.get_json_report()
 print(json_output)
 ```
 
@@ -124,12 +124,12 @@ print(json_output)
 ]
 ```
 
-To make this more readable, you can generate an HTML report of the validation results with the `report_as_html` method:
+To make this more readable, you can generate an HTML report of the validation results with the `get_tabular_report()` method:
 
 ```python
 # Get an HTML report of the validation
-html_report = v.report_as_html()
-html_report # <-- This will display the HTML report in a notebook
+report_tbl = v.get_tabular_report()
+report_tbl # <-- This will display the report in a notebook
 ```
 
 <img src="images/pointblank-validation-html-report.png" alt="Validation Report">
