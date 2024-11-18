@@ -756,7 +756,7 @@ class Validate:
 
         return self
 
-    def all_passed(self):
+    def all_passed(self) -> bool:
         """
         Determine if every validation step passed perfectly, with no failing test units.
 
@@ -767,7 +767,7 @@ class Validate:
         """
         return all(validation.all_passed for validation in self.validation_info)
 
-    def n(self, i: int | list[int] | None = None):
+    def n(self, i: int | list[int] | None = None) -> dict[int, int]:
         """
         Provides a dictionary of the number of test units for each validation step.
 
@@ -785,7 +785,7 @@ class Validate:
 
         return self._get_validation_dict(i, "n")
 
-    def n_passed(self, i: int | list[int] | None = None):
+    def n_passed(self, i: int | list[int] | None = None) -> dict[int, int]:
         """
         Provides a dictionary of the number of test units that passed for each validation step.
 
@@ -803,7 +803,7 @@ class Validate:
 
         return self._get_validation_dict(i, "n_passed")
 
-    def n_failed(self, i: int | list[int] | None = None):
+    def n_failed(self, i: int | list[int] | None = None) -> dict[int, int]:
         """
         Provides a dictionary of the number of test units that failed for each validation step.
 
@@ -821,7 +821,7 @@ class Validate:
 
         return self._get_validation_dict(i, "n_failed")
 
-    def f_passed(self, i: int | list[int] | None = None):
+    def f_passed(self, i: int | list[int] | None = None) -> dict[int, float]:
         """
         Provides a dictionary of the fraction of test units that passed for each validation step.
 
@@ -839,7 +839,7 @@ class Validate:
 
         return self._get_validation_dict(i, "f_passed")
 
-    def f_failed(self, i: int | list[int] | None = None):
+    def f_failed(self, i: int | list[int] | None = None) -> dict[int, float]:
         """
         Provides a dictionary of the fraction of test units that failed for each validation step.
 
@@ -857,7 +857,7 @@ class Validate:
 
         return self._get_validation_dict(i, "f_failed")
 
-    def warn(self, i: int | list[int] | None = None):
+    def warn(self, i: int | list[int] | None = None) -> dict[int, bool]:
         """
         Provides a dictionary of the warning status for each validation step.
 
@@ -875,7 +875,7 @@ class Validate:
 
         return self._get_validation_dict(i, "warn")
 
-    def stop(self, i: int | list[int] | None = None):
+    def stop(self, i: int | list[int] | None = None) -> dict[int, bool]:
         """
         Provides a dictionary of the stopping status for each validation step.
 
@@ -893,7 +893,7 @@ class Validate:
 
         return self._get_validation_dict(i, "stop")
 
-    def notify(self, i: int | list[int] | None = None):
+    def notify(self, i: int | list[int] | None = None) -> dict[int, bool]:
         """
         Provides a dictionary of the notification status for each validation step.
 
