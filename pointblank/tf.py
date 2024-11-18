@@ -52,6 +52,7 @@ COL_VALS_COMPARE_TWO_DOCSTRING = """
     inclusive : tuple[bool, bool]
         A tuple of two boolean values indicating whether the comparison should be inclusive. The
         position of the boolean values correspond to the `left=` and `right=` values, respectively.
+        By default, both values are `True`.
     na_pass : bool
         Whether to pass rows with missing values.
     threshold : int
@@ -321,7 +322,7 @@ class TF:
             compare_strategy="list",
         ).test()
 
-    col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside")
+    col_vals_outside.__doc__ = _col_vals_compare_two_docstring(comparison="outside of")
 
     def col_vals_in_set(
         df: FrameT,

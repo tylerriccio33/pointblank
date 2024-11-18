@@ -34,49 +34,31 @@ from pointblank.thresholds import (
 )
 
 
-COL_VALS_GT_TITLE_DOCSTRING = """
-    Validate whether column values are greater than a fixed value.
-    """
+COL_VALS_COMPARE_ONE_DOCSTRING = "Validate whether column values are ___ a single value."
 
-COL_VALS_LT_TITLE_DOCSTRING = "Validate whether column values are less than a fixed value."
+COL_VALS_COMPARE_TWO_DOCSTRING = "Validate whether column values are ___ two values."
 
-COL_VALS_EQ_TITLE_DOCSTRING = """
-    Validate whether column values are equal to a fixed value.
-    """
-
-COL_VALS_NE_TITLE_DOCSTRING = """
-    Validate whether column values are not equal to a fixed value.
-    """
-
-COL_VALS_GE_TITLE_DOCSTRING = """
-    Validate whether column values are greater than or equal to a fixed value.
-    """
-
-COL_VALS_LE_TITLE_DOCSTRING = """
-    Validate whether column values are less than or equal to a fixed value.
-    """
-
-COL_VALS_BETWEEN_TITLE_DOCSTRING = """
-    Validate whether column values are between two values.
-    """
-
-COL_VALS_OUTSIDE_TITLE_DOCSTRING = """
-    Validate whether column values are outside of a range.
-    """
-
-COL_VALS_IN_SET_TITLE_DOCSTRING = """
-    Validate whether column values are in a set of values.
-    """
-
-COL_VALS_NOT_IN_SET_TITLE_DOCSTRING = """
-    Validate whether column values are not in a set of values.
-    """
+COL_VALS_COMPARE_SET_TITLE_DOCSTRING = "Validate whether column values are ___ a set of values."
 
 COL_ARG_DOCSTRING = """column : str
         The column to validate."""
 
 VALUE_ARG_DOCSTRING = """value : int | float
         The value to compare against."""
+
+LEFT_ARG_DOCSTRING = """left : int | float
+        The lower bound of the range."""
+
+RIGHT_ARG_DOCSTRING = """right : int | float
+        The upper bound of the range."""
+
+SET_ARG_DOCSTRING = """set : list[int | float]
+        A list of values to compare against."""
+
+INCLUSIVE_ARG_DOCSTRING = """inclusive : tuple[bool, bool], optional
+        A tuple of two boolean values indicating whether the comparison should be inclusive. The
+        position of the boolean values correspond to the `left=` and `right=` values, respectively.
+        By default, both values are `True`."""
 
 NA_PASS_ARG_DOCSTRING = """na_pass : bool
         Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -98,17 +80,19 @@ ACTIVE_ARG_DOCSTRING = """active : bool, optional
         steps unchanged)."""
 
 
+def _col_vals_compare_one_title_docstring(comparison: str) -> str:
+    return COL_VALS_COMPARE_ONE_DOCSTRING.replace("___", comparison)
+
+
+def _col_vals_compare_two_title_docstring(comparison: str) -> str:
+    return COL_VALS_COMPARE_TWO_DOCSTRING.replace("___", comparison)
+
+
+def _col_vals_compare_set_title_docstring(inside: bool) -> str:
+    return COL_VALS_COMPARE_SET_TITLE_DOCSTRING.replace("___", "in" if inside else "not in")
+
+
 def _col_vals_compare_one_args_docstring() -> str:
-    """
-    Generate a docstring for a column value validation method.
-
-
-    Returns
-    -------
-    str
-        The generated docstring.
-    """
-
     return f"""
 Parameters
 ----------
@@ -120,52 +104,29 @@ Parameters
 {ACTIVE_ARG_DOCSTRING}"""
 
 
-COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING = """
-    Parameters
-    ----------
-    column : str
-        The column to validate.
-    left : int | float
-        The lower bound of the range.
-    right : int | float
-        The upper bound of the range.
-    na_pass : bool
-        Should any encountered None, NA, or Null values be considered as passing test units? By
-        default, this is `False`. Set to `True` to pass test units with missing values.
-    pre : Callable | None
-        A pre-processing function or lambda to apply to the data table for the validation step.
-    thresholds : int | float | tuple | dict| Thresholds, optional
-        Failure threshold levels so that the validation step can react accordingly when exceeding
-        the set levels for different states (`warn`, `stop`, and `notify`). This can be created
-        simply as an integer or float denoting the absolute number or fraction of failing test units
-        for the 'warn' level. Otherwise, you can use a tuple of 1-3 values, a dictionary of 1-3
-        entries, or a Thresholds object.
-    active : bool, optional
-        A boolean value indicating whether the validation step should be active. Using `False` will
-        make the validation step inactive (still reporting its presence and keeping indexes for the
-        steps unchanged).
-    """
+def _col_vals_compare_two_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{COL_ARG_DOCSTRING}
+{LEFT_ARG_DOCSTRING}
+{RIGHT_ARG_DOCSTRING}
+{INCLUSIVE_ARG_DOCSTRING}
+{NA_PASS_ARG_DOCSTRING}
+{PRE_ARG_DOCSTRING}
+{THRESHOLDS_ARG_DOCSTRING}
+{ACTIVE_ARG_DOCSTRING}"""
 
-COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING = """
-    Parameters
-    ----------
-    column : str
-        The column to validate.
-    set : list[int | float]
-        A list of values to compare against.
-    pre : Callable | None
-        A pre-processing function or lambda to apply to the data table for the validation step.
-    thresholds : int | float | tuple | dict| Thresholds, optional
-        Failure threshold levels so that the validation step can react accordingly when exceeding
-        the set levels for different states (`warn`, `stop`, and `notify`). This can be created
-        simply as an integer or float denoting the absolute number or fraction of failing test units
-        for the 'warn' level. Otherwise, you can use a tuple of 1-3 values, a dictionary of 1-3
-        entries, or a Thresholds object.
-    active : bool, optional
-        A boolean value indicating whether the validation step should be active. Using `False` will
-        make the validation step inactive (still reporting its presence and keeping indexes for the
-        steps unchanged).
-    """
+
+def _col_vals_compare_set_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{COL_ARG_DOCSTRING}
+{SET_ARG_DOCSTRING}
+{PRE_ARG_DOCSTRING}
+{THRESHOLDS_ARG_DOCSTRING}
+{ACTIVE_ARG_DOCSTRING}"""
 
 
 @dataclass
@@ -343,7 +304,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_gt.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_gt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -377,7 +338,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_lt.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_lt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -411,7 +372,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_eq.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_eq.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="equal to")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -445,7 +406,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_ne.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_ne.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="not equal to")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -479,7 +440,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_ge.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_ge.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than or equal to")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -513,7 +474,7 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_le.__doc__ = f"""{COL_VALS_LT_TITLE_DOCSTRING}
+    col_vals_le.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than or equal to")}
     {_col_vals_compare_one_args_docstring()}
     """
 
@@ -553,9 +514,9 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_between.__doc__ = (
-        COL_VALS_BETWEEN_TITLE_DOCSTRING + COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING
-    )
+    col_vals_between.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="between")}
+    {_col_vals_compare_two_args_docstring()}
+    """
 
     def col_vals_outside(
         self,
@@ -593,9 +554,9 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_outside.__doc__ = (
-        COL_VALS_OUTSIDE_TITLE_DOCSTRING + COL_VALS_COMPARE_TWO_PARAMETERS_DOCSTRING
-    )
+    col_vals_outside.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="outside of")}
+    {_col_vals_compare_two_args_docstring()}
+    """
 
     def col_vals_in_set(
         self,
@@ -624,9 +585,9 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_in_set.__doc__ = (
-        COL_VALS_IN_SET_TITLE_DOCSTRING + COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING
-    )
+    col_vals_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=True)}
+    {_col_vals_compare_set_args_docstring()}
+    """
 
     def col_vals_not_in_set(
         self,
@@ -655,9 +616,9 @@ class Validate:
 
         return self._add_validation(validation_info=val_info)
 
-    col_vals_not_in_set.__doc__ = (
-        COL_VALS_NOT_IN_SET_TITLE_DOCSTRING + COL_VALS_COMPARE_SET_PARAMETERS_DOCSTRING
-    )
+    col_vals_not_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=False)}
+    {_col_vals_compare_set_args_docstring()}
+    """
 
     def interrogate(self):
         """
