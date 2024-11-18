@@ -20,113 +20,78 @@ from pointblank._constants import (
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
+from pointblank._constants_docs import ARG_DOCSTRINGS
 from pointblank._comparison import (
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,
     NumberOfTestUnits,
 )
-from pointblank._utils import _get_def_name, _check_invalid_fields
 from pointblank.thresholds import (
     Thresholds,
     _normalize_thresholds_creation,
     _convert_abs_count_to_fraction,
 )
-
-
-COL_VALS_COMPARE_ONE_DOCSTRING = "Validate whether column values are ___ a single value."
-
-COL_VALS_COMPARE_TWO_DOCSTRING = "Validate whether column values are ___ two values."
-
-COL_VALS_COMPARE_SET_TITLE_DOCSTRING = "Validate whether column values are ___ a set of values."
-
-COL_ARG_DOCSTRING = """column : str
-        The column to validate."""
-
-VALUE_ARG_DOCSTRING = """value : int | float
-        The value to compare against."""
-
-LEFT_ARG_DOCSTRING = """left : int | float
-        The lower bound of the range."""
-
-RIGHT_ARG_DOCSTRING = """right : int | float
-        The upper bound of the range."""
-
-SET_ARG_DOCSTRING = """set : list[int | float]
-        A list of values to compare against."""
-
-INCLUSIVE_ARG_DOCSTRING = """inclusive : tuple[bool, bool], optional
-        A tuple of two boolean values indicating whether the comparison should be inclusive. The
-        position of the boolean values correspond to the `left=` and `right=` values, respectively.
-        By default, both values are `True`."""
-
-NA_PASS_ARG_DOCSTRING = """na_pass : bool
-        Should any encountered None, NA, or Null values be considered as passing test units? By
-        default, this is `False`. Set to `True` to pass test units with missing values."""
-
-PRE_ARG_DOCSTRING = """pre : Callable | None
-        A pre-processing function or lambda to apply to the data table for the validation step."""
-
-THRESHOLDS_ARG_DOCSTRING = """thresholds : int | float | tuple | dict| Thresholds, optional
-        Failure threshold levels so that the validation step can react accordingly when exceeding
-        the set levels for different states (`warn`, `stop`, and `notify`). This can be created
-        simply as an integer or float denoting the absolute number or fraction of failing test units
-        for the 'warn' level. Otherwise, you can use a tuple of 1-3 values, a dictionary of 1-3
-        entries, or a Thresholds object."""
-
-ACTIVE_ARG_DOCSTRING = """active : bool, optional
-        A boolean value indicating whether the validation step should be active. Using `False` will
-        make the validation step inactive (still reporting its presence and keeping indexes for the
-        steps unchanged)."""
+from pointblank._utils import _get_def_name, _check_invalid_fields
+from pointblank._utils_check_args import (
+    _check_column,
+    _check_value_float_int,
+    _check_set_types,
+    _check_pre,
+    _check_thresholds,
+    _check_boolean_input,
+)
 
 
 def _col_vals_compare_one_title_docstring(comparison: str) -> str:
-    return COL_VALS_COMPARE_ONE_DOCSTRING.replace("___", comparison)
+    return "Validate whether column values are ___ a single value.".replace("___", comparison)
 
 
 def _col_vals_compare_two_title_docstring(comparison: str) -> str:
-    return COL_VALS_COMPARE_TWO_DOCSTRING.replace("___", comparison)
+    return "Validate whether column values are ___ two values.".replace("___", comparison)
 
 
 def _col_vals_compare_set_title_docstring(inside: bool) -> str:
-    return COL_VALS_COMPARE_SET_TITLE_DOCSTRING.replace("___", "in" if inside else "not in")
+    return "Validate whether column values are ___ a set of values.".replace(
+        "___", "in" if inside else "not in"
+    )
 
 
 def _col_vals_compare_one_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{COL_ARG_DOCSTRING}
-{VALUE_ARG_DOCSTRING}
-{NA_PASS_ARG_DOCSTRING}
-{PRE_ARG_DOCSTRING}
-{THRESHOLDS_ARG_DOCSTRING}
-{ACTIVE_ARG_DOCSTRING}"""
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["value"]}
+{ARG_DOCSTRINGS["na_pass"]}
+{ARG_DOCSTRINGS["pre"]}
+{ARG_DOCSTRINGS["thresholds"]}
+{ARG_DOCSTRINGS["active"]}"""
 
 
 def _col_vals_compare_two_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{COL_ARG_DOCSTRING}
-{LEFT_ARG_DOCSTRING}
-{RIGHT_ARG_DOCSTRING}
-{INCLUSIVE_ARG_DOCSTRING}
-{NA_PASS_ARG_DOCSTRING}
-{PRE_ARG_DOCSTRING}
-{THRESHOLDS_ARG_DOCSTRING}
-{ACTIVE_ARG_DOCSTRING}"""
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["left"]}
+{ARG_DOCSTRINGS["right"]}
+{ARG_DOCSTRINGS["inclusive"]}
+{ARG_DOCSTRINGS["na_pass"]}
+{ARG_DOCSTRINGS["pre"]}
+{ARG_DOCSTRINGS["thresholds"]}
+{ARG_DOCSTRINGS["active"]}"""
 
 
 def _col_vals_compare_set_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{COL_ARG_DOCSTRING}
-{SET_ARG_DOCSTRING}
-{PRE_ARG_DOCSTRING}
-{THRESHOLDS_ARG_DOCSTRING}
-{ACTIVE_ARG_DOCSTRING}"""
+{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["set"]}
+{ARG_DOCSTRINGS["pre"]}
+{ARG_DOCSTRINGS["thresholds"]}
+{ARG_DOCSTRINGS["active"]}"""
 
 
 @dataclass
@@ -1432,164 +1397,6 @@ class Validate:
         }
 
 
-def _check_boolean_input(param: bool, param_name: str):
-    """
-    Check that input value is a boolean.
-
-    Parameters
-    ----------
-    param : bool
-        The input value to check for a boolean value.
-    param_name : str
-        The name of the parameter being checked. This is used in the error message.
-
-    Raises
-    ------
-    ValueError
-        When `param=` is not a boolean value.
-    """
-    if not isinstance(param, bool):
-        raise ValueError(f"`{param_name}=` must be a boolean value.")
-
-
-def _check_column(column: str):
-    """
-    Check the input value of the `column=` parameter.
-
-    Parameters
-    ----------
-    column : str
-        The column to validate.
-
-    Raises
-    ------
-    ValueError
-        When `column` is not a string.
-    """
-    if not isinstance(column, str):
-        raise ValueError("`column=` must be a string.")
-
-
-def _check_value_float_int(value: float | int):
-    """
-    Check that input value of the `value=` parameter is a float or integer.
-
-    Parameters
-    ----------
-    value : float | int
-        The value to compare against in a validation.
-
-    Raises
-    ------
-    ValueError
-        When `value` is not a float or integer.
-    """
-    if not isinstance(value, (float, int)):
-        raise ValueError("`value=` must be a float or integer.")
-
-
-def _check_set_types(set: list[float | int | str]):
-    """
-    Check that input value of the `set=` parameter is a list of floats, integers, or strings.
-
-    Parameters
-    ----------
-    set : list[float | int]
-        The set of values to compare against in a validation.
-
-    Raises
-    ------
-    ValueError
-        When `set` is not a list of floats or integers.
-    """
-    if not all(isinstance(value, (float, int, str)) for value in set):
-        raise ValueError("`set=` must be a list of floats, integers, or strings.")
-
-
-def _check_pre(pre: Callable | None):
-    """
-    Check that input value of the `pre=` parameter is a callable function.
-
-    Parameters
-    ----------
-    pre : Callable | None
-        The pre-processing function to apply to the table.
-
-    Raises
-    ------
-    ValueError
-        When `pre` is not a callable function.
-    """
-    if pre is not None and not isinstance(pre, Callable):
-        raise ValueError("`pre=` must be a callable function.")
-
-
-def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None):
-    """
-    Check that input value of the `thresholds=` parameter is a valid threshold.
-
-    Parameters
-    ----------
-    thresholds : int | float | tuple | dict | Thresholds | None
-        The threshold value or values.
-
-    Raises
-    ------
-    ValueError
-        When `thresholds` is not a valid threshold.
-    """
-
-    if thresholds is None or isinstance(thresholds, Thresholds):
-        return
-
-    if isinstance(thresholds, (int, float)):
-        if thresholds < 0:
-            raise ValueError(
-                "If an int or float is supplied to `thresholds=` it must be a "
-                "non-negative value."
-            )
-
-    if isinstance(thresholds, tuple):
-        if len(thresholds) > 3:
-            raise ValueError(
-                "If a tuple is supplied to `thresholds=` it must have at most three elements."
-            )
-        if not all(isinstance(threshold, (int, float)) for threshold in thresholds):
-            raise ValueError(
-                "If a tuple is supplied to `thresholds=` all elements must be integers or floats."
-            )
-        if any(threshold < 0 for threshold in thresholds):
-            raise ValueError(
-                "If a tuple is supplied to `thresholds=` all elements must be non-negative."
-            )
-
-    if isinstance(thresholds, dict):
-
-        # Check keys for invalid entries and raise a ValueError if any are found
-        invalid_keys = set(thresholds.keys()) - {"warn_at", "stop_at", "notify_at"}
-
-        if invalid_keys:
-            raise ValueError(f"Invalid keys in the thresholds dictionary: {invalid_keys}")
-
-        # Get values as a list and raise a ValueError for any non-integer or non-float values
-        values = list(thresholds.values())
-
-        if not all(isinstance(value, (int, float)) for value in values):
-            raise ValueError(
-                "If a dict is supplied to `thresholds=` all values must be integers or floats."
-            )
-
-        # Raise a ValueError if any values are negative
-        if any(value < 0 for value in values):
-            raise ValueError(
-                "If a dict is supplied to `thresholds=` all values must be non-negative."
-            )
-
-    # Raise a ValueError if the thresholds argument is not valid (also accept None)
-    if thresholds is not None and not isinstance(thresholds, (int, float, tuple, dict, Thresholds)):
-        raise ValueError("The thresholds argument is not valid.")
-
-
 def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     """
     Convert a `_ValidationInfo` object to a dictionary.
@@ -1648,6 +1455,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
 
 def _transform_w_s_n(values, color, interrogation_performed):
 
+    # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(values))]
 
@@ -1713,6 +1521,7 @@ def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[s
 
 def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
 
+    # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(pre))]
 
@@ -1743,6 +1552,7 @@ def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
 
 def _transform_eval(n: list[int], interrogation_performed: bool, active: list[bool]) -> list[str]:
 
+    # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
 
@@ -1753,6 +1563,7 @@ def _transform_test_units(
     test_units: list[int], interrogation_performed: bool, active: list[bool]
 ) -> list[str]:
 
+    # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(test_units))]
 
@@ -1826,14 +1637,17 @@ def _get_callable_source(fn: Callable) -> str:
 
 
 def _extract_pre_argument(source: str) -> str:
+
     # Find the start of the `pre` argument
     pre_start = source.find("pre=")
     if pre_start == -1:
         return source
+
     # Find the end of the `pre` argument
     pre_end = source.find(",", pre_start)
     if pre_end == -1:
         pre_end = len(source)
+
     # Extract the `pre` argument and remove the leading `pre=`
     pre_arg = source[pre_start + len("pre=") : pre_end].strip()
 
