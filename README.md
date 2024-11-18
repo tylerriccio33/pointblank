@@ -10,7 +10,7 @@ Find out if your data is what you think it is
 
 2. **Data Testing**: Use the `Test` class to write tests for your data and use them in notebook code or in a testing framework like `pytest`.
 
-These workflows make it possible to catch data quality issues early in your data pipeline, and to ensure that your data meets the expectations of your downstream consumers. We make use of the `Narwhals` library, which provides a flexible and powerful API for working with tabular data.
+These workflows make it possible to catch data quality issues early in your data pipeline, and to ensure that your data meets the expectations of your downstream consumers. Presently, Pandas and Polars DataFrames can be used with `pointblank`; we make use of the `Narwhals` library since it provides a flexible and powerful API for working with tabular data.
 
 ## Features
 
@@ -70,8 +70,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-16T15:43:26.891+00:00",
-        "proc_duration_s": 0.021713
+        "time_processed": "2024-11-18T03:12:23.346+00:00",
+        "proc_duration_s": 0.028995
     },
     {
         "i": 2,
@@ -94,8 +94,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-16T15:43:26.891+00:00",
-        "proc_duration_s": 0.000421
+        "time_processed": "2024-11-18T03:12:23.347+00:00",
+        "proc_duration_s": 0.000377
     },
     {
         "i": 3,
@@ -118,8 +118,8 @@ print(json_output)
         "warn": null,
         "stop": null,
         "notify": null,
-        "time_processed": "2024-11-16T15:43:26.891+00:00",
-        "proc_duration_s": 0.000398
+        "time_processed": "2024-11-18T03:12:23.347+00:00",
+        "proc_duration_s": 0.000315
     }
 ]
 ```
