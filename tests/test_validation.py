@@ -13,7 +13,7 @@ def tbl_pd():
 
 @pytest.fixture
 def tbl_missing_pd():
-    return pd.DataFrame({"x": [1, 2, pd.NA, 4], "y": [4, pd.NA, 6, 7], "z": [8, 8, 8, 8]})
+    return pd.DataFrame({"x": [1, 2, pd.NA, 4], "y": [4, pd.NA, 6, 7], "z": [8, pd.NA, 8, 8]})
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def tbl_pl():
 
 @pytest.fixture
 def tbl_missing_pl():
-    return pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, 8, 8, 8]})
+    return pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
 
 
 def test_validation_info():
