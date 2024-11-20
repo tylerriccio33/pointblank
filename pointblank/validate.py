@@ -194,7 +194,7 @@ class Validate:
     thresholds: int | float | tuple | dict | Thresholds | None = None
 
     """
-    A container for a table and a set of validations to be performed on the table.
+    Workflow for defining a set of validations on a table and interrogating for results.
 
     Parameters
     ----------
