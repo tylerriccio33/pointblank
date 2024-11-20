@@ -256,13 +256,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -290,13 +296,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -324,13 +336,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -358,13 +376,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -392,13 +416,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -426,13 +456,19 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=value,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -463,6 +499,12 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         value = (left, right)
 
         val_info = _ValidationInfo(
@@ -472,7 +514,7 @@ class Validate:
             inclusive=inclusive,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -505,6 +547,12 @@ class Validate:
 
         value = (left, right)
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
@@ -512,7 +560,7 @@ class Validate:
             inclusive=inclusive,
             na_pass=na_pass,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -538,12 +586,18 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=set,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
@@ -569,12 +623,18 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=column,
             values=set,
             pre=pre,
-            thresholds=_normalize_thresholds_creation(thresholds),
+            thresholds=thresholds,
             active=active,
         )
 
