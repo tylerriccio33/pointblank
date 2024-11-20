@@ -550,3 +550,378 @@ def test_validation_check_active_input(request, tbl_fixture):
         Validate(tbl).col_vals_in_set(column="x", set=[1, 2, 3, 4, 5], active=9)
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_not_in_set(column="x", set=[5, 6, 7], active=9)
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_pd", "tbl_pl"],
+)
+def test_validation_check_thresholds_inherit(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `thresholds=` argument is inherited from Validate, in those steps where
+    # it is not explicitly provided (is `None`)
+    v = (
+        Validate(tbl, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3))
+        .col_vals_gt(column="x", value=0, thresholds=0.5)
+        .col_vals_lt(column="x", value=5)
+        .col_vals_eq(column="z", value=8, thresholds=None)
+        .col_vals_ne(column="z", value=7, thresholds=Thresholds())
+        .col_vals_ge(column="x", value=1, thresholds=Thresholds(warn_at=0.1))
+        .col_vals_le(column="x", value=4, thresholds=None)
+        .col_vals_between(column="x", left=0, right=5, thresholds=None)
+        .col_vals_outside(column="x", left=-5, right=0)
+        .col_vals_in_set(column="x", set=[1, 2, 3, 4, 5], thresholds=None)
+        .col_vals_not_in_set(column="x", set=[5, 6, 7])
+        .interrogate()
+    )
+
+    assert v.validation_info[0].thresholds.warn_at == 0.5
+    assert v.validation_info[0].thresholds.stop_at == None
+    assert v.validation_info[0].thresholds.notify_at == None
+
+    assert v.validation_info[1].thresholds.warn_at == 1
+    assert v.validation_info[1].thresholds.stop_at == 2
+    assert v.validation_info[1].thresholds.notify_at == 3
+
+    assert v.validation_info[2].thresholds.warn_at == 1
+    assert v.validation_info[2].thresholds.stop_at == 2
+    assert v.validation_info[2].thresholds.notify_at == 3
+
+    assert v.validation_info[3].thresholds.warn_at == None
+    assert v.validation_info[3].thresholds.stop_at == None
+    assert v.validation_info[3].thresholds.notify_at == None
+
+    assert v.validation_info[4].thresholds.warn_at == 0.1
+    assert v.validation_info[4].thresholds.stop_at == None
+    assert v.validation_info[4].thresholds.notify_at == None
+
+    assert v.validation_info[5].thresholds.warn_at == 1
+    assert v.validation_info[5].thresholds.stop_at == 2
+    assert v.validation_info[5].thresholds.notify_at == 3
+
+    assert v.validation_info[6].thresholds.warn_at == 1
+    assert v.validation_info[6].thresholds.stop_at == 2
+    assert v.validation_info[6].thresholds.notify_at == 3
+
+    assert v.validation_info[7].thresholds.warn_at == 1
+    assert v.validation_info[7].thresholds.stop_at == 2
+    assert v.validation_info[7].thresholds.notify_at == 3
+
+    assert v.validation_info[8].thresholds.warn_at == 1
+    assert v.validation_info[8].thresholds.stop_at == 2
+    assert v.validation_info[8].thresholds.notify_at == 3
+
+    assert v.validation_info[9].thresholds.warn_at == 1
+    assert v.validation_info[9].thresholds.stop_at == 2
+    assert v.validation_info[9].thresholds.notify_at == 3
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_gt(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_gt(column="x", value=0).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_gt(column="x", value=0, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_lt(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_lt(column="x", value=10).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_lt(column="x", value=10, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_eq(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Test all passing behavio    assert Validate(tbl).col_vals_eq(column="z", value=8).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_eq(column="z", value=8, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_ne(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_ne(column="z", value=7).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_ne(column="z", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_ge(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_ge(column="x", value=1).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_ge(column="x", value=1, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_le(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_le(column="x", value=4).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_le(column="x", value=4, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_between(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(tbl).col_vals_between(column="x", left=1, right=4).interrogate().n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=1, right=4, na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=1, right=4, inclusive=(False, True), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=1, right=4, inclusive=(True, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=11, right=14, na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(column="x", left=11, right=14, na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_missing_pd", "tbl_missing_pl"],
+)
+def test_col_vals_outside(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(tbl).col_vals_outside(column="x", left=5, right=8).interrogate().n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=5, right=8, na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl).col_vals_outside(column="x", left=4, right=8).interrogate().n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=4, right=8, inclusive=(False, True))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl).col_vals_outside(column="x", left=-4, right=1).interrogate().n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=-4, right=1, inclusive=(True, False))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=1, right=4, inclusive=(True, True))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=1, right=4, inclusive=(True, True), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(column="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_pd", "tbl_pl"],
+)
+def test_col_vals_in_set(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(tbl).col_vals_in_set(column="x", set=[1, 2, 3, 4]).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_in_set(column="x", set=[0, 1, 2, 3, 4, 5, 6])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_in_set(column="x", set=[1.0, 2.0, 3.0, 4.0])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_in_set(column="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_in_set(column="x", set=[-1, -2, -3, -4])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture",
+    ["tbl_pd", "tbl_pl"],
+)
+def test_col_vals_not_in_set(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(tbl).col_vals_not_in_set(column="x", set=[5, 6, 7]).interrogate().n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_not_in_set(column="x", set=[0, 1, 2, 3, 4, 5, 6])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_not_in_set(column="x", set=[1.0, 2.0, 3.0, 4.0])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_not_in_set(column="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_not_in_set(column="x", set=[-1, -2, -3, -4])
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
