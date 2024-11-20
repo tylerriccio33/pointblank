@@ -233,7 +233,6 @@ class Validate:
         self.col_names = None
         self.col_types = None
 
-        # TODO: add the starting and ending datetime values for the interrogation
         self.time_start = None
         self.time_end = None
 
