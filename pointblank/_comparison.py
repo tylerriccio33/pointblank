@@ -103,9 +103,15 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) > self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column) > self.compare,
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -117,9 +123,15 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) < self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column) < self.compare,
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -131,9 +143,15 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) == self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column) == self.compare,
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -145,9 +163,17 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) != self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.when(~nw.col(self.column).is_null())
+                    .then(nw.col(self.column) != self.compare)
+                    .otherwise(False),
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -159,9 +185,15 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) >= self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column) >= self.compare,
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -173,9 +205,15 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column) <= self.compare)
-            tbl = tbl.to_native()
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column) <= self.compare,
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
+            )
             return tbl
 
         op = _get_def_name()
@@ -198,10 +236,15 @@ class Comparator:
             else:
                 closed = "none"
 
-            tbl = tbl.with_columns(
-                pb_is_good_=nw.col(self.column).is_between(self.low, self.high, closed=closed)
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.col(self.column).is_between(self.low, self.high, closed=closed),
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
             )
-            tbl = tbl.to_native()
             return tbl
 
         return [
@@ -226,14 +269,17 @@ class Comparator:
             else:
                 closed = "none"
 
-            tbl = tbl.with_columns(
-                pb_is_good_=nw.col(self.column).is_between(self.low, self.high, closed=closed)
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                    pb_is_good_2=nw.when(~nw.col(self.column).is_null())
+                    .then(~nw.col(self.column).is_between(self.low, self.high, closed=closed))
+                    .otherwise(False),
+                )
+                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                .drop("pb_is_good_1", "pb_is_good_2")
+                .to_native()
             )
-
-            # There is no `is_outside` method in Narwhals, so we need to invert the result
-            tbl = tbl.with_columns(pb_is_good_=~nw.col("pb_is_good_"))
-            tbl = tbl.to_native()
-
             return tbl
 
         return [
@@ -247,10 +293,9 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column).is_in(self.set))
-            tbl = tbl.to_native()
-
+            tbl = self.x.with_columns(
+                pb_is_good_=nw.col(self.column).is_in(self.set),
+            ).to_native()
             return tbl
 
         return [i in self.set for i in self.x]
@@ -259,13 +304,13 @@ class Comparator:
 
         if self.compare_strategy == "table":
 
-            tbl = self.x
-            tbl = tbl.with_columns(pb_is_good_=nw.col(self.column).is_in(self.set))
-
-            # There is no `notin` method in Narwhals, so we need to invert the result
-            tbl = tbl.with_columns(pb_is_good_=~nw.col("pb_is_good_"))
-            tbl = tbl.to_native()
-
+            tbl = (
+                self.x.with_columns(
+                    pb_is_good_=nw.col(self.column).is_in(self.set),
+                )
+                .with_columns(pb_is_good_=~nw.col("pb_is_good_"))
+                .to_native()
+            )
             return tbl
 
         return [i not in self.set for i in self.x]
