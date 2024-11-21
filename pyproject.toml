@@ -35,6 +35,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "commonmark>=0.9.1",
     "importlib-metadata",
     "narwhals>=1.10.0",
     "great_tables>=0.13.0",
