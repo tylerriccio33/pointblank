@@ -1026,9 +1026,23 @@ class Validate:
 
         return json.dumps(report, indent=4, default=str)
 
-    def get_tabular_report(self) -> GT:
+    def get_tabular_report(self, title: str | None = ":default:") -> GT:
         """
-        Validation report as a table using the Great Tables library.
+        Validation report as a GT table.
+
+        Parameters
+        ----------
+        title : str | None, optional
+            Options for customizing the title of the report. The default is the `":default:"` value
+            which produces a generic title. Another option is `":tbl_name:"`, and that presents the
+            name of the table as the title for the report. If no title is wanted, then `":none:"`
+            can be used. Aside from keyword options, text can be provided for the title. This will
+            be interpreted as Markdown text and transformed internally to HTML.
+
+        Returns
+        -------
+        GT
+            A GT table object that represents the validation report.
         """
 
         # Determine whether Pandas or Polars is available
