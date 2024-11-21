@@ -1252,7 +1252,9 @@ class Validate:
         table_time = _create_table_time_html(time_start=self.time_start, time_end=self.time_end)
 
         # Create the title text
-        title_text = _get_title_text(interrogation_performed=interrogation_performed)
+        title_text = _get_title_text(
+            title=title, tbl_name=self.tbl_name, interrogation_performed=interrogation_performed
+        )
 
         # Create a DataFrame from the validation information using the `tbl_lib` library; which is
         # either Polars or Pandas
@@ -1563,15 +1565,17 @@ def _get_assertion_icon(icon: list[str] | None, length_val: int = 30) -> list[st
     return icon_svg
 
 
-def _get_title_text(interrogation_performed: bool) -> str:
+def _get_title_text(title: str | None, tbl_name: str | None, interrogation_performed: bool) -> str:
+
+    title = _process_title_text(title=title, tbl_name=tbl_name)
 
     if interrogation_performed:
-        return "Pointblank Validation"
+        return title
 
     html_str = (
         "<div>"
         '<span style="float: left;">'
-        "Pointblank Validation Plan"
+        f"{title}"
         "</span>"
         '<span style="float: right; text-decoration-line: underline; '
         "text-underline-position: under;"
@@ -1583,6 +1587,29 @@ def _get_title_text(interrogation_performed: bool) -> str:
     )
 
     return html_str
+
+
+def _process_title_text(title: str | None, tbl_name: str | None) -> str:
+
+    if title is None:
+        title_text = ""
+    elif title == ":default:":
+        title_text = _get_default_title_text()
+    elif title == ":none:":
+        title_text = ""
+    elif title == ":tbl_name:":
+        if tbl_name is not None:
+            title_text = f"<code>{tbl_name}</code>"
+        else:
+            title_text = ""
+    else:
+        title_text = commonmark.commonmark(title)
+
+    return title_text
+
+
+def _get_default_title_text() -> str:
+    return "Pointblank Validation"
 
 
 def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
