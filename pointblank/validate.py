@@ -1826,6 +1826,28 @@ def _create_table_time_html(
         f"{time_end_fmt}</span>"
         f"</div>"
     )
+
+
+def _create_label_html(label: str | None, start_time: str) -> str:
+
+    if label is None:
+
+        # Remove the decimal and everything beyond that
+        start_time = str(start_time).split(".")[0]
+
+        # Replace the space character with a pipe character
+        start_time = start_time.replace(" ", "|")
+
+        label = start_time
+
+    return (
+        f"<span style='text-decoration-style: solid; text-decoration-color: #ADD8E6; "
+        f"text-decoration-line: underline; text-underline-position: under; color: #333333; "
+        f"font-variant-numeric: tabular-nums; padding-left: 4px; margin-right: 5px; "
+        f"padding-right: 2px;'>{label}</span>"
+    )
+
+
 def _create_table_type_html(tbl_type: str | None, tbl_name: str | None) -> str:
 
     if tbl_type is None:
