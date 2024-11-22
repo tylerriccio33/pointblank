@@ -807,6 +807,15 @@ class Validate:
             # is a boolean column that indicates whether the row passed the validation or not
             validation.tbl_checked = results_tbl
 
+            # If this is a row-based validation step, then extract the rows that failed
+            if type in ROW_BASED_VALIDATION_TYPES:
+                validation.extract = (
+                    nw.from_native(results_tbl)
+                    .filter(nw.col("pb_is_good_") == False)
+                    .drop("pb_is_good_")
+                    .to_native()
+                )
+
             # Get the end time for this step
             end_time = datetime.datetime.now(datetime.timezone.utc)
 
