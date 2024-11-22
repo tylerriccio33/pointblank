@@ -83,6 +83,11 @@ VALIDATION_REPORT_FIELDS = [
     "proc_duration_s",
 ]
 
+TABLE_TYPE_STYLES = {
+    "pandas": {"background": "#150458", "text": "#FFFFFF", "label": "Pandas"},
+    "polars": {"background": "#0075FF", "text": "#FFFFFF", "label": "Polars"},
+}
+
 SVG_ICONS_FOR_ASSERTION_TYPES = {
     "col_vals_gt": """<?xml version="1.0" encoding="UTF-8"?>
 <svg width="67px" height="67px" viewBox="0 0 67 67" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
