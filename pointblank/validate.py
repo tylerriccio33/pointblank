@@ -1826,6 +1826,59 @@ def _create_table_time_html(
         f"{time_end_fmt}</span>"
         f"</div>"
     )
+def _create_thresholds_html(thresholds: Thresholds) -> str:
+
+    if thresholds == Thresholds():
+        return ""
+
+    warn = (
+        thresholds.warn_fraction
+        if thresholds.warn_fraction is not None
+        else (thresholds.warn_count if thresholds.warn_count is not None else "&mdash;")
+    )
+
+    stop = (
+        thresholds.stop_fraction
+        if thresholds.stop_fraction is not None
+        else (thresholds.stop_count if thresholds.stop_count is not None else "&mdash;")
+    )
+
+    notify = (
+        thresholds.notify_fraction
+        if thresholds.notify_fraction is not None
+        else (thresholds.notify_count if thresholds.notify_count is not None else "&mdash;")
+    )
+
+    return (
+        "<span>"
+        '<span style="background-color: #E5AB00; color: white; padding: 0.5em 0.5em; position: inherit; '
+        "text-transform: uppercase; margin: 5px 0px 5px 5px; border: solid 1px #E5AB00; font-weight: bold; "
+        'padding: 2px 15px 2px 15px; font-size: smaller;">WARN</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
+        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #E5AB00; padding: 2px 15px 2px 15px; "
+        'font-size: smaller; margin-right: 5px;">'
+        f"{warn}"
+        "</span>"
+        '<span style="background-color: #D0182F; color: white; padding: 0.5em 0.5em; position: inherit; '
+        "text-transform: uppercase; margin: 5px 0px 5px 1px; border: solid 1px #D0182F; font-weight: bold; "
+        'padding: 2px 15px 2px 15px; font-size: smaller;">STOP</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
+        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #D0182F; padding: 2px 15px 2px 15px; "
+        'font-size: smaller; margin-right: 5px;">'
+        f"{stop}"
+        "</span>"
+        '<span style="background-color: #499FFE; color: white; padding: 0.5em 0.5em; position: inherit; '
+        "text-transform: uppercase; margin: 5px 0px 5px 1px; border: solid 1px #499FFE; font-weight: bold; "
+        'padding: 2px 15px 2px 15px; font-size: smaller;">NOTIFY</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
+        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #499FFE; padding: 2px 15px 2px 15px; "
+        'font-size: smaller;">'
+        f"{notify}"
+        "</span>"
+        "</span>"
+    )
+
+
 def _get_tbl_info(data: FrameT) -> str:
 
     # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
