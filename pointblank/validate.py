@@ -1415,7 +1415,7 @@ class Validate:
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
             GT(df, id="pb_tbl")
-            .tab_header(title=html(title_text))
+            .tab_header(title=html(title_text), subtitle=html(combined_subtitle))
             .tab_source_note(source_note=html(table_time))
             .fmt_markdown(columns=["pass", "fail"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
