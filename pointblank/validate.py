@@ -1500,6 +1500,7 @@ class Validate:
             )
             .cols_label(
                 cases={
+                    "status_color": "",
                     "i": "",
                     "type_upd": "STEP",
                     "column": "COLUMNS",
@@ -1512,10 +1513,12 @@ class Validate:
                     "w_upd": "W",
                     "s_upd": "S",
                     "n_upd": "N",
+                    "extract_upd": "EXT",
                 }
             )
             .cols_width(
                 cases={
+                    "status_color": "4px",
                     "i": "35px",
                     "type_upd": "190px",
                     "column": "120px",
@@ -1528,12 +1531,16 @@ class Validate:
                     "w_upd": "30px",
                     "s_upd": "30px",
                     "n_upd": "30px",
+                    "extract_upd": "65px",
                 }
             )
-            .cols_align(align="center", columns=["tbl", "eval", "w_upd", "s_upd", "n_upd"])
+            .cols_align(
+                align="center", columns=["tbl", "eval", "w_upd", "s_upd", "n_upd", "extract_upd"]
+            )
             .cols_align(align="right", columns=["test_units", "pass", "fail"])
             .cols_move_to_start(
                 [
+                    "status_color",
                     "i",
                     "type_upd",
                     "column",
@@ -1543,6 +1550,10 @@ class Validate:
                     "test_units",
                     "pass",
                     "fail",
+                    "w_upd",
+                    "s_upd",
+                    "n_upd",
+                    "extract_upd",
                 ]
             )
             .tab_options(table_font_size="90%")
