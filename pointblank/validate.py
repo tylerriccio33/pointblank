@@ -185,7 +185,8 @@ class _ValidationInfo:
     warn: bool | None = None
     stop: bool | None = None
     notify: bool | None = None
-    tbl_checked: bool | None = None
+    tbl_checked: FrameT | None = None
+    extract: FrameT | None = None
     time_processed: str | None = None
     proc_duration_s: float | None = None
 
