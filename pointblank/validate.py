@@ -1291,6 +1291,7 @@ class Validate:
             title=title, tbl_name=self.tbl_name, interrogation_performed=interrogation_performed
         )
 
+        thresholds_html = _create_thresholds_html(thresholds=thresholds)
         # Create a DataFrame from the validation information using the `tbl_lib` library; which is
         # either Polars or Pandas
         df = tbl_lib.DataFrame(validation_info_dict)
