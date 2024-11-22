@@ -984,6 +984,24 @@ class Validate:
 
         return self._get_validation_dict(i, "notify")
 
+    def get_data_extracts(self, i: int | list[int] | None = None) -> dict[int, FrameT | None]:
+        """
+        Get the rows that failed for each validation step.
+
+        Parameters
+        ----------
+        i : int | list[int], optional
+            The validation step number(s) from which the failed rows are obtained. If `None`, all
+            steps are included.
+
+        Returns
+        -------
+        dict[int, FrameT]
+            A dictionary of tables containing the rows that failed in every row-based validation
+            step.
+        """
+        return self._get_validation_dict(i, "extract")
+
     def get_json_report(
         self, use_fields: list[str] | None = None, exclude_fields: list[str] | None = None
     ) -> str:
