@@ -1488,6 +1488,16 @@ class Validate:
                 style=style.borders(sides="left", color="#D3D3D3", style="solid"),
                 locations=loc.body(columns="tbl"),
             )
+            .tab_style(
+                style=style.fill(
+                    color=from_column(column="status_color") if interrogation_performed else "white"
+                ),
+                locations=loc.body(columns="status_color"),
+            )
+            .tab_style(
+                style=style.text(color="transparent", size="0px"),
+                locations=loc.body(columns="status_color"),
+            )
             .cols_label(
                 cases={
                     "i": "",
