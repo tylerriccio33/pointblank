@@ -1299,6 +1299,18 @@ class Validate:
         label_html = _create_label_html(label=self.label, start_time=self.time_start)
         table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
         thresholds_html = _create_thresholds_html(thresholds=thresholds)
+
+        # Compose the subtitle HTML fragment
+        combined_subtitle = (
+            "<div>"
+            f"{label_html}"
+            '<div style="height: 25px;padding-top: 10px;">'
+            f"{table_type_html}"
+            f"{thresholds_html}"
+            "</div>"
+            "</div>"
+        )
+
         # Create a DataFrame from the validation information using the `tbl_lib` library; which is
         # either Polars or Pandas
         df = tbl_lib.DataFrame(validation_info_dict)
