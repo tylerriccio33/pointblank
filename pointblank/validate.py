@@ -1284,6 +1284,68 @@ class Validate:
         # Add the `status_color` entry to the dictionary
         validation_info_dict["status_color"] = status_color_list
 
+        # ------------------------------------------------
+        # Process the extract entry
+        # ------------------------------------------------
+
+        # Create a list to store the extract colors
+        extract_upd = []
+
+        # Iterate over the validation steps
+        for i in range(len(validation_info_dict["type_upd"])):
+
+            # If the extract for this step is `None`, then produce an em dash then go to the next
+            # iteration
+            if validation_info_dict["extract"][i] is None:
+                extract_upd.append("&mdash;")
+                continue
+
+            # If the extract for this step is not `None`, then produce a button that allows the
+            # user to download the extract as a CSV file
+
+            # Get the step number
+            step_num = i + 1
+
+            # Get the extract for this step
+            extract = validation_info_dict["extract"][i]
+
+            # Transform to Narwhals DataFrame
+            extract_nw = nw.from_native(extract)
+
+            # Get the number of rows in the extract
+            n_rows = len(extract_nw)
+
+            # If the number of rows is zero, then produce an em dash then go to the next iteration
+            if n_rows == 0:
+                extract_upd.append("&mdash;")
+                continue
+
+            # Write the CSV text
+            csv_text = extract_nw.write_csv()
+
+            # Use Base64 encoding to encode the CSV text
+            csv_text_encoded = base64.b64encode(csv_text.encode("utf-8")).decode("utf-8")
+
+            output_file_name = f"extract_{format(step_num, '04d')}.csv"
+
+            # Create the download button
+            button = (
+                f'<a href="data:text/csv;base64,{csv_text_encoded}" download="{output_file_name}">'
+                "<button "
+                # TODO: Add a tooltip for the button
+                #'aria-label="Download Extract" data-balloon-pos="left" '
+                'style="background-color: #67C2DC; color: #FFFFFF; border: none; padding: 5px; '
+                'font-weight: bold; cursor: pointer; border-radius: 4px;">CSV</button>'
+                "</a>"
+            )
+
+            extract_upd.append(button)
+
+        # Add the `extract_upd` entry to the dictionary
+        validation_info_dict["extract_upd"] = extract_upd
+
+        # Remove the `extract` entry from the dictionary
+        validation_info_dict.pop("extract")
         # Remove the `assertion_type` entry from the dictionary
         validation_info_dict.pop("assertion_type")
 
