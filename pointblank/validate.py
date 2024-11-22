@@ -1826,3 +1826,16 @@ def _create_table_time_html(
         f"{time_end_fmt}</span>"
         f"</div>"
     )
+def _get_tbl_info(data: FrameT) -> str:
+
+    # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
+    # `get_native_namespace()`
+    df_ns_str = str(nw.from_native(data).__native_namespace__())
+
+    # Detect through regex if the table is a polars or pandas DataFrame
+    if re.search(r"polars", df_ns_str, re.IGNORECASE):
+        return "polars"
+    elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
+        return "pandas"
+    else:
+        return "unknown"
