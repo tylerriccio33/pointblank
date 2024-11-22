@@ -1540,6 +1540,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "warn",
         "stop",
         "notify",
+        "extract",
         "proc_duration_s",
     ]
 
