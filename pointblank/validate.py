@@ -1254,6 +1254,36 @@ class Validate:
             interrogation_performed=interrogation_performed,
         )
 
+        # ------------------------------------------------
+        # Process `status_color` entry
+        # ------------------------------------------------
+
+        # For the `status_color` entry, we will add a string based on the status of the validation:
+        #
+        # CASE 1: if `all_passed` is `True`, then the status color will be green
+        # CASE 2: If none of `warn`, `stop`, or `notify` are `True`, then the status color will be
+        #   light green ("#4CA64C66") (includes alpha of `0.5`)
+        # CASE 3: If `warn` is `True`, then the status color will be yellow ("#FFBF00")
+        # CASE 4: If `stop` is `True`, then the status color will be red (#CF142B")
+
+        # Create a list to store the status colors
+        status_color_list = []
+
+        # Iterate over the validation steps
+        for i in range(len(validation_info_dict["type_upd"])):
+            if validation_info_dict["all_passed"][i]:
+                status_color_list.append("#4CA64C")
+            elif validation_info_dict["stop"][i]:
+                status_color_list.append("#CF142B")
+            elif validation_info_dict["warn"][i]:
+                status_color_list.append("#FFBF00")
+            else:
+                # No status entered (W, S, N) but also not all passed
+                status_color_list.append("#4CA64C66")
+
+        # Add the `status_color` entry to the dictionary
+        validation_info_dict["status_color"] = status_color_list
+
         # Remove the `assertion_type` entry from the dictionary
         validation_info_dict.pop("assertion_type")
 
