@@ -1346,6 +1346,11 @@ class Validate:
 
         # Remove the `extract` entry from the dictionary
         validation_info_dict.pop("extract")
+
+        # ------------------------------------------------
+        # Removals from the dictionary
+        # ------------------------------------------------
+
         # Remove the `assertion_type` entry from the dictionary
         validation_info_dict.pop("assertion_type")
 
