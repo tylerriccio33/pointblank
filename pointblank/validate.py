@@ -1098,6 +1098,7 @@ class Validate:
         # Prefer the use of the Polars library if available
         tbl_lib = pl if pl is not None else pd
 
+        # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
         # Has the validation been performed? We can check the first `time_processed` entry in the
