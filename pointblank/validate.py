@@ -1280,7 +1280,7 @@ class Validate:
         validation_info_dict.pop("stop")
         validation_info_dict.pop("notify")
 
-        # Drop several unused keys from the dictionary
+        # Drop other keys from the dictionary
         validation_info_dict.pop("na_pass")
         validation_info_dict.pop("label")
         validation_info_dict.pop("brief")
