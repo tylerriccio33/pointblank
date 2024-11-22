@@ -160,6 +160,7 @@ def test_validation_plan(request, tbl_fixture):
         "stop",
         "notify",
         "tbl_checked",
+        "extract",
         "time_processed",
         "proc_duration_s",
     ]
@@ -184,6 +185,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.stop is None
     assert val_info.notify is None
     assert val_info.tbl_checked is None
+    assert val_info.extract is None
     assert val_info.time_processed is None
     assert val_info.proc_duration_s is None
 
@@ -226,6 +228,7 @@ def test_validation_plan(request, tbl_fixture):
         "stop",
         "notify",
         "tbl_checked",
+        "extract",
         "time_processed",
         "proc_duration_s",
     ]
