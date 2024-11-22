@@ -45,6 +45,19 @@ COMPARE_TYPE_MAP = {
     "not_in_set": "COMPARE_SET",
 }
 
+ROW_BASED_VALIDATION_TYPES = [
+    "col_vals_gt",
+    "col_vals_lt",
+    "col_vals_eq",
+    "col_vals_ne",
+    "col_vals_ge",
+    "col_vals_le",
+    "col_vals_between",
+    "col_vals_outside",
+    "col_vals_in_set",
+    "col_vals_not_in_set",
+]
+
 VALIDATION_REPORT_FIELDS = [
     "i",
     "assertion_type",
