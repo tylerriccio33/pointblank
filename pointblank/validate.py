@@ -1417,7 +1417,7 @@ class Validate:
             GT(df, id="pb_tbl")
             .tab_header(title=html(title_text), subtitle=html(combined_subtitle))
             .tab_source_note(source_note=html(table_time))
-            .fmt_markdown(columns=["pass", "fail"])
+            .fmt_markdown(columns=["pass", "fail", "extract_upd"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
             .opt_align_table_header(align="left")
             .tab_style(style=style.css("height: 40px;"), locations=loc.body())
