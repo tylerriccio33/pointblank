@@ -1098,6 +1098,10 @@ class Validate:
         # Prefer the use of the Polars library if available
         tbl_lib = pl if pl is not None else pd
 
+        # Get information on the input data table
+        # NOTE: Currently, this is only the type of the table returned as a string
+        tbl_info = _get_tbl_info(data=self.data)
+
         # Get the thresholds object
         thresholds = self.thresholds
 
