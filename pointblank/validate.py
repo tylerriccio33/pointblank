@@ -12,7 +12,7 @@ from typing import Callable
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from great_tables import GT, html, loc, style, google_font
+from great_tables import GT, html, loc, style, google_font, from_column
 
 from pointblank._constants import (
     TYPE_METHOD_MAP,
