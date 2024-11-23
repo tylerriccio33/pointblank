@@ -661,6 +661,46 @@ class Validate:
         """
         Evaluate each validation against the table and store the results.
 
+        When a validation plan has been set with a series of validation steps, the interrogation
+        process through `interrogate()` should then be invoked. Interrogation will evaluate each
+        validation step against the table and store the results. The interrogation process is
+        non-destructive; the original table is not altered (but a copy is made for each validation).
+
+        After that, the `Validate` object will have gathered information, and we can use methods
+        like `get_tabular_report()`, `all_passed()` and many more to understand how the table
+        performed against the validation plan.
+
+        Parameters
+        ----------
+        collect_extracts : bool, optional
+            An option to collect rows of the input table that didn't pass a particular validation
+            step. The default is `True` and further options (i.e., `get_first_n=`, `sample_*=`)
+            allow for fine control of how these rows are collected.
+        collect_tbl_checked : bool, optional
+            The processed data frames produced by executing the validation steps is collected and
+            stored in the `Validate` object if `collect_tbl_checked=True`. This information is
+            necessary for some methods (e.g., `get_sundered_data()`), but it potentially makes the
+            object grow to a large size. To opt out of attaching this data, set this argument to
+            `False`.
+        get_first_n : int | None, optional
+            If the option to collect rows where test units is chosen, there is the option here to
+            collect the first `n` rows. Supply an integer number of rows to extract from the top of
+            subset table containing non-passing rows (the ordering of data from the original table
+            is retained).
+        sample_n : int | None, optional
+            If the option to collect non-passing rows is chosen, this option allows for the
+            sampling of `n` rows. Supply an integer number of rows to sample from the subset table.
+            If `n` happens to be greater than the number of non-passing rows, then all such rows
+            will be returned.
+        sample_frac : int | float | None, optional
+            If the option to collect non-passing rows is chosen, this option allows for the sampling
+            of a fraction of those rows. Provide a number in the range of `0` and `1`. The number of
+            rows to return could be very large, however, the `sample_limit=` option will apply a
+            hard limit to the returned rows.
+        sample_limit : int, optional
+            A value that limits the possible number of rows returned when sampling non-passing rows
+            using the `sample_frac=` option.
+
         Returns
         -------
         Validate
