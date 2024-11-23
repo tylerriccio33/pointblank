@@ -707,6 +707,19 @@ class Validate:
             The `Validate` object with the results of the interrogation.
         """
 
+        # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
+        if get_first_n is not None and (sample_n is not None or sample_frac is not None):
+            raise ValueError(
+                "The `get_first_n=` argument cannot be provided with the `sample_n=` or "
+                "`sample_frac=` arguments."
+            )
+
+        # Raise if the `sample_n` and `sample_frac` arguments are both provided
+        if sample_n is not None and sample_frac is not None:
+            raise ValueError(
+                "The `sample_n=` and `sample_frac=` arguments cannot both be provided."
+            )
+
         df = self.data
 
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
