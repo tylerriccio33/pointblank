@@ -866,16 +866,31 @@ class Validate:
 
             # Include the results table that has a new column called `pb_is_good_`; that
             # is a boolean column that indicates whether the row passed the validation or not
-            validation.tbl_checked = results_tbl
+            if collect_tbl_checked:
+                validation.tbl_checked = results_tbl
 
             # If this is a row-based validation step, then extract the rows that failed
-            if type in ROW_BASED_VALIDATION_TYPES:
-                validation.extract = (
+            if collect_extracts and type in ROW_BASED_VALIDATION_TYPES:
+
+                validation_extract_nw = (
                     nw.from_native(results_tbl)
                     .filter(nw.col("pb_is_good_") == False)
                     .drop("pb_is_good_")
-                    .to_native()
                 )
+
+                # Apply any sampling or limiting to the number of rows to extract
+                if get_first_n is not None:
+                    validation_extract_nw = validation_extract_nw.head(get_first_n)
+                elif sample_n is not None:
+                    validation_extract_nw = validation_extract_nw.sample(n=sample_n)
+                elif sample_frac is not None:
+                    validation_extract_nw = validation_extract_nw.sample(fraction=sample_frac)
+
+                    # Ensure a limit is set on the number of rows to extract
+                    if len(validation_extract_nw) > sample_limit:
+                        validation_extract_nw = validation_extract_nw.head(sample_limit)
+
+                validation.extract = nw.to_native(validation_extract_nw)
 
             # Get the end time for this step
             end_time = datetime.datetime.now(datetime.timezone.utc)
