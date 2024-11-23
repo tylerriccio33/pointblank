@@ -649,7 +649,15 @@ class Validate:
     {_col_vals_compare_set_args_docstring()}
     """
 
-    def interrogate(self):
+    def interrogate(
+        self,
+        collect_extracts: bool = True,
+        collect_tbl_checked: bool = True,
+        get_first_n: int | None = None,
+        sample_n: int | None = None,
+        sample_frac: int | float | None = None,
+        sample_limit: int = 5000,
+    ) -> Validate:
         """
         Evaluate each validation against the table and store the results.
 
