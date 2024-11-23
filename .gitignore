@@ -112,3 +112,5 @@ playground*.py
 playground*.qmd
 playground.html
 playground_files
+
+/.luarc.json
