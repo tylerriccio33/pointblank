@@ -581,8 +581,8 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     )
 
     assert v.validation_info[0].thresholds.warn_at == 0.5
-    assert v.validation_info[0].thresholds.stop_at == None
-    assert v.validation_info[0].thresholds.notify_at == None
+    assert v.validation_info[0].thresholds.stop_at is None
+    assert v.validation_info[0].thresholds.notify_at is None
 
     assert v.validation_info[1].thresholds.warn_at == 1
     assert v.validation_info[1].thresholds.stop_at == 2
@@ -592,13 +592,13 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     assert v.validation_info[2].thresholds.stop_at == 2
     assert v.validation_info[2].thresholds.notify_at == 3
 
-    assert v.validation_info[3].thresholds.warn_at == None
-    assert v.validation_info[3].thresholds.stop_at == None
-    assert v.validation_info[3].thresholds.notify_at == None
+    assert v.validation_info[3].thresholds.warn_at is None
+    assert v.validation_info[3].thresholds.stop_at is None
+    assert v.validation_info[3].thresholds.notify_at is None
 
     assert v.validation_info[4].thresholds.warn_at == 0.1
-    assert v.validation_info[4].thresholds.stop_at == None
-    assert v.validation_info[4].thresholds.notify_at == None
+    assert v.validation_info[4].thresholds.stop_at is None
+    assert v.validation_info[4].thresholds.notify_at is None
 
     assert v.validation_info[5].thresholds.warn_at == 1
     assert v.validation_info[5].thresholds.stop_at == 2
@@ -659,7 +659,7 @@ def test_col_vals_eq(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Test all passing behavio    assert Validate(tbl).col_vals_eq(column="z", value=8).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_eq(column="z", value=8).interrogate().n_passed(i=1)[1] == 3
     assert (
         Validate(tbl).col_vals_eq(column="z", value=8, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
