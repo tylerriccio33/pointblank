@@ -10,9 +10,9 @@ def _check_boolean_input(param: bool, param_name: str):
 
     Parameters
     ----------
-    param : bool
+    param
         The input value to check for a boolean value.
-    param_name : str
+    param_name
         The name of the parameter being checked. This is used in the error message.
 
     Raises
@@ -30,7 +30,7 @@ def _check_column(column: str):
 
     Parameters
     ----------
-    column : str
+    column
         The column to validate.
 
     Raises
@@ -48,7 +48,7 @@ def _check_value_float_int(value: float | int):
 
     Parameters
     ----------
-    value : float | int
+    value
         The value to compare against in a validation.
 
     Raises
@@ -66,7 +66,7 @@ def _check_set_types(set: list[float | int | str]):
 
     Parameters
     ----------
-    set : list[float | int]
+    set
         The set of values to compare against in a validation.
 
     Raises
@@ -84,7 +84,7 @@ def _check_pre(pre: Callable | None):
 
     Parameters
     ----------
-    pre : Callable | None
+    pre
         The pre-processing function to apply to the table.
 
     Raises
@@ -102,7 +102,7 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
 
     Parameters
     ----------
-    thresholds : int | float | tuple | dict | Thresholds | None
+    thresholds
         The threshold value or values.
 
     Raises

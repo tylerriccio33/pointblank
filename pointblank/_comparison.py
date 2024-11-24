@@ -1,8 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-import operator
-
 import narwhals as nw
 from narwhals.typing import FrameT
 
@@ -230,19 +228,19 @@ class ColValsCompareOne:
 
     Parameters
     ----------
-    df : FrameT
+    df
         a DataFrame.
-    column : str
+    column
         The column to check.
-    value : float | int
+    value
         A value to check against.
-    na_pass: bool
+    na_pass
         `True` to pass test units with missing values, `False` otherwise.
-    threshold : int
+    threshold
         The maximum number of failing test units to allow.
-    comparison : str
+    comparison
         The type of comparison ('gt' for greater than, 'lt' for less than).
-    allowed_types : list[str]
+    allowed_types
         The allowed data types for the column.
 
     Returns
@@ -344,25 +342,25 @@ class ColValsCompareTwo:
 
     Parameters
     ----------
-    df : FrameT
+    df
         a DataFrame.
-    column : str
+    column
         The column to check.
-    value1 : float | int
+    value1
         A value to check against.
-    value2 : float | int
+    value2
         A value to check against.
-    inclusive : tuple[bool, bool]
+    inclusive
         A tuple of booleans that state which bounds are inclusive. The position of the boolean
         corresponds to the value in the following order: (value1, value2).
-    na_pass: bool
+    na_pass
         `True` to pass test units with missing values, `False` otherwise.
-    threshold : int
+    threshold
         The maximum number of failing test units to allow.
-    comparison : str
+    comparison
         The type of comparison ('between' for between two values and 'outside' for outside two
         values).
-    allowed_types : list[str]
+    allowed_types
         The allowed data types for the column.
 
     Returns
@@ -438,18 +436,18 @@ class ColValsCompareSet:
 
     Parameters
     ----------
-    df : FrameT
+    df
         a DataFrame.
-    column : str
+    column
         The column to check.
-    values : list[float | int]
+    values
         A set of values to check against.
-    threshold : int
+    threshold
         The maximum number of failing test units to allow.
-    inside : bool
+    inside
         `True` to check if the values are inside the set, `False` to check if the values are
         outside the set.
-    allowed_types : list[str]
+    allowed_types
         The allowed data types for the column.
 
     Returns

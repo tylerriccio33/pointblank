@@ -139,7 +139,7 @@ def _normalize_thresholds_creation(
 
     Parameters
     ----------
-    thresholds : int | float | tuple | Thresholds | None
+    thresholds
         The value or values to use for the thresholds.
 
     Returns

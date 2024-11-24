@@ -42,7 +42,7 @@ def _is_numeric_dtype(dtype: str) -> bool:
 
     Parameters
     ----------
-    dtype : str
+    dtype
         The data type string to check.
 
     Returns
@@ -61,7 +61,7 @@ def _is_date_or_datetime_dtype(dtype: str) -> bool:
 
     Parameters
     ----------
-    dtype : str
+    dtype
         The data type string to check.
 
     Returns
@@ -80,7 +80,7 @@ def _is_duration_dtype(dtype: str) -> bool:
 
     Parameters
     ----------
-    dtype : str
+    dtype
         The data type string to check.
 
     Returns
@@ -101,13 +101,13 @@ def _get_column_dtype(
 
     Parameters
     ----------
-    dfn : nw.DataFrame
+    dfn
         A Narwhals DataFrame.
-    column : str
+    column
         The column from which to get the data type.
-    raw : bool
+    raw
         If `True`, return the raw data type string.
-    lowercased : bool
+    lowercased
         If `True`, return the data type string in lowercase.
 
     Returns
@@ -217,9 +217,9 @@ def _check_invalid_fields(fields: list[str], valid_fields: list[str]):
 
     Parameters
     ----------
-    fields : list[str]
+    fields
         The list of fields to check.
-    valid_fields : list[str]
+    valid_fields
         The list of valid fields.
 
     Raises
