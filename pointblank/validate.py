@@ -46,6 +46,8 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 
+__all__ = ["Validate"]
+
 
 def _col_vals_compare_one_title_docstring(comparison: str) -> str:
     return "Validate whether column values are ___ a single value.".replace("___", comparison)
