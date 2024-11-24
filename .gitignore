@@ -118,3 +118,4 @@ playground_files
 docs/_site
 docs/.quarto
 docs/reference
+docs/objects.json
