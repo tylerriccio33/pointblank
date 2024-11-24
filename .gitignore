@@ -114,3 +114,7 @@ playground.html
 playground_files
 
 /.luarc.json
+
+docs/_site
+docs/.quarto
+docs/reference
