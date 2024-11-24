@@ -13,60 +13,8 @@ website:
       - icon: github
         href: https://github.com/rich-iannone/pointblank
 
-format:
-  html:
-    theme: cosmo
-    css:
-      - reference/_styles-quartodoc.css
-    toc: true
-    page-layout: full
-
-filters:
-  - interlinks
-
-interlinks:
-  fast: true
-  sources:
-    numpy:
-      url: https://numpy.org/doc/stable/
-    python:
-      url: https://docs.python.org/3/
-
 html-table-processing: none
 
 quartodoc:
-  package: pointblank
-  dir: reference
   title: API Reference
-  style: pkgdown
-  css: reference/_styles-quartodoc.css
-  dynamic: true
-  render_interlinks: true
-  renderer:
-    style: markdown
-    table_style: description-list
-  sections:
-    - title: Validate
-      desc: >
-        The Validate class is the main entry point for creating validation pipelines. It is
-        initialized with a data source and a set of rules. The `interrogate()` method is then
-        called to run the validation pipeline. The `interrogate()` method returns a `Validation`
-        object that contains the results of the validation.
-      contents:
-        - name: Validate
-    - title: Validation Rules
-      desc: >
-        Validation rules are the building blocks of a validation pipeline. They are used to check
-        data for specific conditions.
-      contents:
-        - Validate.col_vals_gt
-        - Validate.col_vals_lt
-        - Validate.col_vals_eq
-        - Validate.col_vals_ne
-        - Validate.col_vals_ge
-        - Validate.col_vals_le
-        - Validate.col_vals_between
-        - Validate.col_vals_outside
-        - Validate.col_vals_in_set
-        - Validate.col_vals_not_in_set
-
+  package: pointblank
