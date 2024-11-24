@@ -214,9 +214,6 @@ def test_col_vals_in_set(request, tbl_fixture):
     assert not TF.col_vals_in_set(tbl, column="s", set=["b", "c", "d", "e"], threshold=1)
     assert TF.col_vals_in_set(tbl, column="s", set=["b", "c", "d", "e"], threshold=2)
 
-    assert not TF.col_vals_in_set(tbl, column="x", set=["a", "b", "c", "d"], threshold=1)
-    assert not TF.col_vals_in_set(tbl, column="s", set=[1, 2, 3, 4], threshold=1)
-
 
 @pytest.mark.parametrize(
     "tbl_fixture",
@@ -234,12 +231,7 @@ def test_col_vals_not_in_set(request, tbl_fixture):
     assert not TF.col_vals_not_in_set(tbl, column="s", set=["d", "e", "f", "g"], threshold=1)
     assert TF.col_vals_not_in_set(tbl, column="s", set=["d", "e", "f", "g"], threshold=2)
 
-    assert TF.col_vals_not_in_set(tbl, column="x", set=["a", "b", "c", "d"], threshold=1)
-    assert TF.col_vals_not_in_set(tbl, column="s", set=[1, 2, 3, 4], threshold=1)
     assert not TF.col_vals_not_in_set(tbl, column="x", set=[1, 2, 3, 4], threshold=1)
     assert not TF.col_vals_not_in_set(tbl, column="s", set=["a", "b", "c", "d"], threshold=1)
-    assert TF.col_vals_not_in_set(tbl, column="x", set=["a", "b", "c", "d"], threshold=1)
-    assert TF.col_vals_not_in_set(tbl, column="s", set=[1, 2, 3, 4], threshold=1)
     assert not TF.col_vals_not_in_set(tbl, column="x", set=[1, 2, 3, 4], threshold=1)
     assert not TF.col_vals_not_in_set(tbl, column="s", set=["a", "b", "c", "d"], threshold=1)
-    assert TF.col_vals_not_in_set(tbl, column="x", set=["a", "b", "c", "d"], threshold=1)
