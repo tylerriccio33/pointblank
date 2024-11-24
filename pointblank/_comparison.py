@@ -17,11 +17,11 @@ class Comparator:
 
     Parameters
     ----------
-    x : float | int | list[float | int] | nw.DataFrame
+    x
         The values to compare.
-    column : str
+    column
         The column to check when passing a Narwhals DataFrame.
-    compare : float | int | list[float | int]
+    compare
         The value to compare against. Used in the following comparisons:
         - 'gt' for greater than
         - 'lt' for less than
@@ -29,24 +29,24 @@ class Comparator:
         - 'ne' for not equal to
         - 'ge' for greater than or equal to
         - 'le' for less than or equal to
-    set : list[float | int]
+    set
         The set of values to compare against. Used in the following comparisons:
         - 'isin' for values in the set
         - 'notin' for values not in the set
-    low : float | int | list[float | int]
+    low
         The lower bound of the range of values to compare against. Used in the following:
         - 'between' for values between the range
         - 'outside' for values outside the range
-    high : float | int | list[float | int]
+    high
         The upper bound of the range of values to compare against. Used in the following:
         - 'between' for values between the range
         - 'outside' for values outside the range
-    inclusive : tuple[bool, bool]
+    inclusive
         A tuple of booleans that state which bounds are inclusive. The position of the boolean
         corresponds to the value in the following order: (low, high). Used in the following:
         - 'between' for values between the range
         - 'outside' for values outside the range
-    na_pass : bool
+    na_pass
         `True` to pass test units with missing values, `False` otherwise.
 
     Returns
@@ -55,7 +55,7 @@ class Comparator:
         A list of booleans where `True` indicates a passing test unit.
     """
 
-    x: float | int | list[float | int] | nw.DataFrame
+    x: nw.DataFrame
     column: str = None
     compare: float | int | list[float | int] = None
     set: list[float | int] = None
@@ -63,357 +63,164 @@ class Comparator:
     high: float | int | list[float | int] = None
     inclusive: tuple[bool, bool] = None
     na_pass: bool = False
-    compare_strategy: str = "list"
 
-    def __post_init__(self):
+    def gt(self) -> FrameT:
 
-        if self.compare_strategy == "list":
-
-            if isinstance(self.x, nw.DataFrame):
-
-                if self.column is None:
-                    raise ValueError("A column must be provided when passing a Narwhals DataFrame.")
-
-                self.x = self.x[self.column].to_list()
-
-            elif not isinstance(self.x, list):
-                self.x = [self.x]
-
-            if self.compare is not None:
-                self.compare = self._ensure_list(self.compare, len(self.x), "compare")
-
-            if self.low is not None:
-                self.low = self._ensure_list(self.low, len(self.x), "low")
-
-            if self.high is not None:
-                self.high = self._ensure_list(self.high, len(self.x), "high")
-
-    def _ensure_list(self, value, length=None, name=None):
-        """
-        Ensure that a value is a list and that the length of the list expands to the length of `x`.
-        """
-        if not isinstance(value, list):
-            value = [value] * (length if length is not None else 1)
-        elif length is not None and len(value) != length:
-            raise ValueError(f"Length of `x` and `{name}` must be the same.")
-
-        return value
-
-    def gt(self) -> list[bool] | FrameT:
-
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column) > self.compare,
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column) > self.compare,
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def lt(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column) < self.compare,
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column) < self.compare,
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def eq(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column) == self.compare,
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column) == self.compare,
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def ne(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.when(~nw.col(self.column).is_null())
-                    .then(nw.col(self.column) != self.compare)
-                    .otherwise(False),
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.when(~nw.col(self.column).is_null())
+                .then(nw.col(self.column) != self.compare)
+                .otherwise(False),
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def ge(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column) >= self.compare,
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column) >= self.compare,
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def le(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column) <= self.compare,
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column) <= self.compare,
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        op = _get_def_name()
-        return [
-            _compare_values(i, j, op=op, na_pass=self.na_pass) for i, j in zip(self.x, self.compare)
-        ]
+        return tbl
 
     def between(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
+        tbl = self.x
 
-            tbl = self.x
+        if self.inclusive == (True, True):
+            closed = "both"
+        elif self.inclusive == (True, False):
+            closed = "left"
+        elif self.inclusive == (False, True):
+            closed = "right"
+        else:
+            closed = "none"
 
-            if self.inclusive == (True, True):
-                closed = "both"
-            elif self.inclusive == (True, False):
-                closed = "left"
-            elif self.inclusive == (False, True):
-                closed = "right"
-            else:
-                closed = "none"
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.col(self.column).is_between(self.low, self.high, closed=closed),
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.col(self.column).is_between(self.low, self.high, closed=closed),
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        return [
-            _compare_values_range(
-                i, j, k, inclusive=self.inclusive, between=True, na_pass=self.na_pass
-            )
-            for i, j, k in zip(self.x, self.low, self.high)
-        ]
+        return tbl
 
     def outside(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
+        tbl = self.x
 
-            tbl = self.x
+        if self.inclusive == (True, True):
+            closed = "both"
+        elif self.inclusive == (True, False):
+            closed = "left"
+        elif self.inclusive == (False, True):
+            closed = "right"
+        else:
+            closed = "none"
 
-            if self.inclusive == (True, True):
-                closed = "both"
-            elif self.inclusive == (True, False):
-                closed = "left"
-            elif self.inclusive == (False, True):
-                closed = "right"
-            else:
-                closed = "none"
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                    pb_is_good_2=nw.when(~nw.col(self.column).is_null())
-                    .then(~nw.col(self.column).is_between(self.low, self.high, closed=closed))
-                    .otherwise(False),
-                )
-                .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                .drop("pb_is_good_1", "pb_is_good_2")
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=nw.when(~nw.col(self.column).is_null())
+                .then(~nw.col(self.column).is_between(self.low, self.high, closed=closed))
+                .otherwise(False),
             )
-            return tbl
+            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+            .drop("pb_is_good_1", "pb_is_good_2")
+            .to_native()
+        )
 
-        return [
-            _compare_values_range(
-                i, j, k, inclusive=self.inclusive, between=False, na_pass=self.na_pass
-            )
-            for i, j, k in zip(self.x, self.low, self.high)
-        ]
+        return tbl
 
     def isin(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
+        tbl = self.x.with_columns(
+            pb_is_good_=nw.col(self.column).is_in(self.set),
+        ).to_native()
 
-            tbl = self.x.with_columns(
-                pb_is_good_=nw.col(self.column).is_in(self.set),
-            ).to_native()
-            return tbl
-
-        return [i in self.set for i in self.x]
+        return tbl
 
     def notin(self) -> list[bool]:
 
-        if self.compare_strategy == "table":
-
-            tbl = (
-                self.x.with_columns(
-                    pb_is_good_=nw.col(self.column).is_in(self.set),
-                )
-                .with_columns(pb_is_good_=~nw.col("pb_is_good_"))
-                .to_native()
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_=nw.col(self.column).is_in(self.set),
             )
-            return tbl
+            .with_columns(pb_is_good_=~nw.col("pb_is_good_"))
+            .to_native()
+        )
 
-        return [i not in self.set for i in self.x]
-
-    def isnull(self) -> list[bool]:
-        return [i is None for i in self.x]
-
-    def notnull(self) -> list[bool]:
-        return [i is not None for i in self.x]
-
-
-def _compare_values(i, j, op, na_pass):
-    """
-    Compare two values using the specified operator.
-
-    Parameters
-    ----------
-    i : int | float
-        The first value.
-    j : int | float
-        The second value.
-    op : str
-        The operator as a string. Supported operators are:
-        - 'gt' for greater than
-        - 'lt' for less than
-        - 'eq' for equal to
-        - 'ne' for not equal to
-        - 'ge' for greater than or equal to
-        - 'le' for less than or equal to
-
-    Returns
-    -------
-    bool
-        The result of the comparison.
-    """
-    ops = {
-        "gt": operator.gt,
-        "lt": operator.lt,
-        "eq": operator.eq,
-        "ne": operator.ne,
-        "ge": operator.ge,
-        "le": operator.le,
-    }
-
-    if op not in ops:
-        raise ValueError(f"Unsupported operator: {op}")
-
-    if i is None:
-        return na_pass
-
-    return ops[op](i, j)
-
-
-def _compare_values_range(
-    i: int | float | None,
-    j: int | float,
-    k: int | float,
-    inclusive: tuple[bool, bool],
-    between: bool,
-    na_pass: bool,
-):
-    """
-    Compare a value against a range of values using the specified operator.
-
-    Parameters
-    ----------
-    i : int | float
-        The value to compare.
-    j : int | float
-        The lower bound of the range.
-    k : int | float
-        The upper bound of the range.
-    inclusive : tuple[bool, bool]
-        A tuple of booleans that state which bounds are inclusive. The position of the boolean
-        corresponds to the value in the following order: (j, k).
-    between : bool
-        `True` to check if the value is between the range, `False` to check if the value is outside
-        the range.
-    na_pass : bool
-        `True` to pass test units with missing values, `False` otherwise.
-
-    Returns
-    -------
-    bool
-        The result of the comparison.
-    """
-
-    if i is None:
-        return na_pass
-
-    if between:
-
-        gt_operator = operator.ge if inclusive[0] else operator.gt
-        lt_operator = operator.le if inclusive[1] else operator.lt
-
-        return gt_operator(i, j) and lt_operator(i, k)
-
-    else:
-
-        gt_operator = operator.gt if inclusive[1] else operator.ge
-        lt_operator = operator.lt if inclusive[0] else operator.le
-
-        return lt_operator(i, j) or gt_operator(i, k)
+        return tbl
 
 
 @dataclass
@@ -437,8 +244,6 @@ class ColValsCompareOne:
         The type of comparison ('gt' for greater than, 'lt' for less than).
     allowed_types : list[str]
         The allowed data types for the column.
-    compare_strategy : str
-        `"list"` to compare a list of values, `"table"` to perform comparison in the DataFrame.
 
     Returns
     -------
@@ -454,7 +259,6 @@ class ColValsCompareOne:
     threshold: int
     comparison: str
     allowed_types: list[str]
-    compare_strategy: str
 
     def __post_init__(self):
 
@@ -471,7 +275,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).gt()
         elif self.comparison == "lt":
             self.test_unit_res = Comparator(
@@ -479,7 +282,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).lt()
         elif self.comparison == "eq":
             self.test_unit_res = Comparator(
@@ -487,7 +289,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).eq()
         elif self.comparison == "ne":
             self.test_unit_res = Comparator(
@@ -495,7 +296,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).ne()
         elif self.comparison == "ge":
             self.test_unit_res = Comparator(
@@ -503,7 +303,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).ge()
         elif self.comparison == "le":
             self.test_unit_res = Comparator(
@@ -511,7 +310,6 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).le()
         else:
             raise ValueError(
@@ -528,11 +326,14 @@ class ColValsCompareOne:
         return self.test_unit_res
 
     def test(self):
-        # Get the number of failing test units by counting instances of `False` and then determine
-        # if the test passes overall by comparing the number of failing test units to the threshold
-        # for failing test units
+        # Get the number of failing test units by counting instances of `False` in the `pb_is_good_`
+        # column and then determine if the test passes overall by comparing the number of failing
+        # test units to the threshold for failing test units
+
+        results_list = nw.from_native(self.test_unit_res)["pb_is_good_"].to_list()
+
         return _threshold_check(
-            failing_test_units=self.test_unit_res.count(False), threshold=self.threshold
+            failing_test_units=results_list.count(False), threshold=self.threshold
         )
 
 
@@ -563,8 +364,6 @@ class ColValsCompareTwo:
         values).
     allowed_types : list[str]
         The allowed data types for the column.
-    compare_strategy : str
-        `"list"` to compare a list of values, `"table"` to perform comparison in the DataFrame.
 
     Returns
     -------
@@ -582,7 +381,6 @@ class ColValsCompareTwo:
     threshold: int
     comparison: str
     allowed_types: list[str]
-    compare_strategy: str
 
     def __post_init__(self):
 
@@ -601,7 +399,6 @@ class ColValsCompareTwo:
                 high=self.value2,
                 inclusive=self.inclusive,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).between()
         elif self.comparison == "outside":
             self.test_unit_res = Comparator(
@@ -611,7 +408,6 @@ class ColValsCompareTwo:
                 high=self.value2,
                 inclusive=self.inclusive,
                 na_pass=self.na_pass,
-                compare_strategy=self.compare_strategy,
             ).outside()
         else:
             raise ValueError(
@@ -624,11 +420,14 @@ class ColValsCompareTwo:
         return self.test_unit_res
 
     def test(self):
-        # Get the number of failing test units by counting instances of `False` and then determine
-        # if the test passes overall by comparing the number of failing test units to the threshold
-        # for failing test units
+        # Get the number of failing test units by counting instances of `False` in the `pb_is_good_`
+        # column and then determine if the test passes overall by comparing the number of failing
+        # test units to the threshold for failing test units
+
+        results_list = nw.from_native(self.test_unit_res)["pb_is_good_"].to_list()
+
         return _threshold_check(
-            failing_test_units=self.test_unit_res.count(False), threshold=self.threshold
+            failing_test_units=results_list.count(False), threshold=self.threshold
         )
 
 
@@ -652,8 +451,6 @@ class ColValsCompareSet:
         outside the set.
     allowed_types : list[str]
         The allowed data types for the column.
-    compare_strategy : str
-        `"list"` to compare a list of values, `"table"` to perform comparison in the DataFrame.
 
     Returns
     -------
@@ -668,7 +465,6 @@ class ColValsCompareSet:
     threshold: int
     inside: bool
     allowed_types: list[str]
-    compare_strategy: str
 
     def __post_init__(self):
 
@@ -680,23 +476,22 @@ class ColValsCompareSet:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.inside:
-            self.test_unit_res = Comparator(
-                x=dfn, column=self.column, set=self.values, compare_strategy=self.compare_strategy
-            ).isin()
+            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).isin()
         else:
-            self.test_unit_res = Comparator(
-                x=dfn, column=self.column, set=self.values, compare_strategy=self.compare_strategy
-            ).notin()
+            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).notin()
 
     def get_test_results(self):
         return self.test_unit_res
 
     def test(self):
-        # Get the number of failing test units by counting instances of `False` and then determine
-        # if the test passes overall by comparing the number of failing test units to the threshold
-        # for failing test units
+        # Get the number of failing test units by counting instances of `False` in the `pb_is_good_`
+        # column and then determine if the test passes overall by comparing the number of failing
+        # test units to the threshold for failing test units
+
+        results_list = nw.from_native(self.test_unit_res)["pb_is_good_"].to_list()
+
         return _threshold_check(
-            failing_test_units=self.test_unit_res.count(False), threshold=self.threshold
+            failing_test_units=results_list.count(False), threshold=self.threshold
         )
 
 
