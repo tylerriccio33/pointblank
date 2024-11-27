@@ -1631,7 +1631,6 @@ class Validate:
         combined_subtitle = (
             "<div>"
             f"{label_html}"
-            '<div style="height: 25px;padding-top: 10px;">'
             f"{table_type_html}"
             f"{thresholds_html}"
             "</div>"
