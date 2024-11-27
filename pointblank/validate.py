@@ -205,6 +205,26 @@ class Validate:
     """
     Workflow for defining a set of validations on a table and interrogating for results.
 
+    The `Validate` class is used for defining a set of validations on a table and interrogating for
+    results. This class is the main entry point for the  *data quality reporting* workflow. The
+    overall aim of this workflow is to generate useful reporting information for assessing the level
+    of data quality for the target table.
+
+    We can supply as many validation steps as needed, and having a large number of them should
+    increase the validation coverage for a given table. The validation methods (e.g.,
+    `col_vals_gt()`, `col_vals_between()`, etc.) translate to discrete validation steps (each one is
+    numbered and will later provide its own set of results). This process is known as developing a
+    *validation plan*.
+
+    The validation methods, when called, are merely instructions up to the point the `interrogate()`
+    method is called. That kicks off the process of acting on the *validation plan* by querying the
+    target table getting reporting results for each step. Once the interrogation process is
+    complete, we can say that the workflow now has usable information. The reporting of the
+    interrogation can obtained by using the `get_tabular_report()` method, which will return a
+    reporting table with the results of the interrogation. For a more detailed report, we can use
+    the `get_json_report()` method, which will return a JSON string with the step-by-step results of
+    the interrogation.
+
     Parameters
     ----------
     data
@@ -228,6 +248,23 @@ class Validate:
     -------
     Validate
         A `Validate` object with the table and validations to be performed.
+
+    Examples
+    --------
+    ## Creating a validation plan and interrogating
+
+    Let's walk through a data quality analysis of an extremely small table. It's actually called
+    `small_table` and it's accessible through the `load_dataset()` function.
+
+    ```{python}
+    import pointblank as pb
+
+    # Load the small_table dataset
+    small_table = pb.load_dataset()
+
+    small_table
+    ```
+
     """
 
     def __post_init__(self):
