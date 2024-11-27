@@ -1,6 +1,14 @@
 project:
   type: website
 
+format:
+  html:
+    grid:
+      sidebar-width: 300px
+      body-width: 900px
+      margin-width: 300px
+      gutter-width: 1.5rem
+
 website:
   title: pointblank
   description: "Find out if your data is what you think it is"
@@ -18,3 +26,42 @@ html-table-processing: none
 quartodoc:
   title: API Reference
   package: pointblank
+  renderer:
+    style: markdown
+    table_style: description-list
+  sections:
+    - title: Validate
+      contents:
+        - name: Validate
+          children: linked
+    - title: Validation Steps
+      contents:
+        - name: Validate.col_vals_gt
+        - name: Validate.col_vals_lt
+        - name: Validate.col_vals_ge
+        - name: Validate.col_vals_le
+        - name: Validate.col_vals_eq
+        - name: Validate.col_vals_ne
+        - name: Validate.col_vals_between
+        - name: Validate.col_vals_outside
+        - name: Validate.col_vals_in_set
+        - name: Validate.col_vals_not_in_set
+    - title: Interrogation and Reporting
+      contents:
+        - name: Validate.interrogate
+        - name: Validate.get_data_extracts
+        - name: Validate.get_json_report
+        - name: Validate.get_tabular_report
+        - name: Validate.get_sundered_data
+        - name: Validate.all_passed
+        - name: Validate.n
+        - name: Validate.n_passed
+        - name: Validate.n_failed
+        - name: Validate.f_passed
+        - name: Validate.f_failed
+        - name: Validate.warn
+        - name: Validate.stop
+        - name: Validate.notify
+    - title: Utilities
+      contents:
+        - name: load_dataset
