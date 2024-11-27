@@ -1305,6 +1305,30 @@ class Validate:
         -------
         GT
             A GT table object that represents the validation report.
+
+        Examples
+        --------
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        # Create a Polars DataFrame
+        tbl_pl = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7]})
+
+        # Validate data using Polars DataFrame
+        v = (
+            pb.Validate(data=tbl_pl, thresholds=(2, 3, 4))
+            .col_vals_gt(column="x", value=1)  # STEP 1 |
+            .col_vals_lt(column="x", value=3)  # STEP 2 | <-- The validation plan
+            .col_vals_le(column="y", value=7)  # STEP 3 |
+            .interrogate()  # This will execute all validation steps
+        )
+
+        report_table = v.get_tabular_report()
+
+        report_table
+        ```
         """
 
         # Determine whether Pandas or Polars is available
