@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from importlib_resources import files
+
 import base64
 import commonmark
 import datetime
@@ -8,7 +10,8 @@ import json
 import re
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Literal
+from zipfile import ZipFile
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -98,6 +101,80 @@ Parameters
 {ARG_DOCSTRINGS["pre"]}
 {ARG_DOCSTRINGS["thresholds"]}
 {ARG_DOCSTRINGS["active"]}"""
+
+
+def load_dataset(
+    dataset: Literal["small_table", "game_revenue"] = "small_table",
+    tbl_type: Literal["polars", "pandas"] = "polars",
+) -> FrameT:
+    """
+    Load a dataset from the pointblank data directory.
+
+    Parameters
+    ----------
+    dataset
+        The name of the dataset to load. Current options are `"small_table"` and `"game_revenue"`.
+    tbl_type
+        The type of table to generate from the dataset. Options are `"polars"` and `"pandas"`.
+
+    Returns
+    -------
+    FrameT
+        The dataset for the `Validate` object.
+
+    Examples
+    --------
+    Load the `small_table` dataset as a Polars DataFrame:
+
+    ```{python}
+    import pointblank as pb
+
+    dataset = pb.load_dataset()
+
+    dataset
+    ```
+    """
+
+    # Raise error if the dataset is from the list of provided datasets
+    if dataset not in ["small_table", "game_revenue"]:
+        raise ValueError(
+            f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
+            "- `small_table`\n"
+            "- `game_revenue`"
+        )
+
+    data_path = files("pointblank.data") / f"{dataset}.zip"
+
+    parse_date_columns = {
+        "small_table": ["date_time", "date"],
+        "game_revenue": ["session_start", "time", "start_day"],
+    }
+
+    if tbl_type == "polars":
+
+        if not _df_lib_present(lib_name="polars"):
+            raise ImportError(
+                "The Polars library is not installed but is required when specifying "
+                '`tbl_type="polars".'
+            )
+
+        import polars as pl
+
+        dataset = pl.read_csv(ZipFile(data_path).read(f"{dataset}.csv"), try_parse_dates=True)
+
+    if tbl_type == "pandas":
+
+        if not _df_lib_present(lib_name="pandas"):
+            raise ImportError(
+                "The Pandas library is not installed but is required when specifying "
+                '`tbl_type="pandas".'
+            )
+
+        import pandas as pd
+
+        dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
+
+    return dataset
 
 
 @dataclass
