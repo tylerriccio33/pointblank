@@ -108,14 +108,15 @@ def load_dataset(
     tbl_type: Literal["polars", "pandas"] = "polars",
 ) -> FrameT:
     """
-    Load a dataset from the pointblank data directory.
+    Load a dataset hosted in the library as specified DataFrame type.
 
     Parameters
     ----------
     dataset
         The name of the dataset to load. Current options are `"small_table"` and `"game_revenue"`.
     tbl_type
-        The type of table to generate from the dataset. Options are `"polars"` and `"pandas"`.
+        The type of DataFrame to generate from the dataset. The named options are `"polars"` and
+        `"pandas"`.
 
     Returns
     -------
@@ -124,14 +125,26 @@ def load_dataset(
 
     Examples
     --------
-    Load the `small_table` dataset as a Polars DataFrame:
+    Load the `small_table` dataset as a Polars DataFrame by calling `load_dataset()` with its
+    defaults:
 
     ```{python}
     import pointblank as pb
 
-    dataset = pb.load_dataset()
+    small_table = pb.load_dataset()
 
-    dataset
+    small_table
+    ```
+
+    The `game_revenue` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
+    and setting `tbl_type="pandas"`:
+
+    ```{python}
+    import pointblank as pb
+
+    game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
+
+    game_revenue
     ```
     """
 
