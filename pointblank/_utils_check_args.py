@@ -24,7 +24,7 @@ def _check_boolean_input(param: bool, param_name: str):
         raise ValueError(f"`{param_name}=` must be a boolean value.")
 
 
-def _check_column(column: str):
+def _check_column(column: str | list[str]):
     """
     Check the input value of the `column=` parameter.
 
@@ -38,6 +38,12 @@ def _check_column(column: str):
     ValueError
         When `column` is not a string.
     """
+
+    if isinstance(column, list):
+        if not all(isinstance(col, str) for col in column):
+            raise ValueError("If a list is supplied to `column=` all elements must be strings.")
+        return
+
     if not isinstance(column, str):
         raise ValueError("`column=` must be a string.")
 

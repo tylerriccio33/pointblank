@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import polars as pl
 
-from pointblank.validate import Validate, _ValidationInfo
+from pointblank.validate import Validate, _ValidationInfo, load_dataset
 from pointblank.thresholds import Thresholds
 
 
@@ -90,7 +90,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    v = Validate(tbl).col_vals_gt(column="x", value=0).interrogate()
+    v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
     assert v.data.shape == (4, 3)
     assert str(v.data["x"].dtype).lower() == "int64"
@@ -104,14 +104,16 @@ def test_col_vals_all_passing(request, tbl_fixture):
     assert v.all_passed()
 
     # Test other validation types for all passing behavior in single steps
-    assert Validate(tbl).col_vals_lt(column="x", value=5).interrogate().all_passed()
-    assert Validate(tbl).col_vals_eq(column="z", value=8).interrogate().all_passed()
-    assert Validate(tbl).col_vals_ge(column="x", value=1).interrogate().all_passed()
-    assert Validate(tbl).col_vals_le(column="x", value=4).interrogate().all_passed()
-    assert Validate(tbl).col_vals_between(column="x", left=0, right=5).interrogate().all_passed()
-    assert Validate(tbl).col_vals_outside(column="x", left=-5, right=0).interrogate().all_passed()
-    assert Validate(tbl).col_vals_in_set(column="x", set=[1, 2, 3, 4, 5]).interrogate().all_passed()
-    assert Validate(tbl).col_vals_not_in_set(column="x", set=[5, 6, 7]).interrogate().all_passed()
+    assert Validate(tbl).col_vals_lt(columns="x", value=5).interrogate().all_passed()
+    assert Validate(tbl).col_vals_eq(columns="z", value=8).interrogate().all_passed()
+    assert Validate(tbl).col_vals_ge(columns="x", value=1).interrogate().all_passed()
+    assert Validate(tbl).col_vals_le(columns="x", value=4).interrogate().all_passed()
+    assert Validate(tbl).col_vals_between(columns="x", left=0, right=5).interrogate().all_passed()
+    assert Validate(tbl).col_vals_outside(columns="x", left=-5, right=0).interrogate().all_passed()
+    assert (
+        Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5]).interrogate().all_passed()
+    )
+    assert Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7]).interrogate().all_passed()
 
 
 @pytest.mark.parametrize(
@@ -123,7 +125,7 @@ def test_validation_plan(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Create a validation plan
-    v = Validate(tbl).col_vals_gt(column="x", value=0)
+    v = Validate(tbl).col_vals_gt(columns="x", value=0)
 
     # A single validation step was added to the plan so `validation_info` has a single entry
     assert len(v.validation_info) == 1
@@ -264,7 +266,7 @@ def test_validation_attr_getters(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    v = Validate(tbl).col_vals_gt(column="x", value=0).interrogate()
+    v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
     # Get the total number of test units as a dictionary
     n_dict = v.n()
@@ -323,7 +325,7 @@ def test_validation_report(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    v = Validate(tbl).col_vals_gt(column="x", value=0).interrogate()
+    v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
     assert v.get_json_report() != v.get_json_report(
         exclude_fields=["time_processed", "proc_duration_s"]
@@ -352,7 +354,7 @@ def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
 
     report = (
         Validate(tbl)
-        .col_vals_gt(column="x", value=0)
+        .col_vals_gt(columns="x", value=0)
         .interrogate()
         .get_json_report(exclude_fields=["time_processed", "proc_duration_s"])
     )
@@ -371,7 +373,7 @@ def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
 
     report = (
         Validate(tbl)
-        .col_vals_gt(column="x", value=0)
+        .col_vals_gt(columns="x", value=0)
         .get_json_report(exclude_fields=["time_processed", "proc_duration_s"])
     )
 
@@ -389,7 +391,7 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
     report = (
         Validate(tbl)
-        .col_vals_gt(column="x", value=0)
+        .col_vals_gt(columns="x", value=0)
         .get_json_report(
             use_fields=[
                 "i",
@@ -416,25 +418,25 @@ def test_validation_check_column_input(request, tbl_fixture):
 
     # Raise a ValueError when `column=` is not a string
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column=9, value=0)
+        Validate(tbl).col_vals_gt(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_lt(column=9, value=0)
+        Validate(tbl).col_vals_lt(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_eq(column=9, value=0)
+        Validate(tbl).col_vals_eq(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ne(column=9, value=0)
+        Validate(tbl).col_vals_ne(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ge(column=9, value=0)
+        Validate(tbl).col_vals_ge(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_le(column=9, value=0)
+        Validate(tbl).col_vals_le(columns=9, value=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_between(column=9, left=0, right=5)
+        Validate(tbl).col_vals_between(columns=9, left=0, right=5)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_outside(column=9, left=-5, right=0)
+        Validate(tbl).col_vals_outside(columns=9, left=-5, right=0)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_in_set(column=9, set=[1, 2, 3, 4, 5])
+        Validate(tbl).col_vals_in_set(columns=9, set=[1, 2, 3, 4, 5])
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_not_in_set(column=9, set=[5, 6, 7])
+        Validate(tbl).col_vals_not_in_set(columns=9, set=[5, 6, 7])
 
 
 @pytest.mark.parametrize(
@@ -447,21 +449,21 @@ def test_validation_check_na_pass_input(request, tbl_fixture):
 
     # Raise a ValueError when `na_pass=` is not a boolean
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_gt(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_lt(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_lt(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_eq(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_eq(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ne(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_ne(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ge(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_ge(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_le(column="x", value=0, na_pass=9)
+        Validate(tbl).col_vals_le(columns="x", value=0, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_between(column="x", left=0, right=5, na_pass=9)
+        Validate(tbl).col_vals_between(columns="x", left=0, right=5, na_pass=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_outside(column="x", left=-5, right=0, na_pass=9)
+        Validate(tbl).col_vals_outside(columns="x", left=-5, right=0, na_pass=9)
 
 
 @pytest.mark.parametrize(
@@ -473,54 +475,54 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that allowed forms for `thresholds=` don't raise an error
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=1)
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=0.1)
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 0.2))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 0.2, 0.3))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(0.1, 2, 0.3))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 2))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 3, 4))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 0.3, 4))
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"warn_at": 0.1})
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"stop_at": 0.1})
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"notify_at": 0.1})
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds={"warn_at": 0.05, "notify_at": 0.1})
-    Validate(tbl).col_vals_gt(column="x", value=0, thresholds=Thresholds())
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=1)
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=0.1)
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(0.1))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(0.1, 0.2))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(0.1, 0.2, 0.3))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(0.1, 2, 0.3))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 2))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 3, 4))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 0.3, 4))
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warn_at": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"stop_at": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"notify_at": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warn_at": 0.05, "notify_at": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=Thresholds())
     Validate(tbl).col_vals_gt(
-        column="x", value=0, thresholds=Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+        columns="x", value=0, thresholds=Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
     )
     Validate(tbl).col_vals_gt(
-        column="x", value=0, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3)
+        columns="x", value=0, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3)
     )
 
     # Raise a ValueError when `thresholds=` is not one of the allowed types
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds="invalid")
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds="invalid")
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=[1, 2, 3])
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=[1, 2, 3])
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=-2)
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=-2)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, 2, 3, 4))
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 2, 3, 4))
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=())
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=())
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, -2))
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, -2))
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, thresholds=(1, [2], 3))
+        Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, [2], 3))
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            column="x", value=0, thresholds={"warning": 0.05, "notify_at": 0.1}
+            columns="x", value=0, thresholds={"warning": 0.05, "notify_at": 0.1}
         )
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            column="x", value=0, thresholds={"warn_at": 0.05, "notify_at": -0.1}
+            columns="x", value=0, thresholds={"warn_at": 0.05, "notify_at": -0.1}
         )
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            column="x", value=0, thresholds={"warn_at": "invalid", "stop_at": 3}
+            columns="x", value=0, thresholds={"warn_at": "invalid", "stop_at": 3}
         )
 
 
@@ -534,25 +536,25 @@ def test_validation_check_active_input(request, tbl_fixture):
 
     # Raise a ValueError when `active=` is not a boolean
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_gt(column="x", value=0, active=9)
+        Validate(tbl).col_vals_gt(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_lt(column="x", value=0, active=9)
+        Validate(tbl).col_vals_lt(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_eq(column="x", value=0, active=9)
+        Validate(tbl).col_vals_eq(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ne(column="x", value=0, active=9)
+        Validate(tbl).col_vals_ne(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_ge(column="x", value=0, active=9)
+        Validate(tbl).col_vals_ge(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_le(column="x", value=0, active=9)
+        Validate(tbl).col_vals_le(columns="x", value=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_between(column="x", left=0, right=5, active=9)
+        Validate(tbl).col_vals_between(columns="x", left=0, right=5, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_outside(column="x", left=-5, right=0, active=9)
+        Validate(tbl).col_vals_outside(columns="x", left=-5, right=0, active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_in_set(column="x", set=[1, 2, 3, 4, 5], active=9)
+        Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], active=9)
     with pytest.raises(ValueError):
-        Validate(tbl).col_vals_not_in_set(column="x", set=[5, 6, 7], active=9)
+        Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7], active=9)
 
 
 @pytest.mark.parametrize(
@@ -567,16 +569,16 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     # it is not explicitly provided (is `None`)
     v = (
         Validate(tbl, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3))
-        .col_vals_gt(column="x", value=0, thresholds=0.5)
-        .col_vals_lt(column="x", value=5)
-        .col_vals_eq(column="z", value=8, thresholds=None)
-        .col_vals_ne(column="z", value=7, thresholds=Thresholds())
-        .col_vals_ge(column="x", value=1, thresholds=Thresholds(warn_at=0.1))
-        .col_vals_le(column="x", value=4, thresholds=None)
-        .col_vals_between(column="x", left=0, right=5, thresholds=None)
-        .col_vals_outside(column="x", left=-5, right=0)
-        .col_vals_in_set(column="x", set=[1, 2, 3, 4, 5], thresholds=None)
-        .col_vals_not_in_set(column="x", set=[5, 6, 7])
+        .col_vals_gt(columns="x", value=0, thresholds=0.5)
+        .col_vals_lt(columns="x", value=5)
+        .col_vals_eq(columns="z", value=8, thresholds=None)
+        .col_vals_ne(columns="z", value=7, thresholds=Thresholds())
+        .col_vals_ge(columns="x", value=1, thresholds=Thresholds(warn_at=0.1))
+        .col_vals_le(columns="x", value=4, thresholds=None)
+        .col_vals_between(columns="x", left=0, right=5, thresholds=None)
+        .col_vals_outside(columns="x", left=-5, right=0)
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], thresholds=None)
+        .col_vals_not_in_set(columns="x", set=[5, 6, 7])
         .interrogate()
     )
 
@@ -629,9 +631,9 @@ def test_col_vals_gt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_gt(column="x", value=0).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_gt(columns="x", value=0).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_gt(column="x", value=0, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_gt(columns="x", value=0, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
     )
 
@@ -644,9 +646,12 @@ def test_col_vals_lt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_lt(column="x", value=10).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_lt(columns="x", value=10).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_lt(column="x", value=10, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_lt(columns="x", value=10, na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
         == 4
     )
 
@@ -659,9 +664,9 @@ def test_col_vals_eq(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_eq(column="z", value=8).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_eq(columns="z", value=8).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_eq(column="z", value=8, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_eq(columns="z", value=8, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
     )
 
@@ -674,9 +679,9 @@ def test_col_vals_ne(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_ne(column="z", value=7).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_ne(columns="z", value=7).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_ne(column="z", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_ne(columns="z", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
     )
 
@@ -689,9 +694,9 @@ def test_col_vals_ge(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_ge(column="x", value=1).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_ge(columns="x", value=1).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_ge(column="x", value=1, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_ge(columns="x", value=1, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
     )
 
@@ -704,9 +709,9 @@ def test_col_vals_le(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_le(column="x", value=4).interrogate().n_passed(i=1)[1] == 3
+    assert Validate(tbl).col_vals_le(columns="x", value=4).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_le(column="x", value=4, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_le(columns="x", value=4, na_pass=True).interrogate().n_passed(i=1)[1]
         == 4
     )
 
@@ -720,54 +725,54 @@ def test_col_vals_between(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_between(column="x", left=1, right=4).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_between(columns="x", left=1, right=4).interrogate().n_passed(i=1)[1]
         == 3
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=1, right=4, na_pass=True)
+        .col_vals_between(columns="x", left=1, right=4, na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=1, right=4, inclusive=(False, True), na_pass=True)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 3
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=1, right=4, inclusive=(True, False), na_pass=True)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 3
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 2
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
         .n_passed(i=1)[1]
         == 1
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=11, right=14, na_pass=False)
+        .col_vals_between(columns="x", left=11, right=14, na_pass=False)
         .interrogate()
         .n_passed(i=1)[1]
         == 0
     )
     assert (
         Validate(tbl)
-        .col_vals_between(column="x", left=11, right=14, na_pass=True)
+        .col_vals_between(columns="x", left=11, right=14, na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 1
@@ -783,34 +788,34 @@ def test_col_vals_outside(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_outside(column="x", left=5, right=8).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_outside(columns="x", left=5, right=8).interrogate().n_passed(i=1)[1]
         == 3
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=5, right=8, na_pass=True)
+        .col_vals_outside(columns="x", left=5, right=8, na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
     assert (
-        Validate(tbl).col_vals_outside(column="x", left=4, right=8).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_outside(columns="x", left=4, right=8).interrogate().n_passed(i=1)[1]
         == 2
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=4, right=8, inclusive=(False, True))
+        .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
         .interrogate()
         .n_passed(i=1)[1]
         == 3
     )
     assert (
-        Validate(tbl).col_vals_outside(column="x", left=-4, right=1).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_outside(columns="x", left=-4, right=1).interrogate().n_passed(i=1)[1]
         == 2
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=-4, right=1, inclusive=(True, False))
+        .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
         .interrogate()
         .n_passed(i=1)[1]
         == 3
@@ -818,28 +823,28 @@ def test_col_vals_outside(request, tbl_fixture):
 
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=1, right=4, inclusive=(True, True))
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True))
         .interrogate()
         .n_passed(i=1)[1]
         == 0
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=1, right=4, inclusive=(True, True), na_pass=True)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 1
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 3
     )
     assert (
         Validate(tbl)
-        .col_vals_outside(column="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
         .n_passed(i=1)[1]
         == 2
@@ -855,33 +860,33 @@ def test_col_vals_in_set(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_in_set(column="x", set=[1, 2, 3, 4]).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4]).interrogate().n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_in_set(column="x", set=[0, 1, 2, 3, 4, 5, 6])
+        .col_vals_in_set(columns="x", set=[0, 1, 2, 3, 4, 5, 6])
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_in_set(column="x", set=[1.0, 2.0, 3.0, 4.0])
+        .col_vals_in_set(columns="x", set=[1.0, 2.0, 3.0, 4.0])
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_in_set(column="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
+        .col_vals_in_set(columns="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
         .interrogate()
         .n_passed(i=1)[1]
         == 0
     )
     assert (
         Validate(tbl)
-        .col_vals_in_set(column="x", set=[-1, -2, -3, -4])
+        .col_vals_in_set(columns="x", set=[-1, -2, -3, -4])
         .interrogate()
         .n_passed(i=1)[1]
         == 0
@@ -897,34 +902,69 @@ def test_col_vals_not_in_set(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_not_in_set(column="x", set=[5, 6, 7]).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7]).interrogate().n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_not_in_set(column="x", set=[0, 1, 2, 3, 4, 5, 6])
+        .col_vals_not_in_set(columns="x", set=[0, 1, 2, 3, 4, 5, 6])
         .interrogate()
         .n_passed(i=1)[1]
         == 0
     )
     assert (
         Validate(tbl)
-        .col_vals_not_in_set(column="x", set=[1.0, 2.0, 3.0, 4.0])
+        .col_vals_not_in_set(columns="x", set=[1.0, 2.0, 3.0, 4.0])
         .interrogate()
         .n_passed(i=1)[1]
         == 0
     )
     assert (
         Validate(tbl)
-        .col_vals_not_in_set(column="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
+        .col_vals_not_in_set(columns="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
     assert (
         Validate(tbl)
-        .col_vals_not_in_set(column="x", set=[-1, -2, -3, -4])
+        .col_vals_not_in_set(columns="x", set=[-1, -2, -3, -4])
         .interrogate()
         .n_passed(i=1)[1]
         == 4
     )
+
+
+def test_load_dataset():
+
+    # Load the default dataset (`small_table`) and verify it's a Polars DataFrame
+    tbl = load_dataset()
+
+    assert isinstance(tbl, pl.DataFrame)
+
+    # Load the default dataset (`small_table`) and verify it's a Pandas DataFrame
+    tbl = load_dataset(tbl_type="pandas")
+
+    assert isinstance(tbl, pd.DataFrame)
+
+    # Load the `game_revenue` dataset and verify it's a Polars DataFrame
+    tbl = load_dataset(dataset="game_revenue")
+
+    assert isinstance(tbl, pl.DataFrame)
+
+    # Load the `game_revenue` dataset and verify it's a Pandas DataFrame
+
+    tbl = load_dataset(dataset="game_revenue", tbl_type="pandas")
+
+    assert isinstance(tbl, pd.DataFrame)
+
+
+def test_load_dataset_invalid():
+
+    # A ValueError is raised when an invalid dataset name is provided
+    with pytest.raises(ValueError):
+        load_dataset(dataset="invalid_dataset")
+
+    # A ValueError is raised when an invalid table type is provided
+    with pytest.raises(ValueError):
+        load_dataset(tbl_type="invalid_tbl_type")

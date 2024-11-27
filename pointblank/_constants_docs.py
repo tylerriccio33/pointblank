@@ -1,6 +1,9 @@
 ARG_DOCSTRINGS = {
     "column": """column
         The column to validate.""",
+    "columns": """columns
+        A single column or a list of columns to validate. If multiple columns are supplied, there
+        will be a separate validation step generated for each column.""",
     "value": """value
         The value to compare against.""",
     "left": """left

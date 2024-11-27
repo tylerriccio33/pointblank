@@ -70,7 +70,7 @@ def _col_vals_compare_one_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["value"]}
 {ARG_DOCSTRINGS["na_pass"]}
 {ARG_DOCSTRINGS["pre"]}
@@ -82,7 +82,7 @@ def _col_vals_compare_two_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["left"]}
 {ARG_DOCSTRINGS["right"]}
 {ARG_DOCSTRINGS["inclusive"]}
@@ -96,7 +96,7 @@ def _col_vals_compare_set_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["column"]}
+{ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["set"]}
 {ARG_DOCSTRINGS["pre"]}
 {ARG_DOCSTRINGS["thresholds"]}
@@ -383,7 +383,7 @@ class Validate:
 
     def col_vals_gt(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -392,12 +392,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -405,17 +408,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_gt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than")}
     {_col_vals_compare_one_args_docstring()}
@@ -423,7 +430,7 @@ class Validate:
 
     def col_vals_lt(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -432,12 +439,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -445,17 +455,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_lt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than")}
     {_col_vals_compare_one_args_docstring()}
@@ -463,7 +477,7 @@ class Validate:
 
     def col_vals_eq(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -472,12 +486,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -485,17 +502,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_eq.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="equal to")}
     {_col_vals_compare_one_args_docstring()}
@@ -503,7 +524,7 @@ class Validate:
 
     def col_vals_ne(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -512,12 +533,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -525,17 +549,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_ne.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="not equal to")}
     {_col_vals_compare_one_args_docstring()}
@@ -543,7 +571,7 @@ class Validate:
 
     def col_vals_ge(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -552,12 +580,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -565,17 +596,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_ge.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than or equal to")}
     {_col_vals_compare_one_args_docstring()}
@@ -583,7 +618,7 @@ class Validate:
 
     def col_vals_le(
         self,
-        column: str,
+        columns: str | list[str],
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -592,12 +627,15 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -605,17 +643,21 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_le.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than or equal to")}
     {_col_vals_compare_one_args_docstring()}
@@ -623,7 +665,7 @@ class Validate:
 
     def col_vals_between(
         self,
-        column: str,
+        columns: str | list[str],
         left: float | int,
         right: float | int,
         inclusive: tuple[bool, bool] = (True, True),
@@ -634,13 +676,16 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=left)
         _check_value_float_int(value=right)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -650,18 +695,22 @@ class Validate:
 
         value = (left, right)
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            inclusive=inclusive,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                inclusive=inclusive,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_between.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="between")}
     {_col_vals_compare_two_args_docstring()}
@@ -669,7 +718,7 @@ class Validate:
 
     def col_vals_outside(
         self,
-        column: str,
+        columns: str | list[str],
         left: float | int,
         right: float | int,
         inclusive: tuple[bool, bool] = (True, True),
@@ -680,7 +729,7 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_value_float_int(value=left)
         _check_value_float_int(value=right)
         _check_pre(pre=pre)
@@ -688,7 +737,8 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        value = (left, right)
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -696,18 +746,24 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=value,
-            inclusive=inclusive,
-            na_pass=na_pass,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        value = (left, right)
 
-        return self._add_validation(validation_info=val_info)
+        for column in columns:
+
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=value,
+                inclusive=inclusive,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_outside.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="outside of")}
     {_col_vals_compare_two_args_docstring()}
@@ -715,7 +771,7 @@ class Validate:
 
     def col_vals_in_set(
         self,
-        column: str,
+        columns: str | list[str],
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
@@ -723,11 +779,14 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_set_types(set=set)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -735,16 +794,20 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=set,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=set,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=True)}
     {_col_vals_compare_set_args_docstring()}
@@ -752,7 +815,7 @@ class Validate:
 
     def col_vals_not_in_set(
         self,
-        column: str,
+        columns: str | list[str],
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | tuple | dict | Thresholds = None,
@@ -760,11 +823,14 @@ class Validate:
     ):
         assertion_type = _get_def_name()
 
-        _check_column(column=column)
+        _check_column(column=columns)
         _check_set_types(set=set)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
 
         thresholds = (
             super().__getattribute__("thresholds")
@@ -772,16 +838,20 @@ class Validate:
             else _normalize_thresholds_creation(thresholds)
         )
 
-        val_info = _ValidationInfo(
-            assertion_type=assertion_type,
-            column=column,
-            values=set,
-            pre=pre,
-            thresholds=thresholds,
-            active=active,
-        )
+        for column in columns:
 
-        return self._add_validation(validation_info=val_info)
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=set,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
 
     col_vals_not_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=False)}
     {_col_vals_compare_set_args_docstring()}
