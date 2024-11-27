@@ -148,12 +148,20 @@ def load_dataset(
     ```
     """
 
-    # Raise error if the dataset is from the list of provided datasets
+    # Raise an error if the dataset is from the list of provided datasets
     if dataset not in ["small_table", "game_revenue"]:
         raise ValueError(
             f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
             "- `small_table`\n"
             "- `game_revenue`"
+        )
+
+    # Raise an error if the `tbl_type=` value is not of the supported types
+    if tbl_type not in ["polars", "pandas"]:
+        raise ValueError(
+            f"The DataFrame type `{tbl_type}` is not valid. Choose one of the following:\n"
+            "- `polars`\n"
+            "- `pandas`"
         )
 
     data_path = files("pointblank.data") / f"{dataset}.zip"
