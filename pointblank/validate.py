@@ -2314,3 +2314,13 @@ def _get_tbl_info(data: FrameT) -> str:
         return "pandas"
     else:
         return "unknown"
+
+
+def _df_lib_present(lib_name: str) -> bool:
+    import importlib
+
+    try:
+        importlib.import_module(lib_name)
+        return True
+    except ImportError:
+        return False
