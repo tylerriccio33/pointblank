@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from great_tables import GT, html, loc, style, google_font, from_column
+from great_tables import GT, html, loc, style, google_font, from_column, vals
 
 from pointblank._constants import (
     TYPE_METHOD_MAP,
@@ -2189,7 +2189,11 @@ def _transform_passed_failed(
         return ["" for _ in range(len(n_passed_failed))]
 
     passed_failed = [
-        f"{n_passed_failed[i]}<br />{f_passed_failed[i]}" if active[i] else "&mdash;"
+        (
+            f"{n_passed_failed[i]}<br />{vals.fmt_number(f_passed_failed[i], decimals=2)[0]}"
+            if active[i]
+            else "&mdash;"
+        )
         for i in range(len(n_passed_failed))
     ]
 
