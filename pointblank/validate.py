@@ -1172,6 +1172,122 @@ class Validate:
 
         return json.dumps(report, indent=4, default=str)
 
+    def get_sundered_data(self, type="pass") -> FrameT:
+        """
+        Get the data that passed or failed the validation steps.
+
+        Validation of the data is one thing but, sometimes, you want to use the best part of the
+        input dataset for something else. The `get_sundered_data()` method works with a Validate
+        object that has been interrogated (i.e., the `interrogate()` method was used). We can get
+        either the 'pass' data piece (rows with no failing test units across all row-based
+        validation functions), or, the 'fail' data piece (rows with at least one failing test unit
+        across the same series of validations).
+
+        Details
+        -------
+        There are some caveats to sundering. The validation steps considered for this splitting will
+        only involve steps where:
+
+        - of certain check types, where test units are cells checked row-by-row (e.g., the
+        `col_vals_*()` methods)
+        - `active=` is not set to `False`
+        - `pre=` has not been given an expression for modify the input table
+
+        So long as these conditions are met, the data will be split into two constituent tables: one
+        with the rows that passed all validation steps and another with the rows that failed at
+        least one validation step.
+
+        Parameters
+        ----------
+        type
+            The type of data to return. Options are `"pass"` or `"fail"`, where the former returns
+            a table only containing rows where test units always passed validation steps, and the
+            latter returns a table only containing rows had test units that failed in at least one
+            validation step.
+
+        Returns
+        -------
+        FrameT
+            A table containing the data that passed or failed the validation steps.
+
+        Examples
+        --------
+        Create a `Validate` plan of two validation steps, focused on testing row values for
+        part of the `small_table` object. Then, use `interrogate()` to put the validation plan into
+        action.
+
+        """
+
+        # Keep only the validation steps that:
+        # - are row-based (included in `ROW_BASED_VALIDATION_TYPES`)
+        # - are `active`
+        validation_info = [
+            validation
+            for validation in self.validation_info
+            if validation.assertion_type in ROW_BASED_VALIDATION_TYPES and validation.active
+        ]
+
+        # TODO: ensure that the stored evaluation tables across all steps have not been mutated
+        # from the original table (via any `pre=` functions)
+
+        # Obtain the validation steps that are to be used for sundering
+        validation_steps_i = [validation.assertion_type for validation in validation_info]
+
+        if len(validation_steps_i) == 0:
+
+            if type == "pass":
+                return self.data
+            if type == "fail":
+                return self.data[0:0]
+
+        # Get an indexed version of the data
+        # TODO: add argument for user to specify the index column name
+        index_name = "pb_index_"
+
+        data_nw = nw.from_native(self.data).with_row_index(name=index_name)
+
+        # Get all validation step result tables and join together the `pb_is_good_` columns
+        # ensuring that the columns are named uniquely (e.g., `pb_is_good_1`, `pb_is_good_2`, ...)
+        # and that the index is reset
+        for i, validation in enumerate(validation_info):
+
+            results_tbl = nw.from_native(validation.tbl_checked)
+
+            # Add row numbers to the results table
+            results_tbl = results_tbl.with_row_index(name=index_name)
+
+            # Add numerical suffix to the `pb_is_good_` column to make it unique
+            results_tbl = results_tbl.select([index_name, "pb_is_good_"]).rename(
+                {"pb_is_good_": f"pb_is_good_{i}"}
+            )
+
+            # Add the results table to the list of tables
+            if i == 0:
+                labeled_tbl_nw = results_tbl
+            else:
+                labeled_tbl_nw = labeled_tbl_nw.join(results_tbl, on=index_name, how="left")
+
+        # Get list of columns that are the `pb_is_good_` columns
+        pb_is_good_cols = [f"pb_is_good_{i}" for i in range(len(validation_steps_i))]
+
+        # Determine the rows that passed all validation steps by checking if all `pb_is_good_`
+        # columns are `True`
+        labeled_tbl_nw = (
+            labeled_tbl_nw.with_columns(pb_is_good_all=nw.all_horizontal(pb_is_good_cols))
+            .join(data_nw, on=index_name, how="left")
+            .drop(index_name)
+        )
+
+        bool_val = True if type == "pass" else False
+
+        sundered_tbl = (
+            labeled_tbl_nw.filter(nw.col("pb_is_good_all") == bool_val)
+            .drop(pb_is_good_cols + ["pb_is_good_all"])
+            .to_native()
+        )
+
+        return sundered_tbl
+
     def get_tabular_report(self, title: str | None = ":default:") -> GT:
         """
         Validation report as a GT table.
