@@ -201,7 +201,6 @@ class Validate:
     tbl_name: str | None = None
     label: str | None = None
     thresholds: int | float | tuple | dict | Thresholds | None = None
-
     """
     Workflow for defining a set of validations on a table and interrogating for results.
 
