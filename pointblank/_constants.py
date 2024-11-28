@@ -58,6 +58,13 @@ ROW_BASED_VALIDATION_TYPES = [
     "col_vals_not_in_set",
 ]
 
+IBIS_BACKENDS = [
+    "duckdb",
+    "mysql",
+    "postgres",
+    "sqlite",
+]
+
 VALIDATION_REPORT_FIELDS = [
     "i",
     "assertion_type",
