@@ -411,6 +411,7 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).lt()
         elif self.comparison == "eq":
             self.test_unit_res = Comparator(
@@ -418,6 +419,7 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).eq()
         elif self.comparison == "ne":
             self.test_unit_res = Comparator(
@@ -425,6 +427,7 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).ne()
         elif self.comparison == "ge":
             self.test_unit_res = Comparator(
@@ -432,6 +435,7 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).ge()
         elif self.comparison == "le":
             self.test_unit_res = Comparator(
@@ -439,6 +443,7 @@ class ColValsCompareOne:
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).le()
         else:
             raise ValueError(
@@ -493,6 +498,8 @@ class ColValsCompareTwo:
         values).
     allowed_types
         The allowed data types for the column.
+    tbl_type
+        The type of table to use for the comparison.
 
     Returns
     -------
@@ -510,6 +517,7 @@ class ColValsCompareTwo:
     threshold: int
     comparison: str
     allowed_types: list[str]
+    tbl_type: str = "local"
 
     def __post_init__(self):
 
@@ -528,6 +536,7 @@ class ColValsCompareTwo:
                 high=self.value2,
                 inclusive=self.inclusive,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).between()
         elif self.comparison == "outside":
             self.test_unit_res = Comparator(
@@ -537,6 +546,7 @@ class ColValsCompareTwo:
                 high=self.value2,
                 inclusive=self.inclusive,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).outside()
         else:
             raise ValueError(
@@ -580,6 +590,8 @@ class ColValsCompareSet:
         outside the set.
     allowed_types
         The allowed data types for the column.
+    tbl_type
+        The type of table to use for the comparison.
 
     Returns
     -------
@@ -594,6 +606,7 @@ class ColValsCompareSet:
     threshold: int
     inside: bool
     allowed_types: list[str]
+    tbl_type: str = "local"
 
     def __post_init__(self):
 
@@ -605,9 +618,13 @@ class ColValsCompareSet:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.inside:
-            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).isin()
+            self.test_unit_res = Comparator(
+                x=dfn, column=self.column, set=self.values, tbl_type=self.tbl_type
+            ).isin()
         else:
-            self.test_unit_res = Comparator(x=dfn, column=self.column, set=self.values).notin()
+            self.test_unit_res = Comparator(
+                x=dfn, column=self.column, set=self.values, tbl_type=self.tbl_type
+            ).notin()
 
     def get_test_results(self):
         return self.test_unit_res
