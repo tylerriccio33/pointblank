@@ -261,6 +261,8 @@ class ColValsCompareOne:
         The type of comparison ('gt' for greater than, 'lt' for less than).
     allowed_types
         The allowed data types for the column.
+    tbl_type
+        The type of table to use for the comparison.
 
     Returns
     -------
