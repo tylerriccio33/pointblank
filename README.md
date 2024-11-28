@@ -36,9 +36,9 @@ tbl_pl = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7]})
 # Validate data using Polars DataFrame
 v = (
     pb.Validate(data=tbl_pl) # Add data to be validated
-    .col_vals_gt(column="x", value=0) # STEP 1 |
-    .col_vals_lt(column="x", value=3) # STEP 2 | <-- The validation plan
-    .col_vals_le(column="y", value=7) # STEP 3 |
+    .col_vals_gt(columns="x", value=0) # STEP 1 |
+    .col_vals_lt(columns="x", value=3) # STEP 2 | <-- The validation plan
+    .col_vals_le(columns="y", value=7) # STEP 3 |
     .interrogate() # This will execute all validation steps
 )
 
@@ -124,7 +124,7 @@ print(json_output)
 ]
 ```
 
-To make this more readable, you can generate an HTML report of the validation results with the `get_tabular_report()` method:
+To make this more readable, you can generate an tabular report of the validation results with the `get_tabular_report()` method:
 
 ```python
 # Get an HTML report of the validation
