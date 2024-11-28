@@ -57,7 +57,6 @@ dev = [
     "pytest>=3",
     "pytest-cov",
     "pytest-snapshot",
-    "syrupy"
 ]
 
 [project.urls]
