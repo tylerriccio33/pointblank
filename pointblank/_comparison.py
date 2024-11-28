@@ -73,7 +73,7 @@ class Comparator:
             tbl = self.x
 
             tbl = tbl.mutate(
-                pb_is_good_1=ibis.literal(self.na_pass),
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=getattr(tbl, self.column) > ibis.literal(self.compare),
             )
 
