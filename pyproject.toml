@@ -82,8 +82,9 @@ max-line-length = 100
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=pointblank"
+addopts = "-ra --cov=pointblank"
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = [
     "tests"
 ]
