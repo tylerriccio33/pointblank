@@ -97,6 +97,23 @@ class Comparator:
 
     def lt(self) -> list[bool]:
 
+        if self.tbl_type in IBIS_BACKENDS:
+
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column) < ibis.literal(self.compare),
+            )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
+
         tbl = (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
@@ -111,6 +128,23 @@ class Comparator:
 
     def eq(self) -> list[bool]:
 
+        if self.tbl_type in IBIS_BACKENDS:
+
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column) == ibis.literal(self.compare),
+            )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
+
         tbl = (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
@@ -124,6 +158,13 @@ class Comparator:
         return tbl
 
     def ne(self) -> list[bool]:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'ne' comparison is not implemented for Ibis backends at this time."
+            )
 
         tbl = (
             self.x.with_columns(
@@ -141,6 +182,23 @@ class Comparator:
 
     def ge(self) -> list[bool]:
 
+        if self.tbl_type in IBIS_BACKENDS:
+
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column) >= ibis.literal(self.compare),
+            )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
+
         tbl = (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
@@ -154,6 +212,23 @@ class Comparator:
         return tbl
 
     def le(self) -> list[bool]:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column) <= ibis.literal(self.compare),
+            )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
 
         tbl = (
             self.x.with_columns(
@@ -169,7 +244,12 @@ class Comparator:
 
     def between(self) -> list[bool]:
 
-        tbl = self.x
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'between' comparison is not implemented for Ibis backends at this time."
+            )
 
         if self.inclusive == (True, True):
             closed = "both"
@@ -194,7 +274,12 @@ class Comparator:
 
     def outside(self) -> list[bool]:
 
-        tbl = self.x
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'outside' comparison is not implemented for Ibis backends at this time."
+            )
 
         if self.inclusive == (True, True):
             closed = "both"
@@ -221,6 +306,13 @@ class Comparator:
 
     def isin(self) -> list[bool]:
 
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'isin' comparison is not implemented for Ibis backends at this time."
+            )
+
         tbl = self.x.with_columns(
             pb_is_good_=nw.col(self.column).is_in(self.set),
         ).to_native()
@@ -228,6 +320,13 @@ class Comparator:
         return tbl
 
     def notin(self) -> list[bool]:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'notin' comparison is not implemented for Ibis backends at this time."
+            )
 
         tbl = (
             self.x.with_columns(
