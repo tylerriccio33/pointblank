@@ -291,6 +291,8 @@ class ColValsCompareOne:
                 df=self.df, column=self.column, allowed_types=self.allowed_types
             )
 
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
         if self.tbl_type in IBIS_BACKENDS:
             tbl = self.df
 
