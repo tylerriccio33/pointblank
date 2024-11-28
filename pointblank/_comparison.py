@@ -284,9 +284,9 @@ class ColValsCompareOne:
 
         if self.tbl_type == "local":
 
-            # Convert the DataFrame to a format that narwhals can work with and:
-            #  - check if the column exists
-            #  - check if the column type is compatible with the test
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
             tbl = _column_test_prep(
                 df=self.df, column=self.column, allowed_types=self.allowed_types
             )
