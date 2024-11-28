@@ -6,6 +6,7 @@ from narwhals.typing import FrameT
 
 from pointblank._utils import _column_test_prep, _get_def_name
 from pointblank.thresholds import _threshold_check
+from pointblank._constants import IBIS_BACKENDS
 
 
 @dataclass
@@ -61,8 +62,26 @@ class Comparator:
     high: float | int | list[float | int] = None
     inclusive: tuple[bool, bool] = None
     na_pass: bool = False
+    tbl_type: str = "local"
 
     def gt(self) -> FrameT:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column) > ibis.literal(self.compare),
+            )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
 
         tbl = (
             self.x.with_columns(
@@ -257,54 +276,63 @@ class ColValsCompareOne:
     threshold: int
     comparison: str
     allowed_types: list[str]
+    tbl_type: str = "local"
 
     def __post_init__(self):
 
-        # Convert the DataFrame to a format that narwhals can work with and:
-        #  - check if the column exists
-        #  - check if the column type is compatible with the test
-        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=self.allowed_types)
+        if self.tbl_type == "local":
+
+            # Convert the DataFrame to a format that narwhals can work with and:
+            #  - check if the column exists
+            #  - check if the column type is compatible with the test
+            tbl = _column_test_prep(
+                df=self.df, column=self.column, allowed_types=self.allowed_types
+            )
+
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.df
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.comparison == "gt":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
+                tbl_type=self.tbl_type,
             ).gt()
         elif self.comparison == "lt":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
             ).lt()
         elif self.comparison == "eq":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
             ).eq()
         elif self.comparison == "ne":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
             ).ne()
         elif self.comparison == "ge":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
             ).ge()
         elif self.comparison == "le":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 compare=self.value,
                 na_pass=self.na_pass,
@@ -502,13 +530,18 @@ class NumberOfTestUnits:
     df: FrameT
     column: str
 
-    def __post_init__(self):
+    def get_test_units(self, tbl_type: str) -> int:
 
-        # Convert the DataFrame to a format that narwhals can work with and:
-        #  - check if the column exists
-        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=["numeric"])
+        if tbl_type == "pandas" or tbl_type == "polars":
 
-        self.test_units = len(dfn)
+            # Convert the DataFrame to a format that narwhals can work with and:
+            #  - check if the column exists
+            dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=["numeric"])
 
-    def get_test_units(self):
-        return self.test_units
+            return len(dfn)
+
+        if tbl_type in IBIS_BACKENDS:
+
+            # Get the count of test units and convert to a native format
+            # TODO: check whether pandas or polars is available
+            return self.df.count().to_polars()

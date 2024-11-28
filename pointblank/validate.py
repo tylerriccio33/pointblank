@@ -10,7 +10,7 @@ import json
 import re
 
 from dataclasses import dataclass
-from typing import Callable, Literal
+from typing import Callable, Literal, Any
 from zipfile import ZipFile
 
 import narwhals as nw
@@ -21,6 +21,7 @@ from pointblank._constants import (
     TYPE_METHOD_MAP,
     COMPATIBLE_TYPES,
     COMPARE_TYPE_MAP,
+    IBIS_BACKENDS,
     ROW_BASED_VALIDATION_TYPES,
     VALIDATION_REPORT_FIELDS,
     TABLE_TYPE_STYLES,
@@ -173,7 +174,7 @@ def load_dataset(
 
     if tbl_type == "polars":
 
-        if not _df_lib_present(lib_name="polars"):
+        if not _is_lib_present(lib_name="polars"):
             raise ImportError(
                 "The Polars library is not installed but is required when specifying "
                 '`tbl_type="polars".'
@@ -185,7 +186,7 @@ def load_dataset(
 
     if tbl_type == "pandas":
 
-        if not _df_lib_present(lib_name="pandas"):
+        if not _is_lib_present(lib_name="pandas"):
             raise ImportError(
                 "The Pandas library is not installed but is required when specifying "
                 '`tbl_type="pandas".'
@@ -930,6 +931,9 @@ class Validate:
 
         df = self.data
 
+        # Determine if the table is a DataFrame or a DB table
+        tbl_type = _get_tbl_type(data=df)
+
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
 
         for validation in self.validation_info:
@@ -994,7 +998,12 @@ class Validate:
             compare_type = COMPARE_TYPE_MAP[comparison]
             compatible_types = COMPATIBLE_TYPES.get(comparison, [])
 
-            validation.n = NumberOfTestUnits(df=df_step, column=column).get_test_units()
+            validation.n = NumberOfTestUnits(df=df_step, column=column).get_test_units(
+                tbl_type=tbl_type
+            )
+
+            if tbl_type not in IBIS_BACKENDS:
+                tbl_type = "local"
 
             if compare_type == "COMPARE_ONE":
 
@@ -1006,6 +1015,7 @@ class Validate:
                     threshold=threshold,
                     comparison=comparison,
                     allowed_types=compatible_types,
+                    tbl_type=tbl_type,
                 ).get_test_results()
 
             if compare_type == "COMPARE_TWO":
@@ -1036,7 +1046,16 @@ class Validate:
                 ).get_test_results()
 
             # Extract the `pb_is_good_` column from the table as a results list
-            results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
+            # TODO: using `tbl_type == "duckdb"` is a temporary solution until we have a better
+            # way to handle the different table types
+            if tbl_type == "duckdb":
+
+                results_list = (
+                    results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
+                )
+
+            else:
+                results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
 
             validation.all_passed = all(results_list)
             validation.n = len(results_list)
@@ -1075,7 +1094,7 @@ class Validate:
                 validation.tbl_checked = results_tbl
 
             # If this is a row-based validation step, then extract the rows that failed
-            if collect_extracts and type in ROW_BASED_VALIDATION_TYPES:
+            if collect_extracts and type in ROW_BASED_VALIDATION_TYPES and tbl_type != "duckdb":
 
                 validation_extract_nw = (
                     nw.from_native(results_tbl)
@@ -1498,30 +1517,10 @@ class Validate:
         ```
         """
 
-        # Determine whether Pandas or Polars is available
-        try:
-            import pandas as pd
-        except ImportError:
-            pd = None
-
-        try:
-            import polars as pl
-        except ImportError:
-            pl = None
-
-        # If neither Pandas nor Polars is available, raise an ImportError
-        if pd is None and pl is None:
-            raise ImportError(
-                "Generating a report with the `get_tabular_report()` method requires either the "
-                "Polars or the Pandas library to be installed."
-            )
-
-        # Prefer the use of the Polars library if available
-        tbl_lib = pl if pl is not None else pd
+        tbl_lib = _select_df_lib(preference="polars")
 
         # Get information on the input data table
-        # NOTE: Currently, this is only the type of the table returned as a string
-        tbl_info = _get_tbl_info(data=self.data)
+        tbl_info = _get_tbl_type(data=self.data)
 
         # Get the thresholds object
         thresholds = self.thresholds
@@ -2496,7 +2495,7 @@ def _create_thresholds_html(thresholds: Thresholds) -> str:
     )
 
 
-def _get_tbl_info(data: FrameT) -> str:
+def _get_tbl_type(data: FrameT) -> str:
 
     # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
     # `get_native_namespace()`
@@ -2507,11 +2506,21 @@ def _get_tbl_info(data: FrameT) -> str:
         return "polars"
     elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
         return "pandas"
-    else:
-        return "unknown"
+
+    # If ibis is present, then get the table's backend name
+    ibis_present = _is_lib_present(lib_name="ibis")
+
+    if ibis_present:
+        import ibis
+
+        backend = ibis.get_backend(data).name
+
+        return backend
+
+    return "unknown"
 
 
-def _df_lib_present(lib_name: str) -> bool:
+def _is_lib_present(lib_name: str) -> bool:
     import importlib
 
     try:
@@ -2519,3 +2528,33 @@ def _df_lib_present(lib_name: str) -> bool:
         return True
     except ImportError:
         return False
+
+
+def _select_df_lib(preference: str = "polars") -> Any:
+
+    # Determine whether Pandas or Polars is available
+    try:
+        import pandas as pd
+    except ImportError:
+        pd = None
+
+    try:
+        import polars as pl
+    except ImportError:
+        pl = None
+
+    # If neither Pandas nor Polars is available, raise an ImportError
+    if pd is None and pl is None:
+        raise ImportError(
+            "Generating a report with the `get_tabular_report()` method requires either the "
+            "Polars or the Pandas library to be installed."
+        )
+
+    # Return the library based on preference, if both are available
+    if pd is not None and pl is not None:
+        if preference == "polars":
+            return pl
+        else:
+            return pd
+
+    return pl if pl is not None else pd
