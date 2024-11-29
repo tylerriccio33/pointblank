@@ -550,16 +550,25 @@ class ColValsCompareTwo:
 
     def __post_init__(self):
 
-        # Convert the DataFrame to a format that narwhals can work with and:
-        #  - check if the column exists
-        #  - check if the column type is compatible with the test
-        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=self.allowed_types)
+        if self.tbl_type == "local":
+
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_test_prep(
+                df=self.df, column=self.column, allowed_types=self.allowed_types
+            )
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.df
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.assertion_method == "between":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 low=self.value1,
                 high=self.value2,
@@ -569,7 +578,7 @@ class ColValsCompareTwo:
             ).between()
         elif self.assertion_method == "outside":
             self.test_unit_res = Comparator(
-                x=dfn,
+                x=tbl,
                 column=self.column,
                 low=self.value1,
                 high=self.value2,
@@ -639,20 +648,29 @@ class ColValsCompareSet:
 
     def __post_init__(self):
 
-        # Convert the DataFrame to a format that narwhals can work with and:
-        #  - check if the column exists
-        #  - check if the column type is compatible with the test
-        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=self.allowed_types)
+        if self.tbl_type == "local":
+
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_test_prep(
+                df=self.df, column=self.column, allowed_types=self.allowed_types
+            )
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.df
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.inside:
             self.test_unit_res = Comparator(
-                x=dfn, column=self.column, set=self.values, tbl_type=self.tbl_type
+                x=tbl, column=self.column, set=self.values, tbl_type=self.tbl_type
             ).isin()
         else:
             self.test_unit_res = Comparator(
-                x=dfn, column=self.column, set=self.values, tbl_type=self.tbl_type
+                x=tbl, column=self.column, set=self.values, tbl_type=self.tbl_type
             ).notin()
 
     def get_test_results(self):
