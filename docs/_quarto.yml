@@ -46,6 +46,7 @@ quartodoc:
         - name: Validate.col_vals_outside
         - name: Validate.col_vals_in_set
         - name: Validate.col_vals_not_in_set
+        - name: Validate.col_vals_regex
     - title: Interrogation and Reporting
       contents:
         - name: Validate.interrogate

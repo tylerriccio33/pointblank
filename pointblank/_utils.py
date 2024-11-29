@@ -178,7 +178,7 @@ def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str])
         raise TypeError(f"Column '{column}' is a duration.")
 
 
-def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.DataFrame:
+def _column_test_prep(df: FrameT, column: str, allowed_types: list[str] | None) -> nw.DataFrame:
 
     # Convert the DataFrame to a format that narwhals can work with.
     dfn = _convert_to_narwhals(df=df)
@@ -187,7 +187,8 @@ def _column_test_prep(df: FrameT, column: str, allowed_types: list[str]) -> nw.D
     _check_column_exists(dfn=dfn, column=column)
 
     # Check if the column is numeric. Raise a TypeError if not.
-    _check_column_type(dfn=dfn, column=column, allowed_types=allowed_types)
+    if allowed_types:
+        _check_column_type(dfn=dfn, column=column, allowed_types=allowed_types)
 
     return dfn
 

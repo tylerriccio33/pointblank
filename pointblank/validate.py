@@ -33,6 +33,7 @@ from pointblank._comparison import (
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,
+    ColValsRegex,
     NumberOfTestUnits,
 )
 from pointblank.thresholds import (
@@ -67,6 +68,10 @@ def _col_vals_compare_set_title_docstring(inside: bool) -> str:
     )
 
 
+def _col_vals_regex_title_docstring() -> str:
+    return "Validate whether column values match a regular expression."
+
+
 def _col_vals_compare_one_args_docstring() -> str:
     return f"""
 Parameters
@@ -99,6 +104,17 @@ Parameters
 ----------
 {ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["set"]}
+{ARG_DOCSTRINGS["pre"]}
+{ARG_DOCSTRINGS["thresholds"]}
+{ARG_DOCSTRINGS["active"]}"""
+
+
+def _col_vals_regex_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{ARG_DOCSTRINGS["columns"]}
+{ARG_DOCSTRINGS["pattern"]}
 {ARG_DOCSTRINGS["pre"]}
 {ARG_DOCSTRINGS["thresholds"]}
 {ARG_DOCSTRINGS["active"]}"""
@@ -904,6 +920,52 @@ class Validate:
     {_col_vals_compare_set_args_docstring()}
     """
 
+    def col_vals_regex(
+        self,
+        columns: str | list[str],
+        pattern: str,
+        na_pass: bool = False,
+        pre: Callable | None = None,
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        assertion_type = _get_def_name()
+
+        _check_column(column=columns)
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=na_pass, param_name="na_pass")
+        _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
+
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
+        for column in columns:
+
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=pattern,
+                na_pass=na_pass,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
+
+    col_vals_regex.__doc__ = f"""{_col_vals_regex_title_docstring()}
+    {_col_vals_regex_args_docstring()}
+    """
+
     def interrogate(
         self,
         collect_extracts: bool = True,
@@ -1089,6 +1151,18 @@ class Validate:
                     values=value,
                     threshold=threshold,
                     inside=inside,
+                    allowed_types=compatible_types,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
+            if compare_type == "COMPARE_REGEX":
+
+                results_tbl = ColValsRegex(
+                    df=df_step,
+                    column=column,
+                    pattern=value,
+                    na_pass=na_pass,
+                    threshold=threshold,
                     allowed_types=compatible_types,
                     tbl_type=tbl_type,
                 ).get_test_results()

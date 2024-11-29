@@ -12,6 +12,8 @@ ARG_DOCSTRINGS = {
         The upper bound of the range.""",
     "set": """set
         A list of values to compare against.""",
+    "pattern": """pattern
+        A regular expression pattern to compare against.""",
     "inclusive": """inclusive
         A tuple of two boolean values indicating whether the comparison should be inclusive. The
         position of the boolean values correspond to the `left=` and `right=` values, respectively.

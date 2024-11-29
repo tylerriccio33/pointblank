@@ -304,6 +304,9 @@ def test_check_column_test_prep(request, tbl_fixture):
     _column_test_prep(df=tbl, column="datetime", allowed_types=["datetime"])
     _column_test_prep(df=tbl, column="timedelta", allowed_types=["duration"])
 
+    # Using `allowed_types=None` bypasses the type check
+    _column_test_prep(df=tbl, column="int", allowed_types=None)
+
 
 @pytest.mark.parametrize(
     "tbl_fixture",
@@ -321,10 +324,6 @@ def test_check_column_test_prep_raises(request, tbl_fixture):
     # Column not present in DataFrame
     with pytest.raises(ValueError):
         _column_test_prep(df=tbl, column="invalid", allowed_types=["numeric"])
-
-    # No types in `allowed_types`
-    with pytest.raises(ValueError):
-        _column_test_prep(df=tbl, column="int", allowed_types=[])
 
 
 def test_get_def_name():

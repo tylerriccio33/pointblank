@@ -32,6 +32,9 @@ class Comparator:
         The set of values to compare against. Used in the following comparisons:
         - 'isin' for values in the set
         - 'notin' for values not in the set
+    pattern
+        The regular expression pattern to compare against. Used in the following:
+        - 'regex' for values that match the pattern
     low
         The lower bound of the range of values to compare against. Used in the following:
         - 'between' for values between the range
@@ -58,6 +61,7 @@ class Comparator:
     column: str = None
     compare: float | int | list[float | int] = None
     set: list[float | int] = None
+    pattern: str = None
     low: float | int | list[float | int] = None
     high: float | int | list[float | int] = None
     inclusive: tuple[bool, bool] = None
@@ -335,6 +339,21 @@ class Comparator:
             .with_columns(pb_is_good_=~nw.col("pb_is_good_"))
             .to_native()
         )
+
+        return tbl
+
+    def regex(self) -> list[bool]:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            # Raise not implemented error for Ibis backends
+            raise NotImplementedError(
+                "The 'regex' comparison is not implemented for Ibis backends at this time."
+            )
+
+        tbl = self.x.with_columns(
+            pb_is_good_=nw.col(self.column).str.contains(pattern=self.pattern),
+        ).to_native()
 
         return tbl
 
@@ -642,6 +661,75 @@ class ColValsCompareSet:
 
 
 @dataclass
+class ColValsRegex:
+    """
+    Check if values in a column match a regular expression pattern.
+
+    Parameters
+    ----------
+    df
+        a DataFrame.
+    column
+        The column to check.
+    pattern
+        The regular expression pattern to check against.
+    na_pass
+        `True` to pass test units with missing values, `False` otherwise.
+    threshold
+        The maximum number of failing test units to allow.
+    allowed_types
+        The allowed data types for the column.
+    tbl_type
+        The type of table to use for the comparison.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    df: FrameT
+    column: str
+    pattern: str
+    na_pass: bool
+    threshold: int
+    allowed_types: list[str]
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+
+        # Convert the DataFrame to a format that narwhals can work with and:
+        #  - check if the column exists
+        #  - check if the column type is compatible with the test
+        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=self.allowed_types)
+
+        # Collect results for the test units; the results are a list of booleans where
+        # `True` indicates a passing test unit
+        self.test_unit_res = Comparator(
+            x=dfn,
+            column=self.column,
+            pattern=self.pattern,
+            na_pass=self.na_pass,
+            tbl_type=self.tbl_type,
+        ).regex()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+    def test(self):
+        # Get the number of failing test units by counting instances of `False` in the `pb_is_good_`
+        # column and then determine if the test passes overall by comparing the number of failing
+        # test units to the threshold for failing test units
+
+        results_list = nw.from_native(self.test_unit_res)["pb_is_good_"].to_list()
+
+        return _threshold_check(
+            failing_test_units=results_list.count(False), threshold=self.threshold
+        )
+
+
+@dataclass
 class NumberOfTestUnits:
     """
     Count the number of test units in a column.
@@ -656,7 +744,7 @@ class NumberOfTestUnits:
 
             # Convert the DataFrame to a format that narwhals can work with and:
             #  - check if the column exists
-            dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=["numeric"])
+            dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=None)
 
             return len(dfn)
 
