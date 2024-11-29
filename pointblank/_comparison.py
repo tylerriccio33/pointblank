@@ -1,6 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
+from typing import Any
+
 import narwhals as nw
 from narwhals.typing import FrameT
 
@@ -57,7 +59,7 @@ class Comparator:
         A list of booleans where `True` indicates a passing test unit.
     """
 
-    x: nw.DataFrame
+    x: nw.DataFrame | Any
     column: str = None
     compare: float | int | list[float | int] = None
     set: list[float | int] = None
@@ -68,7 +70,7 @@ class Comparator:
     na_pass: bool = False
     tbl_type: str = "local"
 
-    def gt(self) -> FrameT:
+    def gt(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -99,7 +101,7 @@ class Comparator:
 
         return tbl
 
-    def lt(self) -> list[bool]:
+    def lt(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -130,7 +132,7 @@ class Comparator:
 
         return tbl
 
-    def eq(self) -> list[bool]:
+    def eq(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -161,7 +163,7 @@ class Comparator:
 
         return tbl
 
-    def ne(self) -> list[bool]:
+    def ne(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -184,7 +186,7 @@ class Comparator:
 
         return tbl
 
-    def ge(self) -> list[bool]:
+    def ge(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -215,7 +217,7 @@ class Comparator:
 
         return tbl
 
-    def le(self) -> list[bool]:
+    def le(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -246,7 +248,7 @@ class Comparator:
 
         return tbl
 
-    def between(self) -> list[bool]:
+    def between(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -276,7 +278,7 @@ class Comparator:
 
         return tbl
 
-    def outside(self) -> list[bool]:
+    def outside(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -308,7 +310,7 @@ class Comparator:
 
         return tbl
 
-    def isin(self) -> list[bool]:
+    def isin(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -323,7 +325,7 @@ class Comparator:
 
         return tbl
 
-    def notin(self) -> list[bool]:
+    def notin(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -342,7 +344,7 @@ class Comparator:
 
         return tbl
 
-    def regex(self) -> list[bool]:
+    def regex(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -750,6 +752,74 @@ class ColValsRegex:
             na_pass=self.na_pass,
             tbl_type=self.tbl_type,
         ).regex()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+    def test(self):
+        # Get the number of failing test units by counting instances of `False` in the `pb_is_good_`
+        # column and then determine if the test passes overall by comparing the number of failing
+        # test units to the threshold for failing test units
+
+        results_list = nw.from_native(self.test_unit_res)["pb_is_good_"].to_list()
+
+        return _threshold_check(
+            failing_test_units=results_list.count(False), threshold=self.threshold
+        )
+
+
+@dataclass
+class ColExistsHasType:
+    """
+    Check if a column exists in a DataFrame or has a certain data type.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    column
+        The column to check.
+    threshold
+        The maximum number of failing test units to allow.
+    assertion_method
+        The type of assertion ('exists' for column existence).
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT
+    column: str
+    threshold: int
+    assertion_method: str
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+
+        if self.tbl_type == "local":
+
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_test_prep(
+                df=self.data_tbl, column=self.column, allowed_types=None, check_exists=False
+            )
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.data_tbl
+
+        if self.assertion_method == "exists":
+
+            res = int(self.column in tbl.columns)
+
+        self.test_unit_res = res
 
     def get_test_results(self):
         return self.test_unit_res

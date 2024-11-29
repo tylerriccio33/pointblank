@@ -34,6 +34,7 @@ from pointblank._comparison import (
     ColValsCompareTwo,
     ColValsCompareSet,
     ColValsRegex,
+    ColExistsHasType,
     NumberOfTestUnits,
 )
 from pointblank.thresholds import (
@@ -70,6 +71,10 @@ def _col_vals_compare_set_title_docstring(inside: bool) -> str:
 
 def _col_vals_regex_title_docstring() -> str:
     return "Validate whether column values match a regular expression."
+
+
+def _col_exists_title_docstring() -> str:
+    return "Do one or more columns actually exist?"
 
 
 def _col_vals_compare_one_args_docstring() -> str:
@@ -116,6 +121,15 @@ Parameters
 {ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["pattern"]}
 {ARG_DOCSTRINGS["pre"]}
+{ARG_DOCSTRINGS["thresholds"]}
+{ARG_DOCSTRINGS["active"]}"""
+
+
+def _col_exists_args_docstring() -> str:
+    return f"""
+Parameters
+----------
+{ARG_DOCSTRINGS["columns"]}
 {ARG_DOCSTRINGS["thresholds"]}
 {ARG_DOCSTRINGS["active"]}"""
 
@@ -966,6 +980,45 @@ class Validate:
     {_col_vals_regex_args_docstring()}
     """
 
+    def col_exists(
+        self,
+        columns: str | list[str],
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        assertion_type = _get_def_name()
+
+        _check_column(column=columns)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
+
+        thresholds = (
+            super().__getattribute__("thresholds")
+            if thresholds is None
+            else _normalize_thresholds_creation(thresholds)
+        )
+
+        for column in columns:
+
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                values=None,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
+
+    col_exists.__doc__ = f"""{_col_exists_title_docstring()}
+    {_col_exists_args_docstring()}
+    """
+
     def interrogate(
         self,
         collect_extracts: bool = True,
@@ -1167,20 +1220,38 @@ class Validate:
                     tbl_type=tbl_type,
                 ).get_test_results()
 
-            # Extract the `pb_is_good_` column from the table as a results list
+            if assertion_category == "COL_EXISTS_HAS_TYPE":
 
-            if tbl_type in IBIS_BACKENDS:
-                results_list = (
-                    results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
-                )
+                result_bool = ColExistsHasType(
+                    data_tbl=data_tbl_step,
+                    column=column,
+                    threshold=threshold,
+                    assertion_method="exists",
+                    tbl_type=tbl_type,
+                ).get_test_results()
 
-            else:
-                results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
+                validation.all_passed = result_bool
+                validation.n = 1
+                validation.n_passed = result_bool
+                validation.n_failed = 1 - result_bool
 
-            validation.all_passed = all(results_list)
-            validation.n = len(results_list)
-            validation.n_passed = results_list.count(True)
-            validation.n_failed = results_list.count(False)
+                results_tbl = None
+
+            if assertion_category != "COL_EXISTS_HAS_TYPE":
+
+                # Extract the `pb_is_good_` column from the table as a results list
+                if tbl_type in IBIS_BACKENDS:
+                    results_list = (
+                        results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
+                    )
+
+                else:
+                    results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
+
+                validation.all_passed = all(results_list)
+                validation.n = len(results_list)
+                validation.n_passed = results_list.count(True)
+                validation.n_failed = results_list.count(False)
 
             # Calculate fractions of passing and failing test units
             # - `f_passed` is the fraction of test units that passed
@@ -1210,11 +1281,16 @@ class Validate:
 
             # Include the results table that has a new column called `pb_is_good_`; that
             # is a boolean column that indicates whether the row passed the validation or not
-            if collect_tbl_checked:
+            if collect_tbl_checked and results_tbl is not None:
                 validation.tbl_checked = results_tbl
 
             # If this is a row-based validation step, then extract the rows that failed
-            if collect_extracts and type in ROW_BASED_VALIDATION_TYPES and tbl_type != "duckdb":
+            # TODO: Add support for extraction of rows for Ibis backends
+            if (
+                collect_extracts
+                and type in ROW_BASED_VALIDATION_TYPES
+                and tbl_type not in IBIS_BACKENDS
+            ):
 
                 validation_extract_nw = (
                     nw.from_native(results_tbl)
