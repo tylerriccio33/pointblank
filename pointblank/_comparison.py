@@ -346,10 +346,20 @@ class Comparator:
 
         if self.tbl_type in IBIS_BACKENDS:
 
-            # Raise not implemented error for Ibis backends
-            raise NotImplementedError(
-                "The 'regex' comparison is not implemented for Ibis backends at this time."
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=getattr(tbl, self.column).re_search(self.pattern),
             )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
 
         tbl = self.x.with_columns(
             pb_is_good_=nw.col(self.column).str.contains(pattern=self.pattern),
@@ -699,15 +709,24 @@ class ColValsRegex:
 
     def __post_init__(self):
 
-        # Convert the DataFrame to a format that narwhals can work with and:
-        #  - check if the column exists
-        #  - check if the column type is compatible with the test
-        dfn = _column_test_prep(df=self.df, column=self.column, allowed_types=self.allowed_types)
+        if self.tbl_type == "local":
+
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_test_prep(
+                df=self.df, column=self.column, allowed_types=self.allowed_types
+            )
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.df
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         self.test_unit_res = Comparator(
-            x=dfn,
+            x=tbl,
             column=self.column,
             pattern=self.pattern,
             na_pass=self.na_pass,
