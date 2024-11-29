@@ -9,6 +9,25 @@ __all__ = ["Thresholds"]
 class Thresholds:
     """
     A class to represent thresholds for a validation.
+
+    Parameters
+    ----------
+    warn_at
+        The threshold for the 'warn' level. This can be an absolute count or a fraction of the
+        total.
+    stop_at
+        The threshold for the 'stop' level. This can be an absolute count or a fraction of the
+        total.
+    notify_at
+        The threshold for the 'notify' level. This can be an absolute count or a fraction of the
+        total.
+
+    Returns
+    -------
+    Thresholds
+        A Thresholds object. This can be used when using the `Validate` class (to set thresholds
+        globally) or when defining validation steps through `Validate`'s methods (so that threshold
+        values are scoped to individual validation steps, overriding any global thresholds).
     """
 
     warn_at: int | float | None = None
