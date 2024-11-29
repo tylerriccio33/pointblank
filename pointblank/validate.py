@@ -1030,6 +1030,7 @@ class Validate:
                     threshold=threshold,
                     comparison=comparison,
                     allowed_types=compatible_types,
+                    tbl_type=tbl_type,
                 ).get_test_results()
 
             if compare_type == "COMPARE_SET":
@@ -1043,6 +1044,7 @@ class Validate:
                     threshold=threshold,
                     inside=inside,
                     allowed_types=compatible_types,
+                    tbl_type=tbl_type,
                 ).get_test_results()
 
             # Extract the `pb_is_good_` column from the table as a results list
