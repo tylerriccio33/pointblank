@@ -1505,9 +1505,9 @@ class Validate:
         # Validate data using Polars DataFrame
         v = (
             pb.Validate(data=tbl_pl, thresholds=(2, 3, 4))
-            .col_vals_gt(column="x", value=1)  # STEP 1 |
-            .col_vals_lt(column="x", value=3)  # STEP 2 | <-- The validation plan
-            .col_vals_le(column="y", value=7)  # STEP 3 |
+            .col_vals_gt(columns="x", value=1)  # STEP 1 |
+            .col_vals_lt(columns="x", value=3)  # STEP 2 | <-- The validation plan
+            .col_vals_le(columns="y", value=7)  # STEP 3 |
             .interrogate()  # This will execute all validation steps
         )
 
