@@ -33,8 +33,8 @@ ARG_DOCSTRINGS = {
         A boolean value indicating whether the validation step should be active. Using `False` will
         make the validation step inactive (still reporting its presence and keeping indexes for the
         steps unchanged).""",
-    "df": """df
-        a DataFrame.""",
+    "data": """data
+        A data table.""",
     "threshold": """threshold
         The maximum number of failing test units to allow.""",
 }

@@ -375,8 +375,8 @@ class ColValsCompareOne:
 
     Parameters
     ----------
-    df
-        a DataFrame.
+    data_tbl
+        A data table.
     column
         The column to check.
     value
@@ -399,7 +399,7 @@ class ColValsCompareOne:
         otherwise.
     """
 
-    df: FrameT
+    data_tbl: FrameT
     column: str
     value: float | int
     na_pass: bool
@@ -416,13 +416,13 @@ class ColValsCompareOne:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
             tbl = _column_test_prep(
-                df=self.df, column=self.column, allowed_types=self.allowed_types
+                df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
         if self.tbl_type in IBIS_BACKENDS:
-            tbl = self.df
+            tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
@@ -507,8 +507,8 @@ class ColValsCompareTwo:
 
     Parameters
     ----------
-    df
-        a DataFrame.
+    data_tbl
+        A data table.
     column
         The column to check.
     value1
@@ -537,7 +537,7 @@ class ColValsCompareTwo:
         otherwise.
     """
 
-    df: FrameT
+    data_tbl: FrameT
     column: str
     value1: float | int
     value2: float | int
@@ -556,13 +556,13 @@ class ColValsCompareTwo:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
             tbl = _column_test_prep(
-                df=self.df, column=self.column, allowed_types=self.allowed_types
+                df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
         if self.tbl_type in IBIS_BACKENDS:
-            tbl = self.df
+            tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
@@ -615,8 +615,8 @@ class ColValsCompareSet:
 
     Parameters
     ----------
-    df
-        a DataFrame.
+    data_tbl
+        A data table.
     column
         The column to check.
     values
@@ -638,7 +638,7 @@ class ColValsCompareSet:
         otherwise.
     """
 
-    df: FrameT
+    data_tbl: FrameT
     column: str
     values: list[float | int]
     threshold: int
@@ -654,13 +654,13 @@ class ColValsCompareSet:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
             tbl = _column_test_prep(
-                df=self.df, column=self.column, allowed_types=self.allowed_types
+                df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
         if self.tbl_type in IBIS_BACKENDS:
-            tbl = self.df
+            tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
@@ -695,8 +695,8 @@ class ColValsRegex:
 
     Parameters
     ----------
-    df
-        a DataFrame.
+    data_tbl
+        A data table.
     column
         The column to check.
     pattern
@@ -717,7 +717,7 @@ class ColValsRegex:
         otherwise.
     """
 
-    df: FrameT
+    data_tbl: FrameT
     column: str
     pattern: str
     na_pass: bool
@@ -733,13 +733,13 @@ class ColValsRegex:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
             tbl = _column_test_prep(
-                df=self.df, column=self.column, allowed_types=self.allowed_types
+                df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
         if self.tbl_type in IBIS_BACKENDS:
-            tbl = self.df
+            tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit

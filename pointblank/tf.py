@@ -32,7 +32,7 @@ def _col_vals_compare_one_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["data"]}
 {ARG_DOCSTRINGS["column"]}
 {ARG_DOCSTRINGS["value"]}
 {ARG_DOCSTRINGS["na_pass"]}
@@ -43,7 +43,7 @@ def _col_vals_compare_two_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["data"]}
 {ARG_DOCSTRINGS["column"]}
 {ARG_DOCSTRINGS["left"]}
 {ARG_DOCSTRINGS["right"]}
@@ -56,7 +56,7 @@ def _col_vals_compare_set_args_docstring() -> str:
     return f"""
 Parameters
 ----------
-{ARG_DOCSTRINGS["df"]}
+{ARG_DOCSTRINGS["data"]}
 {ARG_DOCSTRINGS["column"]}
 {ARG_DOCSTRINGS["set"]}
 {ARG_DOCSTRINGS["threshold"]}"""
@@ -69,14 +69,14 @@ class TF:
     """
 
     def col_vals_gt(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -90,14 +90,14 @@ class TF:
     """
 
     def col_vals_lt(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -111,14 +111,14 @@ class TF:
     """
 
     def col_vals_eq(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -132,14 +132,14 @@ class TF:
     """
 
     def col_vals_ne(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -153,14 +153,14 @@ class TF:
     """
 
     def col_vals_ge(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -174,14 +174,14 @@ class TF:
     """
 
     def col_vals_le(
-        df: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
+        data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
         assertion_method = _get_comparison_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
-            df=df,
+            data_tbl=data,
             column=column,
             value=value,
             na_pass=na_pass,
@@ -195,7 +195,7 @@ class TF:
     """
 
     def col_vals_between(
-        df: FrameT,
+        data: FrameT,
         column: str,
         left: float | int,
         right: float | int,
@@ -208,7 +208,7 @@ class TF:
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareTwo(
-            df=df,
+            data_tbl=data,
             column=column,
             value1=left,
             value2=right,
@@ -224,7 +224,7 @@ class TF:
     """
 
     def col_vals_outside(
-        df: FrameT,
+        data: FrameT,
         column: str,
         left: float | int,
         right: float | int,
@@ -237,7 +237,7 @@ class TF:
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareTwo(
-            df=df,
+            data_tbl=data,
             column=column,
             value1=left,
             value2=right,
@@ -253,7 +253,7 @@ class TF:
     """
 
     def col_vals_in_set(
-        df: FrameT,
+        data: FrameT,
         column: str,
         set: list[float | int],
         threshold: int = 1,
@@ -262,7 +262,7 @@ class TF:
         compatible_types = COMPATIBLE_DTYPES.get("in_set", [])
 
         return ColValsCompareSet(
-            df=df,
+            data_tbl=data,
             column=column,
             values=set,
             threshold=threshold,
@@ -275,7 +275,7 @@ class TF:
     """
 
     def col_vals_not_in_set(
-        df: FrameT,
+        data: FrameT,
         column: str,
         set: list[float | int],
         threshold: int = 1,
@@ -284,7 +284,7 @@ class TF:
         compatible_types = COMPATIBLE_DTYPES.get("not_in_set", [])
 
         return ColValsCompareSet(
-            df=df,
+            data_tbl=data,
             column=column,
             values=set,
             threshold=threshold,

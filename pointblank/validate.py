@@ -1037,10 +1037,10 @@ class Validate:
                 "The `sample_n=` and `sample_frac=` arguments cannot both be provided."
             )
 
-        df = self.data
+        data_tbl = self.data
 
         # Determine if the table is a DataFrame or a DB table
-        tbl_type = _get_tbl_type(data=df)
+        tbl_type = _get_tbl_type(data=data_tbl)
 
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
 
@@ -1056,7 +1056,7 @@ class Validate:
                 continue
 
             # Make a copy of the table for this step
-            df_step = df
+            data_tbl_step = data_tbl
 
             # ------------------------------------------------
             # Pre-processing stage
@@ -1083,17 +1083,17 @@ class Validate:
                     if "dfn" in sig.parameters:
 
                         # Convert the table to a Narwhals DataFrame
-                        df_step = nw.from_native(df_step)
+                        data_tbl_step = nw.from_native(data_tbl_step)
 
                         # Apply the pre-processing function to the table
-                        df_step = validation.pre(dfn=df_step)
+                        data_tbl_step = validation.pre(dfn=data_tbl_step)
 
                         # Convert the table back to its original format
-                        df_step = nw.to_native(df_step)
+                        data_tbl_step = nw.to_native(data_tbl_step)
 
                 # If the pre-processing function is a named function, apply it to the table
                 elif isinstance(validation.pre, str):
-                    df_step = globals()[validation.pre](df_step)
+                    data_tbl_step = globals()[validation.pre](data_tbl_step)
 
             assertion_type = validation.assertion_type
             column = validation.column
@@ -1106,7 +1106,7 @@ class Validate:
             assertion_category = METHOD_CATEGORY_MAP[assertion_method]
             compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
 
-            validation.n = NumberOfTestUnits(df=df_step, column=column).get_test_units(
+            validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
             )
 
@@ -1116,7 +1116,7 @@ class Validate:
             if assertion_category == "COMPARE_ONE":
 
                 results_tbl = ColValsCompareOne(
-                    df=df_step,
+                    data_tbl=data_tbl_step,
                     column=column,
                     value=value,
                     na_pass=na_pass,
@@ -1129,7 +1129,7 @@ class Validate:
             if assertion_category == "COMPARE_TWO":
 
                 results_tbl = ColValsCompareTwo(
-                    df=df_step,
+                    data_tbl=data_tbl_step,
                     column=column,
                     value1=value[0],
                     value2=value[1],
@@ -1146,7 +1146,7 @@ class Validate:
                 inside = True if assertion_method == "in_set" else False
 
                 results_tbl = ColValsCompareSet(
-                    df=df_step,
+                    data_tbl=data_tbl_step,
                     column=column,
                     values=value,
                     threshold=threshold,
@@ -1158,7 +1158,7 @@ class Validate:
             if assertion_category == "COMPARE_REGEX":
 
                 results_tbl = ColValsRegex(
-                    df=df_step,
+                    data_tbl=data_tbl_step,
                     column=column,
                     pattern=value,
                     na_pass=na_pass,
