@@ -50,6 +50,8 @@ dev = [
     "jupyter",
     "quartodoc>=0.8.1; python_version >= '3.9'",
     "griffe==0.38.1",
+    "nbclient>=0.10.0",
+    "nbformat>=5.10.4",
     "pandas",
     "polars",
     "pre-commit==2.15.0",
