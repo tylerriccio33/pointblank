@@ -363,6 +363,52 @@ class Validate:
     small_table
     ```
 
+    We ought to think about what's tolerable in terms of data quality so let's designate
+    proportional failure thresholds to the **warn**, **stop**, and **notify** states. This can be
+    done by using the `Thresholds` class.
+
+    ```{python}
+    thresholds = pb.Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35)
+    ```
+
+    Now, we use the `Validate` class and give it the `thresholds` object (which serves as a default
+    for all validation steps but can be overridden). The static thresholds provided in `thresholds`
+    will make the reporting a bit more useful. We also need to provide a target table and we'll use
+    `small_table` for this.
+
+    ```{python}
+    validation = (
+        pb.Validate(
+            data=small_table,
+            tbl_name="small_table",
+            label="`Validate` example.",
+            thresholds=thresholds
+        )
+    ```
+
+    Then, as with any `Validate` object, we can add steps to the validation plan by using as many
+    validation methods as we want. To conclude the process (and actually query the data table), we
+    use the .interrogate() method.
+
+    ```{python}
+    validation = (
+        validation
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_lte(columns="c", value=5)
+        .col_vals_between(
+            columns="c",
+            left=3, right=10,
+            na_pass=TRUE
+        .interrogate()
+    )
+    ```
+
+    The `validation` object can be printed as a reporting table with the `get_tabular_report()`
+    method.
+
+    ```{python}
+    validation.get_tabular_report()
+    ```
     """
 
     def __post_init__(self):
