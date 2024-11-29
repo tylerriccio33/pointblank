@@ -18,9 +18,9 @@ from narwhals.typing import FrameT
 from great_tables import GT, html, loc, style, google_font, from_column, vals
 
 from pointblank._constants import (
-    TYPE_METHOD_MAP,
-    COMPATIBLE_TYPES,
-    COMPARE_TYPE_MAP,
+    ASSERTION_TYPE_METHOD_MAP,
+    COMPATIBLE_DTYPES,
+    METHOD_CATEGORY_MAP,
     IBIS_BACKENDS,
     ROW_BASED_VALIDATION_TYPES,
     VALIDATION_REPORT_FIELDS,
@@ -1095,16 +1095,16 @@ class Validate:
                 elif isinstance(validation.pre, str):
                     df_step = globals()[validation.pre](df_step)
 
-            type = validation.assertion_type
+            assertion_type = validation.assertion_type
             column = validation.column
             value = validation.values
             inclusive = validation.inclusive
             na_pass = validation.na_pass
             threshold = validation.thresholds
 
-            comparison = TYPE_METHOD_MAP[type]
-            compare_type = COMPARE_TYPE_MAP[comparison]
-            compatible_types = COMPATIBLE_TYPES.get(comparison, [])
+            assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
+            assertion_category = METHOD_CATEGORY_MAP[assertion_method]
+            compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
 
             validation.n = NumberOfTestUnits(df=df_step, column=column).get_test_units(
                 tbl_type=tbl_type
@@ -1113,7 +1113,7 @@ class Validate:
             if tbl_type not in IBIS_BACKENDS:
                 tbl_type = "local"
 
-            if compare_type == "COMPARE_ONE":
+            if assertion_category == "COMPARE_ONE":
 
                 results_tbl = ColValsCompareOne(
                     df=df_step,
@@ -1121,12 +1121,12 @@ class Validate:
                     value=value,
                     na_pass=na_pass,
                     threshold=threshold,
-                    comparison=comparison,
-                    allowed_types=compatible_types,
+                    assertion_method=assertion_method,
+                    allowed_types=compatible_dtypes,
                     tbl_type=tbl_type,
                 ).get_test_results()
 
-            if compare_type == "COMPARE_TWO":
+            if assertion_category == "COMPARE_TWO":
 
                 results_tbl = ColValsCompareTwo(
                     df=df_step,
@@ -1136,14 +1136,14 @@ class Validate:
                     inclusive=inclusive,
                     na_pass=na_pass,
                     threshold=threshold,
-                    comparison=comparison,
-                    allowed_types=compatible_types,
+                    assertion_method=assertion_method,
+                    allowed_types=compatible_dtypes,
                     tbl_type=tbl_type,
                 ).get_test_results()
 
-            if compare_type == "COMPARE_SET":
+            if assertion_category == "COMPARE_SET":
 
-                inside = True if comparison == "in_set" else False
+                inside = True if assertion_method == "in_set" else False
 
                 results_tbl = ColValsCompareSet(
                     df=df_step,
@@ -1151,11 +1151,11 @@ class Validate:
                     values=value,
                     threshold=threshold,
                     inside=inside,
-                    allowed_types=compatible_types,
+                    allowed_types=compatible_dtypes,
                     tbl_type=tbl_type,
                 ).get_test_results()
 
-            if compare_type == "COMPARE_REGEX":
+            if assertion_category == "COMPARE_REGEX":
 
                 results_tbl = ColValsRegex(
                     df=df_step,
@@ -1163,7 +1163,7 @@ class Validate:
                     pattern=value,
                     na_pass=na_pass,
                     threshold=threshold,
-                    allowed_types=compatible_types,
+                    allowed_types=compatible_dtypes,
                     tbl_type=tbl_type,
                 ).get_test_results()
 

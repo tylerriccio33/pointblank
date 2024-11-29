@@ -6,7 +6,7 @@ GENERAL_COLUMN_TYPES = [
     "duration",  # Duration data type (`duration`)
 ]
 
-COMPATIBLE_TYPES = {
+COMPATIBLE_DTYPES = {
     "gt": ["numeric"],
     "lt": ["numeric"],
     "eq": ["numeric"],
@@ -20,7 +20,7 @@ COMPATIBLE_TYPES = {
     "regex": ["str"],
 }
 
-TYPE_METHOD_MAP = {
+ASSERTION_TYPE_METHOD_MAP = {
     "col_vals_gt": "gt",
     "col_vals_lt": "lt",
     "col_vals_eq": "eq",
@@ -34,7 +34,7 @@ TYPE_METHOD_MAP = {
     "col_vals_regex": "regex",
 }
 
-COMPARE_TYPE_MAP = {
+METHOD_CATEGORY_MAP = {
     "gt": "COMPARE_ONE",
     "lt": "COMPARE_ONE",
     "eq": "COMPARE_ONE",

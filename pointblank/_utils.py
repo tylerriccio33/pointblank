@@ -6,7 +6,7 @@ import inspect
 import narwhals as nw
 from narwhals.typing import FrameT
 
-from pointblank._constants import TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
+from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
 
 def _convert_to_narwhals(df: FrameT) -> nw.DataFrame:
@@ -206,8 +206,8 @@ def _get_comparison_from_fname() -> str:
     # Get the current function name
     func_name = inspect.currentframe().f_back.f_code.co_name
 
-    # Use the `TYPE_METHOD_MAP` dictionary to get the comparison type
-    comparison = TYPE_METHOD_MAP.get(func_name)
+    # Use the `ASSERTION_TYPE_METHOD_MAP` dictionary to get the comparison type
+    comparison = ASSERTION_TYPE_METHOD_MAP.get(func_name)
 
     return comparison
 

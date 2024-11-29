@@ -375,12 +375,12 @@ class ColValsCompareOne:
         `True` to pass test units with missing values, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
-    comparison
+    assertion_method
         The type of comparison ('gt' for greater than, 'lt' for less than).
     allowed_types
         The allowed data types for the column.
     tbl_type
-        The type of table to use for the comparison.
+        The type of table to use for the assertion.
 
     Returns
     -------
@@ -394,7 +394,7 @@ class ColValsCompareOne:
     value: float | int
     na_pass: bool
     threshold: int
-    comparison: str
+    assertion_method: str
     allowed_types: list[str]
     tbl_type: str = "local"
 
@@ -416,7 +416,7 @@ class ColValsCompareOne:
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
-        if self.comparison == "gt":
+        if self.assertion_method == "gt":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -424,7 +424,7 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).gt()
-        elif self.comparison == "lt":
+        elif self.assertion_method == "lt":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -432,7 +432,7 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).lt()
-        elif self.comparison == "eq":
+        elif self.assertion_method == "eq":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -440,7 +440,7 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).eq()
-        elif self.comparison == "ne":
+        elif self.assertion_method == "ne":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -448,7 +448,7 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).ne()
-        elif self.comparison == "ge":
+        elif self.assertion_method == "ge":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -456,7 +456,7 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).ge()
-        elif self.comparison == "le":
+        elif self.assertion_method == "le":
             self.test_unit_res = Comparator(
                 x=tbl,
                 column=self.column,
@@ -512,13 +512,13 @@ class ColValsCompareTwo:
         `True` to pass test units with missing values, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
-    comparison
+    assertion_method
         The type of comparison ('between' for between two values and 'outside' for outside two
         values).
     allowed_types
         The allowed data types for the column.
     tbl_type
-        The type of table to use for the comparison.
+        The type of table to use for the assertion.
 
     Returns
     -------
@@ -534,7 +534,7 @@ class ColValsCompareTwo:
     inclusive: tuple[bool, bool]
     na_pass: bool
     threshold: int
-    comparison: str
+    assertion_method: str
     allowed_types: list[str]
     tbl_type: str = "local"
 
@@ -547,7 +547,7 @@ class ColValsCompareTwo:
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
-        if self.comparison == "between":
+        if self.assertion_method == "between":
             self.test_unit_res = Comparator(
                 x=dfn,
                 column=self.column,
@@ -557,7 +557,7 @@ class ColValsCompareTwo:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).between()
-        elif self.comparison == "outside":
+        elif self.assertion_method == "outside":
             self.test_unit_res = Comparator(
                 x=dfn,
                 column=self.column,
@@ -569,7 +569,7 @@ class ColValsCompareTwo:
             ).outside()
         else:
             raise ValueError(
-                """Invalid comparison type. Use:
+                """Invalid assertion type. Use:
                 - `between` for values between two values, or
                 - `outside` for values outside two values."""
             )
@@ -610,7 +610,7 @@ class ColValsCompareSet:
     allowed_types
         The allowed data types for the column.
     tbl_type
-        The type of table to use for the comparison.
+        The type of table to use for the assertion.
 
     Returns
     -------
@@ -680,7 +680,7 @@ class ColValsRegex:
     allowed_types
         The allowed data types for the column.
     tbl_type
-        The type of table to use for the comparison.
+        The type of table to use for the assertion.
 
     Returns
     -------
