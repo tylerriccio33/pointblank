@@ -1048,10 +1048,8 @@ class Validate:
                 ).get_test_results()
 
             # Extract the `pb_is_good_` column from the table as a results list
-            # TODO: using `tbl_type == "duckdb"` is a temporary solution until we have a better
-            # way to handle the different table types
-            if tbl_type == "duckdb":
 
+            if tbl_type in IBIS_BACKENDS:
                 results_list = (
                     results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
                 )
@@ -1519,7 +1517,7 @@ class Validate:
         ```
         """
 
-        tbl_lib = _select_df_lib(preference="polars")
+        df_lib = _select_df_lib(preference="polars")
 
         # Get information on the input data table
         tbl_info = _get_tbl_type(data=self.data)
@@ -1830,9 +1828,9 @@ class Validate:
             "</div>"
         )
 
-        # Create a DataFrame from the validation information using the `tbl_lib` library; which is
-        # either Polars or Pandas
-        df = tbl_lib.DataFrame(validation_info_dict)
+        # Create a DataFrame from the validation information using whatever the `df_lib` library is;
+        # (it is either Polars or Pandas)
+        df = df_lib.DataFrame(validation_info_dict)
 
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
