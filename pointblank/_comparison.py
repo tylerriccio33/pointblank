@@ -271,14 +271,7 @@ class Comparator:
                 "The 'between' comparison is not implemented for Ibis backends at this time."
             )
 
-        if self.inclusive == (True, True):
-            closed = "both"
-        elif self.inclusive == (True, False):
-            closed = "left"
-        elif self.inclusive == (False, True):
-            closed = "right"
-        else:
-            closed = "none"
+        closed = get_nw_closed_str(closed=self.inclusive)
 
         tbl = (
             self.x.with_columns(
@@ -301,14 +294,7 @@ class Comparator:
                 "The 'outside' comparison is not implemented for Ibis backends at this time."
             )
 
-        if self.inclusive == (True, True):
-            closed = "both"
-        elif self.inclusive == (True, False):
-            closed = "left"
-        elif self.inclusive == (False, True):
-            closed = "right"
-        else:
-            closed = "none"
+        closed = get_nw_closed_str(closed=self.inclusive)
 
         tbl = (
             self.x.with_columns(
@@ -874,3 +860,18 @@ class NumberOfTestUnits:
             # Get the count of test units and convert to a native format
             # TODO: check whether pandas or polars is available
             return self.df.count().to_polars()
+
+
+def get_nw_closed_str(closed: tuple[bool, bool]) -> str:
+    """
+    Get the string representation of the closed bounds for the `is_between` method in Narwhals.
+    """
+
+    if closed == (True, True):
+        return "both"
+    elif closed == (True, False):
+        return "left"
+    elif closed == (False, True):
+        return "right"
+    else:
+        return "none"
