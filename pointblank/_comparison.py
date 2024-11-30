@@ -167,10 +167,24 @@ class Comparator:
 
         if self.tbl_type in IBIS_BACKENDS:
 
-            # Raise not implemented error for Ibis backends
-            raise NotImplementedError(
-                "The 'ne' comparison is not implemented for Ibis backends at this time."
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=ibis.ifelse(
+                    getattr(tbl, self.column).notnull(),
+                    getattr(tbl, self.column) != ibis.literal(self.compare),
+                    ibis.literal(False),
+                ),
             )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
 
         tbl = (
             self.x.with_columns(
