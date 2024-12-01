@@ -196,23 +196,23 @@ def _column_test_prep(
     return dfn
 
 
-def _get_def_name() -> str:
+def _get_fn_name() -> str:
 
     # Get the current function name
-    assertion_type = inspect.currentframe().f_back.f_code.co_name
+    fn_name = inspect.currentframe().f_back.f_code.co_name
 
-    return assertion_type
+    return fn_name
 
 
-def _get_comparison_from_fname() -> str:
+def _get_assertion_from_fname() -> str:
 
     # Get the current function name
     func_name = inspect.currentframe().f_back.f_code.co_name
 
-    # Use the `ASSERTION_TYPE_METHOD_MAP` dictionary to get the comparison type
-    comparison = ASSERTION_TYPE_METHOD_MAP.get(func_name)
+    # Use the `ASSERTION_TYPE_METHOD_MAP` dictionary to get the assertion type
+    assertion = ASSERTION_TYPE_METHOD_MAP.get(func_name)
 
-    return comparison
+    return assertion
 
 
 def _check_invalid_fields(fields: list[str], valid_fields: list[str]):

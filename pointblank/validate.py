@@ -42,7 +42,7 @@ from pointblank.thresholds import (
     _normalize_thresholds_creation,
     _convert_abs_count_to_fraction,
 )
-from pointblank._utils import _get_def_name, _check_invalid_fields
+from pointblank._utils import _get_fn_name, _check_invalid_fields
 from pointblank._utils_check_args import (
     _check_column,
     _check_value_float_int,
@@ -467,7 +467,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -514,7 +514,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -561,7 +561,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -608,7 +608,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -655,7 +655,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -702,7 +702,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=value)
@@ -751,7 +751,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=left)
@@ -804,7 +804,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_value_float_int(value=left)
@@ -854,7 +854,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_set_types(set=set)
@@ -898,7 +898,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_set_types(set=set)
@@ -943,7 +943,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_pre(pre=pre)
@@ -986,7 +986,7 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
-        assertion_type = _get_def_name()
+        assertion_type = _get_fn_name()
 
         _check_column(column=columns)
         _check_thresholds(thresholds=thresholds)

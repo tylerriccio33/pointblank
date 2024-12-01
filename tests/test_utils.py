@@ -13,8 +13,8 @@ from pointblank._utils import (
     _get_column_dtype,
     _check_column_type,
     _column_test_prep,
-    _get_def_name,
-    _get_comparison_from_fname,
+    _get_fn_name,
+    _get_assertion_from_fname,
     _check_invalid_fields,
 )
 
@@ -326,45 +326,45 @@ def test_check_column_test_prep_raises(request, tbl_fixture):
         _column_test_prep(df=tbl, column="invalid", allowed_types=["numeric"])
 
 
-def test_get_def_name():
+def test_get_fn_name():
 
     def get_name():
-        return _get_def_name()
+        return _get_fn_name()
 
     assert get_name() == "get_name"
 
 
-def test_get_comparison_from_fname():
+def _get_assertion_from_fname():
 
     def col_vals_gt():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_lt():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_eq():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_ne():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_ge():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_le():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_between():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_outside():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_in_set():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     def col_vals_not_in_set():
-        return _get_comparison_from_fname()
+        return _get_assertion_from_fname()
 
     assert col_vals_gt() == "gt"
     assert col_vals_lt() == "lt"

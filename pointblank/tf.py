@@ -11,7 +11,7 @@ from pointblank._comparison import (
     ColValsCompareTwo,
     ColValsCompareSet,
 )
-from pointblank._utils import _get_comparison_from_fname
+from pointblank._utils import _get_assertion_from_fname
 
 
 def _col_vals_compare_one_title_docstring(comparison: str) -> str:
@@ -72,7 +72,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -93,7 +93,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -114,7 +114,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -135,7 +135,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -156,7 +156,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -177,7 +177,7 @@ class TF:
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareOne(
@@ -204,7 +204,7 @@ class TF:
         threshold: int = 1,
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareTwo(
@@ -233,7 +233,7 @@ class TF:
         threshold: int = 1,
     ) -> bool:
 
-        assertion_method = _get_comparison_from_fname()
+        assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
         return ColValsCompareTwo(
