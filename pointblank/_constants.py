@@ -69,6 +69,7 @@ IBIS_BACKENDS = [
     "mysql",
     "postgres",
     "sqlite",
+    "parquet",
 ]
 
 VALIDATION_REPORT_FIELDS = [
@@ -103,6 +104,7 @@ TABLE_TYPE_STYLES = {
     "mysql": {"background": "#EBAD40", "text": "#222222", "label": "MySQL"},
     "postgres": {"background": "#3E638B", "text": "#FFFFFF", "label": "PostgreSQL"},
     "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
+    "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
 }
 
 SVG_ICONS_FOR_ASSERTION_TYPES = {

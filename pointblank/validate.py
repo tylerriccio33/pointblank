@@ -2709,6 +2709,15 @@ def _get_tbl_type(data: FrameT) -> str:
     if ibis_present:
         import ibis
 
+        # TODO: Getting the backend 'name' is currently a bit brittle right now; as it is,
+        #       we either extract the backend name from the table name or get the backend name
+        #       from the get_backend() method and name attribute
+
+        tbl_name = data.get_name()
+
+        if "read_parquet" in tbl_name:
+            return "parquet"
+
         backend = ibis.get_backend(data).name
 
         return backend
