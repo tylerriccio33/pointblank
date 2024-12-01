@@ -332,10 +332,13 @@ class Comparator:
 
         if self.tbl_type in IBIS_BACKENDS:
 
-            # Raise not implemented error for Ibis backends
-            raise NotImplementedError(
-                "The 'notin' comparison is not implemented for Ibis backends at this time."
-            )
+            import ibis
+
+            tbl = self.x
+
+            tbl = tbl.mutate(pb_is_good_=getattr(tbl, self.column).notin(self.set))
+
+            return tbl
 
         tbl = (
             self.x.with_columns(
