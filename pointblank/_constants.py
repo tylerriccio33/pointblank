@@ -99,6 +99,10 @@ VALIDATION_REPORT_FIELDS = [
 TABLE_TYPE_STYLES = {
     "pandas": {"background": "#150458", "text": "#FFFFFF", "label": "Pandas"},
     "polars": {"background": "#0075FF", "text": "#FFFFFF", "label": "Polars"},
+    "duckdb": {"background": "#000000", "text": "#FFFFFF", "label": "DuckDB"},
+    "mysql": {"background": "#EBAD40", "text": "#222222", "label": "MySQL"},
+    "postgres": {"background": "#3E638B", "text": "#FFFFFF", "label": "PostgreSQL"},
+    "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
 }
 
 SVG_ICONS_FOR_ASSERTION_TYPES = {
