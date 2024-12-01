@@ -270,7 +270,7 @@ class Comparator:
 
             tbl = self.x
 
-            # TODO: The between method in Ibis always uses inclusive bounds, provide a warning
+            # TODO: The `between()` method in Ibis always uses inclusive bounds, provide a warning
             # or include documentation on the fact that the bounds are inclusive and that the
             # `inclusive=` parameter is ignored
 
@@ -303,10 +303,28 @@ class Comparator:
 
         if self.tbl_type in IBIS_BACKENDS:
 
-            # Raise not implemented error for Ibis backends
-            raise NotImplementedError(
-                "The 'outside' comparison is not implemented for Ibis backends at this time."
+            import ibis
+
+            tbl = self.x
+
+            # TODO: The `between()` method in Ibis always uses inclusive bounds, provide a warning
+            # or include documentation on the fact that the bounds are inclusive and that the
+            # `inclusive=` parameter is ignored
+
+            tbl = tbl.mutate(
+                pb_is_good_1=getattr(tbl, self.column).isnull() & ibis.literal(self.na_pass),
+                pb_is_good_2=ibis.ifelse(
+                    getattr(tbl, self.column).notnull(),
+                    ~getattr(tbl, self.column).between(lower=self.low, upper=self.high),
+                    ibis.literal(False),
+                ),
             )
+
+            tbl = tbl.mutate(
+                pb_is_good_=getattr(tbl, "pb_is_good_1") | getattr(tbl, "pb_is_good_2")
+            ).drop("pb_is_good_1", "pb_is_good_2")
+
+            return tbl
 
         closed = get_nw_closed_str(closed=self.inclusive)
 
