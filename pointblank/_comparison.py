@@ -346,8 +346,6 @@ class Comparator:
 
         if self.tbl_type in IBIS_BACKENDS:
 
-            import ibis
-
             tbl = self.x
 
             tbl = tbl.mutate(pb_is_good_=getattr(tbl, self.column).isin(self.set))
@@ -363,8 +361,6 @@ class Comparator:
     def notin(self) -> FrameT | Any:
 
         if self.tbl_type in IBIS_BACKENDS:
-
-            import ibis
 
             tbl = self.x
 
