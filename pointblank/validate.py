@@ -29,7 +29,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank._constants_docs import ARG_DOCSTRINGS
-from pointblank._comparison import (
+from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,

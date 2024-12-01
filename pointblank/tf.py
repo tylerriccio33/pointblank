@@ -6,7 +6,7 @@ from narwhals.typing import FrameT
 
 from pointblank._constants import COMPATIBLE_DTYPES
 from pointblank._constants_docs import ARG_DOCSTRINGS
-from pointblank._comparison import (
+from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,

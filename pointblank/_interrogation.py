@@ -6,7 +6,7 @@ from typing import Any
 import narwhals as nw
 from narwhals.typing import FrameT
 
-from pointblank._utils import _column_test_prep, _get_fn_name
+from pointblank._utils import _column_test_prep
 from pointblank.thresholds import _threshold_check
 from pointblank._constants import IBIS_BACKENDS
 
