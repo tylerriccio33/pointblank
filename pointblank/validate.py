@@ -1294,7 +1294,7 @@ class Validate:
 
                 validation_extract_nw = (
                     nw.from_native(results_tbl)
-                    .filter(nw.col("pb_is_good_") == False)
+                    .filter(nw.col("pb_is_good_") == False)  # noqa
                     .drop("pb_is_good_")
                 )
 
