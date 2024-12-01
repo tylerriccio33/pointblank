@@ -12,7 +12,7 @@ from pointblank._constants import IBIS_BACKENDS
 
 
 @dataclass
-class Comparator:
+class Interrogator:
     """
     Compare values against a single value, a set of values, or a range of values.
 
@@ -23,7 +23,7 @@ class Comparator:
     column
         The column to check when passing a Narwhals DataFrame.
     compare
-        The value to compare against. Used in the following comparisons:
+        The value to compare against. Used in the following interrogations:
         - 'gt' for greater than
         - 'lt' for less than
         - 'eq' for equal to
@@ -31,7 +31,7 @@ class Comparator:
         - 'ge' for greater than or equal to
         - 'le' for less than or equal to
     set
-        The set of values to compare against. Used in the following comparisons:
+        The set of values to compare against. Used in the following interrogations:
         - 'isin' for values in the set
         - 'notin' for values not in the set
     pattern
@@ -422,7 +422,7 @@ class ColValsCompareOne:
     threshold
         The maximum number of failing test units to allow.
     assertion_method
-        The type of comparison ('gt' for greater than, 'lt' for less than).
+        The type of assertion ('gt' for greater than, 'lt' for less than).
     allowed_types
         The allowed data types for the column.
     tbl_type
@@ -463,7 +463,7 @@ class ColValsCompareOne:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.assertion_method == "gt":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -471,7 +471,7 @@ class ColValsCompareOne:
                 tbl_type=self.tbl_type,
             ).gt()
         elif self.assertion_method == "lt":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -479,7 +479,7 @@ class ColValsCompareOne:
                 tbl_type=self.tbl_type,
             ).lt()
         elif self.assertion_method == "eq":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -487,7 +487,7 @@ class ColValsCompareOne:
                 tbl_type=self.tbl_type,
             ).eq()
         elif self.assertion_method == "ne":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -495,7 +495,7 @@ class ColValsCompareOne:
                 tbl_type=self.tbl_type,
             ).ne()
         elif self.assertion_method == "ge":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -503,7 +503,7 @@ class ColValsCompareOne:
                 tbl_type=self.tbl_type,
             ).ge()
         elif self.assertion_method == "le":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 compare=self.value,
@@ -559,7 +559,7 @@ class ColValsCompareTwo:
     threshold
         The maximum number of failing test units to allow.
     assertion_method
-        The type of comparison ('between' for between two values and 'outside' for outside two
+        The type of assertion ('between' for between two values and 'outside' for outside two
         values).
     allowed_types
         The allowed data types for the column.
@@ -603,7 +603,7 @@ class ColValsCompareTwo:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.assertion_method == "between":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 low=self.value1,
@@ -613,7 +613,7 @@ class ColValsCompareTwo:
                 tbl_type=self.tbl_type,
             ).between()
         elif self.assertion_method == "outside":
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl,
                 column=self.column,
                 low=self.value1,
@@ -701,11 +701,11 @@ class ColValsCompareSet:
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
         if self.inside:
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl, column=self.column, set=self.values, tbl_type=self.tbl_type
             ).isin()
         else:
-            self.test_unit_res = Comparator(
+            self.test_unit_res = Interrogator(
                 x=tbl, column=self.column, set=self.values, tbl_type=self.tbl_type
             ).notin()
 
@@ -779,7 +779,7 @@ class ColValsRegex:
 
         # Collect results for the test units; the results are a list of booleans where
         # `True` indicates a passing test unit
-        self.test_unit_res = Comparator(
+        self.test_unit_res = Interrogator(
             x=tbl,
             column=self.column,
             pattern=self.pattern,
