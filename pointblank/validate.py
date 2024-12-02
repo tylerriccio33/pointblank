@@ -326,10 +326,6 @@ class _ValidationInfo:
 
 @dataclass
 class Validate:
-    data: FrameT
-    tbl_name: str | None = None
-    label: str | None = None
-    thresholds: int | float | tuple | dict | Thresholds | None = None
     """
     Workflow for defining a set of validations on a table and interrogating for results.
 
@@ -414,6 +410,7 @@ class Validate:
             label="`Validate` example.",
             thresholds=thresholds
         )
+    )
     ```
 
     Then, as with any `Validate` object, we can add steps to the validation plan by using as many
@@ -424,11 +421,12 @@ class Validate:
     validation = (
         validation
         .col_vals_gt(columns="d", value=100)
-        .col_vals_lte(columns="c", value=5)
+        .col_vals_le(columns="c", value=5)
         .col_vals_between(
             columns="c",
             left=3, right=10,
-            na_pass=TRUE
+            na_pass=True
+        )
         .interrogate()
     )
     ```
@@ -440,6 +438,11 @@ class Validate:
     validation.get_tabular_report()
     ```
     """
+
+    data: FrameT
+    tbl_name: str | None = None
+    label: str | None = None
+    thresholds: int | float | tuple | dict | Thresholds | None = None
 
     def __post_init__(self):
 
