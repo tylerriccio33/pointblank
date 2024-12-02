@@ -1,4 +1,7 @@
+import pathlib
+
 import pytest
+
 import pandas as pd
 import polars as pl
 
@@ -24,6 +27,26 @@ def tbl_pl():
 @pytest.fixture
 def tbl_missing_pl():
     return pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
+
+
+@pytest.fixture
+def tbl_parquet():
+    import ibis
+
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.parquet"
+
+    return ibis.read_parquet(file_path)
+
+
+@pytest.fixture
+def tbl_duckdb():
+    import ibis
+
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.ddb"
+
+    con = ibis.connect(f"duckdb://{file_path}")
+
+    return con.table("tbl_xyz")
 
 
 def test_validation_info():
@@ -84,7 +107,7 @@ def test_validation_info():
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_col_vals_all_passing(request, tbl_fixture):
 
@@ -92,10 +115,11 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
-    assert v.data.shape == (4, 3)
-    assert str(v.data["x"].dtype).lower() == "int64"
-    assert str(v.data["y"].dtype).lower() == "int64"
-    assert str(v.data["z"].dtype).lower() == "int64"
+    if tbl_fixture not in ["tbl_parquet", "tbl_duckdb"]:
+        assert v.data.shape == (4, 3)
+        assert str(v.data["x"].dtype).lower() == "int64"
+        assert str(v.data["y"].dtype).lower() == "int64"
+        assert str(v.data["z"].dtype).lower() == "int64"
 
     # There is a single validation check entry in the `validation_info` attribute
     assert len(v.validation_info) == 1
@@ -118,7 +142,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_plan(request, tbl_fixture):
 
@@ -260,7 +284,7 @@ def test_validation_plan(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_attr_getters(request, tbl_fixture):
 
@@ -319,7 +343,7 @@ def test_validation_attr_getters(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_report(request, tbl_fixture):
 
@@ -346,7 +370,7 @@ def test_validation_report(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
 
@@ -365,7 +389,7 @@ def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
 
@@ -383,7 +407,7 @@ def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
@@ -410,7 +434,7 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_check_column_input(request, tbl_fixture):
 
@@ -441,7 +465,7 @@ def test_validation_check_column_input(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_check_na_pass_input(request, tbl_fixture):
 
@@ -468,7 +492,7 @@ def test_validation_check_na_pass_input(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_check_thresholds_input(request, tbl_fixture):
 
@@ -528,7 +552,7 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_check_active_input(request, tbl_fixture):
 
@@ -559,7 +583,7 @@ def test_validation_check_active_input(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_validation_check_thresholds_inherit(request, tbl_fixture):
 
@@ -853,7 +877,7 @@ def test_col_vals_outside(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_col_vals_in_set(request, tbl_fixture):
 
@@ -895,7 +919,7 @@ def test_col_vals_in_set(request, tbl_fixture):
 
 @pytest.mark.parametrize(
     "tbl_fixture",
-    ["tbl_pd", "tbl_pl"],
+    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
 )
 def test_col_vals_not_in_set(request, tbl_fixture):
 
