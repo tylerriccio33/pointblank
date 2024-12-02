@@ -65,7 +65,7 @@ Parameters
 @dataclass
 class TF:
     """
-    Tests use tabular data and return a single boolean value per check.
+    Tests with TF functions use tabular data as input and return a single boolean value per check.
     """
 
     def col_vals_gt(
