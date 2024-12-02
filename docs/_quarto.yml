@@ -26,6 +26,8 @@ html-table-processing: none
 quartodoc:
   title: API Reference
   package: pointblank
+  options:
+    dynamic: true
   renderer:
     style: markdown
     table_style: description-list
