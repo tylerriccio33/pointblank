@@ -4,25 +4,24 @@ Find out if your data is what you think it is
 
 ## Introduction
 
-`pointblank` is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints, making it easier to catch data quality issues early in your data pipeline. There are two main workflows that are supported:
+`pointblank` is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework. There are two main workflows that are supported:
 
-1. **Data Validation and Reporting**: Use the `Validate` class to validate your data against a set of constraints and generate a report of the results.
-
+1. **Data Validation and Reporting**: Use the `Validate` class to validate your data against a collection of rules, generate a tabular report of the results, and extract key data to solve DQ issues.
 2. **Data Testing**: Use the `Test` class to write tests for your data and use them in notebook code or in a testing framework like `pytest`.
 
-These workflows make it possible to catch data quality issues early in your data pipeline, and to ensure that your data meets the expectations of your downstream consumers. Presently, Pandas and Polars DataFrames can be used with `pointblank`; we make use of the `Narwhals` library since it provides a flexible and powerful API for working with tabular data.
+These workflows make it possible to catch data quality issues early, and the tooling enables you to get at the root causes of DQ issues quickly.
 
 ## Features
 
-- **Declarative Syntax**: Define your data constraints using a simple, declarative syntax.
-- **Flexible**: Use Polars or Pandas dataframes as input (we use Narwhals under the hood to support both).
+- **Declarative Syntax**: Define your data validation rules using a declarative syntax.
+- **Flexible**: We support tables from Polars, Pandas, Duckdb, MySQL, PostgreSQL, SQLite, and Parquet without any changes to your code.
 - **Beautiful Reports**: Generate beautiful HTML reports of your data validation results.
 - **Functional Output**: Get JSON output of your data validation results for further processing.
 - **Data Testing**: Write tests for your data and use them in your notebooks or testing framework.
 - **Easy to Use**: Get started quickly with a simple API and clear documentation.
 - **Powerful**: You can develop complex data validation rules with fleixble options for customization.
 
-## Example Use Cases
+## Example
 
 Let's say you have a Polars DataFrame and you want to validate it against a set of constraints. Here's how you can do that using the `pb.Validate` class and its library of validation methods:
 
@@ -42,94 +41,8 @@ v = (
     .interrogate() # This will execute all validation steps
 )
 
-# Get JSON for the validation
-json_output = v.get_json_report()
-print(json_output)
-```
-
-```python
-[
-    {
-        "i": 1,
-        "assertion_type": "col_vals_gt",
-        "column": "x",
-        "values": 0,
-        "inclusive": null,
-        "na_pass": false,
-        "pre": null,
-        "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
-        "label": null,
-        "brief": null,
-        "active": true,
-        "all_passed": true,
-        "n": 4,
-        "n_passed": 4,
-        "n_failed": 0,
-        "f_passed": 1.0,
-        "f_failed": 0.0,
-        "warn": null,
-        "stop": null,
-        "notify": null,
-        "time_processed": "2024-11-18T03:24:03.956+00:00",
-        "proc_duration_s": 0.004272
-    },
-    {
-        "i": 2,
-        "assertion_type": "col_vals_lt",
-        "column": "x",
-        "values": 3,
-        "inclusive": null,
-        "na_pass": false,
-        "pre": null,
-        "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
-        "label": null,
-        "brief": null,
-        "active": true,
-        "all_passed": false,
-        "n": 4,
-        "n_passed": 2,
-        "n_failed": 2,
-        "f_passed": 0.5,
-        "f_failed": 0.5,
-        "warn": null,
-        "stop": null,
-        "notify": null,
-        "time_processed": "2024-11-18T03:24:03.956+00:00",
-        "proc_duration_s": 0.000178
-    },
-    {
-        "i": 3,
-        "assertion_type": "col_vals_le",
-        "column": "y",
-        "values": 7,
-        "inclusive": null,
-        "na_pass": false,
-        "pre": null,
-        "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
-        "label": null,
-        "brief": null,
-        "active": true,
-        "all_passed": true,
-        "n": 4,
-        "n_passed": 4,
-        "n_failed": 0,
-        "f_passed": 1.0,
-        "f_failed": 0.0,
-        "warn": null,
-        "stop": null,
-        "notify": null,
-        "time_processed": "2024-11-18T03:24:03.956+00:00",
-        "proc_duration_s": 0.000123
-    }
-]
-```
-
-To make this more readable, you can generate an tabular report of the validation results with the `get_tabular_report()` method:
-
-```python
 # Get an HTML report of the validation
-report_tbl = v.get_tabular_report()
-report_tbl # <-- This will display the report in a notebook
+v.get_json_report()
 ```
 
 <img src="images/pointblank-validation-html-report.png" alt="Validation Report">
