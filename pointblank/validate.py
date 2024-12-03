@@ -433,18 +433,16 @@ class Validate:
 
     Then, as with any `Validate` object, we can add steps to the validation plan by using as many
     validation methods as we want. To conclude the process (and actually query the data table), we
-    use the .interrogate() method.
+    use the `interrogate()` method.
 
     ```{python}
     validation = (
         validation
         .col_vals_gt(columns="d", value=100)
         .col_vals_le(columns="c", value=5)
-        .col_vals_between(
-            columns="c",
-            left=3, right=10,
-            na_pass=True
-        )
+        .col_vals_between(columns="c", left=3, right=10, na_pass=True)
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns=["date", "date_time"])
         .interrogate()
     )
     ```
