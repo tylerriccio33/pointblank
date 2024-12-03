@@ -1,6 +1,18 @@
-# pointblank
+<div align="center">
 
-Find out if your data is what you think it is
+<img src="pointblank_hex_logo.png" alt="Pointblank logo" width="350px"/>
+
+_Find out if your data is what you think it is._
+
+[![License](https://img.shields.io/github/license/rich-iannone/pointblank)](https://img.shields.io/github/license/rich-iannone/great-tables)
+
+[![CI Build](https://github.com/rich-iannone/pointblank/workflows/CI%20Tests/badge.svg?branch=main)](https://github.com/rich-iannone/pointblank/actions?query=workflow%3A%22CI+Tests%22+branch%3Amain)
+[![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+
+[![Contributors](https://img.shields.io/github/contributors/rich-iannone/pointblank)](https://github.com/rich-iannone/pointblank/graphs/contributors)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
+
+</div>
 
 ## Introduction
 
