@@ -16,12 +16,25 @@ _Find out if your data is what you think it is._
 
 ## Introduction
 
-`pointblank` is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework. There are two main workflows that are supported:
+`pointblank` is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework.
 
-1. **Data Validation and Reporting**: Use the `Validate` class to validate your data against a collection of rules, generate a tabular report of the results, and extract key data to solve DQ issues.
-2. **Data Testing**: Use the `Test` class to write tests for your data and use them in notebook code or in a testing framework like `pytest`.
+Let's take a Polars DataFrame and validate it against a set of constraints. We do that using the `pb.Validate` class and its collection of validation methods:
 
-These workflows make it possible to catch data quality issues early, and the tooling enables you to get at the root causes of DQ issues quickly.
+```python
+import pointblank as pb
+
+v = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use pb.Validate to start
+    .col_vals_gt(columns="d", value=100)       # STEP 1 |
+    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Use methods to build a validation plan
+    .col_exists(columns=["date", "date_time"]) # STEP 3 |
+    .interrogate() # This will query the data by running all validation steps
+)
+
+v.get_tabular_report()
+```
+
+<img src="images/pointblank-tabular-report.png" alt="Validation Report">
 
 ## Features
 
@@ -32,32 +45,6 @@ These workflows make it possible to catch data quality issues early, and the too
 - **Data Testing**: Write tests for your data and use them in your notebooks or testing framework.
 - **Easy to Use**: Get started quickly with a simple API and clear documentation.
 - **Powerful**: You can develop complex data validation rules with fleixble options for customization.
-
-## Example
-
-Let's say you have a Polars DataFrame and you want to validate it against a set of constraints. Here's how you can do that using the `pb.Validate` class and its library of validation methods:
-
-```python
-import pointblank as pb
-import polars as pl
-
-# Create a Polars DataFrame
-tbl_pl = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7]})
-
-# Validate data using Polars DataFrame
-v = (
-    pb.Validate(data=tbl_pl) # Add data to be validated
-    .col_vals_gt(columns="x", value=0) # STEP 1 |
-    .col_vals_lt(columns="x", value=3) # STEP 2 | <-- The validation plan
-    .col_vals_le(columns="y", value=7) # STEP 3 |
-    .interrogate() # This will execute all validation steps
-)
-
-# Get an HTML report of the validation
-v.get_json_report()
-```
-
-<img src="images/pointblank-validation-html-report.png" alt="Validation Report">
 
 ## Installation
 
