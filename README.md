@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="pointblank_hex_logo.png" alt="Pointblank logo" width="350px"/>
+<img src="images/pointblank_hex_logo.png" alt="Pointblank logo" width="350px"/>
 
 _Find out if your data is what you think it is._
 
