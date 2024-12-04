@@ -14,9 +14,9 @@ _Find out if your data is what you think it is._
 
 </div>
 
-## Introduction
-
 `pointblank` is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework.
+
+## Getting Started
 
 Let's take a Polars DataFrame and validate it against a set of constraints. We do that using the `pb.Validate` class and its collection of validation methods:
 
@@ -26,7 +26,7 @@ import pointblank as pb
 v = (
     pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use pb.Validate to start
     .col_vals_gt(columns="d", value=100)       # STEP 1 |
-    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Use methods to build a validation plan
+    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Building a validation plan
     .col_exists(columns=["date", "date_time"]) # STEP 3 |
     .interrogate() # This will execute all validation steps and collect intel
 )
@@ -35,6 +35,22 @@ v.get_tabular_report()
 ```
 
 <img src="images/pointblank-tabular-report.png" alt="Validation Report">
+
+The rows in the reporting table correspond to each of the validation steps. Some fields to the far right are empty but they are concerned with failure details that aren't opted into in this simple example. One of the key concept is that validation steps can be broken down into atomic test cases (test units) and each of these test units is given either of pass/fail status based on the validation constraints. You'll see these tallied up in the reporting table (in the `"UNITS"`, `"PASS"`, and `"FAIL"` columns).
+
+The reporting through a display table is just one way to see the results. You can get fine-grained results of the interrogation as well as JSON output. You can also utilize the validation results by filtering of the input table based on row-level pass/fail status (via the `get_sundered_data()` method).
+
+On the input side, we can use the following table sources:
+
+- Polars DataFrame
+- Pandas DataFrame
+- DuckDB table
+- MySQL table
+- PostgreSQL table
+- SQLite table
+- Parquet
+
+We use [Narwhals](https://github.com/narwhals-dev/narwhals) to internally handle Polars and Pandas DataFrames. We integrate with [Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite, and Parquet. In doing all of this, we can provide an ergonomic and consistent API for validating tabular data from disparate sources.
 
 ## Features
 
