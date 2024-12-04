@@ -2712,15 +2712,22 @@ def _create_thresholds_html(thresholds: Thresholds) -> str:
 
 def _get_tbl_type(data: FrameT) -> str:
 
+    type_str = str(type(data))
+
+    ibis_tbl = "ibis.expr.types.relations.Table" in type_str
+
     # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
     # `get_native_namespace()`
-    df_ns_str = str(nw.from_native(data).__native_namespace__())
 
-    # Detect through regex if the table is a polars or pandas DataFrame
-    if re.search(r"polars", df_ns_str, re.IGNORECASE):
-        return "polars"
-    elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
-        return "pandas"
+    if not ibis_tbl:
+
+        df_ns_str = str(nw.from_native(data).__native_namespace__())
+
+        # Detect through regex if the table is a polars or pandas DataFrame
+        if re.search(r"polars", df_ns_str, re.IGNORECASE):
+            return "polars"
+        elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
+            return "pandas"
 
     # If ibis is present, then get the table's backend name
     ibis_present = _is_lib_present(lib_name="ibis")
