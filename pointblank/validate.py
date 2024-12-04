@@ -1307,7 +1307,7 @@ class Validate:
             # TODO: Add support for extraction of rows for Ibis backends
             if (
                 collect_extracts
-                and type in ROW_BASED_VALIDATION_TYPES
+                and assertion_type in ROW_BASED_VALIDATION_TYPES
                 and tbl_type not in IBIS_BACKENDS
             ):
 
