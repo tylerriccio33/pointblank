@@ -6,7 +6,7 @@ html-table-processing: none
 
 To assess the state of data quality for a table, we use the `Validate` class to collect our validation instructions and then perform the interrogation. After interrogation, we have an object that can produce reporting or enable further processing of the input table. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what a table validation looks like in pointblank!
 
-## Validate, validation steps, and `interrogate()`
+## The Table Validation Workflow
 
 The object that we need for this workflow is created with the `Validate` class. Such an object can handle one target table at any given time and the `data=` argument is where the table is specified. The validation process needs directives on how exactly to check the tabular data, so, we use validation methods (e.g., `col_vals_gt()`, `col_vals_between()`, etc.) and these translate to discrete validation steps. We can use as many of these as necessary for satisfactory validation testing of the table in question.
 
@@ -39,7 +39,7 @@ validation_1 = (
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
     .col_vals_in_set(columns="f", set=["low", "mid", "high"])
-    .col_vals_regex(columns="b", pattern="^[0-9]-[a-z]{3}-[0-9]{3}$")
+    .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$")
     .interrogate()
 )
 
@@ -50,7 +50,7 @@ Let's have a look at how to interpret this reporting table. The bright green col
 
 The `STEP` column provides the name of the validation function used as a basis for a validation step. `COLUMNS` shows us the target column for each validation step. The `VALUES` column lists any values required for a validation step. What is `TBL`? That indicates whether the table was mutated just before interrogation in that validation step (via the `pre=` argument, available in every validation function). The right-facing arrows indicate that the table didn't undergo any transformation, so we are working with the unchanged table in every step. `EVAL` lets us know whether there would be issues in evaluating the table itself and the checkmarks down this column show us that there were no issues during interrogation.
 
-The total number of test units is provided next in the `UNITS` column, then the absolute number and fraction of passing test units (`PASS`) and failing test units (`FAIL`). The `W`, `S`, `N` indicators tell us whether we have entered either of the `WARN`, `STOP`, or `NOTIFY` states for each these validation steps. Because we didn't set any threshold levels for these states (that can be done with the `thresolds=` argument, more on that later), they are irrelevant here. Finally, the `EXT` column provides an opportunity to download any data extract rows as a CSV. These rows are those that contain failed test units (i.e., having a cell that didn't pass a particular validation step). For *step 2*, the `col_vals_between()` validation step, there is a data extract available. We can either download the CSV from the report or obtain the extract with the `get_data_extracts()` method:
+The total number of test units is provided next in the `UNITS` column, then the absolute number and fraction of passing test units (`PASS`) and failing test units (`FAIL`). The `W`, `S`, `N` indicators tell us whether we have entered either of the `WARN`, `STOP`, or `NOTIFY` states for each these validation steps. Because we didn't set any threshold levels for these states (that can be done with the `thresolds=` argument, more on that later), these columns are irrelevant here. Finally, the `EXT` column provides an opportunity to download any data extract rows as a CSV. These rows are those that contain failed test units (i.e., having a cell that didn't pass a particular validation step). For *step 2*, the `col_vals_between()` validation step, there is a data extract available. We can either download the CSV from the report or obtain the extract with the `get_data_extracts()` method:
 
 ```{python}
 validation_1.get_data_extracts(i=2)
