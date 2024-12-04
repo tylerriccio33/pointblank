@@ -1,0 +1,28 @@
+---
+format: html
+html-table-processing: none
+---
+
+```{python}
+import polars as pl
+import duckdb
+
+tbl_xyz = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7], "z": [8, 8, 8, 8]})
+tbl_xyz_missing = pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
+```
+
+
+```{python}
+with duckdb.connect(database="tbl_xyz.ddb", read_only=False) as con:
+    con.execute(f"""
+        CREATE TABLE IF NOT EXISTS 'tbl_xyz' AS SELECT * FROM tbl_xyz;
+    """)
+```
+
+
+```{python}
+with duckdb.connect(database="tbl_xyz_missing.ddb", read_only=False) as con:
+    con.execute(f"""
+        CREATE TABLE IF NOT EXISTS 'tbl_xyz_missing' AS SELECT * FROM tbl_xyz_missing;
+    """)
+```
