@@ -1,0 +1,95 @@
+---
+title: Intro
+jupyter: python3
+html-table-processing: none
+---
+
+<div style="text-align: center;">
+
+![](/assets/pointblank_logo.svg){width=350}
+
+_Absolutely Delightful Table-making in Python_
+
+</div>
+
+Pointblank is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework.
+
+## Getting Started
+
+Let's take a Polars DataFrame and validate it against a set of constraints. We do that using the `pb.Validate` class and its collection of validation methods:
+
+```python
+import pointblank as pb
+
+v = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use pb.Validate to start
+    .col_vals_gt(columns="d", value=100)       # STEP 1 |
+    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Building a validation plan
+    .col_exists(columns=["date", "date_time"]) # STEP 3 |
+    .interrogate() # This will execute all validation steps and collect intel
+)
+
+v.get_tabular_report()
+```
+
+<div style="text-align: center;">
+
+![](/assets/pointblank-tabular-report.png){width=100%}
+
+</div>
+
+The rows in the reporting table correspond to each of the validation steps. Some fields to the far right are empty but they are concerned with failure details that aren't opted into in this simple example. One of the key concept is that validation steps can be broken down into atomic test cases (test units) and each of these test units is given either of pass/fail status based on the validation constraints. You'll see these tallied up in the reporting table (in the `"UNITS"`, `"PASS"`, and `"FAIL"` columns).
+
+The reporting through a display table is just one way to see the results. You can get fine-grained results of the interrogation as well as JSON output. You can also utilize the validation results by filtering the input table based on row-level pass/fail status (via the `get_sundered_data()` method).
+
+On the input side, we can use the following table sources:
+
+- Polars DataFrame
+- Pandas DataFrame
+- DuckDB table
+- MySQL table
+- PostgreSQL table
+- SQLite table
+- Parquet
+
+We use [Narwhals](https://github.com/narwhals-dev/narwhals) to internally handle Polars and Pandas DataFrames. We integrate with [Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite, and Parquet. In doing all of this, we can provide an ergonomic and consistent API for validating tabular data from disparate sources.
+
+## Features
+
+Here's a short list of what we think makes pointblank a great tool for data validation:
+
+- **Declarative Syntax**: Define your data validation rules using a declarative syntax
+- **Flexible**: We support tables from Polars, Pandas, Duckdb, MySQL, PostgreSQL, SQLite, and Parquet
+- **Beautiful Reports**: Generate beautiful HTML reports of your data validation results
+- **Functional Output**: Get JSON output of your data validation results for further processing
+- **Data Testing**: Write tests for your data and use them in your notebooks or testing framework
+- **Easy to Use**: Get started quickly with a simple API and clear documentation
+
+## Installation
+
+You can install pointblank using pip:
+
+```bash
+pip install pointblank
+```
+
+If you encounter a bug, have usage questions, or want to share ideas to make this package better, please feel free to file an [issue](https://github.com/rich-iannone/pointblank/issues).
+
+## Code of Conduct
+
+Please note that the pointblank project is released with a [contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).<br>By participating in this project you agree to abide by its terms.
+
+## Contributing to pointblank
+
+There are many ways to contribute to the ongoing development of pointblank. Some contributions can be simple (like fixing typos, improving documentation, filing issues for feature requests or problems, etc.) and others might take more time and care (like answering questions and submitting PRs with code changes). Just know that anything you can do to help would be very much appreciated!
+
+Please read over the [contributing guidelines](https://github.com/rich-iannone/pointblank/blob/main/CONTRIBUTING.md) for information on how to get started.
+
+## 📄 License
+
+Pointblank is licensed under the MIT license.
+
+## 🏛️ Governance
+
+This project is primarily maintained by [Rich Iannone](https://twitter.com/riannone).
+Other authors may occasionally assist with some of these duties.
