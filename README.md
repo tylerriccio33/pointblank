@@ -28,7 +28,7 @@ v = (
     .col_vals_gt(columns="d", value=100)       # STEP 1 |
     .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Use methods to build a validation plan
     .col_exists(columns=["date", "date_time"]) # STEP 3 |
-    .interrogate() # This will query the data by running all validation steps
+    .interrogate() # This will execute all validation steps and collect intel
 )
 
 v.get_tabular_report()
