@@ -3,6 +3,8 @@ project:
 
 format:
   html:
+    theme: cosmo
+    toc: true
     grid:
       sidebar-width: 300px
       body-width: 900px
@@ -23,7 +25,6 @@ website:
       - icon: github
         href: https://github.com/rich-iannone/pointblank
 
-
 html-table-processing: none
 
 quartodoc:
@@ -37,9 +38,16 @@ quartodoc:
     table_style: description-list
   sections:
     - title: Validate
+      desc: >
+        If going down the road of preparing a data quality analysis, you'll need the Validate class
+        to get the process started. The object is given the target table along with a stepwise
+        validation plan composed via validation methods.
       contents:
         - name: Validate
     - title: Validation Steps
+      desc: >
+        The validation steps are the individual validation methods that can be used to build a
+        validation plan. These methods are used to interrogate the data and report on the results.
       contents:
         - name: Validate.col_vals_gt
         - name: Validate.col_vals_lt
@@ -53,6 +61,8 @@ quartodoc:
         - name: Validate.col_vals_not_in_set
         - name: Validate.col_vals_regex
     - title: Interrogation and Reporting
+      desc: >
+        The interrogation and reporting methods are used to extract data and report on the results.
       contents:
         - name: Validate.interrogate
         - name: Validate.get_data_extracts
@@ -69,5 +79,7 @@ quartodoc:
         - name: Validate.stop
         - name: Validate.notify
     - title: Utilities
+      desc: >
+        The utilities group will contain functions that are helpful for the validation process.
       contents:
         - name: load_dataset
