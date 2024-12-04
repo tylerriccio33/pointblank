@@ -6,7 +6,7 @@ _Find out if your data is what you think it is._
 
 [![License](https://img.shields.io/github/license/rich-iannone/pointblank)](https://img.shields.io/github/license/rich-iannone/great-tables)
 
-[![CI Build](https://github.com/rich-iannone/pointblank/workflows/CI%20Tests/badge.svg?branch=main)](https://github.com/rich-iannone/pointblank/actions?query=workflow%3A%22CI+Tests%22+branch%3Amain)
+[![CI Build](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml)
 [![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 [![Contributors](https://img.shields.io/github/contributors/rich-iannone/pointblank)](https://github.com/rich-iannone/pointblank/graphs/contributors)
