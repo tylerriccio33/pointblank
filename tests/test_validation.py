@@ -4,9 +4,27 @@ import pytest
 
 import pandas as pd
 import polars as pl
+import ibis
 
 from pointblank.validate import Validate, _ValidationInfo, load_dataset
 from pointblank.thresholds import Thresholds
+
+
+TBL_LIST = [
+    "tbl_pd",
+    "tbl_pl",
+    "tbl_parquet",
+    "tbl_duckdb",
+    "tbl_sqlite",
+]
+
+TBL_MISSING_LIST = [
+    "tbl_missing_pd",
+    "tbl_missing_pl",
+    "tbl_missing_parquet",
+    "tbl_missing_duckdb",
+    "tbl_missing_sqlite",
+]
 
 
 @pytest.fixture
@@ -31,22 +49,38 @@ def tbl_missing_pl():
 
 @pytest.fixture
 def tbl_parquet():
-    import ibis
-
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.parquet"
+    return ibis.read_parquet(file_path)
 
+
+@pytest.fixture
+def tbl_missing_parquet():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.parquet"
     return ibis.read_parquet(file_path)
 
 
 @pytest.fixture
 def tbl_duckdb():
-    import ibis
-
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.ddb"
+    return ibis.connect(f"duckdb://{file_path}").table("tbl_xyz")
 
-    con = ibis.connect(f"duckdb://{file_path}")
 
-    return con.table("tbl_xyz")
+@pytest.fixture
+def tbl_missing_duckdb():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.ddb"
+    return ibis.connect(f"duckdb://{file_path}").table("tbl_xyz_missing")
+
+
+@pytest.fixture
+def tbl_sqlite():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.sqlite"
+    return ibis.sqlite.connect(file_path).table("tbl_xyz")
+
+
+@pytest.fixture
+def tbl_missing_sqlite():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.sqlite"
+    return ibis.sqlite.connect(file_path).table("tbl_xyz_missing")
 
 
 def test_validation_info():
@@ -105,17 +139,14 @@ def test_validation_info():
     assert isinstance(v.proc_duration_s, float)
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_all_passing(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
-    if tbl_fixture not in ["tbl_parquet", "tbl_duckdb"]:
+    if tbl_fixture not in ["tbl_parquet", "tbl_duckdb", "tbl_sqlite"]:
         assert v.data.shape == (4, 3)
         assert str(v.data["x"].dtype).lower() == "int64"
         assert str(v.data["y"].dtype).lower() == "int64"
@@ -140,10 +171,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
     assert Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7]).interrogate().all_passed()
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_plan(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -282,10 +310,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.proc_duration_s > 0.0
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_attr_getters(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -341,10 +366,7 @@ def test_validation_attr_getters(request, tbl_fixture):
     assert notify_dict[1] is None
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -368,10 +390,7 @@ def test_validation_report(request, tbl_fixture):
         v.get_json_report(use_fields=["i"], exclude_fields=["i_o"])
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -387,10 +406,7 @@ def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
     snapshot.assert_match(report, "validation_report.json")
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -405,10 +421,7 @@ def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
     snapshot.assert_match(report, "validation_report.json")
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -432,10 +445,7 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
     snapshot.assert_match(report, "validation_report.json")
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_column_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -463,10 +473,7 @@ def test_validation_check_column_input(request, tbl_fixture):
         Validate(tbl).col_vals_not_in_set(columns=9, set=[5, 6, 7])
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_na_pass_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -490,10 +497,7 @@ def test_validation_check_na_pass_input(request, tbl_fixture):
         Validate(tbl).col_vals_outside(columns="x", left=-5, right=0, na_pass=9)
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_thresholds_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -550,10 +554,7 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
         )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_active_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -581,10 +582,7 @@ def test_validation_check_active_input(request, tbl_fixture):
         Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7], active=9)
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_thresholds_inherit(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -647,10 +645,7 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     assert v.validation_info[9].thresholds.notify_at == 3
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_gt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -662,10 +657,7 @@ def test_col_vals_gt(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_lt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -680,10 +672,7 @@ def test_col_vals_lt(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_eq(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -695,10 +684,7 @@ def test_col_vals_eq(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_ne(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -710,10 +696,7 @@ def test_col_vals_ne(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_ge(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -725,10 +708,7 @@ def test_col_vals_ge(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_le(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -740,10 +720,7 @@ def test_col_vals_le(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_between(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -761,34 +738,6 @@ def test_col_vals_between(request, tbl_fixture):
     )
     assert (
         Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 2
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 1
-    )
-    assert (
-        Validate(tbl)
         .col_vals_between(columns="x", left=11, right=14, na_pass=False)
         .interrogate()
         .n_passed(i=1)[1]
@@ -802,11 +751,38 @@ def test_col_vals_between(request, tbl_fixture):
         == 1
     )
 
+    if tbl_fixture not in ["tbl_missing_parquet", "tbl_missing_duckdb", "tbl_missing_sqlite"]:
+        assert (
+            Validate(tbl)
+            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 3
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 3
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 2
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 1
+        )
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_missing_pd", "tbl_missing_pl"],
-)
+
+@pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_outside(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -827,24 +803,9 @@ def test_col_vals_outside(request, tbl_fixture):
         == 2
     )
     assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 3
-    )
-    assert (
         Validate(tbl).col_vals_outside(columns="x", left=-4, right=1).interrogate().n_passed(i=1)[1]
         == 2
     )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 3
-    )
-
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True))
@@ -859,26 +820,39 @@ def test_col_vals_outside(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 1
     )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 2
-    )
+
+    if tbl_fixture not in ["tbl_missing_parquet", "tbl_missing_duckdb", "tbl_missing_sqlite"]:
+        assert (
+            Validate(tbl)
+            .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 3
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 3
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 3
+        )
+        assert (
+            Validate(tbl)
+            .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+            .interrogate()
+            .n_passed(i=1)[1]
+            == 2
+        )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_in_set(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -917,10 +891,7 @@ def test_col_vals_in_set(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize(
-    "tbl_fixture",
-    ["tbl_pd", "tbl_pl", "tbl_parquet", "tbl_duckdb"],
-)
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_not_in_set(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
