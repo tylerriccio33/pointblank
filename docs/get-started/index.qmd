@@ -6,36 +6,17 @@ html-table-processing: none
 
 To assess the state of data quality for a table, we use the `Validate` class to collect our validation instructions and then perform the interrogation. After interrogation, we have an object that can produce reporting or enable further processing of the input table. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what a table validation looks like in pointblank!
 
-## The Table Validation Workflow
-
-The object that we need for this workflow is created with the `Validate` class. Such an object can handle one target table at any given time and the `data=` argument is where the table is specified. The validation process needs directives on how exactly to check the tabular data, so, we use validation methods (e.g., `col_vals_gt()`, `col_vals_between()`, etc.) and these translate to discrete validation steps. We can use as many of these as necessary for satisfactory validation testing of the table in question.
-
-The conclude this process with `interrogate()` method. All validation methods, when called on a `Validate` object, will not act on the target table until `interrogate()` is used. During the interrogation phase, the validation plan (the collection of validation steps) will be executed.
-
 ## A Simple Example with the Basics
 
-For our examples going forward, we'll use the `small_table` dataset. It's included in the pointblank library and can be obtained via the `load_dataset()` function. It isn't very large, which makes it great for simple examples. Here is how you get that dataset as a Polars DataFrame:
+This is a validation table that's checking a Polars DataFrame:
 
 ```{python}
+# | code-fold: true
+
 import pointblank as pb
 
-small_table = pb.load_dataset(dataset="small_table")
-
-small_table.style
-```
-
-What follows now is a very simple validation plan. We will test that:
-
-1. the values in column `a` are all less than `10`
-2. column `d` has values in the range of `0` to `5000` (this is not entirely true!)
-3. column `f` only has the values `"low"`, `"mid"`, and `"high"`
-4. The strings in column `b` fit a particular regex pattern (`"^[0-9]-[a-z]{3}-[0-9]{3}$"`)
-
-This is how the validation plan is written and interrogated. When carried out interactively, you'll get status messages that describe how the interrogation is going.
-
-```{python}
 validation_1 = (
-    pb.Validate(data=small_table)
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
     .col_vals_in_set(columns="f", set=["low", "mid", "high"])
@@ -46,17 +27,27 @@ validation_1 = (
 validation_1.get_tabular_report()
 ```
 
-Let's have a look at how to interpret this reporting table. The bright green color strips at the left of each validation step indicates that all test units passed validation. The lighter green color in the second step means that there was at least one failing unit.
+Each row is a validation step. The left-hand side outlines the validation rules. The right-hand side provides the results of each validation step.
 
-The `STEP` column provides the name of the validation function used as a basis for a validation step. `COLUMNS` shows us the target column for each validation step. The `VALUES` column lists any values required for a validation step. What is `TBL`? That indicates whether the table was mutated just before interrogation in that validation step (via the `pre=` argument, available in every validation function). The right-facing arrows indicate that the table didn't undergo any transformation, so we are working with the unchanged table in every step. `EVAL` lets us know whether there would be issues in evaluating the table itself and the checkmarks down this column show us that there were no issues during interrogation.
+While simple in principle, there's a lot of useful information packed into this validation table! The bright green color strips at the left of each validation step indicates that all test units passed validation. The lighter green color in the second step means that there was at least one failing unit. What are test units? Each validation step could perform one or many atomic tests (e.g., one test per cell in column). It's quite a bit to take in, so here's a diagram that describes the different parts of the validation table:
 
-The total number of test units is provided next in the `UNITS` column, then the absolute number and fraction of passing test units (`PASS`) and failing test units (`FAIL`). The `W`, `S`, `N` indicators tell us whether we have entered either of the `WARN`, `STOP`, or `NOTIFY` states for each these validation steps. Because we didn't set any threshold levels for these states (that can be done with the `thresolds=` argument, more on that later), these columns are irrelevant here. Finally, the `EXT` column provides an opportunity to download any data extract rows as a CSV. These rows are those that contain failed test units (i.e., having a cell that didn't pass a particular validation step). For *step 2*, the `col_vals_between()` validation step, there is a data extract available. We can either download the CSV from the report or obtain the extract with the `get_data_extracts()` method:
+![](/assets/pointblank-validation-table.png){width=100%}
 
-```{python}
-validation_1.get_data_extracts(i=2)
-```
+The code that performs the validation on the Polars table can be revealed by interacting with the `Code` disclosure triangle. Here's a rundown of how it all works in three steps.
 
-Recall that validation Step 2 asserted that all values in column `d` should be between `0` and `5000`, however, this extract of `small_table` shows that column `d` has a value of `10000` which lies outside the specified range.
+#### Step 1
+
+The object that we need for this workflow is created with the `Validate` class. Such an object can handle one target table at any given time and the `data=` argument is where the table is specified.
+
+#### Step 2
+
+The validation process needs directives on how exactly to check the tabular data. To this end we draw upon validation methods to define the validation rules (e.g., `col_vals_gt()`, `col_vals_between()`, etc.). Each invocation translates to discrete validation steps. We can use as many of these as is necessary for testing the table in question---more is usually better.
+
+#### Step 3
+
+We conclude this process with the `interrogate()` method. All of the validation methods defined will not act on the target table until `interrogate()` is used. During the interrogation phase, the validation plan (the collection of validation steps) will be executed. We then get useful results within the Validate object.
+
+That's data validation with pointblank in a nutshell! Of course, we do want reporting on how it went down, so using the `get_tabular_report()` method as the fourth step will almost always be a thing that's done. In the next section we'll go a bit further by introducing a means to gauge data quality with failure thresholds.
 
 ## Using Threshold Levels
 
@@ -72,7 +63,7 @@ Let's use this `thresholds` object in a new validation. It's similar to the last
 
 ```{python}
 validation_2 = (
-    pb.Validate(data=small_table, thresholds=thresholds)
+    pb.Validate(data=pb.load_dataset(dataset="small_table"), thresholds=thresholds)
     .col_vals_in_set(columns="f", set=["low", "mid"])
     .col_vals_lt(columns="a", value=7)
     .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-w]{3}-[2-9]{3}$")
