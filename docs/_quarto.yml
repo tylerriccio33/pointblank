@@ -15,19 +15,23 @@ website:
   page-navigation: true
   navbar:
     left:
+      - text: Get Started
+        file: get-started/index.qmd
       - href: reference/index.qmd
         text: Reference
     right:
       - icon: github
         href: https://github.com/rich-iannone/pointblank
 
+
 html-table-processing: none
 
 quartodoc:
-  title: API Reference
   package: pointblank
-  options:
-    dynamic: true
+  dir: reference
+  title: API Reference
+  style: pkgdown
+  dynamic: true
   renderer:
     style: markdown
     table_style: description-list
@@ -35,7 +39,6 @@ quartodoc:
     - title: Validate
       contents:
         - name: Validate
-          children: linked
     - title: Validation Steps
       contents:
         - name: Validate.col_vals_gt
