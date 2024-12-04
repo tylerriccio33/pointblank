@@ -28,7 +28,6 @@ from pointblank._constants import (
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
-from pointblank._constants_docs import ARG_DOCSTRINGS
 from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
@@ -53,85 +52,6 @@ from pointblank._utils_check_args import (
 )
 
 __all__ = ["Validate"]
-
-
-def _col_vals_compare_one_title_docstring(comparison: str) -> str:
-    return "Validate whether column values are ___ a single value.".replace("___", comparison)
-
-
-def _col_vals_compare_two_title_docstring(comparison: str) -> str:
-    return "Validate whether column values are ___ two values.".replace("___", comparison)
-
-
-def _col_vals_compare_set_title_docstring(inside: bool) -> str:
-    return "Validate whether column values are ___ a set of values.".replace(
-        "___", "in" if inside else "not in"
-    )
-
-
-def _col_vals_regex_title_docstring() -> str:
-    return "Validate whether column values match a regular expression."
-
-
-def _col_exists_title_docstring() -> str:
-    return "Do one or more columns actually exist?"
-
-
-def _col_vals_compare_one_args_docstring() -> str:
-    return f"""
-Parameters
-----------
-{ARG_DOCSTRINGS["columns"]}
-{ARG_DOCSTRINGS["value"]}
-{ARG_DOCSTRINGS["na_pass"]}
-{ARG_DOCSTRINGS["pre"]}
-{ARG_DOCSTRINGS["thresholds"]}
-{ARG_DOCSTRINGS["active"]}"""
-
-
-def _col_vals_compare_two_args_docstring() -> str:
-    return f"""
-Parameters
-----------
-{ARG_DOCSTRINGS["columns"]}
-{ARG_DOCSTRINGS["left"]}
-{ARG_DOCSTRINGS["right"]}
-{ARG_DOCSTRINGS["inclusive"]}
-{ARG_DOCSTRINGS["na_pass"]}
-{ARG_DOCSTRINGS["pre"]}
-{ARG_DOCSTRINGS["thresholds"]}
-{ARG_DOCSTRINGS["active"]}"""
-
-
-def _col_vals_compare_set_args_docstring() -> str:
-    return f"""
-Parameters
-----------
-{ARG_DOCSTRINGS["columns"]}
-{ARG_DOCSTRINGS["set"]}
-{ARG_DOCSTRINGS["pre"]}
-{ARG_DOCSTRINGS["thresholds"]}
-{ARG_DOCSTRINGS["active"]}"""
-
-
-def _col_vals_regex_args_docstring() -> str:
-    return f"""
-Parameters
-----------
-{ARG_DOCSTRINGS["columns"]}
-{ARG_DOCSTRINGS["pattern"]}
-{ARG_DOCSTRINGS["pre"]}
-{ARG_DOCSTRINGS["thresholds"]}
-{ARG_DOCSTRINGS["active"]}"""
-
-
-def _col_exists_args_docstring() -> str:
-    return f"""
-Parameters
-----------
-{ARG_DOCSTRINGS["columns"]}
-{ARG_DOCSTRINGS["thresholds"]}
-{ARG_DOCSTRINGS["active"]}"""
 
 
 def load_dataset(
@@ -486,6 +406,43 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are greater than a single value.
+
+        The `col_vals_gt()` validation method checks whether column values in a table are
+        *greater than* a specified `value=` (the exact comparison used in this function is
+        `col_val > value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -519,10 +476,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_gt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_lt(
         self,
@@ -533,6 +486,43 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are less than a single value.
+
+        The `col_vals_lt()` validation method checks whether column values in a table are
+        *less than* a specified `value=` (the exact comparison used in this function is
+        `col_val < value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -566,10 +556,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_lt.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_eq(
         self,
@@ -580,6 +566,44 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are equal to a single value.
+
+        The `col_vals_eq()` validation method checks whether column values in a table are
+        *equal to* a specified `value=` (the exact comparison used in this function is
+        `col_val == value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -613,10 +637,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_eq.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="equal to")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_ne(
         self,
@@ -627,6 +647,44 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are not equal to a single value.
+
+        The `col_vals_ne()` validation method checks whether column values in a table are
+        *not equal to* a specified `value=` (the exact comparison used in this function is
+        `col_val != value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -660,10 +718,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_ne.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="not equal to")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_ge(
         self,
@@ -674,6 +728,44 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are greater than or equal to a single value.
+
+        The `col_vals_ge()` validation method checks whether column values in a table are
+        *greater than or equal to* a specified `value=` (the exact comparison used in this function
+        is `col_val >= value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -707,10 +799,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_ge.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="greater than or equal to")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_le(
         self,
@@ -721,6 +809,44 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are less than or equal to a single value.
+
+        The `col_vals_le()` validation method checks whether column values in a table are
+        *less than or equal to* a specified `value=` (the exact comparison used in this function is
+        `col_val <= value`). The `value` is specified as a single, literal value. This validation
+        will operate over the number of test units that is equal to the number of rows in the table
+        (determined after any `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        value
+            The value to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -754,10 +880,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_le.__doc__ = f"""{_col_vals_compare_one_title_docstring(comparison="less than or equal to")}
-    {_col_vals_compare_one_args_docstring()}
-    """
 
     def col_vals_between(
         self,
@@ -770,6 +892,51 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are between two values.
+
+        The `col_vals_between()` validation method checks whether column values in a table fall
+        within a range. The range is specified with three arguments: `left=`, `right=`, and
+        `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. The bounds
+        are is specified as single, literal values. This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        left
+            The lower bound of the range.
+        right
+            The upper bound of the range.
+        inclusive
+            A tuple of two boolean values indicating whether the comparison should be inclusive. The
+            position of the boolean values correspond to the `left=` and `right=` values,
+            respectively. By default, both values are `True`.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -807,10 +974,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_between.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="between")}
-    {_col_vals_compare_two_args_docstring()}
-    """
 
     def col_vals_outside(
         self,
@@ -823,6 +986,51 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are outside of two values.
+
+        The `col_vals_between()` validation method checks whether column values in a table *do not*
+        fall within a certain range. The range is specified with three arguments: `left=`, `right=`,
+        and `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. The
+        bounds are is specified as single, literal values. This validation will operate over the
+        number of test units that is equal to the number of rows in the table (determined after any
+        `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        left
+            The lower bound of the range.
+        right
+            The upper bound of the range.
+        inclusive
+            A tuple of two boolean values indicating whether the comparison should be inclusive. The
+            position of the boolean values correspond to the `left=` and `right=` values,
+            respectively. By default, both values are `True`.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -861,10 +1069,6 @@ class Validate:
 
         return self
 
-    col_vals_outside.__doc__ = f"""{_col_vals_compare_two_title_docstring(comparison="outside of")}
-    {_col_vals_compare_two_args_docstring()}
-    """
-
     def col_vals_in_set(
         self,
         columns: str | list[str],
@@ -873,6 +1077,40 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are in a set of values.
+
+        The `col_vals_in_set()` validation method checks whether column values in a table are part
+        of a specified `set=` of values. This validation will operate over the number of test units
+        that is equal to the number of rows in the table (determined after any `pre=` mutation has
+        been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        set
+            A list of values to compare against.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -904,10 +1142,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=True)}
-    {_col_vals_compare_set_args_docstring()}
-    """
 
     def col_vals_not_in_set(
         self,
@@ -917,6 +1151,38 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values are not in a set of values.
+
+        The `col_vals_not_in_set()` validation method checks whether column values in a table are
+        *not* part of a specified `set=` of values. This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        set
+            A list of values to compare against.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -948,10 +1214,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_vals_not_in_set.__doc__ = f"""{_col_vals_compare_set_title_docstring(inside=False)}
-    {_col_vals_compare_set_args_docstring()}
-    """
 
     def col_vals_regex(
         self,
@@ -962,6 +1224,43 @@ class Validate:
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether column values match a regular expression pattern.
+
+        The `col_vals_regex()` validation method checks whether column values in a table
+        correspond to a `pattern=` matching expression. This validation will operate over the number
+        of test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        pattern
+            A regular expression pattern to compare against.
+        na_pass
+            Should any encountered None, NA, or Null values be considered as passing test units? By
+            default, this is `False`. Set to `True` to pass test units with missing values.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -995,16 +1294,41 @@ class Validate:
 
         return self
 
-    col_vals_regex.__doc__ = f"""{_col_vals_regex_title_docstring()}
-    {_col_vals_regex_args_docstring()}
-    """
-
     def col_exists(
         self,
         columns: str | list[str],
         thresholds: int | float | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
+        """
+        Validate whether one or more columns exist in the table.
+
+        The `col_exists()` method checks whether one or more columns exist in the target table. The
+        only requirement is specification of the column names. Each validation step or expectation
+        will operate over a single test unit, which is whether the column exists or not.
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
@@ -1033,10 +1357,6 @@ class Validate:
             self._add_validation(validation_info=val_info)
 
         return self
-
-    col_exists.__doc__ = f"""{_col_exists_title_docstring()}
-    {_col_exists_args_docstring()}
-    """
 
     def interrogate(
         self,
@@ -1709,6 +2029,9 @@ class Validate:
 
         Examples
         --------
+        Let's create a `Validate` object with a few validation steps and then interrogate the data
+        table to see how it performs against the validation plan. We can then generate a tabular
+        report to get a summary of the results.
 
         ```{python}
         import pointblank as pb
@@ -1719,16 +2042,22 @@ class Validate:
 
         # Validate data using Polars DataFrame
         v = (
-            pb.Validate(data=tbl_pl, thresholds=(2, 3, 4))
-            .col_vals_gt(columns="x", value=1)  # STEP 1 |
-            .col_vals_lt(columns="x", value=3)  # STEP 2 | <-- The validation plan
-            .col_vals_le(columns="y", value=7)  # STEP 3 |
-            .interrogate()  # This will execute all validation steps
+            pb.Validate(data=tbl_pl, tbl_name="tbl_xy", thresholds=(2, 3, 4))
+            .col_vals_gt(columns="x", value=1)
+            .col_vals_lt(columns="x", value=3)
+            .col_vals_le(columns="y", value=7)
+            .interrogate()
         )
 
-        report_table = v.get_tabular_report()
+        # Generate the tabular report
+        v.get_tabular_report()
+        ```
 
-        report_table
+        The title option was set to `":default:"`, which produces a generic title for the report.
+        We can change this to the name of the table by setting the title to `":tbl_name:"`. This
+        will use the string provided in the `tbl_name=` argument of the `Validate` object.
+        ```{python}
+        v.get_tabular_report(title=":tbl_name:")
         ```
         """
 
