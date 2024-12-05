@@ -14,11 +14,11 @@ _Find out if your data is what you think it is._
 
 </div>
 
-Pointblank is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it can present the results in a beautiful and useful tabular reporting framework.
+Pointblank is a table validation and testing library for Python. It helps you ensure that your tabular data meets certain expectations and constraints and it presents the results in a beautiful (and useful!) validation table.
 
 ## Getting Started
 
-Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the `pb.Validate` class and its collection of validation methods:
+Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the `pb.Validate` class and then adding validation steps:
 
 ```python
 import pointblank as pb
@@ -36,9 +36,9 @@ v.get_tabular_report()
 
 <img src="images/pointblank-tabular-report.png" alt="Validation Report">
 
-The rows in the reporting table correspond to each of the validation steps. Some fields to the far right are empty but they are concerned with failure details that aren't opted into in this simple example. One of the key concept is that validation steps can be broken down into atomic test cases (test units) and each of these test units is given either of pass/fail status based on the validation constraints. You'll see these tallied up in the reporting table (in the `"UNITS"`, `"PASS"`, and `"FAIL"` columns).
+The rows in the reporting table correspond to each of the validation steps. One of the key concepts is that validation steps can be broken down into atomic test units and each of these is given either of pass/fail status based on the validation constraints. You'll see these tallied up in the reporting table (in the `"UNITS"`, `"PASS"`, and `"FAIL"` columns).
 
-The reporting through a display table is just one way to see the results. You can get fine-grained results of the interrogation as well as JSON output. You can also utilize the validation results by filtering the input table based on row-level pass/fail status (via the `get_sundered_data()` method).
+The reporting through a display table is just one way to see the results. You can get fine-grained results of the interrogation in other ways. You can also utilize the validation results by filtering the input table based on row-level pass/fail status (via the `get_sundered_data()` method).
 
 On the input side, we can use the following table sources:
 
@@ -50,19 +50,19 @@ On the input side, we can use the following table sources:
 - SQLite table
 - Parquet
 
-We use [Narwhals](https://github.com/narwhals-dev/narwhals) to internally handle Polars and Pandas DataFrames. We integrate with [Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite, and Parquet. In doing all of this, we can provide an ergonomic and consistent API for validating tabular data from disparate sources.
+We use [Narwhals](https://github.com/narwhals-dev/narwhals) to internally handle Polars and Pandas DataFrames. We integrate with [Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite, and Parquet. In doing all of this, we can provide an ergonomic and consistent API for validating tabular data from a variety of tabular data sources.
 
 ## Features
 
 Here's a short list of what we think makes pointblank a great tool for data validation:
 
-- **Declarative Syntax**: Define your data validation rules using a declarative syntax
+- **Declarative Syntax**: Define your data validation rules simply, using a declarative syntax
 - **Flexible**: We support tables from Polars, Pandas, Duckdb, MySQL, PostgreSQL, SQLite, and Parquet
-- **Beautiful Reports**: Generate beautiful HTML reports of your data validation results
-- **Functional Output**: Get JSON output of your data validation results for further processing
+- **Beautiful Reports**: Generate beautiful HTML table reports on how the data validation went down
+- **Functional Output**: Extract the specific data validation outputs you need for further processing
 - **Data Testing**: Write tests for your data and use them in your notebooks or testing framework
-- **Easy to Use**: Get started quickly with a simple API and clear documentation
-- **Powerful**: You can develop complex data validation rules with fleixble options for customization
+- **Easy to Use**: Get started quickly with a simple API and super clear documentation
+- **Powerful**: You can develop complex data validation rules with flexible options for customization
 
 ## Installation
 
