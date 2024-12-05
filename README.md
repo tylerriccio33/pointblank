@@ -18,7 +18,7 @@ Pointblank is a table validation and testing library for Python. It helps you en
 
 ## Getting Started
 
-Let's take a Polars DataFrame and validate it against a set of constraints. We do that using the `pb.Validate` class and its collection of validation methods:
+Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the `pb.Validate` class and its collection of validation methods:
 
 ```python
 import pointblank as pb
