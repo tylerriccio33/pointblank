@@ -26,6 +26,14 @@ TBL_MISSING_LIST = [
     "tbl_missing_sqlite",
 ]
 
+TBL_DATES_TIMES_TEXT_LIST = [
+    "tbl_dates_times_text_pd",
+    "tbl_dates_times_text_pl",
+    "tbl_dates_times_text_parquet",
+    "tbl_dates_times_text_duckdb",
+    "tbl_dates_times_text_sqlite",
+]
+
 
 @pytest.fixture
 def tbl_pd():
@@ -35,6 +43,17 @@ def tbl_pd():
 @pytest.fixture
 def tbl_missing_pd():
     return pd.DataFrame({"x": [1, 2, pd.NA, 4], "y": [4, pd.NA, 6, 7], "z": [8, pd.NA, 8, 8]})
+
+
+@pytest.fixture
+def tbl_dates_times_text_pd():
+    return pd.DataFrame(
+        {
+            "date": ["2021-01-01", "2021-02-01", pd.NA],
+            "dttm": ["2021-01-01 00:00:00", pd.NA, "2021-02-01 00:00:00"],
+            "text": [pd.NA, "5-egh-163", "8-kdg-938"],
+        }
+    )
 
 
 @pytest.fixture
@@ -48,6 +67,17 @@ def tbl_missing_pl():
 
 
 @pytest.fixture
+def tbl_dates_times_text_pl():
+    return pl.DataFrame(
+        {
+            "date": ["2021-01-01", "2021-02-01", None],
+            "dttm": ["2021-01-01 00:00:00", None, "2021-02-01 00:00:00"],
+            "text": [None, "5-egh-163", "8-kdg-938"],
+        }
+    )
+
+
+@pytest.fixture
 def tbl_parquet():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.parquet"
     return ibis.read_parquet(file_path)
@@ -56,6 +86,12 @@ def tbl_parquet():
 @pytest.fixture
 def tbl_missing_parquet():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.parquet"
+    return ibis.read_parquet(file_path)
+
+
+@pytest.fixture
+def tbl_dates_times_text_parquet():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_dates_times_text.parquet"
     return ibis.read_parquet(file_path)
 
 
@@ -72,6 +108,12 @@ def tbl_missing_duckdb():
 
 
 @pytest.fixture
+def tbl_dates_times_text_duckdb():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_dates_times_text.ddb"
+    return ibis.connect(f"duckdb://{file_path}").table("tbl_dates_times_text")
+
+
+@pytest.fixture
 def tbl_sqlite():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.sqlite"
     return ibis.sqlite.connect(file_path).table("tbl_xyz")
@@ -81,6 +123,12 @@ def tbl_sqlite():
 def tbl_missing_sqlite():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.sqlite"
     return ibis.sqlite.connect(file_path).table("tbl_xyz_missing")
+
+
+@pytest.fixture
+def tbl_dates_times_text_sqlite():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_dates_times_text.sqlite"
+    return ibis.sqlite.connect(file_path).table("tbl_dates_times_text")
 
 
 def test_validation_info():
