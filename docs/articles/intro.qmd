@@ -7,7 +7,7 @@ html-table-processing: none
 
 ![](/assets/pointblank_logo.svg){width=350}
 
-_Absolutely Delightful Table-making in Python_
+_Find out if your data is what you think it is_
 
 </div>
 
