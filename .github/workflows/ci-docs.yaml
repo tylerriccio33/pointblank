@@ -27,21 +27,6 @@ jobs:
       - name: Build docs
         run: |
           make docs-build
-      # push to netlify -------------------------------------------------------
-      # set release name ----
-
-      - name: Configure pull release name
-        if: ${{github.event_name == 'pull_request'}}
-        run: |
-          echo "RELEASE_NAME=pr-${PR_NUMBER}" >> $GITHUB_ENV
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-      - name: Configure branch release name
-        if: ${{github.event_name != 'pull_request'}}
-        run: |
-          # use branch name, but replace slashes. E.g. feat/a -> feat-a
-          echo "RELEASE_NAME=${GITHUB_REF_NAME/\//-}" >> $GITHUB_ENV
-      # deploy ----
       - name: Create Github Deployment
         uses: bobheadxi/deployments@v1
         id: deployment
@@ -53,22 +38,6 @@ jobs:
           ref: ${{ github.head_ref }}
           transient: true
           logs: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-      - name: Netlify docs preview
-        if: ${{ !github.event.pull_request.head.repo.fork }}
-        run: |
-          npm install -g netlify-cli
-          # push main branch to production, others to preview --
-          netlify link --name="pointblank"
-          if [ "${ALIAS}" == "main" ]; then
-            netlify deploy --dir=docs/_site --alias="main"
-          else
-            netlify deploy --dir=docs/_site --alias="${ALIAS}"
-          fi
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          ALIAS: ${{ steps.deployment.outputs.env }}
 
       - name: Update Github Deployment
         uses: bobheadxi/deployments@v1
