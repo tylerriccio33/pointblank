@@ -33,6 +33,11 @@ jobs:
       - name: pytest unit tests
         run: |
           make test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          name: "py${{ matrix.python-version }}"
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   release-pypi:
     name: "Release to pypi"
