@@ -46,6 +46,7 @@ quartodoc:
       contents:
         - name: Validate
           members: []
+        - name: Thresholds
     - title: Validation Steps
       desc: >
         The validation steps are the individual validation methods that can be used to build a
