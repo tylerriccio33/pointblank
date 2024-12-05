@@ -1,16 +1,13 @@
+name: CI Docs
+
 on:
   push:
     branches:
       - main
-      - "docs-preview-**"
-  pull_request:
-    branches:
-      - main
-
-name: CI Docs
 
 jobs:
   build-docs:
+    name: "Build Docs"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,37 +18,27 @@ jobs:
         run: |
           python -m pip install -e .
           python -m pip install ".[dev]"
-      - uses: quarto-dev/quarto-actions/setup@v2
-        with:
-          tinytex: true
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
       - name: Build docs
         run: |
           make docs-build
-      - name: Create Github Deployment
-        uses: bobheadxi/deployments@v1
-        id: deployment
-        if: ${{ !github.event.pull_request.head.repo.fork }}
+      - name: Save docs artifact
+        uses: actions/upload-artifact@v3
         with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ env.RELEASE_NAME }}
-          ref: ${{ github.head_ref }}
-          transient: true
-          logs: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          name: docs-html
+          path: docs/_site
 
-      - name: Update Github Deployment
-        uses: bobheadxi/deployments@v1
-        if: ${{ !github.event.pull_request.head.repo.fork && always() }}
+  publish-docs:
+    name: "Publish Docs"
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v3
         with:
-          step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}
-          env: ${{ steps.deployment.outputs.env }}
-          env_url: "https://${{ steps.deployment.outputs.env }}--pointblank.netlify.app"
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-
+          name: docs-html
+          path: docs/_site
       - uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/_site
