@@ -4,10 +4,14 @@
 
 _Find out if your data is what you think it is._
 
+[![Python Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
+[![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pointblank)](https://pypistats.org/packages/pointblank)
 [![License](https://img.shields.io/github/license/rich-iannone/pointblank)](https://img.shields.io/github/license/rich-iannone/pointblank)
 
 [![CI Build](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml)
 [![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://rich-iannone.github.io/pointblank/)
 
 [![Contributors](https://img.shields.io/github/contributors/rich-iannone/pointblank)](https://github.com/rich-iannone/pointblank/graphs/contributors)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
