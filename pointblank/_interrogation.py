@@ -403,6 +403,24 @@ class Interrogator:
 
         return tbl
 
+    def not_null(self) -> FrameT | Any:
+
+        if self.tbl_type in IBIS_BACKENDS:
+
+            tbl = self.x
+
+            tbl = tbl.mutate(
+                pb_is_good_=~tbl[self.column].isnull(),
+            )
+
+            return tbl
+
+        tbl = self.x.with_columns(
+            pb_is_good_=~nw.col(self.column).is_null(),
+        ).to_native()
+
+        return tbl
+
 
 @dataclass
 class ColValsCompareOne:
@@ -510,6 +528,13 @@ class ColValsCompareOne:
                 na_pass=self.na_pass,
                 tbl_type=self.tbl_type,
             ).le()
+        elif self.assertion_method == "not_null":
+            self.test_unit_res = Interrogator(
+                x=tbl,
+                column=self.column,
+                compare=self.value,
+                tbl_type=self.tbl_type,
+            ).not_null()
         else:
             raise ValueError(
                 """Invalid comparison type. Use:
@@ -518,7 +543,9 @@ class ColValsCompareOne:
                 - `eq` for equal to,
                 - `ne` for not equal to,
                 - `ge` for greater than or equal to, or
-                - `le` for less than or equal to."""
+                - `le` for less than or equal to.
+                - `not_null` for not null values.
+                """
             )
 
     def get_test_results(self):

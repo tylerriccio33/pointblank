@@ -62,6 +62,8 @@ quartodoc:
         - name: Validate.col_vals_in_set
         - name: Validate.col_vals_not_in_set
         - name: Validate.col_vals_regex
+        - name: Validate.col_vals_not_null
+        - name: Validate.col_exists
     - title: Interrogation and Reporting
       desc: >
         The interrogation and reporting methods are used to extract data and report on the results.
