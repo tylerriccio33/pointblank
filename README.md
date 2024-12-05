@@ -26,7 +26,7 @@ import pointblank as pb
 v = (
     pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use pb.Validate to start
     .col_vals_gt(columns="d", value=100)       # STEP 1 |
-    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Building a validation plan
+    .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Build up a validation plan
     .col_exists(columns=["date", "date_time"]) # STEP 3 |
     .interrogate() # This will execute all validation steps and collect intel
 )
