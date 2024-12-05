@@ -13,6 +13,7 @@ format:
 
 website:
   title: pointblank
+  site-url: https://rich-iannone.github.io/pointblank/
   description: "Find out if your data is what you think it is"
   page-navigation: true
   navbar:
