@@ -8,7 +8,7 @@ __all__ = ["Thresholds"]
 @dataclass
 class Thresholds:
     """
-    A class to represent thresholds for a validation.
+    Definition of threshold values.
 
     Parameters
     ----------
