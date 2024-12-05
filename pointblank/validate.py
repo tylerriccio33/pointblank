@@ -459,10 +459,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # TODO: Use this throughout the different methods
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
