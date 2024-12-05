@@ -4,14 +4,14 @@ jupyter: python3
 html-table-processing: none
 ---
 
-To assess the state of data quality for a table, we use the `Validate` class to collect our validation instructions and then perform the interrogation. After interrogation, we have an object that can produce reporting or enable further processing of the input table. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what a table validation looks like in pointblank!
+The pointblank library is all about assessing the state of data quality in a table. You provide the validation rules and the library will dutifully interrogate the data and provide useful reporting. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what table validation looks like in pointblank!
 
 ## A Simple Example with the Basics
 
-This is a validation table that's checking a Polars DataFrame:
+This is a validation table that produced from a validation of a Polars DataFrame:
 
 ```{python}
-# | code-fold: true
+#| code-fold: true
 
 import pointblank as pb
 
@@ -27,17 +27,28 @@ validation_1 = (
 validation_1.get_tabular_report()
 ```
 
-Each row is a validation step. The left-hand side outlines the validation rules. The right-hand side provides the results of each validation step.
+Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side outlines the validation rules and the right-hand side provides the results of each validation step.
 
-While simple in principle, there's a lot of useful information packed into this validation table! The bright green color strips at the left of each validation step indicates that all test units passed validation. The lighter green color in the second step means that there was at least one failing unit. What are test units? Each validation step could perform one or many atomic tests (e.g., one test per cell in column). It's quite a bit to take in, so here's a diagram that describes the different parts of the validation table:
+While simple in principle, there's a lot of useful information packed into this validation table! The bright green color strips at the left of each validation step indicates that all test units passed validation. The lighter green color in the second step means that there was at least one failing unit. What are test units? Each validation step could perform one or many atomic tests (e.g., one test per cell in column). It's quite a bit to take in, so here's a diagram that describes a few of the important parts of the validation table:
 
 ![](/assets/pointblank-validation-table.png){width=100%}
 
-The code that performs the validation on the Polars table can be revealed by interacting with the `Code` disclosure triangle. Here's a rundown of how it all works in three steps.
+The code that performs the validation on the Polars table can be revealed by interacting with the `Code` disclosure triangle up above. Here's a rundown of how it all works, in three steps.
 
 #### Step 1
 
-The object that we need for this workflow is created with the `Validate` class. Such an object can handle one target table at any given time and the `data=` argument is where the table is specified.
+The object that we need for this workflow is created with the `Validate` class. Such an object can handle one input table at any given time and the `data=` argument is where the table is specified. In case you want to see the content of the input table, it's provided just below.
+
+<details>
+<summary>The Polars table</summary>
+
+```{python}
+#| echo: false
+
+pb.load_dataset(dataset="small_table")
+```
+
+</details>
 
 #### Step 2
 
@@ -45,7 +56,7 @@ The validation process needs directives on how exactly to check the tabular data
 
 #### Step 3
 
-We conclude this process with the `interrogate()` method. All of the validation methods defined will not act on the target table until `interrogate()` is used. During the interrogation phase, the validation plan (the collection of validation steps) will be executed. We then get useful results within the Validate object.
+We conclude this process with the `interrogate()` method. All of the validation methods defined will not act on the input table until `interrogate()` is used. During the interrogation phase, the validation plan (the collection of validation steps) will be executed. We then get useful results within the Validate object.
 
 That's data validation with pointblank in a nutshell! Of course, we do want reporting on how it went down, so using the `get_tabular_report()` method as the fourth step will almost always be a thing that's done. In the next section we'll go a bit further by introducing a means to gauge data quality with failure thresholds.
 
@@ -74,10 +85,10 @@ validation_2 = (
 validation_2.get_tabular_report()
 ```
 
-As can be seen, all validation steps show some degree of failing test units. Here's a breakdown on how this can be interpreted:
+As can be seen, all validation steps have some non-zero number of failing test units. Here's a breakdown on how this validation table can be interpreted:
 
 - steps 1 and 3: failure rate high enough to enter the `WARN` and `STOP` states (more than 20% of test units failed in both steps)
 - step 2: failure rate to enter the `WARN` state (more than 10% of test units failed)
 - step 4: one failing test units but well below the 10%-failing `WARN` threshold
 
-The availability of data extracts that show where the failures occurred can serve to get at the heart of what caused such failures in the first place. On the flip side, one could modify the rules of the validation steps should the flagged rows in the extracts turn out to be reasonable.
+The availability of data extracts that show where the failures occurred can help you get at the heart of what caused such failures in the first place. On the flip side, one could modify the rules of the validation steps should the flagged rows in the extracts turn out to be reasonable.
