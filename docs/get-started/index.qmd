@@ -46,7 +46,6 @@ The intent is to provide the key information in one place, and have it be interp
 Here's the code that performs the validation on the Polars table.
 
 ```{python}
-
 import pointblank as pb
 
 validation_2 = (
@@ -101,16 +100,16 @@ Thresholds let you take action at different levels of severity. The next section
 
 ## Using Threshold Levels
 
-Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 10% NULLs in the column.
+Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 20% NULLs in the column.
 
-```python
-validation_3 = (
+```{python}
+validation_4 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_not_null(columns="a", thresholds=(1, 0.1))
+    .col_vals_not_null(columns="c", thresholds=(1, 0.2))
     .interrogate()
 )
 
-validation_3
+validation_4
 ```
 
 In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was used, but we can also set thresholds globally by using `Validate(thresholds=...)`.
