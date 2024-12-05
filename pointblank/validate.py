@@ -397,6 +397,10 @@ class Validate:
 
         self.validation_info = []
 
+    def _repr_html_(self) -> str:
+
+        return self.get_tabular_report()._repr_html_()
+
     def col_vals_gt(
         self,
         columns: str | list[str],
