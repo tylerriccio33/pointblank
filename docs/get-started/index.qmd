@@ -6,12 +6,12 @@ html-table-processing: none
 
 The pointblank library is all about assessing the state of data quality in a table. You provide the validation rules and the library will dutifully interrogate the data and provide useful reporting. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what table validation looks like in pointblank!
 
-## A Simple Example with the Basics
+## A Simple Validation Table
 
-This is a validation table that produced from a validation of a Polars DataFrame:
+This is a validation table that is produced from a validation of a Polars DataFrame:
 
 ```{python}
-#| code-fold: true
+# | code-fold: true
 
 import pointblank as pb
 
@@ -24,71 +24,95 @@ validation_1 = (
     .interrogate()
 )
 
-validation_1.get_tabular_report()
+validation_1
 ```
 
-Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side outlines the validation rules and the right-hand side provides the results of each validation step.
+Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side outlines the validation rules and the right-hand side provides the results of each validation step. While simple in principle, there's a lot of useful information packed into this validation table.
 
-While simple in principle, there's a lot of useful information packed into this validation table! The bright green color strips at the left of each validation step indicates that all test units passed validation. The lighter green color in the second step means that there was at least one failing unit. What are test units? Each validation step could perform one or many atomic tests (e.g., one test per cell in column). It's quite a bit to take in, so here's a diagram that describes a few of the important parts of the validation table:
+Here's a diagram that describes a few of the important parts of the validation table:
 
 ![](/assets/pointblank-validation-table.png){width=100%}
 
-The code that performs the validation on the Polars table can be revealed by interacting with the `Code` disclosure triangle up above. Here's a rundown of how it all works, in three steps.
+There are three important sections of this table,
 
-#### Step 1
+- validation steps: each step is a distinct test on the table focused on a certain part of the table (here, the different columns)
+- validation rules: the validation type is provided here along with key constraints
+- validation results: post-interrogation results are provided here, with a breakdown of test units (total, passing, failing), threshold states, etc.
 
-The object that we need for this workflow is created with the `Validate` class. Such an object can handle one input table at any given time and the `data=` argument is where the table is specified. In case you want to see the content of the input table, it's provided just below.
+The intent is to provide the key information in one place, and have it be interpretable by a broad audience.
 
-<details>
-<summary>The Polars table</summary>
+## Example Code, Step-by-Step
 
-```{python}
-#| echo: false
-
-pb.load_dataset(dataset="small_table")
-```
-
-</details>
-
-#### Step 2
-
-The validation process needs directives on how exactly to check the tabular data. To this end we draw upon validation methods to define the validation rules (e.g., `col_vals_gt()`, `col_vals_between()`, etc.). Each invocation translates to discrete validation steps. We can use as many of these as is necessary for testing the table in question---more is usually better.
-
-#### Step 3
-
-We conclude this process with the `interrogate()` method. All of the validation methods defined will not act on the input table until `interrogate()` is used. During the interrogation phase, the validation plan (the collection of validation steps) will be executed. We then get useful results within the Validate object.
-
-That's data validation with pointblank in a nutshell! Of course, we do want reporting on how it went down, so using the `get_tabular_report()` method as the fourth step will almost always be a thing that's done. In the next section we'll go a bit further by introducing a means to gauge data quality with failure thresholds.
-
-## Using Threshold Levels
-
-It can be useful to gauge data quality by setting failure thresholds for validation steps. For example, it may be acceptable at some point in time to tolerate up to 5% of failing test units for a given validation. Or, having several levels of data quality might be useful and instructive, where failing test units across validations are grouped into the 0-5%, 5-10%, and 10%- bands.
-
-We can specify failure threshold levels in the `thresholds=` argument of `Validate`. To do that, we can use the `Thresholds` class and pass in the resulting object to `thresholds=`. In the following, we use fractional failure-rate values (i.e., real numbers between `0` and `1`) to define thresholds for the `WARN` and `STOP` states.
+Here's the code that performs the validation on the Polars table.
 
 ```{python}
-thresholds = pb.Thresholds(warn_at=0.1, stop_at=0.2)
-```
 
-Let's use this `thresholds` object in a new validation. It's similar to the last one but the parameters for some of the validation functions will result in more failing test units. We'll see that the interrogation messages show mention of `STOP` and `WARNING` state being met.
+import pointblank as pb
 
-```{python}
 validation_2 = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"), thresholds=thresholds)
-    .col_vals_in_set(columns="f", set=["low", "mid"])
-    .col_vals_lt(columns="a", value=7)
-    .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-w]{3}-[2-9]{3}$")
-    .col_vals_between(columns="d", left=0, right=4000)
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_lt(columns="a", value=10)
+    .col_vals_between(columns="d", left=0, right=5000)
+    .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+    .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$")
     .interrogate()
 )
 
-validation_2.get_tabular_report()
+validation_2
 ```
 
-As can be seen, all validation steps have some non-zero number of failing test units. Here's a breakdown on how this validation table can be interpreted:
+Note these three key pieces in the code:
 
-- steps 1 and 3: failure rate high enough to enter the `WARN` and `STOP` states (more than 20% of test units failed in both steps)
-- step 2: failure rate to enter the `WARN` state (more than 10% of test units failed)
-- step 4: one failing test units but well below the 10%-failing `WARN` threshold
+- the `Validate(data=...)` argument takes a DataFrame that you want to validate
+- the methods starting with `col_*` specify validation steps that run on specific columns
+- the `interrogate()` method executes the validation plan on the table
 
-The availability of data extracts that show where the failures occurred can help you get at the heart of what caused such failures in the first place. On the flip side, one could modify the rules of the validation steps should the flagged rows in the extracts turn out to be reasonable.
+That's data validation with pointblank in a nutshell! In the next section we'll go a bit further by introducing a means to gauge data quality with failure thresholds.
+
+## Understanding Test Units
+
+Each validation step will execute a validation test. For example, `col_vals_lt()` tests that each value in a column is less than a specified number. One important piece that's reported is the number of test units that pass or fail.
+
+Test units are dependent on the test being run. The `col_vals_*` tests each value in a column, so each value will be a test unit.
+
+This matters because you can set thresholds that signal `WARN`, `STOP`, and `NOTIFY` states based the proportion or number of failing test units.
+
+Here's a simple example that uses a single `col_vals_lt()` step along with thresholds.
+
+```{python}
+validation_3 = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_lt(columns="a", value=7, thresholds=(2, 4))
+    .interrogate()
+)
+
+validation_3
+```
+
+The code uses `thresholds=(2, 4)` to set a `WARN` threshold of `2` and a `STOP` threshold of `4`. Notice these pieces in the validation table:
+
+- The `FAIL` column shows that 2 tests units have failed
+- The `W` column (short for `WARN`) shows a filled yellow circle indicating it's reached threshold
+- The `S` column (short for `STOP`) shows an open red circle indicating it's below threshold
+
+The one final threshold, `N` (`NOTIFY`), wasn't set so appears on the validation table as a dash.
+
+Thresholds let you take action at different levels of severity. The next section discusses setting and acting on thresholds in detail.
+
+## Using Threshold Levels
+
+Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 10% NULLs in the column.
+
+```python
+validation_3 = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_not_null(columns="a", thresholds=(1, 0.1))
+    .interrogate()
+)
+
+validation_3
+```
+
+In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was used, but we can also set thresholds globally by using `Validate(thresholds=...)`.
+
+For more on thresholds, see the [Thresholds article](./thresholds.qmd).
