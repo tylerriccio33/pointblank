@@ -20,7 +20,7 @@ Let's take a Polars DataFrame and validate it against a set of constraints. We d
 ```python
 import pointblank as pb
 
-v = (
+validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use pb.Validate to start
     .col_vals_gt(columns="d", value=100)       # STEP 1 |
     .col_vals_le(columns="c", value=5)         # STEP 2 | <-- Building a validation plan
@@ -28,7 +28,7 @@ v = (
     .interrogate() # This will execute all validation steps and collect intel
 )
 
-v.get_tabular_report()
+validation
 ```
 
 <div style="text-align: center;">
