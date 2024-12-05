@@ -10,6 +10,7 @@ _Find out if your data is what you think it is._
 [![License](https://img.shields.io/github/license/rich-iannone/pointblank)](https://img.shields.io/github/license/rich-iannone/pointblank)
 
 [![CI Build](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml)
+[![Codecov branch](https://img.shields.io/codecov/c/github/rich-iannone/pointblank/main.svg)](https://codecov.io/gh/rich-iannone/pointblank)
 [![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://rich-iannone.github.io/pointblank/)
 
