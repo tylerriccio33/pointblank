@@ -189,7 +189,7 @@ def _column_test_prep(
     if check_exists:
         _check_column_exists(dfn=dfn, column=column)
 
-    # Check if the column is numeric. Raise a TypeError if not.
+    # Check if the column is of the allowed types. Raise a TypeError if not.
     if allowed_types:
         _check_column_type(dfn=dfn, column=column, allowed_types=allowed_types)
 
