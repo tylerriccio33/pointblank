@@ -459,7 +459,7 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
-        # TODO: Use this throughout the different methods
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
@@ -538,10 +538,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -619,10 +618,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -700,10 +698,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -781,10 +778,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -862,10 +858,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -953,10 +948,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         value = (left, right)
@@ -1047,10 +1041,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         value = (left, right)
@@ -1125,10 +1118,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -1197,10 +1189,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -1209,6 +1200,138 @@ class Validate:
                 assertion_type=assertion_type,
                 column=column,
                 values=set,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
+
+    def col_vals_null(
+        self,
+        columns: str | list[str],
+        pre: Callable | None = None,
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        """
+        Validate whether values in a column are NULL.
+
+        The `col_vals_null()` validation method checks whether column values in a table are NULL.
+        This validation will operate over the number of test units that is equal to the number
+        of rows in the table.
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+        assertion_type = _get_fn_name()
+
+        _check_column(column=columns)
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        for column in columns:
+
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
+                pre=pre,
+                thresholds=thresholds,
+                active=active,
+            )
+
+            self._add_validation(validation_info=val_info)
+
+        return self
+
+    def col_vals_not_null(
+        self,
+        columns: str | list[str],
+        pre: Callable | None = None,
+        thresholds: int | float | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ):
+        """
+        Validate whether values in a column are not NULL.
+
+        The `col_vals_not_null()` validation method checks whether column values in a table are not
+        NULL. This validation will operate over the number of test units that is equal to the number
+        of rows in the table.
+
+        Parameters
+        ----------
+        columns
+            A single column or a list of columns to validate. If multiple columns are supplied,
+            there will be a separate validation step generated for each column.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+        """
+        assertion_type = _get_fn_name()
+
+        _check_column(column=columns)
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        if isinstance(columns, str):
+            columns = [columns]
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        for column in columns:
+
+            val_info = _ValidationInfo(
+                assertion_type=assertion_type,
+                column=column,
                 pre=pre,
                 thresholds=thresholds,
                 active=active,
@@ -1275,10 +1398,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
@@ -1288,73 +1410,6 @@ class Validate:
                 column=column,
                 values=pattern,
                 na_pass=na_pass,
-                pre=pre,
-                thresholds=thresholds,
-                active=active,
-            )
-
-            self._add_validation(validation_info=val_info)
-
-        return self
-
-    def col_vals_not_null(
-        self,
-        columns: str | list[str],
-        pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
-        active: bool = True,
-    ):
-        """
-        Validate whether values in a column are not NULL.
-
-        The `col_vals_not_null()` validation method checks whether column values in a table are not
-        NULL. This validation will operate over the number of test units that is equal to the number
-        of rows in the table.
-
-        Parameters
-        ----------
-        columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
-            there will be a separate validation step generated for each column.
-        pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
-        thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
-        active
-            A boolean value indicating whether the validation step should be active. Using `False`
-            will make the validation step inactive (still reporting its presence and keeping indexes
-            for the steps unchanged).
-
-        Returns
-        -------
-        Validate
-            The `Validate` object with the added validation step.
-        """
-        assertion_type = _get_fn_name()
-
-        _check_column(column=columns)
-        _check_pre(pre=pre)
-        _check_thresholds(thresholds=thresholds)
-        _check_boolean_input(param=active, param_name="active")
-
-        if isinstance(columns, str):
-            columns = [columns]
-
-        thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
-        )
-
-        for column in columns:
-
-            val_info = _ValidationInfo(
-                assertion_type=assertion_type,
-                column=column,
                 pre=pre,
                 thresholds=thresholds,
                 active=active,
@@ -1408,10 +1463,9 @@ class Validate:
         if isinstance(columns, str):
             columns = [columns]
 
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
-            super().__getattribute__("thresholds")
-            if thresholds is None
-            else _normalize_thresholds_creation(thresholds)
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
         for column in columns:
