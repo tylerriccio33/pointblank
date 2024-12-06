@@ -6,6 +6,8 @@ import pandas as pd
 import polars as pl
 import ibis
 
+import great_tables as GT
+
 from pointblank.validate import Validate, _ValidationInfo, load_dataset
 from pointblank.thresholds import Thresholds
 
@@ -639,58 +641,164 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     # it is not explicitly provided (is `None`)
     v = (
         Validate(tbl, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3))
+        .col_vals_gt(columns="x", value=0)
         .col_vals_gt(columns="x", value=0, thresholds=0.5)
-        .col_vals_lt(columns="x", value=5)
-        .col_vals_eq(columns="z", value=8, thresholds=None)
-        .col_vals_ne(columns="z", value=7, thresholds=Thresholds())
-        .col_vals_ge(columns="x", value=1, thresholds=Thresholds(warn_at=0.1))
-        .col_vals_le(columns="x", value=4, thresholds=None)
-        .col_vals_between(columns="x", left=0, right=5, thresholds=None)
+        .col_vals_lt(columns="x", value=2)
+        .col_vals_lt(columns="x", value=2, thresholds=0.5)
+        .col_vals_eq(columns="z", value=4)
+        .col_vals_eq(columns="z", value=4, thresholds=0.5)
+        .col_vals_ne(columns="z", value=6)
+        .col_vals_ne(columns="z", value=6, thresholds=0.5)
+        .col_vals_ge(columns="z", value=8)
+        .col_vals_ge(columns="z", value=8, thresholds=0.5)
+        .col_vals_le(columns="z", value=10)
+        .col_vals_le(columns="z", value=10, thresholds=0.5)
+        .col_vals_between(columns="x", left=0, right=5)
+        .col_vals_between(columns="x", left=0, right=5, thresholds=0.5)
         .col_vals_outside(columns="x", left=-5, right=0)
-        .col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], thresholds=None)
+        .col_vals_outside(columns="x", left=-5, right=0, thresholds=0.5)
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5])
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], thresholds=0.5)
         .col_vals_not_in_set(columns="x", set=[5, 6, 7])
+        .col_vals_not_in_set(columns="x", set=[5, 6, 7], thresholds=0.5)
+        .col_vals_null(columns="x")
+        .col_vals_null(columns="x", thresholds=0.5)
+        .col_vals_not_null(columns="x")
+        .col_vals_not_null(columns="x", thresholds=0.5)
+        .col_exists(columns="x")
+        .col_exists(columns="x", thresholds=0.5)
         .interrogate()
     )
 
-    assert v.validation_info[0].thresholds.warn_at == 0.5
-    assert v.validation_info[0].thresholds.stop_at is None
-    assert v.validation_info[0].thresholds.notify_at is None
+    # col_vals_gt - inherited
+    assert v.validation_info[0].thresholds.warn_at == 1
+    assert v.validation_info[0].thresholds.stop_at == 2
+    assert v.validation_info[0].thresholds.notify_at == 3
 
-    assert v.validation_info[1].thresholds.warn_at == 1
-    assert v.validation_info[1].thresholds.stop_at == 2
-    assert v.validation_info[1].thresholds.notify_at == 3
+    # col_vals_gt - overridden
+    assert v.validation_info[1].thresholds.warn_at == 0.5
+    assert v.validation_info[1].thresholds.stop_at is None
+    assert v.validation_info[1].thresholds.notify_at is None
 
+    # col_vals_lt - inherited
     assert v.validation_info[2].thresholds.warn_at == 1
     assert v.validation_info[2].thresholds.stop_at == 2
     assert v.validation_info[2].thresholds.notify_at == 3
 
-    assert v.validation_info[3].thresholds.warn_at is None
+    # col_vals_lt - overridden
+    assert v.validation_info[3].thresholds.warn_at == 0.5
     assert v.validation_info[3].thresholds.stop_at is None
     assert v.validation_info[3].thresholds.notify_at is None
 
-    assert v.validation_info[4].thresholds.warn_at == 0.1
-    assert v.validation_info[4].thresholds.stop_at is None
-    assert v.validation_info[4].thresholds.notify_at is None
+    # col_vals_eq - inherited
+    assert v.validation_info[4].thresholds.warn_at == 1
+    assert v.validation_info[4].thresholds.stop_at == 2
+    assert v.validation_info[4].thresholds.notify_at == 3
 
-    assert v.validation_info[5].thresholds.warn_at == 1
-    assert v.validation_info[5].thresholds.stop_at == 2
-    assert v.validation_info[5].thresholds.notify_at == 3
+    # col_vals_eq - overridden
+    assert v.validation_info[5].thresholds.warn_at == 0.5
+    assert v.validation_info[5].thresholds.stop_at is None
+    assert v.validation_info[5].thresholds.notify_at is None
 
+    # col_vals_ne - inherited
     assert v.validation_info[6].thresholds.warn_at == 1
     assert v.validation_info[6].thresholds.stop_at == 2
     assert v.validation_info[6].thresholds.notify_at == 3
 
-    assert v.validation_info[7].thresholds.warn_at == 1
-    assert v.validation_info[7].thresholds.stop_at == 2
-    assert v.validation_info[7].thresholds.notify_at == 3
+    # col_vals_ne - overridden
+    assert v.validation_info[7].thresholds.warn_at == 0.5
+    assert v.validation_info[7].thresholds.stop_at is None
+    assert v.validation_info[7].thresholds.notify_at is None
 
+    # col_vals_ge - inherited
     assert v.validation_info[8].thresholds.warn_at == 1
     assert v.validation_info[8].thresholds.stop_at == 2
     assert v.validation_info[8].thresholds.notify_at == 3
 
-    assert v.validation_info[9].thresholds.warn_at == 1
-    assert v.validation_info[9].thresholds.stop_at == 2
-    assert v.validation_info[9].thresholds.notify_at == 3
+    # col_vals_ge - overridden
+    assert v.validation_info[9].thresholds.warn_at == 0.5
+    assert v.validation_info[9].thresholds.stop_at is None
+    assert v.validation_info[9].thresholds.notify_at is None
+
+    # col_vals_le - inherited
+    assert v.validation_info[10].thresholds.warn_at == 1
+    assert v.validation_info[10].thresholds.stop_at == 2
+    assert v.validation_info[10].thresholds.notify_at == 3
+
+    # col_vals_le - overridden
+    assert v.validation_info[11].thresholds.warn_at == 0.5
+    assert v.validation_info[11].thresholds.stop_at is None
+    assert v.validation_info[11].thresholds.notify_at is None
+
+    # col_vals_between - inherited
+    assert v.validation_info[12].thresholds.warn_at == 1
+    assert v.validation_info[12].thresholds.stop_at == 2
+    assert v.validation_info[12].thresholds.notify_at == 3
+
+    # col_vals_between - overridden
+    assert v.validation_info[13].thresholds.warn_at == 0.5
+    assert v.validation_info[13].thresholds.stop_at is None
+    assert v.validation_info[13].thresholds.notify_at is None
+
+    # col_vals_outside - inherited
+    assert v.validation_info[14].thresholds.warn_at == 1
+    assert v.validation_info[14].thresholds.stop_at == 2
+    assert v.validation_info[14].thresholds.notify_at == 3
+
+    # col_vals_outside - overridden
+    assert v.validation_info[15].thresholds.warn_at == 0.5
+    assert v.validation_info[15].thresholds.stop_at is None
+    assert v.validation_info[15].thresholds.notify_at is None
+
+    # col_vals_in_set - inherited
+    assert v.validation_info[16].thresholds.warn_at == 1
+    assert v.validation_info[16].thresholds.stop_at == 2
+    assert v.validation_info[16].thresholds.notify_at == 3
+
+    # col_vals_in_set - overridden
+    assert v.validation_info[17].thresholds.warn_at == 0.5
+    assert v.validation_info[17].thresholds.stop_at is None
+    assert v.validation_info[17].thresholds.notify_at is None
+
+    # col_vals_not_in_set - inherited
+    assert v.validation_info[18].thresholds.warn_at == 1
+    assert v.validation_info[18].thresholds.stop_at == 2
+    assert v.validation_info[18].thresholds.notify_at == 3
+
+    # col_vals_not_in_set - overridden
+    assert v.validation_info[19].thresholds.warn_at == 0.5
+    assert v.validation_info[19].thresholds.stop_at is None
+    assert v.validation_info[19].thresholds.notify_at is None
+
+    # col_vals_null - inherited
+    assert v.validation_info[20].thresholds.warn_at == 1
+    assert v.validation_info[20].thresholds.stop_at == 2
+    assert v.validation_info[20].thresholds.notify_at == 3
+
+    # col_vals_null - overridden
+    assert v.validation_info[21].thresholds.warn_at == 0.5
+    assert v.validation_info[21].thresholds.stop_at is None
+    assert v.validation_info[21].thresholds.notify_at is None
+
+    # col_vals_not_null - inherited
+    assert v.validation_info[22].thresholds.warn_at == 1
+    assert v.validation_info[22].thresholds.stop_at == 2
+    assert v.validation_info[22].thresholds.notify_at == 3
+
+    # col_vals_not_null - overridden
+    assert v.validation_info[23].thresholds.warn_at == 0.5
+    assert v.validation_info[23].thresholds.stop_at is None
+    assert v.validation_info[23].thresholds.notify_at is None
+
+    # col_exists - inherited
+    assert v.validation_info[24].thresholds.warn_at == 1
+    assert v.validation_info[24].thresholds.stop_at == 2
+    assert v.validation_info[24].thresholds.notify_at == 3
+
+    # col_exists - overridden
+    assert v.validation_info[25].thresholds.warn_at == 0.5
+    assert v.validation_info[25].thresholds.stop_at is None
+    assert v.validation_info[25].thresholds.notify_at is None
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -976,6 +1084,73 @@ def test_col_vals_not_in_set(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 4
     )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_col_vals_regex(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(tbl)
+        .col_vals_regex(columns="text", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_regex(columns="text", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}", na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_regex(columns="text", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$", na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_col_vals_null(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_null(columns="text").interrogate().n_passed(i=1)[1] == 1
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_col_vals_not_null(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_vals_not_null(columns="text").interrogate().n_passed(i=1)[1] == 2
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_col_exists(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_exists(columns="text").interrogate().n_passed(i=1)[1] == 1
+    assert Validate(tbl).col_exists(columns="invalid").interrogate().n_passed(i=1)[1] == 0
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_types(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    validation = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
+
+    # Check that the `validation` object is a Validate object
+    assert isinstance(validation, Validate)
+
+    # Check that using the `get_tabular_report()` returns a GT object
+    assert isinstance(validation.get_tabular_report(), GT.GT)
 
 
 def test_load_dataset():
