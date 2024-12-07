@@ -236,22 +236,26 @@ class Interrogator:
 
             import ibis
 
-            tbl = self.x
+            low_val = ibis.literal(self.low)
+            high_val = ibis.literal(self.high)
 
-            # TODO: The `between()` method in Ibis always uses inclusive bounds, provide a warning
-            # or include documentation on the fact that the bounds are inclusive and that the
-            # `inclusive=` parameter is ignored
-
-            tbl = tbl.mutate(
-                pb_is_good_1=tbl[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=tbl[self.column].between(lower=self.low, upper=self.high),
+            tbl = self.x.mutate(
+                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass)
             )
 
-            tbl = tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
+            if self.inclusive[0]:
+                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] >= low_val)
+            else:
+                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] > low_val)
 
-            return tbl
+            if self.inclusive[1]:
+                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] <= high_val)
+            else:
+                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] < high_val)
+
+            return tbl.mutate(
+                pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
+            ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
         closed = get_nw_closed_str(closed=self.inclusive)
 
@@ -271,26 +275,26 @@ class Interrogator:
 
             import ibis
 
-            tbl = self.x
+            low_val = ibis.literal(self.low)
+            high_val = ibis.literal(self.high)
 
-            # TODO: The `between()` method in Ibis always uses inclusive bounds, provide a warning
-            # or include documentation on the fact that the bounds are inclusive and that the
-            # `inclusive=` parameter is ignored
-
-            tbl = tbl.mutate(
-                pb_is_good_1=tbl[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=ibis.ifelse(
-                    tbl[self.column].notnull(),
-                    ~tbl[self.column].between(lower=self.low, upper=self.high),
-                    ibis.literal(False),
-                ),
+            tbl = self.x.mutate(
+                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass)
             )
 
-            tbl = tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
+            if self.inclusive[0]:
+                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] < low_val)
+            else:
+                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] <= low_val)
 
-            return tbl
+            if self.inclusive[1]:
+                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] > high_val)
+            else:
+                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] >= high_val)
+
+            return tbl.mutate(
+                pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2 | tbl.pb_is_good_3
+            ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
         closed = get_nw_closed_str(closed=self.inclusive)
 

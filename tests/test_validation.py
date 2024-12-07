@@ -906,36 +906,34 @@ def test_col_vals_between(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 1
     )
-
-    if tbl_fixture not in ["tbl_missing_parquet", "tbl_missing_duckdb", "tbl_missing_sqlite"]:
-        assert (
-            Validate(tbl)
-            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 3
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 3
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 2
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 1
-        )
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -976,36 +974,34 @@ def test_col_vals_outside(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 1
     )
-
-    if tbl_fixture not in ["tbl_missing_parquet", "tbl_missing_duckdb", "tbl_missing_sqlite"]:
-        assert (
-            Validate(tbl)
-            .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 3
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 3
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 3
-        )
-        assert (
-            Validate(tbl)
-            .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
-            .interrogate()
-            .n_passed(i=1)[1]
-            == 2
-        )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
