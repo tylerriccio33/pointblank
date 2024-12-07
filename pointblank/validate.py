@@ -2251,6 +2251,10 @@ class Validate:
             elif assertion_type[i] in ["col_vals_in_set", "col_vals_not_in_set"]:
                 values_upd.append(str(value)[1:-1].replace("'", ""))
 
+            # If the assertion type checks for NULL or not NULL values, use an em dash
+            elif assertion_type[i] in ["col_vals_null", "col_vals_not_null"]:
+                values_upd.append("&mdash;")
+
             # If the assertion type is not recognized, add the value as a string
             else:
                 values_upd.append(str(value))
