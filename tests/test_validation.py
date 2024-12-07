@@ -1151,6 +1151,55 @@ def test_validation_types(request, tbl_fixture):
     assert isinstance(validation.get_tabular_report(), GT.GT)
 
 
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_interrogate_raise_on_get_first_and_sample(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(columns="z", value=10).interrogate(get_first_n=2, sample_n=4)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(columns="z", value=10).interrogate(get_first_n=2, sample_frac=0.5)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_gt(columns="z", value=10).interrogate(sample_n=2, sample_frac=0.5)
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_interrogate_with_active_inactive(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    validation = (
+        Validate(tbl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_lt(columns="y", value=10, active=False)
+        .interrogate()
+    )
+
+    assert validation.validation_info[0].active is True
+    assert validation.validation_info[1].active is False
+    assert validation.validation_info[0].proc_duration_s is not None
+    assert validation.validation_info[1].proc_duration_s is not None
+    assert validation.validation_info[0].time_processed is not None
+    assert validation.validation_info[1].time_processed is not None
+    assert validation.validation_info[0].all_passed is True
+    assert validation.validation_info[1].all_passed is None
+    assert validation.validation_info[0].n == 4
+    assert validation.validation_info[1].n is None
+    assert validation.validation_info[0].n_passed == 4
+    assert validation.validation_info[1].n_passed is None
+    assert validation.validation_info[0].n_failed == 0
+    assert validation.validation_info[1].n_failed is None
+    assert validation.validation_info[0].warn is None
+    assert validation.validation_info[1].warn is None
+    assert validation.validation_info[0].stop is None
+    assert validation.validation_info[1].stop is None
+    assert validation.validation_info[0].notify is None
+    assert validation.validation_info[1].notify is None
+    assert validation.validation_info[1].extract is None
+    assert validation.validation_info[1].extract is None
+
+
 def test_load_dataset():
 
     # Load the default dataset (`small_table`) and verify it's a Polars DataFrame
