@@ -399,7 +399,7 @@ class Validate:
 
     def _repr_html_(self) -> str:
 
-        return self.get_tabular_report()._repr_html_()
+        return self.get_tabular_report()._repr_html_()  # pragma: no cover
 
     def col_vals_gt(
         self,
