@@ -1164,6 +1164,27 @@ def test_interrogate_raise_on_get_first_and_sample(request, tbl_fixture):
         Validate(tbl).col_vals_gt(columns="z", value=10).interrogate(sample_n=2, sample_frac=0.5)
 
 
+def test_get_data_extracts(tbl_missing_pd):
+
+    validation = (
+        Validate(tbl_missing_pd)
+        .col_vals_gt(columns="x", value=1)
+        .col_vals_lt(columns="y", value=10)
+        .interrogate()
+    )
+
+    extracts_all = validation.get_data_extracts()
+    extracts_1 = validation.get_data_extracts(i=1)
+    extracts_2 = validation.get_data_extracts(i=2)
+
+    assert isinstance(extracts_all, dict)
+    assert isinstance(extracts_1, dict)
+    assert isinstance(extracts_2, dict)
+    assert len(extracts_all) == 2
+    assert len(extracts_1) == 1
+    assert len(extracts_2) == 1
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_interrogate_with_active_inactive(request, tbl_fixture):
 
