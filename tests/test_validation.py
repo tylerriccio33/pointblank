@@ -1,5 +1,7 @@
 import pathlib
 
+import sys
+from unittest.mock import patch
 import pytest
 
 import pandas as pd
@@ -1182,3 +1184,21 @@ def test_load_dataset_invalid():
     # A ValueError is raised when an invalid table type is provided
     with pytest.raises(ValueError):
         load_dataset(tbl_type="invalid_tbl_type")
+
+
+def test_load_dataset_no_pandas():
+
+    # Mock the absence of the pandas library
+    with patch.dict(sys.modules, {"pandas": None}):
+        # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
+        with pytest.raises(ImportError):
+            load_dataset(tbl_type="pandas")
+
+
+def test_load_dataset_no_polars():
+
+    # Mock the absence of the polars library
+    with patch.dict(sys.modules, {"polars": None}):
+        # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
+        with pytest.raises(ImportError):
+            load_dataset(tbl_type="polars")
