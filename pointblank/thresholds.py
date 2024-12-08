@@ -14,13 +14,13 @@ class Thresholds:
     ----------
     warn_at
         The threshold for the 'warn' level. This can be an absolute count or a fraction of the
-        total.
+        total. Using `True` will set this threshold to 1.
     stop_at
         The threshold for the 'stop' level. This can be an absolute count or a fraction of the
-        total.
+        total. Using `True` will set this threshold to 1.
     notify_at
         The threshold for the 'notify' level. This can be an absolute count or a fraction of the
-        total.
+        total. Using `True` will set this threshold to 1.
 
     Returns
     -------
@@ -30,9 +30,9 @@ class Thresholds:
         values are scoped to individual validation steps, overriding any global thresholds).
     """
 
-    warn_at: int | float | None = None
-    stop_at: int | float | None = None
-    notify_at: int | float | None = None
+    warn_at: int | float | bool | None = None
+    stop_at: int | float | bool | None = None
+    notify_at: int | float | bool | None = None
 
     warn_fraction: float | None = field(default=None, init=False)
     warn_count: int | None = field(default=None, init=False)
