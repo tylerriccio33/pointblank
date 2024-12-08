@@ -2224,7 +2224,7 @@ class Validate:
         interrogation_performed = validation_info_dict.get("proc_duration_s", [None])[0] is not None
 
         # ------------------------------------------------
-        # Process the `type` entry
+        # Process the `type_upd` entry
         # ------------------------------------------------
 
         # Add the `type_upd` entry to the dictionary
@@ -2233,7 +2233,7 @@ class Validate:
         )
 
         # ------------------------------------------------
-        # Process the `values` entry
+        # Process the `values_upd` entry
         # ------------------------------------------------
 
         # Here, `values` will be transformed in ways particular to the assertion type (e.g.,
@@ -2274,7 +2274,7 @@ class Validate:
                 values_upd.append(str(value)[1:-1].replace("'", ""))
 
             # If the assertion type checks for NULL or not NULL values, use an em dash
-            elif assertion_type[i] in ["col_vals_null", "col_vals_not_null"]:
+            elif assertion_type[i] in ["col_vals_null", "col_vals_not_null", "col_exists"]:
                 values_upd.append("&mdash;")
 
             # If the assertion type is not recognized, add the value as a string
@@ -2611,6 +2611,10 @@ class Validate:
             .tab_style(
                 style=style.text(color="transparent", size="0px"),
                 locations=loc.body(columns="status_color"),
+            )
+            .tab_style(
+                style=style.css("white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"),
+                locations=loc.body(columns=["column", "values_upd"]),
             )
             .cols_label(
                 cases={
