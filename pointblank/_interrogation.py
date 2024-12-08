@@ -257,7 +257,7 @@ class Interrogator:
                 pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
             ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
-        closed = get_nw_closed_str(closed=self.inclusive)
+        closed = _get_nw_closed_str(closed=self.inclusive)
 
         return (
             self.x.with_columns(
@@ -296,7 +296,7 @@ class Interrogator:
                 pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2 | tbl.pb_is_good_3
             ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
-        closed = get_nw_closed_str(closed=self.inclusive)
+        closed = _get_nw_closed_str(closed=self.inclusive)
 
         return (
             self.x.with_columns(
@@ -895,7 +895,7 @@ class NumberOfTestUnits:
             return self.df.count().to_polars()
 
 
-def get_nw_closed_str(closed: tuple[bool, bool]) -> str:
+def _get_nw_closed_str(closed: tuple[bool, bool]) -> str:
     """
     Get the string representation of the closed bounds for the `is_between` method in Narwhals.
     """
