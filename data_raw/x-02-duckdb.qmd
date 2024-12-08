@@ -4,6 +4,7 @@ html-table-processing: none
 ---
 
 ```{python}
+import pointblank as pb
 import polars as pl
 import duckdb
 
@@ -18,6 +19,8 @@ tbl_dates_times_text = pl.DataFrame(
         "text": [None, "5-egh-163", "8-kdg-938"],
     }
 )
+small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
+game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="polars")
 ```
 
 
@@ -40,5 +43,19 @@ with duckdb.connect(database="tbl_xyz_missing.ddb", read_only=False) as con:
 with duckdb.connect(database="tbl_dates_times_text.ddb", read_only=False) as con:
     con.execute(f"""
         CREATE TABLE IF NOT EXISTS 'tbl_dates_times_text' AS SELECT * FROM tbl_dates_times_text;
+    """)
+```
+
+```{python}
+with duckdb.connect(database="small_table.ddb", read_only=False) as con:
+    con.execute(f"""
+        CREATE TABLE IF NOT EXISTS 'small_table' AS SELECT * FROM small_table;
+    """)
+```
+
+```{python}
+with duckdb.connect(database="game_revenue.ddb", read_only=False) as con:
+    con.execute(f"""
+        CREATE TABLE IF NOT EXISTS 'game_revenue' AS SELECT * FROM game_revenue;
     """)
 ```
