@@ -334,7 +334,7 @@ def test_get_fn_name():
     assert get_name() == "get_name"
 
 
-def _get_assertion_from_fname():
+def test_get_assertion_from_fname():
 
     def col_vals_gt():
         return _get_assertion_from_fname()
