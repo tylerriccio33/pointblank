@@ -287,7 +287,7 @@ class Validate:
         accordingly when exceeding the set levels. This is to be created using one of several valid
         input schemes: (1) single integer/float denoting absolute number or fraction of failing test
         units for the 'warn' level, (2) a tuple of 1-3 values, (3) a dictionary of 1-3 entries, or a
-        Thresholds object.
+        `Thresholds` object.
 
     Returns
     -------
@@ -367,11 +367,10 @@ class Validate:
     )
     ```
 
-    The `validation` object can be printed as a reporting table with the `get_tabular_report()`
-    method.
+    The `validation` object can be printed as a reporting table.
 
     ```{python}
-    validation.get_tabular_report()
+    validation
     ```
     """
 
