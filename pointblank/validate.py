@@ -2622,9 +2622,9 @@ class Validate:
                     "i": "",
                     "type_upd": "STEP",
                     "column": "COLUMNS",
+                    "values_upd": "VALUES",
                     "tbl": "TBL",
                     "eval": "EVAL",
-                    "values_upd": "VALUES",
                     "test_units": "UNITS",
                     "pass": "PASS",
                     "fail": "FAIL",
@@ -2821,26 +2821,6 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     return validation_info_dict
 
 
-def _transform_w_s_n(values, color, interrogation_performed):
-
-    # If no interrogation was performed, return a list of empty strings
-    if not interrogation_performed:
-        return ["" for _ in range(len(values))]
-
-    return [
-        (
-            "&mdash;"
-            if value is None
-            else (
-                f'<span style="color: {color};">&#9679;</span>'
-                if value is True
-                else f'<span style="color: {color};">&cir;</span>' if value is False else value
-            )
-        )
-        for value in values
-    ]
-
-
 def _get_assertion_icon(icon: list[str] | None, length_val: int = 30) -> list[str]:
 
     # If icon is None, return an empty list
@@ -2855,6 +2835,14 @@ def _get_assertion_icon(icon: list[str] | None, length_val: int = 30) -> list[st
         icon_svg[i] = _replace_svg_dimensions(icon_svg[i], height_width=length_val)
 
     return icon_svg
+
+
+def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
+
+    svg = re.sub(r'width="[0-9]*?px', f'width="{height_width}px', svg)
+    svg = re.sub(r'height="[0-9]*?px', f'height="{height_width}px', svg)
+
+    return svg
 
 
 def _get_title_text(title: str | None, tbl_name: str | None, interrogation_performed: bool) -> str:
@@ -2902,14 +2890,6 @@ def _process_title_text(title: str | None, tbl_name: str | None) -> str:
 
 def _get_default_title_text() -> str:
     return "Pointblank Validation"
-
-
-def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
-
-    svg = re.sub(r'width="[0-9]*?px', f'width="{height_width}px', svg)
-    svg = re.sub(r'height="[0-9]*?px', f'height="{height_width}px', svg)
-
-    return svg
 
 
 def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
@@ -2963,7 +2943,22 @@ def _transform_test_units(
     if not interrogation_performed:
         return ["" for _ in range(len(test_units))]
 
-    return [str(test_units[i]) if active[i] else "&mdash;" for i in range(len(test_units))]
+    return [
+        (
+            (
+                str(test_units[i])
+                if test_units[i] < 10000
+                else str(vals.fmt_number(test_units[i], n_sigfig=3, compact=True)[0])
+            )
+            if active[i]
+            else "&mdash;"
+        )
+        for i in range(len(test_units))
+    ]
+
+
+def _fmt_lg(value: int) -> str:
+    return vals.fmt_number(value, n_sigfig=3, compact=True)[0]
 
 
 def _transform_passed_failed(
@@ -2978,7 +2973,8 @@ def _transform_passed_failed(
 
     passed_failed = [
         (
-            f"{n_passed_failed[i]}<br />{vals.fmt_number(f_passed_failed[i], decimals=2)[0]}"
+            f"{n_passed_failed[i] if n_passed_failed[i] < 10000 else _fmt_lg(n_passed_failed[i])}"
+            f"<br />{vals.fmt_number(f_passed_failed[i], decimals=2)[0]}"
             if active[i]
             else "&mdash;"
         )
@@ -2986,6 +2982,26 @@ def _transform_passed_failed(
     ]
 
     return passed_failed
+
+
+def _transform_w_s_n(values, color, interrogation_performed):
+
+    # If no interrogation was performed, return a list of empty strings
+    if not interrogation_performed:
+        return ["" for _ in range(len(values))]
+
+    return [
+        (
+            "&mdash;"
+            if value is None
+            else (
+                f'<span style="color: {color};">&#9679;</span>'
+                if value is True
+                else f'<span style="color: {color};">&cir;</span>' if value is False else value
+            )
+        )
+        for value in values
+    ]
 
 
 def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
