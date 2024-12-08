@@ -56,8 +56,8 @@ __all__ = ["Validate"]
 
 def load_dataset(
     dataset: Literal["small_table", "game_revenue"] = "small_table",
-    tbl_type: Literal["polars", "pandas"] = "polars",
-) -> FrameT:
+    tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
+) -> FrameT | Any:
     """
     Load a dataset hosted in the library as specified DataFrame type.
 
@@ -66,13 +66,14 @@ def load_dataset(
     dataset
         The name of the dataset to load. Current options are `"small_table"` and `"game_revenue"`.
     tbl_type
-        The type of DataFrame to generate from the dataset. The named options are `"polars"` and
-        `"pandas"`.
+        The type of DataFrame to generate from the dataset. The named options are `"polars"`,
+        `"pandas"`, and `"duckdb"`.
 
     Returns
     -------
-    FrameT
-        The dataset for the `Validate` object.
+    FrameT | Any
+        The dataset for the `Validate` object. This could be a Polars DataFrame, a Pandas DataFrame,
+        or a DuckDB table as an Ibis table.
 
     Examples
     --------
@@ -108,19 +109,15 @@ def load_dataset(
         )
 
     # Raise an error if the `tbl_type=` value is not of the supported types
-    if tbl_type not in ["polars", "pandas"]:
+    if tbl_type not in ["polars", "pandas", "duckdb"]:
         raise ValueError(
             f"The DataFrame type `{tbl_type}` is not valid. Choose one of the following:\n"
             "- `polars`\n"
-            "- `pandas`"
+            "- `pandas`\n"
+            "- `duckdb`"
         )
 
     data_path = files("pointblank.data") / f"{dataset}.zip"
-
-    parse_date_columns = {
-        "small_table": ["date_time", "date"],
-        "game_revenue": ["session_start", "time", "start_day"],
-    }
 
     if tbl_type == "polars":
 
@@ -144,7 +141,33 @@ def load_dataset(
 
         import pandas as pd
 
+        parse_date_columns = {
+            "small_table": ["date_time", "date"],
+            "game_revenue": ["session_start", "time", "start_day"],
+        }
+
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
+
+    if tbl_type == "duckdb":
+
+        if not _is_lib_present(lib_name="ibis"):
+            raise ImportError(
+                "The Ibis library is not installed but is required when specifying "
+                '`tbl_type="duckdb".'
+            )
+
+        import ibis
+
+        data_path = files("pointblank.data") / f"{dataset}-duckdb.zip"
+
+        # Unzip the DuckDB dataset to a temporary directory
+        with ZipFile(data_path, "r") as z:
+
+            z.extractall(path="datasets")
+
+            data_path = f"datasets/{dataset}.ddb"
+
+            dataset = ibis.connect(f"duckdb://{data_path}").table(dataset)
 
     return dataset
 
