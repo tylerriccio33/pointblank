@@ -12,20 +12,26 @@ from pointblank.thresholds import Thresholds
 
 
 def test_check_boolean_input():
+
     assert _check_boolean_input(param=True, param_name="test") is None
+
     with pytest.raises(ValueError):
         _check_boolean_input(param="not a boolean", param_name="test")
 
 
 def test_check_column():
+
     assert _check_column(column="test") is None
+
     with pytest.raises(ValueError):
         _check_column(column=123)
 
 
 def test_check_value_float_int():
+
     assert _check_value_float_int(value=1.0) is None
     assert _check_value_float_int(value=1) is None
+
     with pytest.raises(ValueError):
         _check_value_float_int(value="not a number")
     with pytest.raises(ValueError):
@@ -33,9 +39,13 @@ def test_check_value_float_int():
 
 
 def test_check_set_types():
+
     assert _check_set_types(set=[1.0, 1, "test"]) is None
     assert _check_set_types(set=(1.0, 1, "test")) is None
     assert _check_set_types(set={1.0, 1, "test"}) is None
+
+    with pytest.raises(ValueError):
+        _check_set_types(set=[1.0, 1, Thresholds])
     with pytest.raises(ValueError):
         _check_set_types(set=[1.0, 1, True])
 
