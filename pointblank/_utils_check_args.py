@@ -62,7 +62,7 @@ def _check_value_float_int(value: float | int):
     ValueError
         When `value` is not a float or integer.
     """
-    if not isinstance(value, (float, int)):
+    if not isinstance(value, (float, int)) or isinstance(value, bool):
         raise ValueError("`value=` must be a float or integer.")
 
 
@@ -82,6 +82,9 @@ def _check_set_types(set: list[float | int | str]):
     """
     if not all(isinstance(value, (float, int, str)) for value in set):
         raise ValueError("`set=` must be a list of floats, integers, or strings.")
+
+    if any(isinstance(value, bool) for value in set):
+        raise ValueError("`set=` must not contain boolean values.")
 
 
 def _check_pre(pre: Callable | None):
