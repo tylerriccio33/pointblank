@@ -377,7 +377,7 @@ class Validate:
     data: FrameT
     tbl_name: str | None = None
     label: str | None = None
-    thresholds: int | float | tuple | dict | Thresholds | None = None
+    thresholds: int | float | bool | tuple | dict | Thresholds | None = None
 
     def __post_init__(self):
 
@@ -406,7 +406,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -485,7 +485,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -564,7 +564,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -644,7 +644,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -724,7 +724,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -804,7 +804,7 @@ class Validate:
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -886,7 +886,7 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -979,7 +979,7 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1069,7 +1069,7 @@ class Validate:
         columns: str | list[str],
         set: list[float | int],
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1142,7 +1142,7 @@ class Validate:
         columns: str | list[str],
         set: list[float | int],
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1212,7 +1212,7 @@ class Validate:
         self,
         columns: str | list[str],
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1278,7 +1278,7 @@ class Validate:
         self,
         columns: str | list[str],
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1346,7 +1346,7 @@ class Validate:
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
@@ -1421,7 +1421,7 @@ class Validate:
     def col_exists(
         self,
         columns: str | list[str],
-        thresholds: int | float | tuple | dict | Thresholds = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ):
         """
