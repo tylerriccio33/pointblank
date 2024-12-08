@@ -25,6 +25,8 @@ def test_check_column():
 
     with pytest.raises(ValueError):
         _check_column(column=123)
+    with pytest.raises(ValueError):
+        _check_column(column=[1.0, 3.0])
 
 
 def test_check_value_float_int():
