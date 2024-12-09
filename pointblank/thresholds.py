@@ -73,6 +73,10 @@ class Thresholds:
         # 3. zero
         # 4. None
 
+        # If the threshold is zero, return 0
+        if getattr(self, f"{level}_count") == 0:
+            return 0
+
         # If the threshold is a fraction, return the fraction
         if getattr(self, f"{level}_fraction") is not None:
             return getattr(self, f"{level}_fraction")
@@ -80,10 +84,6 @@ class Thresholds:
         # If the threshold is an absolute count, return the count
         if getattr(self, f"{level}_count") is not None:
             return getattr(self, f"{level}_count")
-
-        # If the threshold is zero, return 0
-        if getattr(self, f"{level}_count") == 0:
-            return 0
 
         # The final case is where the threshold is None, so None is returned
         return None
