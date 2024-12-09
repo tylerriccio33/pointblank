@@ -186,9 +186,9 @@ def test_threshold_result_absolute(fraction_failing, test_units, level, expected
 def test_threshold_result_zero(level):
     t = Thresholds(warn_at=0, stop_at=0, notify_at=0)
 
-    assert t._threshold_result(fraction_failing=0, test_units=100, level=level) == True
-    assert t._threshold_result(fraction_failing=0.1, test_units=100, level=level) == True
-    assert t._threshold_result(fraction_failing=1.5, test_units=100, level=level) == True
+    assert t._threshold_result(fraction_failing=0, test_units=100, level=level) is True
+    assert t._threshold_result(fraction_failing=0.1, test_units=100, level=level) is True
+    assert t._threshold_result(fraction_failing=1.5, test_units=100, level=level) is True
 
 
 @pytest.mark.parametrize(
@@ -257,7 +257,7 @@ def test_normalize_thresholds_creation():
     )
 
     # Use of a tuple will vary depending on the length of the tuple
-    assert _normalize_thresholds_creation(thresholds=(1)) == Thresholds(
+    assert _normalize_thresholds_creation(thresholds=(1,)) == Thresholds(
         warn_at=1, stop_at=None, notify_at=None
     )
     assert _normalize_thresholds_creation(thresholds=(0.2, 20)) == Thresholds(
@@ -316,8 +316,8 @@ def test_normalize_thresholds_creation():
 
 def test_threshold_check():
 
-    assert _threshold_check(failing_test_units=6, threshold=5) == False
-    assert _threshold_check(failing_test_units=5, threshold=5) == False
-    assert _threshold_check(failing_test_units=4, threshold=5) == True
-    assert _threshold_check(failing_test_units=0, threshold=0) == False
-    assert _threshold_check(failing_test_units=80, threshold=None) == False
+    assert _threshold_check(failing_test_units=6, threshold=5) is False
+    assert _threshold_check(failing_test_units=5, threshold=5) is False
+    assert _threshold_check(failing_test_units=4, threshold=5) is True
+    assert _threshold_check(failing_test_units=0, threshold=0) is False
+    assert _threshold_check(failing_test_units=80, threshold=None) is False
