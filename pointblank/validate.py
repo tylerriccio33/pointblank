@@ -148,7 +148,7 @@ def load_dataset(
 
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
 
-    if tbl_type == "duckdb":
+    if tbl_type == "duckdb":  # pragma: no cover
 
         if not _is_lib_present(lib_name="ibis"):
             raise ImportError(
