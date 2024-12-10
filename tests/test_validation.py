@@ -830,6 +830,22 @@ def test_validation_with_preprocessing_pd_use_nw(tbl_pd):
     assert v.n_passed()[2] == 4
 
 
+def test_validation_with_preprocessing_with_fn_pd(tbl_pd):
+
+    def multiply_z_by_two(df):
+        return df.assign(z=df["z"] * 2)
+
+    v = (
+        Validate(tbl_pd)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=multiply_z_by_two)
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
 def test_validation_with_preprocessing_pl(tbl_pl):
 
     v = (
@@ -849,6 +865,22 @@ def test_validation_with_preprocessing_pl_use_nw(tbl_pl):
         Validate(tbl_pl)
         .col_vals_eq(columns="z", value=8)
         .col_vals_eq(columns="z", value=16, pre=lambda dfn: dfn.with_columns(z=nw.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+def test_validation_with_preprocessing_with_fn_pl(tbl_pl):
+
+    def multiply_z_by_two(df):
+        return df.with_columns(z=pl.col("z") * 2)
+
+    v = (
+        Validate(tbl_pl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=multiply_z_by_two)
         .interrogate()
     )
 
