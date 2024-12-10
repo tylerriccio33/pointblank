@@ -1,6 +1,6 @@
 try:
     from importlib.metadata import version, PackageNotFoundError
-except ImportError:
+except ImportError:  # pragma: no cover
     from importlib_metadata import version, PackageNotFoundError
 
 try:  # pragma: no cover
