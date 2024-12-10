@@ -22,6 +22,7 @@ def test_check_boolean_input():
 def test_check_column():
 
     assert _check_column(column="test") is None
+    assert _check_column(column=["one", "two", "three"]) is None
 
     with pytest.raises(ValueError):
         _check_column(column=123)
