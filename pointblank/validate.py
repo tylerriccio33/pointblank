@@ -1629,6 +1629,10 @@ class Validate:
                         # Convert the table back to its original format
                         data_tbl_step = nw.to_native(data_tbl_step)
 
+                    else:
+                        # Apply the pre-processing function to the table
+                        data_tbl_step = validation.pre(data_tbl_step)
+
                 # If the pre-processing function is a named function, apply it to the table
                 elif isinstance(validation.pre, str):
                     data_tbl_step = globals()[validation.pre](data_tbl_step)
