@@ -9,6 +9,7 @@ import polars as pl
 import ibis
 
 import great_tables as GT
+import narwhals as nw
 
 from pointblank.validate import Validate, _ValidationInfo, load_dataset
 from pointblank.thresholds import Thresholds
@@ -801,6 +802,58 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     assert v.validation_info[25].thresholds.warn_at == 0.5
     assert v.validation_info[25].thresholds.stop_at is None
     assert v.validation_info[25].thresholds.notify_at is None
+
+
+def test_validation_with_preprocessing_pd(tbl_pd):
+
+    v = (
+        Validate(tbl_pd)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda df: df.assign(z=df["z"] * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+def test_validation_with_preprocessing_pd_use_nw(tbl_pd):
+
+    v = (
+        Validate(tbl_pd)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda dfn: dfn.with_columns(z=nw.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+def test_validation_with_preprocessing_pl(tbl_pl):
+
+    v = (
+        Validate(tbl_pl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda df: df.with_columns(z=pl.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+def test_validation_with_preprocessing_pl_use_nw(tbl_pl):
+
+    v = (
+        Validate(tbl_pl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda dfn: dfn.with_columns(z=nw.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
