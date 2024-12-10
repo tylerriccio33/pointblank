@@ -121,3 +121,4 @@ docs/reference
 docs/objects.json
 
 datasets/
+/*.parquet
