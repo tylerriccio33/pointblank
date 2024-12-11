@@ -1198,6 +1198,85 @@ def test_col_vals_regex(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_interrogate_first_n(request, tbl_fixture):
+
+    if tbl_fixture not in [
+        "tbl_dates_times_text_parquet",
+        "tbl_dates_times_text_duckdb",
+        "tbl_dates_times_text_sqlite",
+    ]:
+
+        tbl = request.getfixturevalue(tbl_fixture)
+
+        validation = (
+            Validate(tbl)
+            .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
+            .interrogate(get_first_n=2)
+        )
+
+        # Expect that the extracts table has 2 entries out of 3 failures
+        assert validation.n_failed(i=1)[1] == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 2
+        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
+def test_interrogate_sample_n(request, tbl_fixture):
+
+    if tbl_fixture not in [
+        "tbl_dates_times_text_parquet",
+        "tbl_dates_times_text_duckdb",
+        "tbl_dates_times_text_sqlite",
+    ]:
+
+        tbl = request.getfixturevalue(tbl_fixture)
+
+        validation = (
+            Validate(tbl)
+            .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
+            .interrogate(sample_n=2)
+        )
+
+        # Expect that the extracts table has 2 entries out of 3 failures
+        assert validation.n_failed(i=1)[1] == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 2
+        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture, sample_frac, expected",
+    [
+        ("tbl_dates_times_text_pd", 0, 0),
+        # ("tbl_dates_times_text_pd", 0.20, 1), # sampling is different in Pandas DFs
+        ("tbl_dates_times_text_pd", 0.35, 1),
+        # ("tbl_dates_times_text_pd", 0.50, 2), # sampling is different in Pandas DFs
+        ("tbl_dates_times_text_pd", 0.75, 2),
+        ("tbl_dates_times_text_pd", 1.00, 3),
+        ("tbl_dates_times_text_pl", 0, 0),
+        ("tbl_dates_times_text_pl", 0.20, 0),
+        ("tbl_dates_times_text_pl", 0.35, 1),
+        ("tbl_dates_times_text_pl", 0.50, 1),
+        ("tbl_dates_times_text_pl", 0.75, 2),
+        ("tbl_dates_times_text_pl", 1.00, 3),
+    ],
+)
+def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    validation = (
+        Validate(tbl)
+        .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
+        .interrogate(sample_frac=sample_frac)
+    )
+
+    # Expect that the extracts table has 2 entries out of 3 failures
+    assert validation.n_failed(i=1)[1] == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == expected
+    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_vals_null(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
