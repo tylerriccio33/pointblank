@@ -76,6 +76,8 @@ def test_col_vals_compare_one(request, tbl_fixture, assertion_method):
         assert col_vals_compare_one.test_unit_res.columns == COLUMN_LIST
         assert col_vals_compare_one.get_test_results().columns == COLUMN_LIST
 
+    assert col_vals_compare_one.test() is True
+
 
 def test_col_vals_compare_one_invalid_assertion_method(tbl_pd):
 
@@ -128,6 +130,8 @@ def test_col_vals_compare_two(request, tbl_fixture, assertion_method):
         assert col_vals_compare_two.test_unit_res.columns == COLUMN_LIST
         assert col_vals_compare_two.get_test_results().columns == COLUMN_LIST
 
+    assert col_vals_compare_two.test() is True
+
 
 def test_col_vals_compare_two_invalid_assertion_method(tbl_pd):
 
@@ -179,6 +183,8 @@ def test_col_vals_compare_set(request, tbl_fixture, inside):
         assert col_vals_compare_set.test_unit_res.columns == COLUMN_LIST
         assert col_vals_compare_set.get_test_results().columns == COLUMN_LIST
 
+    assert col_vals_compare_set.test() is True
+
 
 @pytest.mark.parametrize(
     "tbl_fixture",
@@ -208,6 +214,8 @@ def test_col_vals_regex(request, tbl_fixture):
     else:
         assert col_vals_regex.test_unit_res.columns == COLUMN_LIST
         assert col_vals_regex.get_test_results().columns == COLUMN_LIST
+
+    assert col_vals_regex.test() is True
 
 
 @pytest.mark.parametrize(
