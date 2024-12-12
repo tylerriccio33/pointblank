@@ -2895,10 +2895,6 @@ def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list
 
 def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
 
-    # If the pre-processed table is None, return an empty list
-    if icon is None:
-        return []
-
     # For each icon, get the SVG icon from the SVG_ICONS_FOR_TBL_STATUS dictionary
     icon_svg = [SVG_ICONS_FOR_TBL_STATUS.get(icon) for icon in icon]
 
