@@ -1544,7 +1544,7 @@ def test_get_sundered_data_mix_of_step_types(request, tbl_fixture):
     assert failed_data_rows[1] == (4, 7, 8)
 
 
-def test_comprehensive_validation_report_html_snap(tbl_pd, snapshot):
+def test_comprehensive_validation_report_html_snap(snapshot):
 
     validation = (
         Validate(
@@ -1585,6 +1585,48 @@ def test_comprehensive_validation_report_html_snap(tbl_pd, snapshot):
 
     # Use the snapshot fixture to create and save the snapshot
     snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
+
+
+def test_no_interrogation_validation_report_html_snap(snapshot):
+
+    validation = (
+        Validate(
+            data=load_dataset(),
+            tbl_name="small_table",
+            label="Simple pointblank validation example",
+            thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+        )
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_lt(columns="c", value=5)
+        .col_vals_eq(columns="a", value=3)
+        .col_vals_ne(columns="c", value=10, na_pass=True)
+        .col_vals_le(columns="a", value=7)
+        .col_vals_ge(columns="d", value=500, na_pass=True)
+        .col_vals_between(columns="c", left=0, right=10, na_pass=True)
+        .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
+        .col_vals_eq(columns="a", value=10, active=False)
+        .col_vals_ge(columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20))
+        .col_vals_gt(
+            columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+        )
+        .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
+        .col_vals_null(columns="c")
+        .col_vals_not_null(columns="date_time")
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns="z")
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "no_interrogation_validation_report.html")
 
 
 def test_load_dataset():
