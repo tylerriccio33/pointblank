@@ -3025,7 +3025,7 @@ def _get_callable_source(fn: Callable) -> str:
             # Extract the `pre` argument from the source code
             pre_arg = _extract_pre_argument(source)
             return pre_arg
-        except (OSError, TypeError):
+        except (OSError, TypeError):  # pragma: no cover
             return fn.__name__
     return fn
 
