@@ -2807,11 +2807,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     return validation_info_dict
 
 
-def _get_assertion_icon(icon: list[str] | None, length_val: int = 30) -> list[str]:
-
-    # If icon is None, return an empty list
-    if icon is None:
-        return []
+def _get_assertion_icon(icon: list[str], length_val: int = 30) -> list[str]:
 
     # For each icon, get the assertion icon SVG test from SVG_ICONS_FOR_ASSERTION_TYPES dictionary
     icon_svg = [SVG_ICONS_FOR_ASSERTION_TYPES.get(icon) for icon in icon]
