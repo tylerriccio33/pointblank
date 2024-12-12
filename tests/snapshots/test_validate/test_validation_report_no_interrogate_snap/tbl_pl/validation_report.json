@@ -1,0 +1,24 @@
+[
+    {
+        "i": 1,
+        "assertion_type": "col_vals_gt",
+        "column": "x",
+        "values": 0,
+        "inclusive": null,
+        "na_pass": false,
+        "pre": null,
+        "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
+        "label": null,
+        "brief": null,
+        "active": true,
+        "all_passed": null,
+        "n": null,
+        "n_passed": null,
+        "n_failed": null,
+        "f_passed": null,
+        "f_failed": null,
+        "warn": null,
+        "stop": null,
+        "notify": null
+    }
+]

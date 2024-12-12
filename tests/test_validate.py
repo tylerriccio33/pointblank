@@ -1,6 +1,7 @@
 import pathlib
 
 import sys
+import re
 from unittest.mock import patch
 import pytest
 
@@ -1276,6 +1277,23 @@ def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
     assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
 
 
+@pytest.mark.parametrize("tbl_fixture", ["tbl_dates_times_text_pd", "tbl_dates_times_text_pl"])
+def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    validation = (
+        Validate(tbl)
+        .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
+        .interrogate(sample_frac=0.8, sample_limit=1)
+    )
+
+    # Expect that the extracts table has 2 entries out of 3 failures
+    assert validation.n_failed(i=1)[1] == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 1
+    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_vals_null(request, tbl_fixture):
 
@@ -1383,6 +1401,190 @@ def test_interrogate_with_active_inactive(request, tbl_fixture):
     assert validation.validation_info[1].notify is None
     assert validation.validation_info[1].extract is None
     assert validation.validation_info[1].extract is None
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
+def test_get_sundered_data(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # This validation will:
+    # - pass completely for all rows in the `col_vals_eq()` step
+    # - fail for row 0 in `col_vals_gt()` step
+    # - fail for row 3 in `col_vals_lt()` step
+    # when error rows are considered across all steps, only rows 1 and 2 free of errors;
+    # an 'error row' is a row with a test unit that has failed in any of the row-based steps
+    # and all of the validation steps here are row-based
+    validation = (
+        Validate(tbl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_gt(columns="y", value=4)
+        .col_vals_lt(columns="x", value=4)
+        .interrogate()
+    )
+
+    sundered_data_pass = validation.get_sundered_data(type="pass")  # this is the default
+    sundered_data_fail = validation.get_sundered_data(type="fail")
+
+    assert isinstance(sundered_data_pass, pd.DataFrame if tbl_fixture == "tbl_pd" else pl.DataFrame)
+    assert isinstance(sundered_data_fail, pd.DataFrame if tbl_fixture == "tbl_pd" else pl.DataFrame)
+
+    # Check properties of the passed data piece
+    assert len(nw.from_native(sundered_data_pass).rows()) == 2
+    assert len(nw.from_native(sundered_data_pass).columns) == 3
+    assert nw.from_native(sundered_data_pass).columns == ["x", "y", "z"]
+
+    # Check the rows of the passed data piece
+    passed_data_rows = nw.from_native(sundered_data_pass).rows()
+    assert passed_data_rows[0] == (2, 5, 8)
+    assert passed_data_rows[1] == (3, 6, 8)
+
+    # Check properties of the failed data piece
+    assert len(nw.from_native(sundered_data_fail).rows()) == 2
+    assert len(nw.from_native(sundered_data_fail).columns) == 3
+    assert nw.from_native(sundered_data_fail).columns == ["x", "y", "z"]
+
+    # Check the rows of the failed data piece
+    failed_data_rows = nw.from_native(sundered_data_fail).rows()
+    assert failed_data_rows[0] == (1, 4, 8)
+    assert failed_data_rows[1] == (4, 7, 8)
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
+def test_get_sundered_data_empty_frame(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Remove all rows from the table
+    tbl = tbl.head(0)
+
+    validation = Validate(tbl).col_exists(columns="z").interrogate()
+
+    sundered_data_pass = validation.get_sundered_data(type="pass")
+    sundered_data_fail = validation.get_sundered_data(type="fail")
+
+    # Check properties of the passed data piece
+    assert len(nw.from_native(sundered_data_pass).rows()) == 0
+    assert len(nw.from_native(sundered_data_pass).columns) == 3
+    assert nw.from_native(sundered_data_pass).columns == ["x", "y", "z"]
+
+    # Check properties of the failed data piece
+    assert len(nw.from_native(sundered_data_fail).rows()) == 0
+    assert len(nw.from_native(sundered_data_fail).columns) == 3
+    assert nw.from_native(sundered_data_fail).columns == ["x", "y", "z"]
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
+def test_get_sundered_data_no_validation_steps(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    validation = Validate(tbl).interrogate()
+
+    sundered_data_pass = validation.get_sundered_data(type="pass")
+    sundered_data_fail = validation.get_sundered_data(type="fail")
+
+    # Check properties of the passed data piece
+    assert len(nw.from_native(sundered_data_pass).rows()) == 4
+    assert len(nw.from_native(sundered_data_pass).columns) == 3
+    assert nw.from_native(sundered_data_pass).columns == ["x", "y", "z"]
+
+    # Check properties of the failed data piece
+    assert len(nw.from_native(sundered_data_fail).rows()) == 0
+    assert len(nw.from_native(sundered_data_fail).columns) == 3
+    assert nw.from_native(sundered_data_fail).columns == ["x", "y", "z"]
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
+def test_get_sundered_data_mix_of_step_types(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # This sundering from this validation will effectively be the same as in the
+    # `test_get_sundered_data()` test; steps 3 and 4 are not included in the sundering process:
+    # - step 3 is not included because it is not row-based (it checks for a column's existence)
+    # - step 4 is not included because it is inactive (if active, it would have failed all rows)
+    # - the remaining steps are row-based the parameters of the steps are the same as in the
+    #   `test_get_sundered_data()` test
+    validation = (
+        Validate(tbl)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_gt(columns="y", value=4)
+        .col_exists(columns="z")  # <- this step is not row-based so not included when sundering
+        .col_vals_eq(columns="z", value=7, active=False)  # <- this step is inactive so not included
+        .col_vals_lt(columns="x", value=4)
+        .interrogate()
+    )
+
+    sundered_data_pass = validation.get_sundered_data(type="pass")
+    sundered_data_fail = validation.get_sundered_data(type="fail")
+
+    # Check properties of the passed data piece
+    assert isinstance(sundered_data_pass, pd.DataFrame if tbl_fixture == "tbl_pd" else pl.DataFrame)
+    assert isinstance(sundered_data_fail, pd.DataFrame if tbl_fixture == "tbl_pd" else pl.DataFrame)
+
+    # Check properties of the passed data piece
+    assert len(nw.from_native(sundered_data_pass).rows()) == 2
+    assert len(nw.from_native(sundered_data_pass).columns) == 3
+    assert nw.from_native(sundered_data_pass).columns == ["x", "y", "z"]
+
+    # Check the rows of the passed data piece
+    passed_data_rows = nw.from_native(sundered_data_pass).rows()
+    assert passed_data_rows[0] == (2, 5, 8)
+    assert passed_data_rows[1] == (3, 6, 8)
+
+    # Check properties of the failed data piece
+    assert len(nw.from_native(sundered_data_fail).rows()) == 2
+    assert len(nw.from_native(sundered_data_fail).columns) == 3
+    assert nw.from_native(sundered_data_fail).columns == ["x", "y", "z"]
+
+    # Check the rows of the failed data piece
+    failed_data_rows = nw.from_native(sundered_data_fail).rows()
+    assert failed_data_rows[0] == (1, 4, 8)
+    assert failed_data_rows[1] == (4, 7, 8)
+
+
+def test_comprehensive_validation_report_html_snap(tbl_pd, snapshot):
+
+    validation = (
+        Validate(
+            data=load_dataset(),
+            tbl_name="small_table",
+            label="Simple pointblank validation example",
+            thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+        )
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_lt(columns="c", value=5)
+        .col_vals_eq(columns="a", value=3)
+        .col_vals_ne(columns="c", value=10, na_pass=True)
+        .col_vals_le(columns="a", value=7)
+        .col_vals_ge(columns="d", value=500, na_pass=True)
+        .col_vals_between(columns="c", left=0, right=10, na_pass=True)
+        .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
+        .col_vals_eq(columns="a", value=10, active=False)
+        .col_vals_ge(columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20))
+        .col_vals_gt(
+            columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+        )
+        .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
+        .col_vals_null(columns="c")
+        .col_vals_not_null(columns="date_time")
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns="z")
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
 
 
 def test_load_dataset():
