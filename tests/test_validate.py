@@ -21,6 +21,9 @@ from pointblank.validate import (
     _get_default_title_text,
     _fmt_lg,
     _create_table_time_html,
+    _create_table_type_html,
+    _select_df_lib,
+    _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
 
@@ -1697,6 +1700,7 @@ def test_process_title_text():
     assert _process_title_text(title=":default:", tbl_name=None) == _get_default_title_text()
     assert _process_title_text(title=":none:", tbl_name=None) == ""
     assert _process_title_text(title=":tbl_name:", tbl_name="tbl_name") == "<code>tbl_name</code>"
+    assert _process_title_text(title=":tbl_name:", tbl_name=None) == ""
     assert _process_title_text(title="*Title*", tbl_name=None) == "<p><em>Title</em></p>\n"
 
 
@@ -1733,3 +1737,47 @@ def test_create_table_time_html():
 
     assert _create_table_time_html(time_start=None, time_end=None) == ""
     assert "div" in _create_table_time_html(time_start=datetime_0, time_end=datetime_1_min_later)
+
+
+def test_create_table_type_html():
+
+    # def _create_table_type_html(tbl_type: str | None, tbl_name: str | None)
+
+    assert _create_table_type_html(tbl_type=None, tbl_name="tbl_name") == ""
+    assert _create_table_type_html(tbl_type="invalid", tbl_name="tbl_name") == ""
+    assert "span" in _create_table_type_html(tbl_type="pandas", tbl_name="tbl_name")
+    assert "span" in _create_table_type_html(tbl_type="pandas", tbl_name=None)
+    assert _create_table_type_html(
+        tbl_type="pandas", tbl_name="tbl_name"
+    ) != _create_table_type_html(tbl_type="pandas", tbl_name=None)
+
+
+def test_select_df_lib():
+
+    # Mock the absence of the both the Pandas and Polars libraries
+    with patch.dict(sys.modules, {"pandas": None, "polars": None}):
+        # An ImportError is raised when the `pandas` and `polars` packages are not installed
+        with pytest.raises(ImportError):
+            _select_df_lib()
+
+    # Mock the absence of the Pandas library
+    with patch.dict(sys.modules, {"pandas": None}):
+        # The Polars library is selected when the `pandas` package is not installed
+        assert _select_df_lib(preference="polars") == pl
+        assert _select_df_lib(preference="pandas") == pl
+
+    # Mock the absence of the Polars library
+    with patch.dict(sys.modules, {"polars": None}):
+        # The Pandas library is selected when the `polars` package is not installed
+        assert _select_df_lib(preference="pandas") == pd
+        assert _select_df_lib(preference="polars") == pd
+
+    # Where both the Pandas and Polars libraries are available
+    assert _select_df_lib(preference="pandas") == pd
+    assert _select_df_lib(preference="polars") == pl
+
+
+def test_get_tbl_type():
+
+    assert _get_tbl_type(pd.DataFrame()) == "pandas"
+    assert _get_tbl_type(pl.DataFrame()) == "polars"
