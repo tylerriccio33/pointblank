@@ -12,7 +12,13 @@ import ibis
 import great_tables as GT
 import narwhals as nw
 
-from pointblank.validate import Validate, _ValidationInfo, load_dataset
+from pointblank.validate import (
+    Validate,
+    _ValidationInfo,
+    load_dataset,
+    _process_title_text,
+    _get_default_title_text,
+)
 from pointblank.thresholds import Thresholds
 
 
@@ -1680,3 +1686,12 @@ def test_load_dataset_no_polars():
         # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
         with pytest.raises(ImportError):
             load_dataset(tbl_type="polars")
+
+
+def test_process_title_text():
+
+    assert _process_title_text(title=None, tbl_name=None) == ""
+    assert _process_title_text(title=":default:", tbl_name=None) == _get_default_title_text()
+    assert _process_title_text(title=":none:", tbl_name=None) == ""
+    assert _process_title_text(title=":tbl_name:", tbl_name="tbl_name") == "<code>tbl_name</code>"
+    assert _process_title_text(title="*Title*", tbl_name=None) == "<p><em>Title</em></p>\n"
