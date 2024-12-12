@@ -8,6 +8,7 @@ import pytest
 import pandas as pd
 import polars as pl
 import ibis
+from datetime import datetime
 
 import great_tables as GT
 import narwhals as nw
@@ -18,6 +19,8 @@ from pointblank.validate import (
     load_dataset,
     _process_title_text,
     _get_default_title_text,
+    _fmt_lg,
+    _create_table_time_html,
 )
 from pointblank.thresholds import Thresholds
 
@@ -1695,3 +1698,38 @@ def test_process_title_text():
     assert _process_title_text(title=":none:", tbl_name=None) == ""
     assert _process_title_text(title=":tbl_name:", tbl_name="tbl_name") == "<code>tbl_name</code>"
     assert _process_title_text(title="*Title*", tbl_name=None) == "<p><em>Title</em></p>\n"
+
+
+@pytest.mark.parametrize(
+    "input_value, expected_output",
+    [
+        (0, "0"),
+        (1, "1.00"),
+        (5, "5.00"),
+        (10, "10.0"),
+        (100, "100"),
+        (999, "999"),
+        (1000, "1.00K"),
+        (10000, "10.0K"),
+        (100000, "100K"),
+        (999999, "1,000K"),
+        (1000000, "1.00M"),
+        (10000000, "10.0M"),
+        (100000000, "100M"),
+        (999999999, "1,000M"),
+        (1000000000, "1.00B"),
+        (10000000000, "10.0B"),
+        (100000000000, "100B"),
+    ],
+)
+def test_fmt_lg(input_value, expected_output):
+    assert _fmt_lg(input_value) == expected_output
+
+
+def test_create_table_time_html():
+
+    datetime_0 = datetime(2021, 1, 1, 0, 0, 0, 0)
+    datetime_1_min_later = datetime(2021, 1, 1, 0, 1, 0, 0)
+
+    assert _create_table_time_html(time_start=None, time_end=None) == ""
+    assert "div" in _create_table_time_html(time_start=datetime_0, time_end=datetime_1_min_later)
