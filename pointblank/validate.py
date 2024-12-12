@@ -2720,25 +2720,6 @@ class Validate:
 
         return self
 
-    def _get_validations(self):
-        """
-        Get the list of validations.
-
-        Returns
-        -------
-        list[_ValidationInfo]
-            The list of validations.
-        """
-        return self.validation_info
-
-    def _clear_validations(self):
-        """
-        Clear the list of validations.
-        """
-        self.validation_info.clear()
-
-        return self.validation_info
-
     def _get_validation_dict(self, i: int | list[int] | None, attr: str) -> dict[int, int]:
         """
         Utility function to get a dictionary of validation attributes for each validation step.
