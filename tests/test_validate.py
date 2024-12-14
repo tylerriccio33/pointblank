@@ -1285,19 +1285,16 @@ def test_col_vals_compare_col_var(request, tbl_fixture):
 
     # `col_vals_ne()`
 
-    # TODO: currently, the `col_vals_ne()` works well for Polars but not for Pandas
-    #       the interrogation scheme needs to be further refined to handle this case
-
-    # assert (
-    #    Validate(tbl).col_vals_ne(columns="x", value=col("y")).interrogate().n_passed(i=1)[1] == 2
-    # )
-    # assert (
-    #    Validate(tbl)
-    #    .col_vals_ne(columns="x", value=col("y"), na_pass=True)
-    #    .interrogate()
-    #    .n_passed(i=1)[1]
-    #    == 4
-    # )
+    assert (
+        Validate(tbl).col_vals_ne(columns="x", value=col("y")).interrogate().n_passed(i=1)[1] == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="x", value=col("y"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
 
     # `col_vals_ge()`
 

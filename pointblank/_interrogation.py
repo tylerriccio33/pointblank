@@ -214,26 +214,30 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        return (
-            self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=(
-                    nw.col(self.compare.name).is_null() & self.na_pass
-                    if isinstance(self.compare, Column)
-                    else nw.lit(False)
-                ),
-            )
-            .with_columns(
-                pb_is_good_3=nw.when(~nw.col(self.column).is_null())
-                .then(nw.col(self.column) != compare_expr)
-                .otherwise(False),
-            )
-            .with_columns(
-                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
-            )
-            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
-            .to_native()
+        tbl = self.x.with_columns(
+            pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+            pb_is_good_2=(  # compare is Null in Column
+                nw.col(self.compare.name).is_null()
+                if isinstance(self.compare, Column)
+                else nw.lit(False)
+            ),
+            pb_is_good_3=nw.lit(self.na_pass),  # Pass if any Null in val or compare
         )
+
+        tbl = tbl.with_columns(pb_is_good_4=nw.col(self.column) != compare_expr)
+
+        tbl = tbl.with_columns(
+            pb_is_good_=(
+                (
+                    ((nw.col("pb_is_good_1") | nw.col("pb_is_good_2")) & nw.col("pb_is_good_3"))
+                    | (nw.col("pb_is_good_4") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
+                )
+            )
+        )
+
+        tbl = tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4").to_native()
+
+        return tbl
 
     def ge(self) -> FrameT | Any:
 
@@ -422,8 +426,6 @@ class Interrogator:
 
         low_val = _get_compare_expr_nw(compare=self.low)
         high_val = _get_compare_expr_nw(compare=self.high)
-
-        # closed = _get_nw_closed_str(closed=self.inclusive)
 
         tbl = self.x.with_columns(
             pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
@@ -1079,24 +1081,3 @@ def _get_compare_expr_nw(compare: Any) -> Any:
     if isinstance(compare, Column):
         return nw.col(compare.name)
     return compare
-
-
-def _get_compare_null_expr_nw(compare: Any) -> Any:
-    if isinstance(compare, Column):
-        return nw.col(compare.name).is_null()
-    return nw.lit(False)
-
-
-def _get_nw_closed_str(closed: tuple[bool, bool]) -> str:
-    """
-    Get the string representation of the closed bounds for the `is_between` method in Narwhals.
-    """
-
-    if closed == (True, True):
-        return "both"
-    elif closed == (True, False):
-        return "left"
-    elif closed == (False, True):
-        return "right"
-    else:
-        return "none"
