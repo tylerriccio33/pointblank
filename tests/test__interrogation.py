@@ -3,7 +3,6 @@ import pandas as pd
 import polars as pl
 
 from pointblank._interrogation import (
-    _get_nw_closed_str,
     ColValsCompareOne,
     ColValsCompareTwo,
     ColValsCompareSet,
@@ -23,14 +22,6 @@ def tbl_pl():
 
 
 COLUMN_LIST = ["x", "y", "z", "pb_is_good_"]
-
-
-def test_get_nw_closed_str():
-
-    assert _get_nw_closed_str(closed=(True, True)) == "both"
-    assert _get_nw_closed_str(closed=(True, False)) == "left"
-    assert _get_nw_closed_str(closed=(False, True)) == "right"
-    assert _get_nw_closed_str(closed=(False, False)) == "none"
 
 
 @pytest.mark.parametrize(
