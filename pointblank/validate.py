@@ -173,35 +173,6 @@ def load_dataset(
 
 
 @dataclass
-class Column:
-    """
-    A class to represent a column in a table.
-    """
-
-    name: str
-
-    def __repr__(self):
-        return self.name
-
-
-def col(name: str) -> Column:
-    """
-    Reference a column in the input table.
-
-    Parameters
-    ----------
-    name
-        The name of the column.
-
-    Returns
-    -------
-    Column
-        A `Column` object representing the column.
-    """
-    return Column(name=name)
-
-
-@dataclass
 class _ValidationInfo:
     """
     Information about a validation to be performed on a table and the results of the interrogation.
