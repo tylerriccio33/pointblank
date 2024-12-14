@@ -433,13 +433,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are greater than a single value.
+        Are column data greater than a fixed value or data in another column?
 
         The `col_vals_gt()` validation method checks whether column values in a table are
         *greater than* a specified `value=` (the exact comparison used in this function is
-        `col_val > value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        `col_val > value`). The `value=` can be specified as a single, literal value or as a column
+        name given in `col()`. This validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
@@ -447,7 +448,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -512,13 +514,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are less than a single value.
+        Are column data less than a fixed value or data in another column?
 
         The `col_vals_lt()` validation method checks whether column values in a table are
         *less than* a specified `value=` (the exact comparison used in this function is
-        `col_val < value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        `col_val < value`). The `value=` can be specified as a single, literal value or as a column
+        name given in `col()`. This validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
@@ -526,7 +529,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -591,13 +595,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are equal to a single value.
+        Are column data equal to a fixed value or data in another column?
 
         The `col_vals_eq()` validation method checks whether column values in a table are
         *equal to* a specified `value=` (the exact comparison used in this function is
-        `col_val == value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        `col_val == value`). The `value=` can be specified as a single, literal value or as a column
+        name given in `col()`. This validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
@@ -605,7 +610,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -671,13 +677,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are not equal to a single value.
+        Are column data not equal to a fixed value or data in another column?
 
         The `col_vals_ne()` validation method checks whether column values in a table are
         *not equal to* a specified `value=` (the exact comparison used in this function is
-        `col_val != value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        `col_val != value`). The `value=` can be specified as a single, literal value or as a column
+        name given in `col()`. This validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
@@ -685,7 +692,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -751,13 +759,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are greater than or equal to a single value.
+        Are column data greater than or equal to a fixed value or data in another column?
 
         The `col_vals_ge()` validation method checks whether column values in a table are
         *greater than or equal to* a specified `value=` (the exact comparison used in this function
-        is `col_val >= value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        is `col_val >= value`). The `value=` can be specified as a single, literal value or as a
+        column name given in `col()`. This validation will operate over the number of test units
+        that is equal to the number of rows in the table (determined after any `pre=` mutation has
+        been applied).
 
         Parameters
         ----------
@@ -765,7 +774,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -831,13 +841,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are less than or equal to a single value.
+        Are column data less than or equal to a fixed value or data in another column?
 
         The `col_vals_le()` validation method checks whether column values in a table are
         *less than or equal to* a specified `value=` (the exact comparison used in this function is
-        `col_val <= value`). The `value` is specified as a single, literal value. This validation
-        will operate over the number of test units that is equal to the number of rows in the table
-        (determined after any `pre=` mutation has been applied).
+        `col_val <= value`). The `value=` can be specified as a single, literal value or as a column
+        name given in `col()`. This validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
@@ -845,7 +856,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against.
+            The value to compare against. This can be a single numeric value or a column name given
+            in `col()`.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -913,14 +925,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are between two values.
+        Do column data lie between two specified values or data in other columns?
 
         The `col_vals_between()` validation method checks whether column values in a table fall
         within a range. The range is specified with three arguments: `left=`, `right=`, and
-        `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. The bounds
-        are is specified as single, literal values. This validation will operate over the number of
-        test units that is equal to the number of rows in the table (determined after any `pre=`
-        mutation has been applied).
+        `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. These
+        bounds can be specified as literal values or as column names provided within `col()`. The
+        validation will operate over the number of test units that is equal to the number of rows in
+        the table (determined after any `pre=` mutation has been applied).
 
         Parameters
         ----------
@@ -928,9 +940,11 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range.
+            The lower bound of the range. Can be a single numeric value or a column name given in
+            `col()`.
         right
-            The upper bound of the range.
+            The upper bound of the range. Can be a single numeric value or a column name given in
+            `col()`.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -1006,14 +1020,14 @@ class Validate:
         active: bool = True,
     ):
         """
-        Validate whether column values are outside of two values.
+        Do column data lie outside of two specified values or data in other columns?
 
         The `col_vals_between()` validation method checks whether column values in a table *do not*
         fall within a certain range. The range is specified with three arguments: `left=`, `right=`,
-        and `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. The
-        bounds are is specified as single, literal values. This validation will operate over the
-        number of test units that is equal to the number of rows in the table (determined after any
-        `pre=` mutation has been applied).
+        and `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. These
+        bounds can be specified as literal values or as column names provided within `col()`. The
+        validation will operate over the number of test units that is equal to the number of rows in
+        the table (determined after any `pre=` mutation has been applied).
 
         Parameters
         ----------
@@ -1021,9 +1035,11 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range.
+            The lower bound of the range. Can be a single numeric value or a column name given in
+            `col()`.
         right
-            The upper bound of the range.
+            The upper bound of the range. Can be a single numeric value or a column name given in
+            `col()`.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
