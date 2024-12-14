@@ -15,8 +15,8 @@ import narwhals as nw
 
 from pointblank.validate import (
     Validate,
-    _ValidationInfo,
     load_dataset,
+    _ValidationInfo,
     _process_title_text,
     _get_default_title_text,
     _fmt_lg,
@@ -26,6 +26,7 @@ from pointblank.validate import (
     _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
+from pointblank.column import col
 
 
 TBL_LIST = [
@@ -1207,6 +1208,152 @@ def test_col_vals_regex(request, tbl_fixture):
         .interrogate()
         .n_passed(i=1)[1]
         == 3
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+def test_col_vals_compare_col_var(request, tbl_fixture):
+
+    # DataFrame({"x": [1, 2, pd.NA, 4], "y": [4, pd.NA, 6, 7], "z": [8, pd.NA, 8, 8]})
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # `col_vals_lt()`
+
+    assert (
+        Validate(tbl.head(2))
+        .col_vals_lt(columns="x", value=col("y"))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
+    assert (
+        Validate(tbl.head(2))
+        .col_vals_lt(columns="x", value=col("y"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+
+    # `col_vals_gt()`
+
+    assert (
+        Validate(tbl.head(2))
+        .col_vals_gt(columns="y", value=col("x"))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 1
+    )
+    assert (
+        Validate(tbl.head(2))
+        .col_vals_gt(columns="y", value=col("x"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+
+    # `col_vals_eq()`
+
+    if tbl_fixture == "tbl_missing_pd":
+        # Add the zz column which is a near duplicate of the z column
+        tbl_eq = tbl.assign(zz=[pd.NA, 8, 8, 8])
+    else:
+        tbl_eq = tbl.with_columns(pl.Series(name="zz", values=[None, 8, 8, 8]))
+
+    assert (
+        Validate(tbl_eq).col_vals_eq(columns="zz", value=col("z")).interrogate().n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl_eq).col_vals_eq(columns="z", value=col("zz")).interrogate().n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl_eq)
+        .col_vals_eq(columns="zz", value=col("z"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl_eq)
+        .col_vals_eq(columns="z", value=col("zz"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+
+    # `col_vals_ne()`
+
+    assert (
+        Validate(tbl).col_vals_ne(columns="x", value=col("y")).interrogate().n_passed(i=1)[1] == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="x", value=col("y"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+
+    # `col_vals_ge()`
+
+    assert (
+        Validate(tbl).col_vals_ge(columns="z", value=col("x")).interrogate().n_passed(i=1)[1] == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ge(columns="z", value=col("x"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+
+    # `col_vals_le()`
+
+    assert (
+        Validate(tbl).col_vals_le(columns="x", value=col("y")).interrogate().n_passed(i=1)[1] == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_le(columns="x", value=col("y"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+
+    # `col_vals_between()`
+
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="y", left=col("x"), right=col("z"))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_between(columns="y", left=col("x"), right=col("z"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+
+    # `col_vals_outside()`
+
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="z", left=col("x"), right=col("y"))
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 2
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_outside(columns="z", left=col("x"), right=col("y"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
     )
 
 

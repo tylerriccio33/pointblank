@@ -48,7 +48,7 @@ def _check_column(column: str | list[str]):
         raise ValueError("`column=` must be a string.")
 
 
-def _check_value_float_int(value: float | int):
+def _check_value_float_int(value: float | int | any):
     """
     Check that input value of the `value=` parameter is a float or integer.
 
@@ -62,8 +62,11 @@ def _check_value_float_int(value: float | int):
     ValueError
         When `value` is not a float or integer.
     """
-    if not isinstance(value, (float, int)) or isinstance(value, bool):
-        raise ValueError("`value=` must be a float or integer.")
+
+    from pointblank.column import Column
+
+    if not isinstance(value, (float, int, Column)) or isinstance(value, bool):
+        raise ValueError("`value=` must be a float, integer, or reference to a column.")
 
 
 def _check_set_types(set: list[float | int | str]):

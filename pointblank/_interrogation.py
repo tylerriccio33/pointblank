@@ -9,6 +9,7 @@ from narwhals.typing import FrameT
 from pointblank._utils import _column_test_prep, _convert_to_narwhals
 from pointblank.thresholds import _threshold_check
 from pointblank._constants import IBIS_BACKENDS
+from pointblank.column import Column
 
 
 @dataclass
@@ -76,6 +77,8 @@ class Interrogator:
 
     def gt(self) -> FrameT | Any:
 
+        # Ibis backends ---------------------------------------------
+
         if self.tbl_type in IBIS_BACKENDS:
 
             import ibis
@@ -89,17 +92,30 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
         return (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column) > self.compare,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) > compare_expr,
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
             .to_native()
         )
 
     def lt(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -114,17 +130,30 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
         return (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column) < self.compare,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) < compare_expr,
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
             .to_native()
         )
 
     def eq(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -139,17 +168,30 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
         return (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column) == self.compare,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) == compare_expr,
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
             .to_native()
         )
 
     def ne(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -168,19 +210,38 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
-        return (
-            self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.when(~nw.col(self.column).is_null())
-                .then(nw.col(self.column) != self.compare)
-                .otherwise(False),
-            )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
-            .to_native()
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+        tbl = self.x.with_columns(
+            pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+            pb_is_good_2=(  # compare is Null in Column
+                nw.col(self.compare.name).is_null()
+                if isinstance(self.compare, Column)
+                else nw.lit(False)
+            ),
+            pb_is_good_3=nw.lit(self.na_pass),  # Pass if any Null in val or compare
         )
 
+        tbl = tbl.with_columns(pb_is_good_4=nw.col(self.column) != compare_expr)
+
+        tbl = tbl.with_columns(
+            pb_is_good_=(
+                (
+                    ((nw.col("pb_is_good_1") | nw.col("pb_is_good_2")) & nw.col("pb_is_good_3"))
+                    | (nw.col("pb_is_good_4") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
+                )
+            )
+        )
+
+        tbl = tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4").to_native()
+
+        return tbl
+
     def ge(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -195,17 +256,30 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
         return (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column) >= self.compare,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) >= compare_expr,
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
             .to_native()
         )
 
     def le(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -220,17 +294,30 @@ class Interrogator:
                 "pb_is_good_1", "pb_is_good_2"
             )
 
+        # Local backends (Narwhals) ---------------------------------
+
+        compare_expr = _get_compare_expr_nw(compare=self.compare)
+
         return (
             self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column) <= self.compare,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) <= compare_expr,
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
             .to_native()
         )
 
     def between(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -257,19 +344,58 @@ class Interrogator:
                 pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
             ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
-        closed = _get_nw_closed_str(closed=self.inclusive)
+        # Local backends (Narwhals) ---------------------------------
 
-        return (
-            self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.col(self.column).is_between(self.low, self.high, closed=closed),
+        low_val = _get_compare_expr_nw(compare=self.low)
+        high_val = _get_compare_expr_nw(compare=self.high)
+
+        tbl = self.x.with_columns(
+            pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+            pb_is_good_2=(  # lb is Null in Column
+                nw.col(self.low.name).is_null() if isinstance(self.low, Column) else nw.lit(False)
+            ),
+            pb_is_good_3=(  # ub is Null in Column
+                nw.col(self.high.name).is_null() if isinstance(self.high, Column) else nw.lit(False)
+            ),
+            pb_is_good_4=nw.lit(self.na_pass),  # Pass if any Null in lb, val, or ub
+        )
+
+        if self.inclusive[0]:
+            tbl = tbl.with_columns(pb_is_good_5=nw.col(self.column) >= low_val)
+        else:
+            tbl = tbl.with_columns(pb_is_good_5=nw.col(self.column) > low_val)
+
+        if self.inclusive[1]:
+            tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) <= high_val)
+        else:
+            tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) < high_val)
+
+        tbl = (
+            tbl.with_columns(
+                pb_is_good_=(
+                    (
+                        (nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3"))
+                        & nw.col("pb_is_good_4")
+                    )
+                    | (nw.col("pb_is_good_5") & nw.col("pb_is_good_6"))
+                )
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .drop(
+                "pb_is_good_1",
+                "pb_is_good_2",
+                "pb_is_good_3",
+                "pb_is_good_4",
+                "pb_is_good_5",
+                "pb_is_good_6",
+            )
             .to_native()
         )
 
+        return tbl
+
     def outside(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -296,25 +422,76 @@ class Interrogator:
                 pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2 | tbl.pb_is_good_3
             ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
-        closed = _get_nw_closed_str(closed=self.inclusive)
+        # Local backends (Narwhals) ---------------------------------
 
-        return (
-            self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=nw.when(~nw.col(self.column).is_null())
-                .then(~nw.col(self.column).is_between(self.low, self.high, closed=closed))
-                .otherwise(False),
+        low_val = _get_compare_expr_nw(compare=self.low)
+        high_val = _get_compare_expr_nw(compare=self.high)
+
+        tbl = self.x.with_columns(
+            pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+            pb_is_good_2=(  # lb is Null in Column
+                nw.col(self.low.name).is_null() if isinstance(self.low, Column) else nw.lit(False)
+            ),
+            pb_is_good_3=(  # ub is Null in Column
+                nw.col(self.high.name).is_null() if isinstance(self.high, Column) else nw.lit(False)
+            ),
+            pb_is_good_4=nw.lit(self.na_pass),  # Pass if any Null in lb, val, or ub
+        )
+
+        if self.inclusive[0]:
+            tbl = tbl.with_columns(pb_is_good_5=nw.col(self.column) < low_val)
+        else:
+            tbl = tbl.with_columns(pb_is_good_5=nw.col(self.column) <= low_val)
+
+        if self.inclusive[1]:
+            tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) > high_val)
+        else:
+            tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) >= high_val)
+
+        tbl = tbl.with_columns(
+            pb_is_good_5=nw.when(nw.col("pb_is_good_5").is_null())
+            .then(False)
+            .otherwise(nw.col("pb_is_good_5")),
+            pb_is_good_6=nw.when(nw.col("pb_is_good_6").is_null())
+            .then(False)
+            .otherwise(nw.col("pb_is_good_6")),
+        )
+
+        tbl = (
+            tbl.with_columns(
+                pb_is_good_=(
+                    (
+                        (nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3"))
+                        & nw.col("pb_is_good_4")
+                    )
+                    | (
+                        (nw.col("pb_is_good_5") & ~nw.col("pb_is_good_3"))
+                        | (nw.col("pb_is_good_6")) & ~nw.col("pb_is_good_2")
+                    )
+                )
             )
-            .with_columns(pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-            .drop("pb_is_good_1", "pb_is_good_2")
+            .drop(
+                "pb_is_good_1",
+                "pb_is_good_2",
+                "pb_is_good_3",
+                "pb_is_good_4",
+                "pb_is_good_5",
+                "pb_is_good_6",
+            )
             .to_native()
         )
 
+        return tbl
+
     def isin(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
             return self.x.mutate(pb_is_good_=self.x[self.column].isin(self.set))
+
+        # Local backends (Narwhals) ---------------------------------
 
         return self.x.with_columns(
             pb_is_good_=nw.col(self.column).is_in(self.set),
@@ -322,9 +499,13 @@ class Interrogator:
 
     def notin(self) -> FrameT | Any:
 
+        # Ibis backends ---------------------------------------------
+
         if self.tbl_type in IBIS_BACKENDS:
 
             return self.x.mutate(pb_is_good_=self.x[self.column].notin(self.set))
+
+        # Local backends (Narwhals) ---------------------------------
 
         return (
             self.x.with_columns(
@@ -335,6 +516,8 @@ class Interrogator:
         )
 
     def regex(self) -> FrameT | Any:
+
+        # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
 
@@ -348,6 +531,8 @@ class Interrogator:
             return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                 "pb_is_good_1", "pb_is_good_2"
             )
+
+        # Local backends (Narwhals) ---------------------------------
 
         return (
             self.x.with_columns(
@@ -363,11 +548,15 @@ class Interrogator:
 
     def null(self) -> FrameT | Any:
 
+        # Ibis backends ---------------------------------------------
+
         if self.tbl_type in IBIS_BACKENDS:
 
             return self.x.mutate(
                 pb_is_good_=self.x[self.column].isnull(),
             )
+
+        # Local backends (Narwhals) ---------------------------------
 
         return self.x.with_columns(
             pb_is_good_=nw.col(self.column).is_null(),
@@ -375,11 +564,15 @@ class Interrogator:
 
     def not_null(self) -> FrameT | Any:
 
+        # Ibis backends ---------------------------------------------
+
         if self.tbl_type in IBIS_BACKENDS:
 
             return self.x.mutate(
                 pb_is_good_=~self.x[self.column].isnull(),
             )
+
+        # Local backends (Narwhals) ---------------------------------
 
         return self.x.with_columns(
             pb_is_good_=~nw.col(self.column).is_null(),
@@ -884,16 +1077,7 @@ class NumberOfTestUnits:
             return self.df.count().to_polars()
 
 
-def _get_nw_closed_str(closed: tuple[bool, bool]) -> str:
-    """
-    Get the string representation of the closed bounds for the `is_between` method in Narwhals.
-    """
-
-    if closed == (True, True):
-        return "both"
-    elif closed == (True, False):
-        return "left"
-    elif closed == (False, True):
-        return "right"
-    else:
-        return "none"
+def _get_compare_expr_nw(compare: Any) -> Any:
+    if isinstance(compare, Column):
+        return nw.col(compare.name)
+    return compare
