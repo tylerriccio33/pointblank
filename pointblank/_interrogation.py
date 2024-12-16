@@ -86,15 +86,14 @@ class Interrogator:
             if isinstance(self.compare, Column):
 
                 tbl = self.x.mutate(
-                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] > self.x[self.compare.name],
                 )
 
                 tbl = tbl.mutate(
                     pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
                 )
-
-                print(tbl.to_polars())
 
                 return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                     "pb_is_good_1", "pb_is_good_2"
@@ -140,14 +139,32 @@ class Interrogator:
 
             import ibis
 
-            tbl = self.x.mutate(
-                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
-            )
+            if isinstance(self.compare, Column):
 
-            return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
+                tbl = self.x.mutate(
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] < self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
+
+            else:
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
 
         # Local backends (Narwhals) ---------------------------------
 
@@ -178,14 +195,32 @@ class Interrogator:
 
             import ibis
 
-            tbl = self.x.mutate(
-                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
-            )
+            if isinstance(self.compare, Column):
 
-            return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
+                tbl = self.x.mutate(
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] == self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
+
+            else:
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
 
         # Local backends (Narwhals) ---------------------------------
 
@@ -215,6 +250,22 @@ class Interrogator:
         if self.tbl_type in IBIS_BACKENDS:
 
             import ibis
+
+            if isinstance(self.compare, Column):
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] != self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
 
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
@@ -266,6 +317,22 @@ class Interrogator:
 
             import ibis
 
+            if isinstance(self.compare, Column):
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] >= self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
+
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=self.x[self.column] >= ibis.literal(self.compare),
@@ -303,6 +370,22 @@ class Interrogator:
         if self.tbl_type in IBIS_BACKENDS:
 
             import ibis
+
+            if isinstance(self.compare, Column):
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
+                    & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] <= self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
 
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
@@ -342,26 +425,84 @@ class Interrogator:
 
             import ibis
 
-            low_val = ibis.literal(self.low)
-            high_val = ibis.literal(self.high)
+            if isinstance(self.low, Column) or isinstance(self.high, Column):
 
-            tbl = self.x.mutate(
-                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass)
-            )
+                if isinstance(self.low, Column):
+                    low_val = self.x[self.low.name]
+                else:
+                    low_val = ibis.literal(self.low)
 
-            if self.inclusive[0]:
-                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] >= low_val)
+                if isinstance(self.high, Column):
+                    high_val = self.x[self.high.name]
+                else:
+                    high_val = ibis.literal(self.high)
+
+                if isinstance(self.low, Column) and isinstance(self.high, Column):
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(
+                            self.x[self.column].isnull()
+                            | self.x[self.low.name].isnull()
+                            | self.x[self.high.name].isnull()
+                        )
+                        & ibis.literal(self.na_pass)
+                    )
+                elif isinstance(self.low, Column):
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(self.x[self.column].isnull() | self.x[self.low.name].isnull())
+                        & ibis.literal(self.na_pass)
+                    )
+                elif isinstance(self.high, Column):
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(
+                            self.x[self.column].isnull() | self.x[self.high.name].isnull()
+                        )
+                        & ibis.literal(self.na_pass)
+                    )
+
+                if self.inclusive[0]:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] >= low_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] > low_val)
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                if self.inclusive[1]:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] <= high_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] < high_val)
+
+                tbl = tbl.mutate(
+                    pb_is_good_3=ibis.ifelse(tbl.pb_is_good_3.notnull(), tbl.pb_is_good_3, False)
+                )
+
+                return tbl.mutate(
+                    pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
+                ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
+
             else:
-                tbl = tbl.mutate(pb_is_good_2=tbl[self.column] > low_val)
 
-            if self.inclusive[1]:
-                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] <= high_val)
-            else:
-                tbl = tbl.mutate(pb_is_good_3=tbl[self.column] < high_val)
+                low_val = ibis.literal(self.low)
+                high_val = ibis.literal(self.high)
 
-            return tbl.mutate(
-                pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
-            ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
+                tbl = self.x.mutate(
+                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass)
+                )
+
+                if self.inclusive[0]:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] >= low_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] > low_val)
+
+                if self.inclusive[1]:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] <= high_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] < high_val)
+
+                return tbl.mutate(
+                    pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
+                ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
         # Local backends (Narwhals) ---------------------------------
 
@@ -419,6 +560,88 @@ class Interrogator:
         if self.tbl_type in IBIS_BACKENDS:
 
             import ibis
+
+            if isinstance(self.low, Column) or isinstance(self.high, Column):
+
+                if isinstance(self.low, Column):
+                    low_val = self.x[self.low.name]
+                else:
+                    low_val = ibis.literal(self.low)
+
+                if isinstance(self.high, Column):
+                    high_val = self.x[self.high.name]
+                else:
+                    high_val = ibis.literal(self.high)
+
+                if isinstance(self.low, Column) and isinstance(self.high, Column):
+
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(
+                            self.x[self.column].isnull()
+                            | self.x[self.low.name].isnull()
+                            | self.x[self.high.name].isnull()
+                        )
+                        & ibis.literal(self.na_pass)
+                    )
+
+                elif isinstance(self.low, Column):
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(self.x[self.column].isnull() | self.x[self.low.name].isnull())
+                        & ibis.literal(self.na_pass)
+                    )
+                elif isinstance(self.high, Column):
+                    tbl = self.x.mutate(
+                        pb_is_good_1=(
+                            self.x[self.column].isnull() | self.x[self.high.name].isnull()
+                        )
+                        & ibis.literal(self.na_pass)
+                    )
+
+                if self.inclusive[0]:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] < low_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_2=tbl[self.column] <= low_val)
+
+                if self.inclusive[1]:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] > high_val)
+                else:
+                    tbl = tbl.mutate(pb_is_good_3=tbl[self.column] >= high_val)
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(
+                        tbl.pb_is_good_3.isnull(),
+                        False,
+                        tbl.pb_is_good_2,
+                    )
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_3=ibis.ifelse(
+                        tbl.pb_is_good_2.isnull(),
+                        False,
+                        tbl.pb_is_good_3,
+                    )
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(
+                        tbl.pb_is_good_2.isnull(),
+                        False,
+                        tbl.pb_is_good_2,
+                    )
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_3=ibis.ifelse(
+                        tbl.pb_is_good_3.isnull(),
+                        False,
+                        tbl.pb_is_good_3,
+                    )
+                )
+
+                return tbl.mutate(
+                    pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 | tbl.pb_is_good_3)
+                ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
             low_val = ibis.literal(self.low)
             high_val = ibis.literal(self.high)
