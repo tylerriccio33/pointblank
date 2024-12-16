@@ -73,13 +73,7 @@ ROW_BASED_VALIDATION_TYPES = [
     "col_vals_not_null",
 ]
 
-IBIS_BACKENDS = [
-    "duckdb",
-    "mysql",
-    "postgres",
-    "sqlite",
-    "parquet",
-]
+IBIS_BACKENDS = ["duckdb", "mysql", "postgres", "sqlite", "parquet", "memtable"]
 
 VALIDATION_REPORT_FIELDS = [
     "i",
@@ -114,6 +108,7 @@ TABLE_TYPE_STYLES = {
     "postgres": {"background": "#3E638B", "text": "#FFFFFF", "label": "PostgreSQL"},
     "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
+    "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
 }
 
 SVG_ICONS_FOR_ASSERTION_TYPES = {
