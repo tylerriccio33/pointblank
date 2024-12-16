@@ -83,14 +83,33 @@ class Interrogator:
 
             import ibis
 
-            tbl = self.x.mutate(
-                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
-            )
+            if isinstance(self.compare, Column):
 
-            return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
+                tbl = self.x.mutate(
+                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] > self.x[self.compare.name],
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
+                print(tbl.to_polars())
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
+
+            else:
+
+                tbl = self.x.mutate(
+                    pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
+                    pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
+                )
+
+                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
+                    "pb_is_good_1", "pb_is_good_2"
+                )
 
         # Local backends (Narwhals) ---------------------------------
 
