@@ -62,7 +62,9 @@ def test_col_vals_gt_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_lt_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -83,7 +85,9 @@ def test_col_vals_lt_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_eq_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -92,7 +96,16 @@ def test_col_vals_eq_col(request, tbl_fixture):
         # Add the zz column which is a near duplicate of the z column
         tbl_eq = tbl.assign(zz=[pd.NA, 8, 8, 8])
     else:
-        tbl_eq = tbl.with_columns(pl.Series(name="zz", values=[None, 8, 8, 8]))
+        tbl_eq = ibis.memtable(
+            pl.DataFrame(
+                {
+                    "x": [1, 2, None, 4],
+                    "y": [4, None, 6, 7],
+                    "z": [8, None, 8, 8],
+                    "zz": [None, 8, 8, 8],
+                }
+            )
+        )
 
     assert (
         Validate(tbl_eq).col_vals_eq(columns="zz", value=col("z")).interrogate().n_passed(i=1)[1]
@@ -118,7 +131,9 @@ def test_col_vals_eq_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_ne_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -135,7 +150,9 @@ def test_col_vals_ne_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_ge_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -152,7 +169,9 @@ def test_col_vals_ge_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_le_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -169,7 +188,9 @@ def test_col_vals_le_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_between_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -190,7 +211,9 @@ def test_col_vals_between_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl"])
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_missing_pd", "tbl_missing_pl", "tbl_missing_ibis_memtable"]
+)
 def test_col_vals_outside_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
