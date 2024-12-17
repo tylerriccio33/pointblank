@@ -419,6 +419,22 @@ class Interrogator:
                         & ~nw.col("pb_is_good_2")
                     )
 
+                if is_polars_dataframe(self.x.to_native()):
+                    # There may be Null values in the pb_is_good_3 column, change those to
+                    # True if na_pass is True, False otherwise
+
+                    if self.na_pass:
+
+                        tbl = tbl.with_columns(
+                            pb_is_good_3=(
+                                nw.when(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                                .then(True)
+                                .otherwise(False)
+                            )
+                        )
+
+                print(tbl.to_native())
+
                 return (
                     tbl.with_columns(pb_is_good_=nw.col("pb_is_good_3"))
                     .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
