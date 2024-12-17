@@ -229,53 +229,55 @@ def test_col_vals_eq_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
+@pytest.mark.parametrize("tbl_fixture", ["tbl_memtable"])
 def test_col_vals_ne_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="c", value=col("d"), na_pass=False)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 0
-    # )
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="c", value=col("d"), na_pass=True)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 4
-    # )
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="e", value=col("d"), na_pass=False)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 5
-    # )
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="e", value=col("d"), na_pass=True)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 9
-    # )
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="d", value=col("e"), na_pass=False)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 5
-    # )
-    # assert (
-    #     Validate(tbl)
-    #     .col_vals_ne(columns="d", value=col("e"), na_pass=True)
-    #     .interrogate()
-    #     .n_passed(i=1)[1]
-    #     == 9
-    # )
+    # TODO: Fix this for Narwhals-backend table failure (reports incorrect results)
+
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="c", value=col("d"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="c", value=col("d"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=col("d"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 5
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=col("d"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="d", value=col("e"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 5
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="d", value=col("e"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
