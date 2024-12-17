@@ -229,7 +229,7 @@ def test_col_vals_eq_col(request, tbl_fixture):
     )
 
 
-@pytest.mark.parametrize("tbl_fixture", ["tbl_memtable"])
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_memtable"])
 def test_col_vals_ne_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
