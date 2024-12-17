@@ -460,35 +460,21 @@ class Interrogator:
 
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
-                        pb_is_good_2=(  # compare is Null in Column
-                            nw.col(self.compare.name).is_null()
-                            if isinstance(self.compare, Column)
-                            else nw.lit(False)
-                        ),
-                        pb_is_good_3=nw.lit(self.na_pass),  # Pass if any Null in val or compare
+                        pb_is_good_2=nw.lit(self.na_pass),  # Pass if any Null in val or compare
                     )
 
-                    tbl = tbl.with_columns(pb_is_good_4=nw.col(self.column) != nw.lit(self.compare))
+                    tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != nw.lit(self.compare))
 
                     tbl = tbl.with_columns(
                         pb_is_good_=(
                             (
-                                (
-                                    (nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
-                                    & nw.col("pb_is_good_3")
-                                )
-                                | (
-                                    nw.col("pb_is_good_4")
-                                    & ~nw.col("pb_is_good_1")
-                                    & ~nw.col("pb_is_good_2")
-                                )
+                                (nw.col("pb_is_good_1") & nw.col("pb_is_good_2"))
+                                | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1"))
                             )
                         )
                     )
 
-                    tbl = tbl.drop(
-                        "pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4"
-                    ).to_native()
+                    tbl = tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
                     return tbl
 
