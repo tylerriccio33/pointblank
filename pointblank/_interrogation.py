@@ -482,15 +482,8 @@ class Interrogator:
 
         else:
 
-            # CASE 1: the reference column has no null values
-            if not ref_col_has_null_vals:
-
-                tbl = self.x.with_columns(pb_is_good_=nw.col(self.column) != nw.lit(self.compare))
-
-                return tbl.to_native()
-
-            # CASE 2: the reference column contains null values
-            elif ref_col_has_null_vals:
+            # Case where the reference column contains null values
+            if ref_col_has_null_vals:
 
                 # Create individual cases for Pandas and Polars
 
