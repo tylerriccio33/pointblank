@@ -37,7 +37,7 @@ classifiers = [
 dependencies = [
     "commonmark>=0.9.1",
     "importlib-metadata",
-    "narwhals>=1.10.0",
+    "narwhals>=1.18.4",
     "great_tables>=0.13.0",
     "typing_extensions>=3.10.0.0",
     "ibis-framework[duckdb,mysql,postgres,sqlite]>=9.5.0",

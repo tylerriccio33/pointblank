@@ -3232,12 +3232,28 @@ def _get_tbl_type(data: FrameT) -> str:
         #       we either extract the backend name from the table name or get the backend name
         #       from the get_backend() method and name attribute
 
-        tbl_name = data.get_name()
-
-        if "read_parquet" in tbl_name:
-            return "parquet"
-
         backend = ibis.get_backend(data).name
+
+        # Try using the get_name() method to get the table name, this is important for elucidating
+        # the original table type since it sometimes gets handled by duckdb
+
+        if backend == "duckdb":
+
+            try:
+                tbl_name = data.get_name()
+            except AttributeError:
+                tbl_name = None
+
+            if tbl_name is not None:
+
+                if "memtable" in tbl_name:
+                    return "memtable"
+
+                if "read_parquet" in tbl_name:
+                    return "parquet"
+
+            else:
+                return "duckdb"
 
         return backend
 
