@@ -446,8 +446,6 @@ class Interrogator:
             pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
         )
 
-        print(tbl.to_native())
-
         return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def le(self) -> FrameT | Any:
