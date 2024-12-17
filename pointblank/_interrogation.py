@@ -5,6 +5,7 @@ from typing import Any
 
 import narwhals as nw
 from narwhals.typing import FrameT
+from narwhals.dependencies import is_pandas_dataframe
 
 from pointblank._utils import _column_test_prep, _convert_to_narwhals
 from pointblank.thresholds import _threshold_check
@@ -224,24 +225,70 @@ class Interrogator:
 
         # Local backends (Narwhals) ---------------------------------
 
-        compare_expr = _get_compare_expr_nw(compare=self.compare)
+        if isinstance(self.compare, Column):
 
-        return (
-            self.x.with_columns(
+            compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+            tbl = self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
                 pb_is_good_2=(
                     nw.col(self.compare.name).is_null() & self.na_pass
                     if isinstance(self.compare, Column)
                     else nw.lit(False)
                 ),
-                pb_is_good_3=nw.col(self.column) == compare_expr,
             )
-            .with_columns(
+
+            tbl = tbl.with_columns(
+                pb_is_good_3=(~nw.col(self.compare.name).is_null() & ~nw.col(self.column).is_null())
+            )
+
+            if is_pandas_dataframe(tbl.to_native()):
+
+                tbl = tbl.with_columns(
+                    pb_is_good_4=nw.col(self.column) - compare_expr,
+                )
+
+                tbl = tbl.with_columns(
+                    pb_is_good_=nw.col("pb_is_good_1")
+                    | nw.col("pb_is_good_2")
+                    | (nw.col("pb_is_good_4") == 0 & ~nw.col("pb_is_good_3").is_null())
+                )
+
+            else:
+
+                tbl = tbl.with_columns(
+                    pb_is_good_4=nw.col(self.column) == compare_expr,
+                )
+
+                tbl = tbl.with_columns(
+                    pb_is_good_=nw.col("pb_is_good_1")
+                    | nw.col("pb_is_good_2")
+                    | (nw.col("pb_is_good_4") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
+                )
+
+            return tbl.drop(
+                "pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4"
+            ).to_native()
+
+        else:
+            compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+            tbl = self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+            )
+
+            tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) == compare_expr)
+
+            tbl = tbl.with_columns(
                 pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
             )
-            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
-            .to_native()
-        )
+
+            return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def ne(self) -> FrameT | Any:
 
@@ -282,32 +329,73 @@ class Interrogator:
 
         # Local backends (Narwhals) ---------------------------------
 
-        compare_expr = _get_compare_expr_nw(compare=self.compare)
+        if isinstance(self.compare, Column):
 
-        tbl = self.x.with_columns(
-            pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
-            pb_is_good_2=(  # compare is Null in Column
-                nw.col(self.compare.name).is_null()
-                if isinstance(self.compare, Column)
-                else nw.lit(False)
-            ),
-            pb_is_good_3=nw.lit(self.na_pass),  # Pass if any Null in val or compare
-        )
+            compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        tbl = tbl.with_columns(pb_is_good_4=nw.col(self.column) != compare_expr)
-
-        tbl = tbl.with_columns(
-            pb_is_good_=(
-                (
-                    ((nw.col("pb_is_good_1") | nw.col("pb_is_good_2")) & nw.col("pb_is_good_3"))
-                    | (nw.col("pb_is_good_4") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
-                )
+            tbl = self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
             )
-        )
 
-        tbl = tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4").to_native()
+            if is_pandas_dataframe(tbl.to_native()):
 
-        return tbl
+                tbl = tbl.with_columns(
+                    pb_is_good_3=nw.col(self.column) - compare_expr,
+                )
+
+                tbl_pd = tbl.to_native()
+
+                # Transform any null values to 0 using the Pandas API
+                tbl_pd["pb_is_good_3"] = tbl_pd["pb_is_good_3"].fillna(1.1)
+
+                tbl = _convert_to_narwhals(tbl_pd)
+
+                tbl = tbl.with_columns(
+                    pb_is_good_=nw.col("pb_is_good_1")
+                    | nw.col("pb_is_good_2")
+                    | (nw.col("pb_is_good_3") != 0 & nw.col("pb_is_good_3").is_null())
+                )
+
+                return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+
+            else:
+
+                tbl = tbl.with_columns(
+                    pb_is_good_3=nw.col(self.column) - compare_expr,
+                )
+
+                tbl = tbl.with_columns(
+                    pb_is_good_=nw.col("pb_is_good_1")
+                    | nw.col("pb_is_good_2")
+                    | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
+                )
+
+                return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+
+        else:
+            compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+            tbl = self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+            )
+
+            tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != compare_expr)
+
+            tbl = tbl.with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
+
+            return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def ge(self) -> FrameT | Any:
 
@@ -346,22 +434,21 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        return (
-            self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=(
-                    nw.col(self.compare.name).is_null() & self.na_pass
-                    if isinstance(self.compare, Column)
-                    else nw.lit(False)
-                ),
-                pb_is_good_3=nw.col(self.column) >= compare_expr,
-            )
-            .with_columns(
-                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
-            )
-            .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
-            .to_native()
+        tbl = self.x.with_columns(
+            pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+            pb_is_good_2=(
+                nw.col(self.compare.name).is_null() & self.na_pass
+                if isinstance(self.compare, Column)
+                else nw.lit(False)
+            ),
+            pb_is_good_3=nw.col(self.column) >= compare_expr,
+        ).with_columns(
+            pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
         )
+
+        print(tbl.to_native())
+
+        return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def le(self) -> FrameT | Any:
 
