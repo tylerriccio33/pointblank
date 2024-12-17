@@ -17,6 +17,8 @@ def tbl_pl():
             "c": [None, 8, 8, 8, 8, None, 8, None, None],
             "d": [None, 8, 8, 8, 8, None, 8, None, None],
             "e": [9, 9, 9, 9, 9, 9, 9, 9, 9],
+            "f": [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            "g": [1, 1, 1, 1, 1, 1, 1, 1, 1],
         }
     )
 
@@ -30,6 +32,8 @@ def tbl_pd():
             "c": [pd.NA, 8, 8, 8, 8, pd.NA, 8, pd.NA, pd.NA],
             "d": [pd.NA, 8, 8, 8, 8, pd.NA, 8, pd.NA, pd.NA],
             "e": [9, 9, 9, 9, 9, 9, 9, 9, 9],
+            "f": [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            "g": [1, 1, 1, 1, 1, 1, 1, 1, 1],
         }
     )
 
@@ -44,6 +48,8 @@ def tbl_memtable():
                 "c": [pd.NA, 8, 8, 8, 8, pd.NA, 8, pd.NA, pd.NA],
                 "d": [pd.NA, 8, 8, 8, 8, pd.NA, 8, pd.NA, pd.NA],
                 "e": [9, 9, 9, 9, 9, 9, 9, 9, 9],
+                "f": [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                "g": [1, 1, 1, 1, 1, 1, 1, 1, 1],
             }
         )
     )
@@ -227,6 +233,34 @@ def test_col_vals_eq_col(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 4
     )
+    assert (
+        Validate(tbl)
+        .col_vals_eq(columns="e", value=col("f"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_eq(columns="e", value=col("f"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_eq(columns="f", value=col("g"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_eq(columns="f", value=col("g"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
@@ -272,6 +306,20 @@ def test_col_vals_ne_col(request, tbl_fixture):
     assert (
         Validate(tbl)
         .col_vals_ne(columns="d", value=col("e"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=col("f"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=col("f"), na_pass=True)
         .interrogate()
         .n_passed(i=1)[1]
         == 9
