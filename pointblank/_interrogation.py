@@ -5,7 +5,7 @@ from typing import Any
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from narwhals.dependencies import is_pandas_dataframe
+from narwhals.dependencies import is_pandas_dataframe, is_polars_dataframe
 
 from pointblank._utils import _column_test_prep, _convert_to_narwhals
 from pointblank.thresholds import _threshold_check
@@ -329,73 +329,168 @@ class Interrogator:
 
         # Local backends (Narwhals) ---------------------------------
 
+        # Determine if the reference and comparison columns have any null values
+        ref_col_has_null_vals = _column_has_null_values(table=self.x, column=self.column)
+
+        if isinstance(self.compare, Column):
+            compare_name = self.compare.name if isinstance(self.compare, Column) else self.compare
+            cmp_col_has_null_vals = _column_has_null_values(table=self.x, column=compare_name)
+        else:
+            cmp_col_has_null_vals = False
+
+        # If neither column has null values, we can proceed with the comparison
+        # without too many complications
+        if not ref_col_has_null_vals and not cmp_col_has_null_vals:
+
+            if isinstance(self.compare, Column):
+
+                compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+                return self.x.with_columns(
+                    pb_is_good_=nw.col(self.column) != compare_expr,
+                ).to_native()
+
+            else:
+
+                return self.x.with_columns(
+                    pb_is_good_=nw.col(self.column) != nw.lit(self.compare),
+                ).to_native()
+
+        # If either column has null values, we need to handle the comparison
+        # much more carefully since we can't inadverdently compare null values
+        # to non-null values
+
         if isinstance(self.compare, Column):
 
             compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-            tbl = self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=(
-                    nw.col(self.compare.name).is_null() & self.na_pass
-                    if isinstance(self.compare, Column)
-                    else nw.lit(False)
-                ),
-            )
+            # CASE 1: the reference column has null values but the comparison column does not
+            if ref_col_has_null_vals and not cmp_col_has_null_vals:
 
-            if is_pandas_dataframe(tbl.to_native()):
-
-                tbl = tbl.with_columns(
-                    pb_is_good_3=nw.col(self.column) - compare_expr,
+                tbl = self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null(),
+                    pb_is_good_2=nw.col(self.compare.name) != nw.lit(self.column),
                 )
 
-                tbl_pd = tbl.to_native()
+                if not self.na_pass:
+                    tbl = tbl.with_columns(
+                        pb_is_good_2=nw.col("pb_is_good_2") & ~nw.col("pb_is_good_1")
+                    )
 
-                # Transform any null values to 0 using the Pandas API
-                tbl_pd["pb_is_good_3"] = tbl_pd["pb_is_good_3"].fillna(1.1)
-
-                tbl = _convert_to_narwhals(tbl_pd)
-
-                tbl = tbl.with_columns(
-                    pb_is_good_=nw.col("pb_is_good_1")
-                    | nw.col("pb_is_good_2")
-                    | (nw.col("pb_is_good_3") != 0 & nw.col("pb_is_good_3").is_null())
+                return (
+                    tbl.with_columns(pb_is_good_=nw.col("pb_is_good_2"))
+                    .drop("pb_is_good_1", "pb_is_good_2")
+                    .to_native()
                 )
 
-                return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+            # CASE 2: the comparison column has null values but the reference column does not
+            elif not ref_col_has_null_vals and cmp_col_has_null_vals:
 
-            else:
-
-                tbl = tbl.with_columns(
-                    pb_is_good_3=nw.col(self.column) - compare_expr,
+                tbl = self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column) != nw.lit(self.compare.name),
+                    pb_is_good_2=nw.col(self.compare.name).is_null(),
                 )
 
-                tbl = tbl.with_columns(
-                    pb_is_good_=nw.col("pb_is_good_1")
-                    | nw.col("pb_is_good_2")
-                    | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2"))
+                if not self.na_pass:
+                    tbl = tbl.with_columns(
+                        pb_is_good_1=nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2")
+                    )
+
+                return (
+                    tbl.with_columns(pb_is_good_=nw.col("pb_is_good_1"))
+                    .drop("pb_is_good_1", "pb_is_good_2")
+                    .to_native()
                 )
 
-                return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+            # CASE 3: both columns have null values and there may potentially be cases where
+            # there could even be null/null comparisons
+            elif ref_col_has_null_vals and cmp_col_has_null_vals:
+
+                tbl = self.x.with_columns(
+                    pb_is_good_1=nw.col(self.column).is_null(),
+                    pb_is_good_2=nw.col(self.compare.name).is_null(),
+                    pb_is_good_3=nw.col(self.column) != nw.col(self.compare.name),
+                )
+
+                if not self.na_pass:
+                    tbl = tbl.with_columns(
+                        pb_is_good_3=nw.col("pb_is_good_3")
+                        & ~nw.col("pb_is_good_1")
+                        & ~nw.col("pb_is_good_2")
+                    )
+
+                return (
+                    tbl.with_columns(pb_is_good_=nw.col("pb_is_good_3"))
+                    .drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
+                    .to_native()
+                )
 
         else:
-            compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-            tbl = self.x.with_columns(
-                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-                pb_is_good_2=(
-                    nw.col(self.compare.name).is_null() & self.na_pass
-                    if isinstance(self.compare, Column)
-                    else nw.lit(False)
-                ),
-            )
+            # CASE 1: the reference column has no null values
+            if not ref_col_has_null_vals:
 
-            tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != compare_expr)
+                tbl = self.x.with_columns(pb_is_good_=nw.col(self.column) != nw.lit(self.compare))
 
-            tbl = tbl.with_columns(
-                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
-            )
+                return tbl.to_native()
 
-            return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+            # CASE 2: the reference column contains null values
+            elif ref_col_has_null_vals:
+
+                # Create individual cases for Pandas and Polars
+
+                if is_pandas_dataframe(self.x.to_native()):
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column).is_null(),
+                        pb_is_good_2=nw.lit(self.column) != nw.lit(self.compare),
+                    )
+
+                    if not self.na_pass:
+                        tbl = tbl.with_columns(
+                            pb_is_good_2=nw.col("pb_is_good_2") & ~nw.col("pb_is_good_1")
+                        )
+
+                    return (
+                        tbl.with_columns(pb_is_good_=nw.col("pb_is_good_2"))
+                        .drop("pb_is_good_1", "pb_is_good_2")
+                        .to_native()
+                    )
+
+                elif is_polars_dataframe(self.x.to_native()):
+
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+                        pb_is_good_2=(  # compare is Null in Column
+                            nw.col(self.compare.name).is_null()
+                            if isinstance(self.compare, Column)
+                            else nw.lit(False)
+                        ),
+                        pb_is_good_3=nw.lit(self.na_pass),  # Pass if any Null in val or compare
+                    )
+
+                    tbl = tbl.with_columns(pb_is_good_4=nw.col(self.column) != nw.lit(self.compare))
+
+                    tbl = tbl.with_columns(
+                        pb_is_good_=(
+                            (
+                                (
+                                    (nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                                    & nw.col("pb_is_good_3")
+                                )
+                                | (
+                                    nw.col("pb_is_good_4")
+                                    & ~nw.col("pb_is_good_1")
+                                    & ~nw.col("pb_is_good_2")
+                                )
+                            )
+                        )
+                    )
+
+                    tbl = tbl.drop(
+                        "pb_is_good_1", "pb_is_good_2", "pb_is_good_3", "pb_is_good_4"
+                    ).to_native()
+
+                    return tbl
 
     def ge(self) -> FrameT | Any:
 
@@ -1408,3 +1503,12 @@ def _get_compare_expr_nw(compare: Any) -> Any:
     if isinstance(compare, Column):
         return nw.col(compare.name)
     return compare
+
+
+def _column_has_null_values(table: FrameT, column: str) -> bool:
+    null_count = (table.select(column).null_count())[column][0]
+
+    if null_count is None or null_count == 0:
+        return False
+
+    return True
