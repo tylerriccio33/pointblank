@@ -234,8 +234,6 @@ def test_col_vals_ne_col(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # TODO: Fix this for Narwhals-backend table failure (reports incorrect results)
-
     assert (
         Validate(tbl)
         .col_vals_ne(columns="c", value=col("d"), na_pass=False)
@@ -277,6 +275,29 @@ def test_col_vals_ne_col(request, tbl_fixture):
         .interrogate()
         .n_passed(i=1)[1]
         == 9
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pl"])
+def test_col_vals_ne_col_2(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # TODO: Fix several Polars table failures (reports incorrect results)
+
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="c", value=col("d"), na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="c", value=col("d"), na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 4
     )
 
 
