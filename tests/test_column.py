@@ -324,6 +324,42 @@ def test_col_vals_ne_col(request, tbl_fixture):
         .n_passed(i=1)[1]
         == 9
     )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="d", value=7, na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 5
+    )
+    assert (
+        Validate(tbl).col_vals_ne(columns="d", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=10, na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=10, na_pass=True)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 9
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=9, na_pass=False)
+        .interrogate()
+        .n_passed(i=1)[1]
+        == 0
+    )
+    assert (
+        Validate(tbl).col_vals_ne(columns="e", value=9, na_pass=True).interrogate().n_passed(i=1)[1]
+        == 0
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
