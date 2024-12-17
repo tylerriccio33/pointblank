@@ -367,15 +367,41 @@ class Interrogator:
             # CASE 1: the reference column has null values but the comparison column does not
             if ref_col_has_null_vals and not cmp_col_has_null_vals:
 
-                tbl = self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column).is_null(),
-                    pb_is_good_2=nw.col(self.compare.name) != nw.lit(self.column),
-                )
+                if is_pandas_dataframe(self.x.to_native()):
+
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column).is_null(),
+                        pb_is_good_2=nw.lit(self.column) != nw.col(self.compare.name),
+                    )
+
+                else:
+
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column).is_null(),
+                        pb_is_good_2=nw.col(self.column) != nw.col(self.compare.name),
+                    )
 
                 if not self.na_pass:
                     tbl = tbl.with_columns(
                         pb_is_good_2=nw.col("pb_is_good_2") & ~nw.col("pb_is_good_1")
                     )
+
+                if is_polars_dataframe(self.x.to_native()):
+
+                    # There may be Null values in the pb_is_good_2 column, change those to
+                    # True if na_pass is True, False otherwise
+
+                    tbl = tbl.with_columns(
+                        pb_is_good_2=nw.when(nw.col("pb_is_good_2").is_null())
+                        .then(False)
+                        .otherwise(nw.col("pb_is_good_2")),
+                    )
+
+                    if self.na_pass:
+
+                        tbl = tbl.with_columns(
+                            pb_is_good_2=(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                        )
 
                 return (
                     tbl.with_columns(pb_is_good_=nw.col("pb_is_good_2"))
@@ -386,15 +412,32 @@ class Interrogator:
             # CASE 2: the comparison column has null values but the reference column does not
             elif not ref_col_has_null_vals and cmp_col_has_null_vals:
 
-                tbl = self.x.with_columns(
-                    pb_is_good_1=nw.col(self.column) != nw.lit(self.compare.name),
-                    pb_is_good_2=nw.col(self.compare.name).is_null(),
-                )
+                if is_pandas_dataframe(self.x.to_native()):
+
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column) != nw.lit(self.compare.name),
+                        pb_is_good_2=nw.col(self.compare.name).is_null(),
+                    )
+
+                else:
+
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column) != nw.col(self.compare.name),
+                        pb_is_good_2=nw.col(self.compare.name).is_null(),
+                    )
 
                 if not self.na_pass:
                     tbl = tbl.with_columns(
                         pb_is_good_1=nw.col("pb_is_good_1") & ~nw.col("pb_is_good_2")
                     )
+
+                if is_polars_dataframe(self.x.to_native()):
+
+                    if self.na_pass:
+
+                        tbl = tbl.with_columns(
+                            pb_is_good_1=(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
+                        )
 
                 return (
                     tbl.with_columns(pb_is_good_=nw.col("pb_is_good_1"))
@@ -420,8 +463,6 @@ class Interrogator:
                     )
 
                 if is_polars_dataframe(self.x.to_native()):
-                    # There may be Null values in the pb_is_good_3 column, change those to
-                    # True if na_pass is True, False otherwise
 
                     if self.na_pass:
 
@@ -432,8 +473,6 @@ class Interrogator:
                                 .otherwise(False)
                             )
                         )
-
-                print(tbl.to_native())
 
                 return (
                     tbl.with_columns(pb_is_good_=nw.col("pb_is_good_3"))
