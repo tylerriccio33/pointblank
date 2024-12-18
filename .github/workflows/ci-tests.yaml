@@ -29,7 +29,7 @@ jobs:
           pip install -e '.[dev]'
       - name: Install test dependencies
         run: |
-          pip install pytest pytest-cov pytest-snapshot pandas polars
+          pip install pytest pytest-cov pytest-snapshot pandas polars ibis-framework
       - name: pytest unit tests
         run: |
           make test
