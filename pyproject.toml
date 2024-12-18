@@ -67,6 +67,8 @@ docs = [
     "nbclient>=0.10.0",
     "nbformat>=5.10.4",
     "quartodoc>=0.8.1; python_version >= '3.9'",
+    "pandas>=2.2.3",
+    "polars>=1.17.1",
 ]
 
 [dependency-groups]
