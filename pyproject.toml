@@ -40,27 +40,45 @@ dependencies = [
     "narwhals>=1.18.4",
     "great_tables>=0.13.0",
     "typing_extensions>=3.10.0.0",
-    "ibis-framework[duckdb,mysql,postgres,sqlite]>=9.5.0",
 ]
 requires-python = ">=3.10"
 
-[project.optional-dependencies]
+[dependency-groups]
+pd = [
+    "pandas>=2.2.3",
+]
+pl = [
+    "polars>=1.17.1",
+]
+duckdb = [
+    "ibis-framework[duckdb]>=9.5.0",
+]
+mysql = [
+    "ibis-framework[mysql]>=9.5.0",
+]
+postgres = [
+    "ibis-framework[postgres]>=9.5.0",
+]
+sqlite = [
+    "ibis-framework[sqlite]>=9.5.0",
+]
 dev = [
     "black",
     "duckdb>=1.1.3",
-    "jupyter",
-    "quartodoc>=0.8.1; python_version >= '3.9'",
     "griffe==0.38.1",
+    "ibis-framework[duckdb,mysql,postgres,sqlite]>=9.5.0",
+    "jupyter",
     "nbclient>=0.10.0",
     "nbformat>=5.10.4",
-    "pandas",
-    "polars",
+    "pandas>=2.2.3",
+    "polars>=1.17.1",
     "pre-commit==2.15.0",
     "pyarrow",
     "pyright>=1.1.244",
     "pytest>=3",
     "pytest-cov",
     "pytest-snapshot",
+    "quartodoc>=0.8.1; python_version >= '3.9'",
 ]
 
 [project.urls]
