@@ -62,6 +62,9 @@ postgres = [
 sqlite = [
     "ibis-framework[sqlite]>=9.5.0",
 ]
+docs = [
+    "quartodoc>=0.8.1; python_version >= '3.9'",
+]
 
 [dependency-groups]
 dev = [
