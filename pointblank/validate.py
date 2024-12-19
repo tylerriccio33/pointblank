@@ -1109,6 +1109,65 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
+        `b`, and `c`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 6, 5, 9, 7, 5],
+                "b": [1, 3, 1, 5, 2, 5],
+                "c": [2, 1, 1, 4, 3, 4],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all less than or equal to the value of `9`.
+        We'll determine if this validation had any failing test units (there are six test units, one
+        for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_le(columns="a", value=9)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_le()`.
+
+        Aside from checking a column against a literal value, we can also use a column name in the
+        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
+        For the next example, we'll use `col_vals_le()` to check whether the values in column `c`
+        are less than values in column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_le(columns="c", value=pb.col("b"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are:
+
+        - Row 0: `c` is `2` and `b` is `1`.
+        - Row 4: `c` is `3` and `b` is `2`.
         """
 
         assertion_type = _get_fn_name()
