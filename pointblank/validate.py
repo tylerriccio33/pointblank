@@ -1490,8 +1490,8 @@ class Validate:
 
         tbl = pl.DataFrame(
             {
-                "a": [5, 6, 5, 7, 5, 3],
-                "b": [2, 3, 6, 4, 3, 5],
+                "a": [5, 6, 5, 7, 5, 5],
+                "b": [2, 3, 6, 4, 3, 6],
                 "c": [9, 8, 8, 9, 9, 7],
             }
         )
@@ -1544,7 +1544,7 @@ class Validate:
         The validation table reports two failing test units. The specific failing cases are:
 
         - Row 2: `b` is `6` and the bounds are `5` (`a`) and `8` (`c`).
-        - Row 4: `b` is `5` and the bounds are `3` (`a`) and `7` (`c`).
+        - Row 5: `b` is `6` and the bounds are `5` (`a`) and `7` (`c`).
         """
 
         assertion_type = _get_fn_name()
@@ -1624,6 +1624,59 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 2, 4, 6, 2, 5],
+                "b": [5, 8, 2, 6, 5, 1],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all in the set of `[2, 3, 4, 5, 6]`. We'll
+        determine if this validation had any failing test units (there are six test units, one for
+        each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_in_set(columns="a", set=[2, 3, 4, 5, 6])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_in_set()`.
+
+        Now, let's use that same set of values for a validation on column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_in_set(columns="b", set=[2, 3, 4, 5, 6])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are for the
+        column `b` values of `8` and `1`, which are not in the set of `[2, 3, 4, 5, 6]`.
         """
 
         assertion_type = _get_fn_name()
@@ -1695,6 +1748,59 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 8, 1, 9, 1, 7],
+                "b": [1, 8, 2, 6, 9, 1],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that none of the values in column `a` are in the set of `[2, 3, 4, 5, 6]`.
+        We'll determine if this validation had any failing test units (there are six test units, one
+        for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_not_in_set(columns="a", set=[2, 3, 4, 5, 6])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_not_in_set()`.
+
+        Now, let's use that same set of values for a validation on column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_not_in_set(columns="b", set=[2, 3, 4, 5, 6])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are for the
+        column `b` values of `2` and `6`, both of which are in the set of `[2, 3, 4, 5, 6]`.
         """
 
         assertion_type = _get_fn_name()
@@ -1764,6 +1870,58 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [None, None, None, None],
+                "b": [None, 2, None, 9],
+            }
+        ).with_columns(pl.col("a").cast(pl.Int64))
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all Null values. We'll determine if this
+        validation had any failing test units (there are four test units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_null(columns="a")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_null()`.
+
+        Now, let's use that same set of values for a validation on column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_null(columns="b")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are for the
+        two non-Null values in column `b`.
         """
         assertion_type = _get_fn_name()
 
@@ -1830,6 +1988,58 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [4, 7, 2, 8],
+                "b": [5, None, 1, None],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that none of the values in column `a` are Null values. We'll determine if
+        this validation had any failing test units (there are four test units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_not_null(columns="a")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_not_null()`.
+
+        Now, let's use that same set of values for a validation on column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_not_null(columns="b")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are for the
+        two Null values in column `b`.
         """
         assertion_type = _get_fn_name()
 
@@ -1904,6 +2114,59 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": ["rb-0343", "ra-0232", "ry-0954", "rc-1343"],
+                "b": ["ra-0628", "ra-583", "rya-0826", "rb-0735"],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that all of the values in column `a` match a particular regex pattern. We'll
+        determine if this validation had any failing test units (there are four test units, one for
+        each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_regex(columns="a", pattern=r"r[a-z]-\d{4}")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_regex()`.
+
+        Now, let's use the same regex for a validation on column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_regex(columns="b", pattern=r"r[a-z]-\d{4}")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are for the
+        string values of rows 1 and 2 in column `b`.
         """
 
         assertion_type = _get_fn_name()
@@ -1971,6 +2234,58 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
+        numeric column (`b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": ["apple", "banana", "cherry", "date"],
+                "b": [1, 6, 3, 5],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that the columns `a` and `b` actually exist in the table. We'll determine if
+        this validation had any failing test units (each validation will have a single test unit).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_exists(columns=["a", "b"])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows two entries (one check per column) generated by the
+        `col_exists()` validation step.
+
+        Now, let's check for the existence of a different set of columns.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_exists(columns=["b", "c"])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports one passing step (check for column `b`) and one failing step
+        (check for column `c`, which doesn't exist).
         """
 
         assertion_type = _get_fn_name()
