@@ -2640,7 +2640,7 @@ class Validate:
         """
         return all(validation.all_passed for validation in self.validation_info)
 
-    def n(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units for each validation step.
 
@@ -2649,16 +2649,22 @@ class Validate:
         i
             The validation step number(s) from which the number of test units is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of test units for each validation step or a scalar value.
         """
+        result = self._get_validation_dict(i, "n")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n")
-
-    def n_passed(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n_passed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units that passed for each validation step.
 
@@ -2667,16 +2673,23 @@ class Validate:
         i
             The validation step number(s) from which the number of passing test units is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of failing test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of passing test units for each validation step or a scalar
+            value.
         """
+        result = self._get_validation_dict(i, "n_passed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n_passed")
-
-    def n_failed(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n_failed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units that failed for each validation step.
 
@@ -2685,16 +2698,23 @@ class Validate:
         i
             The validation step number(s) from which the number of failing test units is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of failing test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of failing test units for each validation step or a scalar
+            value.
         """
+        result = self._get_validation_dict(i, "n_failed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n_failed")
-
-    def f_passed(self, i: int | list[int] | None = None) -> dict[int, float]:
+    def f_passed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, float] | float:
         """
         Provides a dictionary of the fraction of test units that passed for each validation step.
 
@@ -2703,16 +2723,23 @@ class Validate:
         i
             The validation step number(s) from which the fraction of passing test units is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, float]
-            A dictionary of the fraction of passing test units for each validation step.
+        dict[int, float] | float
+            A dictionary of the fraction of passing test units for each validation step or a scalar
+            value.
         """
+        result = self._get_validation_dict(i, "f_passed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "f_passed")
-
-    def f_failed(self, i: int | list[int] | None = None) -> dict[int, float]:
+    def f_failed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, float] | float:
         """
         Provides a dictionary of the fraction of test units that failed for each validation step.
 
@@ -2721,16 +2748,23 @@ class Validate:
         i
             The validation step number(s) from which the fraction of failing test units is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, float]
-            A dictionary of the fraction of failing test units for each validation step.
+        dict[int, float] | float
+            A dictionary of the fraction of failing test units for each validation step or a scalar
+            value.
         """
+        result = self._get_validation_dict(i, "f_failed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "f_failed")
-
-    def warn(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def warn(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the warning status for each validation step.
 
@@ -2739,16 +2773,22 @@ class Validate:
         i
             The validation step number(s) from which the warning status is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the warning status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the warning status for each validation step or a scalar value.
         """
+        result = self._get_validation_dict(i, "warn")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "warn")
-
-    def stop(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def stop(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the stopping status for each validation step.
 
@@ -2757,16 +2797,22 @@ class Validate:
         i
             The validation step number(s) from which the stopping status is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the stopping status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the stopping status for each validation step or a scalar value.
         """
+        result = self._get_validation_dict(i, "stop")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "stop")
-
-    def notify(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def notify(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the notification status for each validation step.
 
@@ -2775,16 +2821,22 @@ class Validate:
         i
             The validation step number(s) from which the notification status is obtained.
             If `None`, all steps are included.
+        scalar
+            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the notification status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the notification status for each validation step or a scalar value.
         """
+        result = self._get_validation_dict(i, "notify")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "notify")
-
-    def get_data_extracts(self, i: int | list[int] | None = None) -> dict[int, FrameT | None]:
+    def get_data_extracts(
+        self, i: int | list[int] | None = None, frame: bool = False
+    ) -> dict[int, FrameT | None] | FrameT | None:
         """
         Get the rows that failed for each validation step.
 
@@ -2793,14 +2845,19 @@ class Validate:
         i
             The validation step number(s) from which the failed rows are obtained. If `None`, all
             steps are included.
+        frame
+            If `True` and `i` is a scalar, return the value as a DataFrame instead of a dictionary.
 
         Returns
         -------
-        dict[int, FrameT]
+        dict[int, FrameT | None] | FrameT | None
             A dictionary of tables containing the rows that failed in every row-based validation
-            step.
+            step or a DataFrame.
         """
-        return self._get_validation_dict(i, "extract")
+        result = self._get_validation_dict(i, "extract")
+        if frame and isinstance(i, int):
+            return result[i]
+        return result
 
     def get_json_report(
         self, use_fields: list[str] | None = None, exclude_fields: list[str] | None = None
