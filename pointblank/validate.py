@@ -470,7 +470,64 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the of the example here, we'll use a simple Polars DataFrame with three numeric columns
+        (`a`, `b`, and `c`).
+
+        ```{python}
+        import polars as pl
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 5, 5, 5, 5, 5],
+                "b": [1, 2, 1, 2, 2, 2],
+                "c": [2, 1, 2, 2, 3, 4],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all greater than the value of `4`. We'll
+        determine if this validation had any failing test units (there are six test units, one for
+        each row).
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=4)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_gt()`.
+
+        Aside from checking a column against a literal value, we can also use a column name in the
+        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
+        For the next example, we'll use `col_vals_gt()` to check whether the values in column `c`
+        are greater than values in column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="c", value=pb.col("b"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are:
+
+        - Row 1: `c` is `1` and `b` is `2`.
+        - Row 3: `c` is `2` and `b` is `2`.
         """
+
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
