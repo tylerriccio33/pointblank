@@ -1318,6 +1318,73 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with four numeric columns (`a`,
+        `b`, `c`, and `d`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [2, 3, 2, 4, 3, 4],
+                "b": [5, 6, 1, 6, 8, 5],
+                "c": [9, 8, 8, 7, 7, 8],
+                "d": [2, 3, 1, 4, 3, 4],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all between the fixed boundary values of `1`
+        and `5`. We'll determine if this validation had any failing test units (there are six test
+        units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_between(columns="a", left=1, right=5)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_between()`.
+
+        Aside from checking a column against two literal values representing the lower and upper
+        bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
+        the helper function `col()`). In this way, we can perform three additional comparisons:
+
+        1. column-column-column
+        2. fixed-column-column
+        3. column-column-fixed
+
+        For the next example, we'll use `col_vals_between()` to check whether the values in column
+        `b` are between than corresponding values in columns `a` (lower bound) and `c` (upper
+        bound).
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_between(columns="b", left=pb.col("a"), right=pb.col("c"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are:
+
+        - Row 2: `b` is `1` but the bounds are `2` (`a`) and `8` (`c`).
+        - Row 4: `b` is `8` but the bounds are `3` (`a`) and `7` (`c`).
         """
 
         assertion_type = _get_fn_name()
