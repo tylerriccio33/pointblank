@@ -890,6 +890,61 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 5, 5, 5, 5, 5],
+                "b": [5, 6, 3, 6, 5, 8],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are not equal to the value of `3`. We'll determine
+        if this validation had any failing test units (there are six test units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_ne(columns="a", value=3)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_ne()`.
+
+        Aside from checking a column against a literal value, we can also use a column name in the
+        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
+        For the next example, we'll use `col_vals_ne()` to check whether the values in column `a`
+        aren't equal to the values in column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_ne(columns="a", value=pb.col("b"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are in rows
+        0 and 4, where `a` is `5` and `b` is `5` in both cases (i.e., they are equal to each other).
         """
 
         assertion_type = _get_fn_name()
