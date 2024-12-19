@@ -1321,8 +1321,8 @@ class Validate:
 
         Examples
         --------
-        For the examples here, we'll use a simple Polars DataFrame with four numeric columns (`a`,
-        `b`, `c`, and `d`). The table is shown below:
+        For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
+        `b`, and `c`). The table is shown below:
 
         ```{python}
         import polars as pl
@@ -1332,7 +1332,6 @@ class Validate:
                 "a": [2, 3, 2, 4, 3, 4],
                 "b": [5, 6, 1, 6, 8, 5],
                 "c": [9, 8, 8, 7, 7, 8],
-                "d": [2, 3, 1, 4, 3, 4],
             }
         )
 
@@ -1361,11 +1360,11 @@ class Validate:
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
-        the helper function `col()`). In this way, we can perform three additional comparisons:
+        the helper function `col()`). In this way, we can perform three additional comparison types:
 
-        1. column-column-column
-        2. fixed-column-column
-        3. column-column-fixed
+        1. `left=column`, `right=column`
+        2. `left=literal`, `right=column`
+        3. `left=column`, `right=literal`
 
         For the next example, we'll use `col_vals_between()` to check whether the values in column
         `b` are between than corresponding values in columns `a` (lower bound) and `c` (upper
@@ -1480,6 +1479,72 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
+        `b`, and `c`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 6, 5, 7, 5, 3],
+                "b": [2, 3, 6, 4, 3, 5],
+                "c": [9, 8, 8, 9, 9, 7],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all outside the fixed boundary values of `1`
+        and `4`. We'll determine if this validation had any failing test units (there are six test
+        units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_outside(columns="a", left=1, right=4)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_outside()`.
+
+        Aside from checking a column against two literal values representing the lower and upper
+        bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
+        the helper function `col()`). In this way, we can perform three additional comparison types:
+
+        1. `left=column`, `right=column`
+        2. `left=literal`, `right=column`
+        3. `left=column`, `right=literal`
+
+        For the next example, we'll use `col_vals_outside()` to check whether the values in column
+        `b` are outside of the range formed by the corresponding values in columns `a` (lower bound)
+        and `c` (upper bound).
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_outside(columns="b", left=pb.col("a"), right=pb.col("c"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are:
+
+        - Row 2: `b` is `6` and the bounds are `5` (`a`) and `8` (`c`).
+        - Row 4: `b` is `5` and the bounds are `3` (`a`) and `7` (`c`).
         """
 
         assertion_type = _get_fn_name()
