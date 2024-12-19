@@ -2636,7 +2636,7 @@ class Validate:
         Returns
         -------
         bool
-            `True` if all validations passed, `False` otherwise.
+            `True` if all validation steps had no failing test units, `False` otherwise.
         """
         return all(validation.all_passed for validation in self.validation_info)
 
@@ -2648,9 +2648,10 @@ class Validate:
         ----------
         i
             The validation step number(s) from which the number of test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2672,9 +2673,10 @@ class Validate:
         ----------
         i
             The validation step number(s) from which the number of passing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2697,9 +2699,10 @@ class Validate:
         ----------
         i
             The validation step number(s) from which the number of failing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2722,9 +2725,10 @@ class Validate:
         ----------
         i
             The validation step number(s) from which the fraction of passing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2747,9 +2751,10 @@ class Validate:
         ----------
         i
             The validation step number(s) from which the fraction of failing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2771,10 +2776,10 @@ class Validate:
         Parameters
         ----------
         i
-            The validation step number(s) from which the warning status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the warning status is obtained. Can be provided
+            as a list of integers or a single integer. If `None`, all steps are included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2795,10 +2800,10 @@ class Validate:
         Parameters
         ----------
         i
-            The validation step number(s) from which the stopping status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the stopping status is obtained. Can be
+            provided as a list of integers or a single integer. If `None`, all steps are included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2819,10 +2824,10 @@ class Validate:
         Parameters
         ----------
         i
-            The validation step number(s) from which the notification status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the notification status is obtained. Can be
+            provided as a list of integers or a single integer. If `None`, all steps are included.
         scalar
-            If `True` and `i` is a scalar, return the value as a scalar instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
@@ -2849,10 +2854,10 @@ class Validate:
         Parameters
         ----------
         i
-            The validation step number(s) from which the failed rows are obtained. If `None`, all
-            steps are included.
+            The validation step number(s) from which the failed rows are obtained. Can be provided
+            as a list of integers or a single integer. If `None`, all steps are included.
         frame
-            If `True` and `i` is a scalar, return the value as a DataFrame instead of a dictionary.
+            If `True` and `i=` is a scalar, return the value as a DataFrame instead of a dictionary.
 
         Returns
         -------
