@@ -508,7 +508,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_gt()`.
+        by using `col_vals_gt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -649,7 +649,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_lt()`.
+        by using `col_vals_lt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -787,7 +787,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_eq()`.
+        by using `col_vals_eq()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -926,7 +926,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_ne()`.
+        by using `col_vals_ne()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -1065,7 +1065,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_ge()`.
+        by using `col_vals_ge()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -1206,7 +1206,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_le()`.
+        by using `col_vals_le()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function `col()`) to perform a column-column comparison.
@@ -1356,7 +1356,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_between()`.
+        by using `col_vals_between()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
@@ -1517,7 +1517,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_outside()`.
+        by using `col_vals_outside()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
@@ -1661,7 +1661,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_in_set()`.
+        by using `col_vals_in_set()`. All test units passed, and there are no failing test units.
 
         Now, let's use that same set of values for a validation on column `b`.
 
@@ -1785,7 +1785,8 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_not_in_set()`.
+        by using `col_vals_not_in_set()`. All test units passed, and there are no failing test
+        units.
 
         Now, let's use that same set of values for a validation on column `b`.
 
@@ -1906,7 +1907,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_null()`.
+        by using `col_vals_null()`. All test units passed, and there are no failing test units.
 
         Now, let's use that same set of values for a validation on column `b`.
 
@@ -2024,7 +2025,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_not_null()`.
+        by using `col_vals_not_null()`. All test units passed, and there are no failing test units.
 
         Now, let's use that same set of values for a validation on column `b`.
 
@@ -2151,7 +2152,7 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
-        by using `col_vals_regex()`.
+        by using `col_vals_regex()`. All test units passed, and there are no failing test units.
 
         Now, let's use the same regex for a validation on column `b`.
 
@@ -2270,7 +2271,8 @@ class Validate:
 
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows two entries (one check per column) generated by the
-        `col_exists()` validation step.
+        `col_exists()` validation step. Both steps passed since both columns provided in `columns=`
+        are present in the table.
 
         Now, let's check for the existence of a different set of columns.
 
@@ -2284,8 +2286,8 @@ class Validate:
         validation
         ```
 
-        The validation table reports one passing step (check for column `b`) and one failing step
-        (check for column `c`, which doesn't exist).
+        The validation table reports one passing validation step (the check for column `b`) and one
+        failing validation step (the check for column `c`, which doesn't exist).
         """
 
         assertion_type = _get_fn_name()
