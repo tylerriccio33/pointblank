@@ -751,6 +751,63 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
+        `b`). The table is shown below:
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 5, 5, 5, 5, 5],
+                "b": [5, 5, 5, 6, 5, 4],
+            }
+        )
+
+        tbl
+        ```
+
+        Let's validate that values in column `a` are all equal to the value of `5`. We'll determine
+        if this validation had any failing test units (there are six test units, one for each row).
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_eq(columns="a", value=5)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_eq()`.
+
+        Aside from checking a column against a literal value, we can also use a column name in the
+        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
+        For the next example, we'll use `col_vals_eq()` to check whether the values in column `a`
+        are equal to the values in column `b`.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_eq(columns="a", value=pb.col("b"))
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports two failing test units. The specific failing cases are:
+
+        - Row 3: `a` is `5` and `b` is `6`.
+        - Row 5: `a` is `5` and `b` is `4`.
         """
 
         assertion_type = _get_fn_name()
