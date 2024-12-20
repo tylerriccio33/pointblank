@@ -946,9 +946,15 @@ def test_col_vals_gt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_gt(columns="x", value=0).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_gt(columns="x", value=0, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_gt(columns="x", value=0).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_gt(columns="x", value=0, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -958,7 +964,10 @@ def test_col_vals_lt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_lt(columns="x", value=10).interrogate().n_passed(i=1)[1] == 3
+    assert (
+        Validate(tbl).col_vals_lt(columns="x", value=10).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="x", value=10, na_pass=True)
@@ -973,9 +982,15 @@ def test_col_vals_eq(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_eq(columns="z", value=8).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_eq(columns="z", value=8, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_eq(columns="z", value=8).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_eq(columns="z", value=8, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -985,9 +1000,15 @@ def test_col_vals_ne(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_ne(columns="z", value=7).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_ne(columns="z", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_ne(columns="z", value=7).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ne(columns="z", value=7, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -997,9 +1018,15 @@ def test_col_vals_ge(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_ge(columns="x", value=1).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_ge(columns="x", value=1, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_ge(columns="x", value=1).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_ge(columns="x", value=1, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -1009,9 +1036,15 @@ def test_col_vals_le(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_le(columns="x", value=4).interrogate().n_passed(i=1)[1] == 3
     assert (
-        Validate(tbl).col_vals_le(columns="x", value=4, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl).col_vals_le(columns="x", value=4).interrogate().n_passed(i=1, scalar=True)
+        == 3
+    )
+    assert (
+        Validate(tbl)
+        .col_vals_le(columns="x", value=4, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -1022,56 +1055,59 @@ def test_col_vals_between(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_between(columns="x", left=1, right=4).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_between(columns="x", left=1, right=4)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=11, right=14, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=11, right=14, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
 
@@ -1082,64 +1118,73 @@ def test_col_vals_outside(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_outside(columns="x", left=5, right=8).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=5, right=8)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=5, right=8, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
-        Validate(tbl).col_vals_outside(columns="x", left=4, right=8).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=4, right=8)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
-        Validate(tbl).col_vals_outside(columns="x", left=-4, right=1).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_outside(columns="x", left=-4, right=1)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True))
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
 
@@ -1150,35 +1195,38 @@ def test_col_vals_in_set(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4]).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4])
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_in_set(columns="x", set=[0, 1, 2, 3, 4, 5, 6])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_in_set(columns="x", set=[1.0, 2.0, 3.0, 4.0])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_in_set(columns="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_in_set(columns="x", set=[-1, -2, -3, -4])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
 
@@ -1189,35 +1237,38 @@ def test_col_vals_not_in_set(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
-        Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7]).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_not_in_set(columns="x", set=[5, 6, 7])
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_not_in_set(columns="x", set=[0, 1, 2, 3, 4, 5, 6])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_not_in_set(columns="x", set=[1.0, 2.0, 3.0, 4.0])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_not_in_set(columns="x", set=[1.00001, 2.00001, 3.00001, 4.00001])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_not_in_set(columns="x", set=[-1, -2, -3, -4])
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
 
@@ -1231,21 +1282,21 @@ def test_col_vals_regex(request, tbl_fixture):
         Validate(tbl)
         .col_vals_regex(columns="text", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
         Validate(tbl)
         .col_vals_regex(columns="text", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}", na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_regex(columns="text", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$", na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
 
@@ -1268,9 +1319,9 @@ def test_interrogate_first_n(request, tbl_fixture):
         )
 
         # Expect that the extracts table has 2 entries out of 3 failures
-        assert validation.n_failed(i=1)[1] == 3
-        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 2
-        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+        assert validation.n_failed(i=1, scalar=True) == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 2
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
@@ -1291,9 +1342,9 @@ def test_interrogate_sample_n(request, tbl_fixture):
         )
 
         # Expect that the extracts table has 2 entries out of 3 failures
-        assert validation.n_failed(i=1)[1] == 3
-        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 2
-        assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+        assert validation.n_failed(i=1, scalar=True) == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 2
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
 
 
 @pytest.mark.parametrize(
@@ -1324,9 +1375,9 @@ def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
     )
 
     # Expect that the extracts table has 2 entries out of 3 failures
-    assert validation.n_failed(i=1)[1] == 3
-    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == expected
-    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+    assert validation.n_failed(i=1, scalar=True) == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == expected
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
 
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_dates_times_text_pd", "tbl_dates_times_text_pl"])
@@ -1341,9 +1392,9 @@ def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
     )
 
     # Expect that the extracts table has 2 entries out of 3 failures
-    assert validation.n_failed(i=1)[1] == 3
-    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).rows()) == 1
-    assert len(nw.from_native(validation.get_data_extracts(i=1)[1]).columns) == 3
+    assert validation.n_failed(i=1, scalar=True) == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 1
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
@@ -1351,7 +1402,7 @@ def test_col_vals_null(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_null(columns="text").interrogate().n_passed(i=1)[1] == 1
+    assert Validate(tbl).col_vals_null(columns="text").interrogate().n_passed(i=1, scalar=True) == 1
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
@@ -1359,7 +1410,10 @@ def test_col_vals_not_null(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_vals_not_null(columns="text").interrogate().n_passed(i=1)[1] == 2
+    assert (
+        Validate(tbl).col_vals_not_null(columns="text").interrogate().n_passed(i=1, scalar=True)
+        == 2
+    )
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
@@ -1367,8 +1421,8 @@ def test_col_exists(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Validate(tbl).col_exists(columns="text").interrogate().n_passed(i=1)[1] == 1
-    assert Validate(tbl).col_exists(columns="invalid").interrogate().n_passed(i=1)[1] == 0
+    assert Validate(tbl).col_exists(columns="text").interrogate().n_passed(i=1, scalar=True) == 1
+    assert Validate(tbl).col_exists(columns="invalid").interrogate().n_passed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)

@@ -76,49 +76,49 @@ def test_col_vals_gt_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_gt(columns="b", value=col("a"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_gt(columns="b", value=col("a"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_gt(columns="a", value=col("b"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_gt(columns="a", value=col("b"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
         Validate(tbl)
         .col_vals_gt(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_gt(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     # assert (
     #     Validate(tbl)
     #     .col_vals_gt(columns="e", value=col("d"), na_pass=False)
     #     .interrogate()
-    #     .n_passed(i=1)[1]
+    #     .n_passed(i=1, scalar=True)
     #     == 5
     # )
 
@@ -132,56 +132,56 @@ def test_col_vals_lt_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_lt(columns="a", value=col("b"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="a", value=col("b"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="b", value=col("a"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="b", value=col("a"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_lt(columns="d", value=col("e"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     # assert (
     #     Validate(tbl)
     #     .col_vals_lt(columns="e", value=col("d"), na_pass=False)
     #     .interrogate()
-    #     .n_passed(i=1)[1]
+    #     .n_passed(i=1, scalar=True)
     #     == 0
     # )
 
@@ -195,70 +195,70 @@ def test_col_vals_eq_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_eq(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="e", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="e", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="d", value=col("e"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="d", value=col("e"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="e", value=col("f"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="e", value=col("f"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="f", value=col("g"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_eq(columns="f", value=col("g"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
 
@@ -272,92 +272,98 @@ def test_col_vals_ne_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_ne(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 4
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="d", value=col("e"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="d", value=col("e"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=col("f"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=col("f"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="d", value=7, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
-        Validate(tbl).col_vals_ne(columns="d", value=7, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_ne(columns="d", value=7, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=10, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=10, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ne(columns="e", value=9, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
-        Validate(tbl).col_vals_ne(columns="e", value=9, na_pass=True).interrogate().n_passed(i=1)[1]
+        Validate(tbl)
+        .col_vals_ne(columns="e", value=9, na_pass=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
         == 0
     )
 
@@ -371,63 +377,63 @@ def test_col_vals_ge_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_ge(columns="b", value=col("a"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="b", value=col("a"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="c", value=col("b"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="c", value=col("b"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="d", value=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="d", value=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_ge(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     # assert (
     #     Validate(tbl)
     #     .col_vals_ge(columns="e", value=col("d"), na_pass=False)
     #     .interrogate()
-    #     .n_passed(i=1)[1]
+    #     .n_passed(i=1, scalar=True)
     #     == 5
     # )
 
@@ -441,63 +447,63 @@ def test_col_vals_le_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_le(columns="a", value=col("b"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="a", value=col("b"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="b", value=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="b", value=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="c", value=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="c", value=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="c", value=col("e"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="c", value=col("e"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_le(columns="d", value=col("e"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 5
     )
     # TODO: Fix this Pandas failure (TypeError: boolean value of NA is ambiguous)
@@ -505,7 +511,7 @@ def test_col_vals_le_col(request, tbl_fixture):
     #    Validate(tbl)
     #    .col_vals_le(columns="e", value=col("d"), na_pass=False)
     #    .interrogate()
-    #    .n_passed(i=1)[1]
+    #    .n_passed(i=1, scalar=True)
     #    == 0
     # )
 
@@ -519,14 +525,14 @@ def test_col_vals_between_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_between(columns="b", left=col("a"), right=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=col("a"), right=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
@@ -535,7 +541,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("a"), right=col("c"), inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
@@ -544,35 +550,35 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("a"), right=col("c"), inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 8
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=0, right=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=0, right=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=col("a"), right=8, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=col("a"), right=8, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
@@ -581,7 +587,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("a"), right=8, inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
@@ -590,21 +596,21 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("a"), right=8, inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 8
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="c", left=col("b"), right=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="c", left=col("b"), right=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
@@ -613,7 +619,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="c", left=col("b"), right=col("d"), inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
@@ -622,7 +628,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="c", left=col("b"), right=col("d"), inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
@@ -631,7 +637,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="c", left=col("b"), right=9, inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
@@ -640,21 +646,21 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="c", left=col("b"), right=9, inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=col("c"), right=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(tbl)
         .col_vals_between(columns="b", left=col("c"), right=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 7
     )
     assert (
@@ -663,7 +669,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("c"), right=col("d"), inclusive=(False, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
@@ -672,7 +678,7 @@ def test_col_vals_between_col(request, tbl_fixture):
             columns="b", left=col("c"), right=col("d"), inclusive=(False, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     # TODO: Fix this Pandas failure (TypeError: boolean value of NA is ambiguous)
@@ -680,7 +686,7 @@ def test_col_vals_between_col(request, tbl_fixture):
     #     Validate(tbl)
     #     .col_vals_between(columns="e", left=col("c"), right=col("d"), na_pass=False)
     #     .interrogate()
-    #     .n_passed(i=1)[1]
+    #     .n_passed(i=1, scalar=True)
     #     == 0
     # )
 
@@ -694,14 +700,14 @@ def test_col_vals_outside_col(request, tbl_fixture):
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("a"), right=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("a"), right=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 7
     )
     assert (
@@ -710,7 +716,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("a"), right=col("c"), inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
@@ -719,35 +725,35 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("a"), right=col("c"), inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 8
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=0, right=col("c"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=0, right=col("c"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("a"), right=8, na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("a"), right=8, na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
@@ -756,7 +762,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("a"), right=8, inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
@@ -765,21 +771,21 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("a"), right=8, inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 7
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="c", left=col("b"), right=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="c", left=col("b"), right=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
@@ -788,7 +794,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="c", left=col("b"), right=col("d"), inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
@@ -797,7 +803,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="c", left=col("b"), right=col("d"), inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     assert (
@@ -806,7 +812,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="c", left=col("b"), right=9, inclusive=(True, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
@@ -815,21 +821,21 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="c", left=col("b"), right=9, inclusive=(True, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 6
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("c"), right=col("d"), na_pass=False)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 2
     )
     assert (
         Validate(tbl)
         .col_vals_outside(columns="b", left=col("c"), right=col("d"), na_pass=True)
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 8
     )
     assert (
@@ -838,7 +844,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("c"), right=col("d"), inclusive=(False, False), na_pass=False
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 3
     )
     assert (
@@ -847,7 +853,7 @@ def test_col_vals_outside_col(request, tbl_fixture):
             columns="b", left=col("c"), right=col("d"), inclusive=(False, False), na_pass=True
         )
         .interrogate()
-        .n_passed(i=1)[1]
+        .n_passed(i=1, scalar=True)
         == 9
     )
     # TODO: Fix this Pandas failure (TypeError: boolean value of NA is ambiguous)
@@ -855,6 +861,6 @@ def test_col_vals_outside_col(request, tbl_fixture):
     #     Validate(tbl)
     #     .col_vals_between(columns="e", left=col("c"), right=col("d"), na_pass=False)
     #     .interrogate()
-    #     .n_passed(i=1)[1]
+    #     .n_passed(i=1, scalar=True)
     #     == 0
     # )
