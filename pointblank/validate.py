@@ -2923,6 +2923,50 @@ class Validate:
         dict[int, float] | float
             A dictionary of the fraction of passing test units for each validation step or a scalar
             value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, all having some failing test units. After
+        interrogation, the `f_passed()` method is used to determine the fraction of passing test
+        units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "c", "a", "b", "d", "c"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.f_passed()
+        ```
+
+        The returned dictionary shows the fraction of passing test units for each validation step.
+        The values are all less than `1` since there were failing test units in each step.
+
+        If we wanted to check the fraction of passing test units for a single validation step, we
+        can provide the step number. Also, we could have the value returned as a scalar by setting
+        `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.f_passed(i=1)
+        ```
+
+        The returned value is the proportion of passing test units for the first validation step
+        (5 passing test units out of 7 total test units).
         """
         result = self._get_validation_dict(i, "f_passed")
         if scalar and isinstance(i, int):
@@ -2964,6 +3008,50 @@ class Validate:
         dict[int, float] | float
             A dictionary of the fraction of failing test units for each validation step or a scalar
             value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, all having some failing test units. After
+        interrogation, the `f_failed()` method is used to determine the fraction of failing test
+        units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "c", "a", "b", "d", "c"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.f_failed()
+        ```
+
+        The returned dictionary shows the fraction of failing test units for each validation step.
+        The values are all greater than `0` since there were failing test units in each step.
+
+        If we wanted to check the fraction of failing test units for a single validation step, we
+        can provide the step number. Also, we could have the value returned as a scalar by setting
+        `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.f_failed(i=1)
+        ```
+
+        The returned value is the proportion of failing test units for the first validation step
+        (2 failing test units out of 7 total test units).
         """
         result = self._get_validation_dict(i, "f_failed")
         if scalar and isinstance(i, int):
