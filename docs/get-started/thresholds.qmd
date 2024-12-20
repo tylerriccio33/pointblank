@@ -1,5 +1,5 @@
 ---
-title: Intro
+title: Thresholds
 jupyter: python3
 html-table-processing: none
 ---
@@ -10,7 +10,7 @@ This is a work in progress. It's just an outline for now.
 
 Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 10% NULLs in the column.
 
-```python
+```{python}
 import pointblank as pb
 
 validation_1 = (
@@ -47,13 +47,13 @@ validation_2 = (
 validation_2
 ```
 
-In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the thresholds set in the `Validate()` call. The `threshold=` argument to every validation method will take priority over the globally set value.
+In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the `thresholds=` value set in the `Validate()` call. Now, if you want to override these global threshold values for a given validation step, you can always use `threshold=` argument when calling a validation method.
 
 ## Defining Thresholds
 
 ### Threshold shorthands
 
-The fastest way to define a threshold is a use a tuple with entries for WARN, STOP, and NOTIFY levels.
+The fastest way to define a threshold is to use a tuple with entries for `warn`, `stop`, and `nofify` levels.
 
 ```python
 # [WARN, STOP, NOTIFY]
@@ -64,8 +64,8 @@ Validate(data=..., threshold=threshold)
 
 Note that a shorter tuple or even single values are also allowed:
 
-- `(1, 2)`: warn on 1 failure, stop on 2
-- `1` or `(1, )`: warn on 1 failure
+- `(1, 2)`: `warn` state at 1 failing test unit, `stop` state at 2 failing test units
+- `1` or `(1, )`: `warn` state at 1 failing test unit
 
 ### Threshold cutoff values
 
