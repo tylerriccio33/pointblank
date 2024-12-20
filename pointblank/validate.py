@@ -3701,6 +3701,16 @@ class Validate:
         """
         Validation report as a GT table.
 
+        The `get_tabular_report()` method returns a GT table object that represents the validation
+        report. This validation table provides a summary of the validation results, including the
+        validation steps, the number of test units, the number of failing test units, and the
+        fraction of failing test units. The table also includes status indicators for the `warn`,
+        `stop`, and `notify` levels.
+
+        You could simply display the validation table without the use of the `get_tabular_report()`
+        method. However, the method provides a way to customize the title of the report. In the
+        future this method may provide additional options for customizing the report.
+
         Parameters
         ----------
         title
@@ -3729,7 +3739,7 @@ class Validate:
         tbl_pl = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7]})
 
         # Validate data using Polars DataFrame
-        v = (
+        validation = (
             pb.Validate(data=tbl_pl, tbl_name="tbl_xy", thresholds=(2, 3, 4))
             .col_vals_gt(columns="x", value=1)
             .col_vals_lt(columns="x", value=3)
@@ -3737,16 +3747,31 @@ class Validate:
             .interrogate()
         )
 
-        # Generate the tabular report
-        v.get_tabular_report()
+        # Look at the validation table
+        validation
         ```
 
-        The title option was set to `":default:"`, which produces a generic title for the report.
-        We can change this to the name of the table by setting the title to `":tbl_name:"`. This
-        will use the string provided in the `tbl_name=` argument of the `Validate` object.
+        The validation table is displayed with a default title ('Validation Report'). We can use the
+        `get_tabular_report()` method to customize the title of the report. For example, we can set
+        the title to the name of the table by using the `title=":tbl_name:"` option. This will use
+        the string provided in the `tbl_name=` argument of the `Validate` object.
+
         ```{python}
-        v.get_tabular_report(title=":tbl_name:")
+        validation.get_tabular_report(title=":tbl_name:")
         ```
+
+        The title of the report is now set to the name of the table, which is 'tbl_xy'. This can be
+        useful if you have multiple tables and want to keep track of which table the validation
+        report is for.
+
+        Alternatively, you can provide your own title for the report.
+
+        ```{python}
+        validation.get_tabular_report(title="Report for Table XY")
+        ```
+
+        The title of the report is now set to 'Report for Table XY'. This can be useful if you want
+        to provide a more descriptive title for the report.
         """
 
         df_lib = _select_df_lib(preference="polars")
