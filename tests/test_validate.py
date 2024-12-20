@@ -26,7 +26,6 @@ from pointblank.validate import (
     _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
-from pointblank.column import col
 
 
 TBL_LIST = [
@@ -431,6 +430,46 @@ def test_validation_attr_getters(request, tbl_fixture):
     assert len(notify_dict) == 1
     assert notify_dict.keys() == {1}
     assert notify_dict[1] is None
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_attr_getters_no_dict(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
+
+    # Get the total number of test units as a dictionary
+    n_val = v.n(i=1, scalar=True)
+    assert n_val == 4
+
+    # Get the number of passing test units
+    n_passed_val = v.n_passed(i=1, scalar=True)
+    assert n_passed_val == 4
+
+    # Get the number of failing test units
+    n_failed_val = v.n_failed(i=1, scalar=True)
+    assert n_failed_val == 0
+
+    # Get the fraction of passing test units
+    f_passed_val = v.f_passed(i=1, scalar=True)
+    assert f_passed_val == 1.0
+
+    # Get the fraction of failing test units
+    f_failed_val = v.f_failed(i=1, scalar=True)
+    assert f_failed_val == 0.0
+
+    # Get the warn status
+    warn_val = v.warn(i=1, scalar=True)
+    assert warn_val is None
+
+    # Get the stop status
+    stop_val = v.stop(i=1, scalar=True)
+    assert stop_val is None
+
+    # Get the notify status
+    notify_val = v.notify(i=1, scalar=True)
+    assert notify_val is None
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -1378,6 +1417,12 @@ def test_get_data_extracts(tbl_missing_pd):
     assert len(extracts_all) == 2
     assert len(extracts_1) == 1
     assert len(extracts_2) == 1
+
+    extracts_1_df = validation.get_data_extracts(i=1, frame=True)
+    extracts_2_df = validation.get_data_extracts(i=2, frame=True)
+
+    assert isinstance(extracts_1_df, pd.DataFrame)
+    assert isinstance(extracts_2_df, pd.DataFrame)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)

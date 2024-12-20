@@ -2328,16 +2328,22 @@ class Validate:
         sample_limit: int = 5000,
     ) -> Validate:
         """
-        Evaluate each validation against the table and store the results.
+        Execute each validation step against the table and store the results.
 
         When a validation plan has been set with a series of validation steps, the interrogation
         process through `interrogate()` should then be invoked. Interrogation will evaluate each
-        validation step against the table and store the results. The interrogation process is
-        non-destructive; the original table is not altered (but a copy is made for each validation).
+        validation step against the table and store the results.
 
-        After that, the `Validate` object will have gathered information, and we can use methods
-        like `get_tabular_report()`, `all_passed()` and many more to understand how the table
-        performed against the validation plan.
+        The interrogation process will collect extracts of failing rows if the `collect_extracts`
+        option is set to `True` (the default). We can control the number of rows collected using the
+        `get_first_n=`, `sample_n=`, and `sample_frac=` options. The `sample_limit=` option will
+        enforce a hard limit on the number of rows collected when using the `sample_frac=` option.
+
+        After interrogation is complete, the `Validate` object will have gathered information, and
+        we can use methods like `n_passed()`, `f_failed()`, etc., to understand how the table
+        performed against the validation plan. A visual representation of the validation results can
+        be viewed by printing the `Validate` object; this will display the validation table in an
+        HTML viewing environment.
 
         Parameters
         ----------
@@ -2374,6 +2380,43 @@ class Validate:
         -------
         Validate
             The `Validate` object with the results of the interrogation.
+
+        Examples
+        --------
+        Let's use a built-in dataset (`"game_revenue"`) to demonstrate some of the options of the
+        interrogation process. A series of validation steps will populate our validation plan. After
+        setting up the plan, the next step is to interrogate the table and see how well it aligns
+        with our expectations. We'll use the `get_first_n=` option so that any extracts of failing
+        rows are limited to the first `n` rows.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+            .col_vals_lt(columns="item_revenue", value=200)
+            .col_vals_gt(columns="item_revenue", value=0)
+            .col_vals_gt(columns="session_duration", value=5)
+            .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        )
+
+        validation.interrogate(get_first_n=10)
+        ```
+
+        The validation table shows that step 3 (checking for `session_duration` greater than `5`)
+        has 18 failing test units. This means that 18 rows in the table are problematic. We'd like
+        to see the rows that failed this validation step and we can do that with the
+        `get_data_extracts()` method.
+
+        ```{python}
+        validation.get_data_extracts(i=3, frame=True)
+        ```
+
+        The `get_data_extracts()` method will return a Polars DataFrame with the first 10 rows that
+        failed the validation step. There are actually 18 rows that failed but we limited the
+        collection of extracts with `get_first_n=10`.
         """
 
         # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
@@ -2633,174 +2676,864 @@ class Validate:
         """
         Determine if every validation step passed perfectly, with no failing test units.
 
+        The `all_passed()` method determines if every validation step passed perfectly, with no
+        failing test units. This method is useful for quickly checking if the table passed all
+        validation steps with flying colors. If there's even a single failing test unit in any
+        validation step, this method will return `False`.
+
+        This validation metric might be overly stringent for some validation plans where failing
+        test units are generally expected (and the strategy is to monitor data quality over time).
+        However, the value of `all_passed()` could be suitable for validation plans designed to
+        ensure that every test unit passes perfectly (e.g., checks for column presence,
+        null-checking tests, etc.).
+
         Returns
         -------
         bool
-            `True` if all validations passed, `False` otherwise.
+            `True` if all validation steps had no failing test units, `False` otherwise.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the second step will have a failing test
+        unit (the value `10` isn't less than `9`). After interrogation, the `all_passed()` method is
+        used to determine if all validation steps passed perfectly.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [1, 2, 9, 5],
+                "b": [5, 6, 10, 3],
+                "c": ["a", "b", "a", "a"],
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=0)
+            .col_vals_lt(columns="b", value=9)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.all_passed()
+        ```
+
+        The returned value is `False` since the second validation step had a failing test unit. If
+        it weren't for that one failing test unit, the return value would have been `True`.
         """
         return all(validation.all_passed for validation in self.validation_info)
 
-    def n(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units for each validation step.
+
+        The `n()` method provides the number of test units for each validation step. This is the
+        total number of test units that were evaluated in the validation step. It is always an
+        integer value.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of test units for each validation step. If
+        the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
+        scalar instead of a dictionary. The total number of test units for a validation step is the
+        sum of the number of passing and failing test units (i.e., `n = n_passed + n_failed`).
 
         Parameters
         ----------
         i
             The validation step number(s) from which the number of test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of test units for each validation step or a scalar value.
         """
+        result = self._get_validation_dict(i, "n")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n")
-
-    def n_passed(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n_passed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units that passed for each validation step.
+
+        The `n_passed()` method provides the number of test units that passed for each validation
+        step. This is the number of test units that passed in the the validation step. It is always
+        some integer value between `0` and the total number of test units.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of passing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `n_failed()` method (i.e.,
+        `n - n_failed`).
 
         Parameters
         ----------
         i
             The validation step number(s) from which the number of passing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of failing test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of passing test units for each validation step or a scalar
+            value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps and, as it turns out, all of them will have
+        failing test units. After interrogation, the `n_passed()` method is used to determine the
+        number of passing test units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12],
+                "b": [9, 8, 10, 5, 10],
+                "c": ["a", "b", "c", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.n_passed()
+        ```
+
+        The returned dictionary shows that all validation steps had no passing test units (each
+        value was less than `5`, which is the total number of test units for each step).
+
+        If we wanted to check the number of passing test units for a single validation step, we can
+        provide the step number. Also, we could forego the dictionary and get a scalar value by
+        setting `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.n_passed(i=1)
+        ```
+
+        The returned value of `4` is the number of passing test units for the first validation step.
         """
+        result = self._get_validation_dict(i, "n_passed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n_passed")
-
-    def n_failed(self, i: int | list[int] | None = None) -> dict[int, int]:
+    def n_failed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units that failed for each validation step.
+
+        The `n_failed()` method provides the number of test units that failed for each validation
+        step. This is the number of test units that did not pass in the the validation step. It is
+        always some integer value between `0` and the total number of test units.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of failing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `n_passed()` method (i.e.,
+        `n - n_passed`).
 
         Parameters
         ----------
         i
             The validation step number(s) from which the number of failing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, int]
-            A dictionary of the number of failing test units for each validation step.
+        dict[int, int] | int
+            A dictionary of the number of failing test units for each validation step or a scalar
+            value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps and, as it turns out, all of them will have
+        failing test units. After interrogation, the `n_failed()` method is used to determine the
+        number of failing test units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12],
+                "b": [9, 8, 10, 5, 10],
+                "c": ["a", "b", "c", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.n_failed()
+        ```
+
+        The returned dictionary shows that all validation steps had failing test units.
+
+        If we wanted to check the number of failing test units for a single validation step, we can
+        provide the step number. Also, we could forego the dictionary and get a scalar value by
+        setting `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.n_failed(i=1)
+        ```
+
+        The returned value of `1` is the number of failing test units for the first validation step.
         """
+        result = self._get_validation_dict(i, "n_failed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "n_failed")
-
-    def f_passed(self, i: int | list[int] | None = None) -> dict[int, float]:
+    def f_passed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, float] | float:
         """
         Provides a dictionary of the fraction of test units that passed for each validation step.
+
+        A measure of the fraction of test units that passed is provided by the `f_passed` attribute.
+        This is the fraction of test units that passed the validation step over the total number of
+        test units. Given this is a fractional value, it will always be in the range of `0` to `1`.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        This method provides a dictionary of the fraction of passing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `f_failed()` method (i.e.,
+        `1 - f_failed()`).
 
         Parameters
         ----------
         i
             The validation step number(s) from which the fraction of passing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, float]
-            A dictionary of the fraction of passing test units for each validation step.
+        dict[int, float] | float
+            A dictionary of the fraction of passing test units for each validation step or a scalar
+            value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, all having some failing test units. After
+        interrogation, the `f_passed()` method is used to determine the fraction of passing test
+        units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "c", "a", "b", "d", "c"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.f_passed()
+        ```
+
+        The returned dictionary shows the fraction of passing test units for each validation step.
+        The values are all less than `1` since there were failing test units in each step.
+
+        If we wanted to check the fraction of passing test units for a single validation step, we
+        can provide the step number. Also, we could have the value returned as a scalar by setting
+        `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.f_passed(i=1)
+        ```
+
+        The returned value is the proportion of passing test units for the first validation step
+        (5 passing test units out of 7 total test units).
         """
+        result = self._get_validation_dict(i, "f_passed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "f_passed")
-
-    def f_failed(self, i: int | list[int] | None = None) -> dict[int, float]:
+    def f_failed(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, float] | float:
         """
         Provides a dictionary of the fraction of test units that failed for each validation step.
+
+        A measure of the fraction of test units that failed is provided by the `f_failed` attribute.
+        This is the fraction of test units that failed the validation step over the total number of
+        test units. Given this is a fractional value, it will always be in the range of `0` to `1`.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        This method provides a dictionary of the fraction of failing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `f_passed()` method (i.e.,
+        `1 - f_passed()`).
 
         Parameters
         ----------
         i
             The validation step number(s) from which the fraction of failing test units is obtained.
-            If `None`, all steps are included.
+            Can be provided as a list of integers or a single integer. If `None`, all steps are
+            included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, float]
-            A dictionary of the fraction of failing test units for each validation step.
+        dict[int, float] | float
+            A dictionary of the fraction of failing test units for each validation step or a scalar
+            value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, all having some failing test units. After
+        interrogation, the `f_failed()` method is used to determine the fraction of failing test
+        units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "c", "a", "b", "d", "c"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.f_failed()
+        ```
+
+        The returned dictionary shows the fraction of failing test units for each validation step.
+        The values are all greater than `0` since there were failing test units in each step.
+
+        If we wanted to check the fraction of failing test units for a single validation step, we
+        can provide the step number. Also, we could have the value returned as a scalar by setting
+        `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.f_failed(i=1)
+        ```
+
+        The returned value is the proportion of failing test units for the first validation step
+        (2 failing test units out of 7 total test units).
         """
+        result = self._get_validation_dict(i, "f_failed")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "f_failed")
-
-    def warn(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def warn(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the warning status for each validation step.
 
+        The warning status (`warn`) for a validation step is `True` if the fraction of failing test
+        units meets or exceeds the threshold for the warning level. Otherwise, the status is
+        `False`.
+
+        The ascribed name of `warn` is semantic and does not imply that a warning message is
+        generated, it is simply a status indicator that could be used to trigger a warning message.
+        Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the warning status for each validation step. If the
+        `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
+        instead of a dictionary.
+
         Parameters
         ----------
         i
-            The validation step number(s) from which the warning status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the warning status is obtained. Can be provided
+            as a list of integers or a single integer. If `None`, all steps are included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the warning status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the warning status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have some failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `warn()` method is used to determine the `warn` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.warn()
+        ```
+
+        The returned dictionary provides the `warn` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `warn` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `warn` level.
+
+        We can also visually inspect the `warn` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there's a filled yellow circle in the first step (far right side, in the
+        `W` column) indicating that the `warn` threshold was met. The other steps have empty yellow
+        circles. This means that thresholds were 'set but not met' in those steps.
+
+        If we wanted to check the `warn` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.warn(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `warn`
+        threshold met.
         """
+        result = self._get_validation_dict(i, "warn")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "warn")
-
-    def stop(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def stop(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the stopping status for each validation step.
 
+        The stopping status (`stop`) for a validation step is `True` if the fraction of failing test
+        units meets or exceeds the threshold for the stopping level. Otherwise, the status is
+        `False`.
+
+        The ascribed name of `stop` is semantic and does not imply that the validation process
+        is halted, it is simply a status indicator that could be used to trigger a stoppage of the
+        validation process. Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the stopping status for each validation step. If the
+        `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
+        instead of a dictionary.
+
         Parameters
         ----------
         i
-            The validation step number(s) from which the stopping status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the stopping status is obtained. Can be
+            provided as a list of integers or a single integer. If `None`, all steps are included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the stopping status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the stopping status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have some failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `stop()` method is used to determine the `stop` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [3, 4, 9, 7, 2, 3, 8],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.stop()
+        ```
+
+        The returned dictionary provides the `stop` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `stop` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `stop` level.
+
+        We can also visually inspect the `stop` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there are filled yellow and red circles in the first step (far right side,
+        in the `W` and `S` columns) indicating that the `warn` and `stop` thresholds were met. The
+        other steps have empty yellow and red circles. This means that thresholds were 'set but not
+        met' in those steps.
+
+        If we wanted to check the `stop` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.stop(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `stop`
+        threshold met.
         """
+        result = self._get_validation_dict(i, "stop")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "stop")
-
-    def notify(self, i: int | list[int] | None = None) -> dict[int, bool]:
+    def notify(
+        self, i: int | list[int] | None = None, scalar: bool = False
+    ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the notification status for each validation step.
 
+        The notification status (`notify`) for a validation step is `True` if the fraction of
+        failing test units meets or exceeds the threshold for the notification level. Otherwise,
+        the status is `False`.
+
+        The ascribed name of `notify` is semantic and does not imply that a notification message
+        is generated, it is simply a status indicator that could be used to trigger some sort of
+        notification. Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the notification status for each validation step. If
+        the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
+        scalar instead of a dictionary.
+
         Parameters
         ----------
         i
-            The validation step number(s) from which the notification status is obtained.
-            If `None`, all steps are included.
+            The validation step number(s) from which the notification status is obtained. Can be
+            provided as a list of integers or a single integer. If `None`, all steps are included.
+        scalar
+            If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
-        dict[int, bool]
-            A dictionary of the notification status for each validation step.
+        dict[int, bool] | bool
+            A dictionary of the notification status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have many failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `notify()` method is used to determine the `notify` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [2, 4, 4, 7, 2, 3, 8],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.notify()
+        ```
+
+        The returned dictionary provides the `notify` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `notify` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `notify` level.
+
+        We can also visually inspect the `notify` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there are filled yellow, red, and blue circles in the first step (far right
+        side, in the `W`, `S`, and `N` columns) indicating that the `warn`, `stop`, and `notify`
+        thresholds were met. The other steps have empty yellow, red, and blue circles. This means
+        that thresholds were 'set but not met' in those steps.
+
+        If we wanted to check the `notify` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.notify(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `notify`
+        threshold met.
         """
+        result = self._get_validation_dict(i, "notify")
+        if scalar and isinstance(i, int):
+            return result[i]
+        return result
 
-        return self._get_validation_dict(i, "notify")
-
-    def get_data_extracts(self, i: int | list[int] | None = None) -> dict[int, FrameT | None]:
+    def get_data_extracts(
+        self, i: int | list[int] | None = None, frame: bool = False
+    ) -> dict[int, FrameT | None] | FrameT | None:
         """
         Get the rows that failed for each validation step.
 
+        After the `interrogate()` method has been called, the `get_data_extracts()` method can be
+        used to extract the rows that failed in each row-based validation step (e.g.,
+        `col_vals_gt()`, etc.). The method returns a dictionary of tables containing the rows that
+        failed in every row-based validation function. If `frame=True` and `i=` is a scalar, the
+        value is conveniently returned as a table (forgoing the dictionary structure).
+
         Parameters
         ----------
         i
-            The validation step number(s) from which the failed rows are obtained. If `None`, all
-            steps are included.
+            The validation step number(s) from which the failed rows are obtained. Can be provided
+            as a list of integers or a single integer. If `None`, all steps are included.
+        frame
+            If `True` and `i=` is a scalar, return the value as a DataFrame instead of a dictionary.
 
         Returns
         -------
-        dict[int, FrameT]
+        dict[int, FrameT | None] | FrameT | None
             A dictionary of tables containing the rows that failed in every row-based validation
-            step.
+            step or a DataFrame.
+
+        Validation Methods that are Row-Based
+        -------------------------------------
+        The following validation methods are row-based and will have rows extracted when there are
+        failing test units.
+
+        - `col_vals_gt()`
+        - `col_vals_ge()`
+        - `col_vals_lt()`
+        - `col_vals_le()`
+        - `col_vals_eq()`
+        - `col_vals_ne()`
+        - `col_vals_between()`
+        - `col_vals_outside()`
+        - `col_vals_in_set()`
+        - `col_vals_not_in_set()`
+        - `col_vals_null()`
+        - `col_vals_not_null()`
+        - `col_vals_regex()`
+
+        An extracted row means that a test unit failed for that row in the validation step. The
+        extracted rows are a subset of the original table and are useful for further analysis or for
+        understanding the nature of the failing test units.
+
+        Examples
+        --------
+        Let's perform a series of validation steps on a Polars DataFrame. We'll use the
+        `col_vals_gt()` in the first step, `col_vals_lt()` in the second step, and `col_vals_ge()`
+        in the third step. The `interrogate()` method executes the validation; then, we can extract
+        the rows that failed for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 6, 5, 3, 6, 1],
+                "b": [1, 2, 1, 5, 2, 6],
+                "c": [3, 7, 2, 6, 3, 1],
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=4)
+            .col_vals_lt(columns="c", value=5)
+            .col_vals_ge(columns="b", value=1)
+            .interrogate()
+        )
+
+        validation.get_data_extracts()
+        ```
+
+        The `get_data_extracts()` method returns a dictionary of tables, where each table contains
+        a subset of rows from the table. These are the rows that failed for each validation step.
+
+        In the first step, the `col_vals_gt()` method was used to check if the values in column `a`
+        were greater than `4`. The extracted table shows the rows where this condition was not met;
+        look at the `a` column: all values are less than `4`.
+
+        In the second step, the `col_vals_lt()` method was used to check if the values in column `c`
+        were less than `5`. In the extracted two-row table, we see that the values in column `c` are
+        greater than `5`.
+
+        The third step (`col_vals_ge()`) checked if the values in column `b` were greater than or
+        equal to `1`. There were no failing test units, so the extracted table is empty (i.e., has
+        columns but no rows).
+
+        The `i=` argument can be used to narrow down the extraction to one or more steps. For
+        example, to extract the rows that failed in the first step only:
+
+        ```{python}
+        validation.get_data_extracts(i=1)
+        ```
+
+        Note that the first validation step is indexed at `1` (not `0`). This 1-based indexing is
+        in place here to match the step numbers reported in the validation table. What we get back
+        is still a dictionary, but it only contains one table (the one for the first step).
+
+        If you want to get the extracted table as a DataFrame, set `frame=True` and provide a scalar
+        value for `i`. For example, to get the extracted table for the second step as a DataFrame:
+
+        ```{python}
+        validation.get_data_extracts(i=2, frame=True)
+        ```
+
+        The extracted table is now a DataFrame, which can serve as a more convenient format for
+        further analysis or visualization.
         """
-        return self._get_validation_dict(i, "extract")
+        result = self._get_validation_dict(i, "extract")
+        if frame and isinstance(i, int):
+            return result[i]
+        return result
 
     def get_json_report(
         self, use_fields: list[str] | None = None, exclude_fields: list[str] | None = None
@@ -2898,10 +3631,43 @@ class Validate:
 
         Examples
         --------
-        Create a `Validate` plan of two validation steps, focused on testing row values for
-        part of the `small_table` object. Then, use `interrogate()` to put the validation plan into
-        action.
+        Let's create a `Validate` object with three validation steps and then interrogate the data.
 
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 6, 9, 7, 3, 2],
+                "b": [9, 8, 10, 5, 10, 6],
+                "c": ["c", "d", "a", "b", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        From the validation table, we can see that the first and second steps each had 4 passing
+        test units. A failing test unit will mark the entire row as failing in the context of the
+        `get_sundered_data()` method. We can use this method to get the rows of data that passed the
+        during interrogation.
+
+        ```{python}
+        validation.get_sundered_data()
+        ```
+
+        The returned DataFrame contains the rows that passed all validation steps. From the six-row
+        input DataFrame, the first two rows and the last two rows had test units that failed
+        validation. Thus the middle two rows are the only ones that passed all validation steps and
+        that's what we see in the returned DataFrame.
         """
 
         # Keep only the validation steps that:
@@ -2978,6 +3744,16 @@ class Validate:
         """
         Validation report as a GT table.
 
+        The `get_tabular_report()` method returns a GT table object that represents the validation
+        report. This validation table provides a summary of the validation results, including the
+        validation steps, the number of test units, the number of failing test units, and the
+        fraction of failing test units. The table also includes status indicators for the `warn`,
+        `stop`, and `notify` levels.
+
+        You could simply display the validation table without the use of the `get_tabular_report()`
+        method. However, the method provides a way to customize the title of the report. In the
+        future this method may provide additional options for customizing the report.
+
         Parameters
         ----------
         title
@@ -3006,7 +3782,7 @@ class Validate:
         tbl_pl = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7]})
 
         # Validate data using Polars DataFrame
-        v = (
+        validation = (
             pb.Validate(data=tbl_pl, tbl_name="tbl_xy", thresholds=(2, 3, 4))
             .col_vals_gt(columns="x", value=1)
             .col_vals_lt(columns="x", value=3)
@@ -3014,16 +3790,31 @@ class Validate:
             .interrogate()
         )
 
-        # Generate the tabular report
-        v.get_tabular_report()
+        # Look at the validation table
+        validation
         ```
 
-        The title option was set to `":default:"`, which produces a generic title for the report.
-        We can change this to the name of the table by setting the title to `":tbl_name:"`. This
-        will use the string provided in the `tbl_name=` argument of the `Validate` object.
+        The validation table is displayed with a default title ('Validation Report'). We can use the
+        `get_tabular_report()` method to customize the title of the report. For example, we can set
+        the title to the name of the table by using the `title=":tbl_name:"` option. This will use
+        the string provided in the `tbl_name=` argument of the `Validate` object.
+
         ```{python}
-        v.get_tabular_report(title=":tbl_name:")
+        validation.get_tabular_report(title=":tbl_name:")
         ```
+
+        The title of the report is now set to the name of the table, which is 'tbl_xy'. This can be
+        useful if you have multiple tables and want to keep track of which table the validation
+        report is for.
+
+        Alternatively, you can provide your own title for the report.
+
+        ```{python}
+        validation.get_tabular_report(title="Report for Table XY")
+        ```
+
+        The title of the report is now set to 'Report for Table XY'. This can be useful if you want
+        to provide a more descriptive title for the report.
         """
 
         df_lib = _select_df_lib(preference="polars")
