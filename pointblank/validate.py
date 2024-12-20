@@ -3092,6 +3092,70 @@ class Validate:
         -------
         dict[int, bool] | bool
             A dictionary of the warning status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have some failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `warn()` method is used to determine the `warn` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12, 3, 10],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.warn()
+        ```
+
+        The returned dictionary provides the `warn` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `warn` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `warn` level.
+
+        We can also visually inspect the `warn` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there's a filled yellow circle in the first step (far right side, in the
+        `W` column) indicating that the `warn` threshold was met. The other steps have empty yellow
+        circles. This means that thresholds were 'set but not met' in those steps.
+
+        If we wanted to check the `warn` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.warn(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `warn`
+        threshold met.
         """
         result = self._get_validation_dict(i, "warn")
         if scalar and isinstance(i, int):
@@ -3132,6 +3196,71 @@ class Validate:
         -------
         dict[int, bool] | bool
             A dictionary of the stopping status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have some failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `stop()` method is used to determine the `stop` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [3, 4, 9, 7, 2, 3, 8],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.stop()
+        ```
+
+        The returned dictionary provides the `stop` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `stop` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `stop` level.
+
+        We can also visually inspect the `stop` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there are filled yellow and red circles in the first step (far right side,
+        in the `W` and `S` columns) indicating that the `warn` and `stop` thresholds were met. The
+        other steps have empty yellow and red circles. This means that thresholds were 'set but not
+        met' in those steps.
+
+        If we wanted to check the `stop` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.stop(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `stop`
+        threshold met.
         """
         result = self._get_validation_dict(i, "stop")
         if scalar and isinstance(i, int):
@@ -3172,6 +3301,71 @@ class Validate:
         -------
         dict[int, bool] | bool
             A dictionary of the notification status for each validation step or a scalar value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the first step will have many failing test
+        units, the rest will be completely passing. We've set thresholds here for each of the steps
+        by using `thresholds=(2, 4, 5)`, which means:
+
+        - the `warn` threshold is `2` failing test units
+        - the `stop` threshold is `4` failing test units
+        - the `notify` threshold is `5` failing test units
+
+        After interrogation, the `notify()` method is used to determine the `notify` status for each
+        validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [2, 4, 4, 7, 2, 3, 8],
+                "b": [9, 8, 10, 5, 10, 6, 2],
+                "c": ["a", "b", "a", "a", "b", "b", "a"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(2, 4, 5))
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_lt(columns="b", value=15)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.notify()
+        ```
+
+        The returned dictionary provides the `notify` status for each validation step. The first step
+        has a `True` value since the number of failing test units meets the threshold for the
+        `notify` level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the `notify` level.
+
+        We can also visually inspect the `notify` status across all steps by viewing the validation
+        table:
+
+        ```{python}
+        validation
+        ```
+
+        We can see that there are filled yellow, red, and blue circles in the first step (far right
+        side, in the `W`, `S`, and `N` columns) indicating that the `warn`, `stop`, and `notify`
+        thresholds were met. The other steps have empty yellow, red, and blue circles. This means
+        that thresholds were 'set but not met' in those steps.
+
+        If we wanted to check the `notify` status for a single validation step, we can provide the
+        step number. Also, we could have the value returned as a scalar by setting `scalar=True`
+        (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.notify(i=1)
+        ```
+
+        The returned value is `True`, indicating that the first validation step had the `notify`
+        threshold met.
         """
         result = self._get_validation_dict(i, "notify")
         if scalar and isinstance(i, int):
