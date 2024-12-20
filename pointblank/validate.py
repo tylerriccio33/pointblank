@@ -2633,6 +2633,16 @@ class Validate:
         """
         Determine if every validation step passed perfectly, with no failing test units.
 
+        The `all_passed()` method determines if every validation step passed perfectly, with no
+        failing test units. This method is useful for quickly checking if the table passed all
+        validation steps with flying colors. If there's even a single failing test unit in any
+        validation step, this method will return `False`.
+
+        This might be overly stringent for some validation plans where failing test units are
+        generally expected and the strategy is to monitor data quality over time. However, some
+        validation plans might be designed to ensure that every test unit passes perfectly (e.g.,
+        checks for column presence, null-checking tests, etc.).
+
         Returns
         -------
         bool
@@ -2643,6 +2653,20 @@ class Validate:
     def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units for each validation step.
+
+        The `n()` method provides the number of test units for each validation step. This is the
+        total number of test units that were evaluated in the validation step. It is always an
+        integer value.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of test units for each validation step. If
+        the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
+        scalar instead of a dictionary. The total number of test units for a validation step is the
+        sum of the number of passing and failing test units (i.e., `n = n_passed + n_failed`).
 
         Parameters
         ----------
@@ -2668,6 +2692,21 @@ class Validate:
     ) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units that passed for each validation step.
+
+        The `n_passed()` method provides the number of test units that passed for each validation
+        step. This is the number of test units that passed in the the validation step. It is always
+        some integer value between `0` and the total number of test units.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of passing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `n_failed()` method (i.e.,
+        `n - n_failed`).
 
         Parameters
         ----------
@@ -2695,6 +2734,21 @@ class Validate:
         """
         Provides a dictionary of the number of test units that failed for each validation step.
 
+        The `n_failed()` method provides the number of test units that failed for each validation
+        step. This is the number of test units that did not pass in the the validation step. It is
+        always some integer value between `0` and the total number of test units.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        The method provides a dictionary of the number of failing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `n_passed()` method (i.e.,
+        `n - n_passed`).
+
         Parameters
         ----------
         i
@@ -2720,6 +2774,21 @@ class Validate:
     ) -> dict[int, float] | float:
         """
         Provides a dictionary of the fraction of test units that passed for each validation step.
+
+        A measure of the fraction of test units that passed is provided by the `f_passed` attribute.
+        This is the fraction of test units that passed the validation step over the total number of
+        test units. Given this is a fractional value, it will always be in the range of `0` to `1`.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        This method provides a dictionary of the fraction of passing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `f_failed()` method (i.e.,
+        `1 - f_failed()`).
 
         Parameters
         ----------
@@ -2747,6 +2816,21 @@ class Validate:
         """
         Provides a dictionary of the fraction of test units that failed for each validation step.
 
+        A measure of the fraction of test units that failed is provided by the `f_failed` attribute.
+        This is the fraction of test units that failed the validation step over the total number of
+        test units. Given this is a fractional value, it will always be in the range of `0` to `1`.
+
+        Test units are the atomic units of the validation process. Different validations can have
+        different numbers of test units. For example, a validation that checks for the presence of
+        a column in a table will have a single test unit. A validation that checks for the presence
+        of a value in a column will have as many test units as there are rows in the table.
+
+        This method provides a dictionary of the fraction of failing test units for each validation
+        step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
+        as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
+        complement to the analogous value returned by the `f_passed()` method (i.e.,
+        `1 - f_passed()`).
+
         Parameters
         ----------
         i
@@ -2773,6 +2857,22 @@ class Validate:
         """
         Provides a dictionary of the warning status for each validation step.
 
+        The warning status (`warn`) for a validation step is `True` if the fraction of failing test
+        units meets or exceeds the threshold for the warning level. Otherwise, the status is
+        `False`.
+
+        The ascribed name of `warn` is semantic and does not imply that a warning message is
+        generated, it is simply a status indicator that could be used to trigger a warning message.
+        Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the warning status for each validation step. If the
+        `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
+        instead of a dictionary.
+
         Parameters
         ----------
         i
@@ -2797,6 +2897,22 @@ class Validate:
         """
         Provides a dictionary of the stopping status for each validation step.
 
+        The stopping status (`stop`) for a validation step is `True` if the fraction of failing test
+        units meets or exceeds the threshold for the stopping level. Otherwise, the status is
+        `False`.
+
+        The ascribed name of `stop` is semantic and does not imply that the validation process
+        is halted, it is simply a status indicator that could be used to trigger a stoppage of the
+        validation process. Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the stopping status for each validation step. If the
+        `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
+        instead of a dictionary.
+
         Parameters
         ----------
         i
@@ -2820,6 +2936,22 @@ class Validate:
     ) -> dict[int, bool] | bool:
         """
         Provides a dictionary of the notification status for each validation step.
+
+        The notification status (`notify`) for a validation step is `True` if the fraction of
+        failing test units meets or exceeds the threshold for the notification level. Otherwise,
+        the status is `False`.
+
+        The ascribed name of `notify` is semantic and does not imply that a notification message
+        is generated, it is simply a status indicator that could be used to trigger some sort of
+        notification. Here's how it fits in with other status indicators:
+
+        - `warn`: the status obtained by calling `warn()`, least severe
+        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `notify`: the status obtained by calling `notify()`, most severe
+
+        This method provides a dictionary of the notification status for each validation step. If
+        the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
+        scalar instead of a dictionary.
 
         Parameters
         ----------
@@ -2848,7 +2980,7 @@ class Validate:
         After the `interrogate()` method has been called, the `get_data_extracts()` method can be
         used to extract the rows that failed in each row-based validation step (e.g.,
         `col_vals_gt()`, etc.). The method returns a dictionary of tables containing the rows that
-        failed in every row-based validation function. If `frame=True` and `i` is a scalar, the
+        failed in every row-based validation function. If `frame=True` and `i=` is a scalar, the
         value is conveniently returned as a table (forgoing the dictionary structure).
 
         Parameters
