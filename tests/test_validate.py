@@ -1418,6 +1418,12 @@ def test_get_data_extracts(tbl_missing_pd):
     assert len(extracts_1) == 1
     assert len(extracts_2) == 1
 
+    extracts_1_df = validation.get_data_extracts(i=1, frame=True)
+    extracts_2_df = validation.get_data_extracts(i=2, frame=True)
+
+    assert isinstance(extracts_1_df, pd.DataFrame)
+    assert isinstance(extracts_2_df, pd.DataFrame)
+
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_interrogate_with_active_inactive(request, tbl_fixture):
