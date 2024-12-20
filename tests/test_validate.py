@@ -26,7 +26,6 @@ from pointblank.validate import (
     _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
-from pointblank.column import col
 
 
 TBL_LIST = [
