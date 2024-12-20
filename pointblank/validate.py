@@ -51,7 +51,7 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 
-__all__ = ["Validate", "load_dataset", "col"]
+__all__ = ["Validate", "load_dataset"]
 
 
 def load_dataset(
