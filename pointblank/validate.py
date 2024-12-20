@@ -2328,16 +2328,22 @@ class Validate:
         sample_limit: int = 5000,
     ) -> Validate:
         """
-        Evaluate each validation against the table and store the results.
+        Execute each validation step against the table and store the results.
 
         When a validation plan has been set with a series of validation steps, the interrogation
         process through `interrogate()` should then be invoked. Interrogation will evaluate each
-        validation step against the table and store the results. The interrogation process is
-        non-destructive; the original table is not altered (but a copy is made for each validation).
+        validation step against the table and store the results.
 
-        After that, the `Validate` object will have gathered information, and we can use methods
-        like `get_tabular_report()`, `all_passed()` and many more to understand how the table
-        performed against the validation plan.
+        The interrogation process will collect extracts of failing rows if the `collect_extracts`
+        option is set to `True` (the default). We can control the number of rows collected using the
+        `get_first_n=`, `sample_n=`, and `sample_frac=` options. The `sample_limit=` option will
+        enforce a hard limit on the number of rows collected when using the `sample_frac=` option.
+
+        After interrogation is complete, the `Validate` object will have gathered information, and
+        we can use methods like `n_passed()`, `f_failed()`, etc., to understand how the table
+        performed against the validation plan. A visual representation of the validation results can
+        be viewed by printing the `Validate` object; this will display the validation table in an
+        HTML viewing environment.
 
         Parameters
         ----------
@@ -2374,6 +2380,43 @@ class Validate:
         -------
         Validate
             The `Validate` object with the results of the interrogation.
+
+        Examples
+        --------
+        Let's use a built-in dataset (`"game_revenue"`) to demonstrate some of the options of the
+        interrogation process. A series of validation steps will populate our validation plan. After
+        setting up the plan, the next step is to interrogate the table and see how well it aligns
+        with our expectations. We'll use the `get_first_n=` option so that any extracts of failing
+        rows are limited to the first `n` rows.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+            .col_vals_lt(columns="item_revenue", value=200)
+            .col_vals_gt(columns="item_revenue", value=0)
+            .col_vals_gt(columns="session_duration", value=5)
+            .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        )
+
+        validation.interrogate(get_first_n=10)
+        ```
+
+        The validation table shows that step 3 (checking for `session_duration` greater than `5`)
+        has 18 failing test units. This means that 18 rows in the table are problematic. We'd like
+        to see the rows that failed this validation step and we can do that with the
+        `get_data_extracts()` method.
+
+        ```{python}
+        validation.get_data_extracts(i=3, frame=True)
+        ```
+
+        The `get_data_extracts()` method will return a Polars DataFrame with the first 10 rows that
+        failed the validation step. There are actually 18 rows that failed but we limited the
+        collection of extracts with `get_first_n=10`.
         """
 
         # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
