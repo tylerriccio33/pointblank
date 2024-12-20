@@ -2638,15 +2638,49 @@ class Validate:
         validation steps with flying colors. If there's even a single failing test unit in any
         validation step, this method will return `False`.
 
-        This might be overly stringent for some validation plans where failing test units are
-        generally expected and the strategy is to monitor data quality over time. However, some
-        validation plans might be designed to ensure that every test unit passes perfectly (e.g.,
-        checks for column presence, null-checking tests, etc.).
+        This validation metric might be overly stringent for some validation plans where failing
+        test units are generally expected (and the strategy is to monitor data quality over time).
+        However, the value of `all_passed()` could be suitable for validation plans designed to
+        ensure that every test unit passes perfectly (e.g., checks for column presence,
+        null-checking tests, etc.).
 
         Returns
         -------
         bool
             `True` if all validation steps had no failing test units, `False` otherwise.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the second step will have a failing test
+        unit (the value `10` isn't less than `9`). After interrogation, the `all_passed()` method is
+        used to determine if all validation steps passed perfectly.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [1, 2, 9, 5],
+                "b": [5, 6, 10, 3],
+                "c": ["a", "b", "a", "a"],
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=0)
+            .col_vals_lt(columns="b", value=9)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.all_passed()
+        ```
+
+        The returned value is `False` since the second validation step had a failing test unit. If
+        it weren't for that one failing test unit, the return value would have been `True`.
         """
         return all(validation.all_passed for validation in self.validation_info)
 
@@ -2722,6 +2756,49 @@ class Validate:
         dict[int, int] | int
             A dictionary of the number of passing test units for each validation step or a scalar
             value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps and, as it turns out, all of them will have
+        failing test units. After interrogation, the `n_passed()` method is used to determine the
+        number of passing test units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12],
+                "b": [9, 8, 10, 5, 10],
+                "c": ["a", "b", "c", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.n_passed()
+        ```
+
+        The returned dictionary shows that all validation steps had no passing test units (each
+        value was less than `5`, which is the total number of test units for each step).
+
+        If we wanted to check the number of passing test units for a single validation step, we can
+        provide the step number. Also, we could forego the dictionary and get a scalar value by
+        setting `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.n_passed(i=1)
+        ```
+
+        The returned value of `4` is the number of passing test units for the first validation step.
         """
         result = self._get_validation_dict(i, "n_passed")
         if scalar and isinstance(i, int):
@@ -2763,6 +2840,48 @@ class Validate:
         dict[int, int] | int
             A dictionary of the number of failing test units for each validation step or a scalar
             value.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps and, as it turns out, all of them will have
+        failing test units. After interrogation, the `n_failed()` method is used to determine the
+        number of failing test units for each validation step.
+
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 4, 9, 7, 12],
+                "b": [9, 8, 10, 5, 10],
+                "c": ["a", "b", "c", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_gt(columns="b", value=pb.col("a"))
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.n_failed()
+        ```
+
+        The returned dictionary shows that all validation steps had failing test units.
+
+        If we wanted to check the number of failing test units for a single validation step, we can
+        provide the step number. Also, we could forego the dictionary and get a scalar value by
+        setting `scalar=True` (ensuring that `i=` is a scalar).
+
+        ```{python}
+        validation.n_failing(i=1)
+        ```
+
+        The returned value of `1` is the number of failing test units for the first validation step.
         """
         result = self._get_validation_dict(i, "n_failed")
         if scalar and isinstance(i, int):
