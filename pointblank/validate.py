@@ -2878,7 +2878,7 @@ class Validate:
         setting `scalar=True` (ensuring that `i=` is a scalar).
 
         ```{python}
-        validation.n_failing(i=1)
+        validation.n_failed(i=1)
         ```
 
         The returned value of `1` is the number of failing test units for the first validation step.
