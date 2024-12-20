@@ -3588,10 +3588,43 @@ class Validate:
 
         Examples
         --------
-        Create a `Validate` plan of two validation steps, focused on testing row values for
-        part of the `small_table` object. Then, use `interrogate()` to put the validation plan into
-        action.
+        Let's create a `Validate` object with three validation steps and then interrogate the data.
 
+        ```{python}
+        import polars as pl
+        import pointblank as pb
+
+        tbl = pl.DataFrame(
+            {
+                "a": [7, 6, 9, 7, 3, 2],
+                "b": [9, 8, 10, 5, 10, 6],
+                "c": ["c", "d", "a", "b", "a", "b"]
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=5)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        From the validation table, we can see that the first and second steps each had 4 passing
+        test units. A failing test unit will mark the entire row as failing in the context of the
+        `get_sundered_data()` method. We can use this method to get the rows of data that passed the
+        during interrogation.
+
+        ```{python}
+        validation.get_sundered_data()
+        ```
+
+        The returned DataFrame contains the rows that passed all validation steps. From the six-row
+        input DataFrame, the first two rows and the last two rows had test units that failed
+        validation. Thus the middle two rows are the only ones that passed all validation steps and
+        that's what we see in the returned DataFrame.
         """
 
         # Keep only the validation steps that:
