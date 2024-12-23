@@ -41,7 +41,7 @@ def col(name: str) -> Column:
     - `col_vals_between()`
     - `col_vals_outside()`
 
-    For the last two methods cited, `col()` can be used either of the `left=` and `right=`
+    For the last two methods cited, `col()` can be used with either of the `left=` and `right=`
     arguments, or both.
 
     Parameters
