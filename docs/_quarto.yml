@@ -40,17 +40,20 @@ quartodoc:
   sections:
     - title: Validate
       desc: >
-        If going down the road of preparing a data quality analysis, you'll need the Validate class
-        to get the process started. The object is given the target table along with a stepwise
-        validation plan composed via validation methods.
+        When peforming data validation, you'll need the `Validate` class to get the process started.
+        It's given the target table and you can optionally provide some metadata and/or failure
+        thresholds (using the `Thresholds` class or through shorthands for this task). The
+        `Validate` class has numerous methods for defining validation steps and for obtaining
+        post-interrogation metrics and data.
       contents:
         - name: Validate
           members: []
         - name: Thresholds
     - title: Validation Steps
       desc: >
-        The validation steps are the individual validation methods that can be used to build a
-        validation plan. These methods are used to interrogate the data and report on the results.
+        Validation steps can be thought of as sequential validations on the target data. We call
+        `Validate`'s validation methods to build up a validation plan: a collection of steps that,
+        in the aggregate, provides good validation coverage.
       contents:
         - name: Validate.col_vals_gt
         - name: Validate.col_vals_lt
@@ -68,7 +71,11 @@ quartodoc:
         - name: Validate.col_exists
     - title: Interrogation and Reporting
       desc: >
-        The interrogation and reporting methods are used to extract data and report on the results.
+        The validation plan is put into action when `interrogate()` is called. The workflow for
+        performing a comprehensive validation is then: (1) `Validate()`, (2) <validation steps>,
+        (3) `interrogate()`. After interrogation of the data, we can view a validation table (by
+        printing the object or using `get_tabular_report()`), extract key metrics, or split the data
+        based on the validation results (with `get_sundered_data()`).
       contents:
         - name: Validate.interrogate
         - name: Validate.get_data_extracts
@@ -86,6 +93,9 @@ quartodoc:
         - name: Validate.notify
     - title: Utilities
       desc: >
-        The utilities group will contain functions that are helpful for the validation process.
+        The utilities group contain functions that are helpful for the validation process. We can
+        load datasets with `load_dataset()` and set global configuration parameters with
+        `pointblank_config()`.
       contents:
         - name: load_dataset
+        - name: pointblank_config
