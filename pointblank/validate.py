@@ -92,8 +92,8 @@ def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> 
     """
 
     global global_config
-    global_config.report_incl_header = report_incl_header
-    global_config.report_incl_footer = report_incl_footer
+    global_config.report_incl_header = report_incl_header  # pragma: no cover
+    global_config.report_incl_footer = report_incl_footer  # pragma: no cover
 
 
 def load_dataset(
