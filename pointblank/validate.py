@@ -64,7 +64,7 @@ class PointblankConfig:
     report_incl_footer: bool = True
 
     def __repr__(self):
-        return f"PointblankConfig(incl_header={self.report_incl_header}, incl_footer={self.report_incl_footer})"
+        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer})"
 
 
 # Global configuration instance
