@@ -28,6 +28,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
+from pointblank.column import Column
 from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
@@ -468,7 +469,7 @@ class Validate:
     def col_vals_gt(
         self,
         columns: str | list[str],
-        value: float | int,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -615,7 +616,7 @@ class Validate:
     def col_vals_lt(
         self,
         columns: str | list[str],
-        value: float | int,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -761,7 +762,7 @@ class Validate:
     def col_vals_eq(
         self,
         columns: str | list[str],
-        value: float | int,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1049,7 +1050,7 @@ class Validate:
     def col_vals_ge(
         self,
         columns: str | list[str],
-        value: float | int,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1196,7 +1197,7 @@ class Validate:
     def col_vals_le(
         self,
         columns: str | list[str],
-        value: float | int,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1343,8 +1344,8 @@ class Validate:
     def col_vals_between(
         self,
         columns: str | list[str],
-        left: float | int,
-        right: float | int,
+        left: float | int | Column,
+        right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1510,8 +1511,8 @@ class Validate:
     def col_vals_outside(
         self,
         columns: str | list[str],
-        left: float | int,
-        right: float | int,
+        left: float | int | Column,
+        right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
