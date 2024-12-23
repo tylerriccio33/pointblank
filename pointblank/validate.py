@@ -51,7 +51,49 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 
-__all__ = ["Validate", "load_dataset"]
+__all__ = ["Validate", "load_dataset", "config"]
+
+
+@dataclass
+class PointblankConfig:
+    """
+    Configuration settings for the pointblank library.
+    """
+
+    report_incl_header: bool = True
+    report_incl_footer: bool = True
+
+    def __repr__(self):
+        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer})"
+
+
+# Global configuration instance
+global_config = PointblankConfig()
+
+
+def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> PointblankConfig:
+    """
+    Configuration settings for the pointblank library.
+
+    Parameters
+    ----------
+    report_incl_header
+        This controls whether the header should be present in the validation table report. The
+        header contains the table name, label information, and might contain global failure
+        threshold levels (if set).
+    report_incl_footer
+        Should the footer of the validation table report be displayed? The footer contains the
+        starting and ending times of the interrogation.
+
+    Returns
+    -------
+    PointblankConfig
+        A `PointblankConfig` object with the specified configuration settings.
+    """
+
+    global global_config
+    global_config.report_incl_header = report_incl_header  # pragma: no cover
+    global_config.report_incl_footer = report_incl_footer  # pragma: no cover
 
 
 def load_dataset(
@@ -473,6 +515,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -614,6 +662,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -754,6 +808,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -893,6 +953,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1030,6 +1096,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1171,6 +1243,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1321,6 +1399,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1482,6 +1566,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1627,6 +1717,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1751,6 +1847,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1874,6 +1976,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1992,6 +2100,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -2118,6 +2232,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
         `b`). The table is shown below:
 
@@ -2238,6 +2358,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
         numeric column (`b`). The table is shown below:
 
@@ -3740,7 +3866,9 @@ class Validate:
 
         return sundered_tbl
 
-    def get_tabular_report(self, title: str | None = ":default:") -> GT:
+    def get_tabular_report(
+        self, title: str | None = ":default:", incl_header: bool = None, incl_footer: bool = None
+    ) -> GT:
         """
         Validation report as a GT table.
 
@@ -3816,6 +3944,11 @@ class Validate:
         The title of the report is now set to 'Report for Table XY'. This can be useful if you want
         to provide a more descriptive title for the report.
         """
+
+        if incl_header is None:
+            incl_header = global_config.report_incl_header
+        if incl_footer is None:
+            incl_footer = global_config.report_incl_footer
 
         df_lib = _select_df_lib(preference="polars")
 
@@ -4139,8 +4272,6 @@ class Validate:
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
             GT(df, id="pb_tbl")
-            .tab_header(title=html(title_text), subtitle=html(combined_subtitle))
-            .tab_source_note(source_note=html(table_time))
             .fmt_markdown(columns=["pass", "fail", "extract_upd"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
             .opt_align_table_header(align="left")
@@ -4286,6 +4417,12 @@ class Validate:
             )
             .tab_options(table_font_size="90%")
         )
+
+        if incl_header:
+            gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
+
+        if incl_footer:
+            gt_tbl = gt_tbl.tab_source_note(source_note=html(table_time))
 
         # If the interrogation has not been performed, then style the table columns dealing with
         # interrogation data as grayed out

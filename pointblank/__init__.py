@@ -11,7 +11,7 @@ except PackageNotFoundError:  # pragma: no cover
 # Import objects from the module
 from pointblank.tf import TF
 from pointblank.column import col
-from pointblank.validate import Validate, load_dataset
+from pointblank.validate import Validate, load_dataset, config
 from pointblank.thresholds import Thresholds
 
-__all__ = ["TF", "Validate", "Thresholds", "col", "load_dataset"]
+__all__ = ["TF", "Validate", "Thresholds", "col", "load_dataset", "config"]

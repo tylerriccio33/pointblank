@@ -16,6 +16,7 @@ import narwhals as nw
 from pointblank.validate import (
     Validate,
     load_dataset,
+    PointblankConfig,
     _ValidationInfo,
     _process_title_text,
     _get_default_title_text,
@@ -1881,3 +1882,14 @@ def test_get_tbl_type():
 
     assert _get_tbl_type(pd.DataFrame()) == "pandas"
     assert _get_tbl_type(pl.DataFrame()) == "polars"
+
+
+def test_pointblank_config_class():
+
+    # Test the default configuration
+    config = PointblankConfig()
+
+    assert config.report_incl_header is True
+    assert config.report_incl_footer is True
+
+    assert str(config) == "PointblankConfig(report_incl_header=True, report_incl_footer=True)"
