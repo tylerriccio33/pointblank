@@ -3863,9 +3863,9 @@ class Validate:
         """
 
         if incl_header is None:
-            incl_header = PointblankConfig.report_incl_header
+            incl_header = global_config.report_incl_header
         if incl_footer is None:
-            incl_footer = PointblankConfig.report_incl_footer
+            incl_footer = global_config.report_incl_footer
 
         df_lib = _select_df_lib(preference="polars")
 
