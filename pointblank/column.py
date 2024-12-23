@@ -60,7 +60,7 @@ def col(name: str) -> Column:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False)
     ```
 
     Suppose we have a table with columns `a` and `b` and we'd like to validate that the values in

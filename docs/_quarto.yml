@@ -95,8 +95,7 @@ quartodoc:
     - title: Utilities
       desc: >
         The utilities group contain functions that are helpful for the validation process. We can
-        load datasets with `load_dataset()` and set global configuration parameters with
-        `pointblank_config()`.
+        load datasets with `load_dataset()` and set global configuration parameters with `config()`.
       contents:
         - name: load_dataset
-        - name: pointblank_config
+        - name: config

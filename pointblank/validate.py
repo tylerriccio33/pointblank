@@ -51,13 +51,13 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 
-__all__ = ["Validate", "load_dataset", "pointblank_config"]
+__all__ = ["Validate", "load_dataset", "config"]
 
 
 @dataclass
 class PointblankConfig:
     """
-    Configuration settings for the Pointblank library.
+    Configuration settings for the pointblank library.
     """
 
     report_incl_header: bool = True
@@ -71,20 +71,19 @@ class PointblankConfig:
 global_config = PointblankConfig()
 
 
-def pointblank_config(
-    report_incl_header: bool = True, report_incl_footer: bool = True
-) -> PointblankConfig:
+def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> PointblankConfig:
     """
-    Set the configuration settings for the Pointblank library.
+    Configuration settings for the pointblank library.
 
     Parameters
     ----------
     report_incl_header
-        Whether to include the header in the validation table report. The header contains the table
-        name and label information.
+        This controls whether the header should be present in the validation table report. The
+        header contains the table name, label information, and might contain global failure
+        threshold levels (if set).
     report_incl_footer
-        Whether to include the footer in the validation table report. The footer contains the date
-        and time of the report generation.
+        Should the footer of the validation table report be displayed? The footer contains the
+        starting and ending times of the interrogation.
 
     Returns
     -------
@@ -520,7 +519,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -667,7 +666,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -813,7 +812,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -958,7 +957,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -1101,7 +1100,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -1248,7 +1247,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -1404,7 +1403,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -1571,7 +1570,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
@@ -1722,7 +1721,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -1852,7 +1851,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -1981,7 +1980,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -2105,7 +2104,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
@@ -2237,7 +2236,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
         `b`). The table is shown below:
@@ -2363,7 +2362,7 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
         numeric column (`b`). The table is shown below:
