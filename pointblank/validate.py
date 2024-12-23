@@ -51,7 +51,46 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 
-__all__ = ["Validate", "load_dataset"]
+__all__ = ["Validate", "load_dataset", "pointblank_config"]
+
+
+@dataclass
+class PointblankConfig:
+    """
+    Configuration settings for the Pointblank library.
+    """
+
+    report_incl_header: bool = True
+    report_incl_footer: bool = True
+
+    def __repr__(self):
+        return f"PointblankConfig(incl_header={self.report_incl_header}, incl_footer={self.report_incl_footer})"
+
+
+def pointblank_config(
+    report_incl_header: bool = True, report_incl_footer: bool = True
+) -> PointblankConfig:
+    """
+    Set the configuration settings for the Pointblank library.
+
+    Parameters
+    ----------
+    report_incl_header
+        Whether to include the header in the validation table report. The header contains the table
+        name and label information.
+    report_incl_footer
+        Whether to include the footer in the validation table report. The footer contains the date
+        and time of the report generation.
+
+    Returns
+    -------
+    PointblankConfig
+        A `PointblankConfig` object with the specified configuration settings.
+    """
+
+    return PointblankConfig(
+        report_incl_header=report_incl_header, report_incl_footer=report_incl_footer
+    )
 
 
 def load_dataset(
@@ -3740,7 +3779,9 @@ class Validate:
 
         return sundered_tbl
 
-    def get_tabular_report(self, title: str | None = ":default:") -> GT:
+    def get_tabular_report(
+        self, title: str | None = ":default:", incl_header: bool = None, incl_footer: bool = None
+    ) -> GT:
         """
         Validation report as a GT table.
 
@@ -3816,6 +3857,11 @@ class Validate:
         The title of the report is now set to 'Report for Table XY'. This can be useful if you want
         to provide a more descriptive title for the report.
         """
+
+        if incl_header is None:
+            incl_header = PointblankConfig.report_incl_header
+        if incl_footer is None:
+            incl_footer = PointblankConfig.report_incl_footer
 
         df_lib = _select_df_lib(preference="polars")
 
@@ -4139,8 +4185,6 @@ class Validate:
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
             GT(df, id="pb_tbl")
-            .tab_header(title=html(title_text), subtitle=html(combined_subtitle))
-            .tab_source_note(source_note=html(table_time))
             .fmt_markdown(columns=["pass", "fail", "extract_upd"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
             .opt_align_table_header(align="left")
@@ -4286,6 +4330,12 @@ class Validate:
             )
             .tab_options(table_font_size="90%")
         )
+
+        if incl_header:
+            gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
+
+        if incl_footer:
+            gt_tbl = gt_tbl.tab_source_note(source_note=html(table_time))
 
         # If the interrogation has not been performed, then style the table columns dealing with
         # interrogation data as grayed out
