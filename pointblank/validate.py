@@ -516,6 +516,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -657,6 +663,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -797,6 +809,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -936,6 +954,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1073,6 +1097,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1214,6 +1244,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1364,6 +1400,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1525,6 +1567,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
@@ -1670,6 +1718,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1794,6 +1848,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -1917,6 +1977,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -2035,6 +2101,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
@@ -2161,6 +2233,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
         `b`). The table is shown below:
 
@@ -2281,6 +2359,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.pointblank_config(report_incl_header=False, report_incl_footer=False)
+        ```
         For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
         numeric column (`b`). The table is shown below:
 
