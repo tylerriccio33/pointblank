@@ -69,6 +69,7 @@ quartodoc:
         - name: Validate.col_vals_not_null
         - name: Validate.col_vals_regex
         - name: Validate.col_exists
+        - name: col
     - title: Interrogation and Reporting
       desc: >
         The validation plan is put into action when `interrogate()` is called. The workflow for
