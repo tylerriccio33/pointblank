@@ -67,6 +67,10 @@ class PointblankConfig:
         return f"PointblankConfig(incl_header={self.report_incl_header}, incl_footer={self.report_incl_footer})"
 
 
+# Global configuration instance
+global_config = PointblankConfig()
+
+
 def pointblank_config(
     report_incl_header: bool = True, report_incl_footer: bool = True
 ) -> PointblankConfig:
@@ -88,9 +92,9 @@ def pointblank_config(
         A `PointblankConfig` object with the specified configuration settings.
     """
 
-    return PointblankConfig(
-        report_incl_header=report_incl_header, report_incl_footer=report_incl_footer
-    )
+    global global_config
+    global_config.report_incl_header = report_incl_header
+    global_config.report_incl_footer = report_incl_footer
 
 
 def load_dataset(
