@@ -475,7 +475,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data greater than a fixed value or data in another column?
 
@@ -622,7 +622,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data less than a fixed value or data in another column?
 
@@ -768,7 +768,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data equal to a fixed value or data in another column?
 
@@ -913,7 +913,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data not equal to a fixed value or data in another column?
 
@@ -1056,7 +1056,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data greater than or equal to a fixed value or data in another column?
 
@@ -1203,7 +1203,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Are column data less than or equal to a fixed value or data in another column?
 
@@ -1352,7 +1352,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Do column data lie between two specified values or data in other columns?
 
@@ -1519,7 +1519,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Do column data lie outside of two specified values or data in other columns?
 
@@ -1683,7 +1683,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether column values are in a set of values.
 
@@ -1815,7 +1815,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether column values are not in a set of values.
 
@@ -1945,7 +1945,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether values in a column are NULL.
 
@@ -2069,7 +2069,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether values in a column are not NULL.
 
@@ -2195,7 +2195,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether column values match a regular expression pattern.
 
@@ -2329,7 +2329,7 @@ class Validate:
         columns: str | list[str],
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
-    ):
+    ) -> Validate:
         """
         Validate whether one or more columns exist in the table.
 
