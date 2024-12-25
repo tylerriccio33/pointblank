@@ -1302,6 +1302,47 @@ def test_col_vals_regex(request, tbl_fixture):
     )
 
 
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_rows_distinct(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).rows_distinct().interrogate().n_passed(i=1, scalar=True) == 4
+    assert (
+        Validate(tbl)
+        .rows_distinct(columns_subset=["x", "y"])
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .rows_distinct(columns_subset=["y", "z"])
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 4
+    )
+    assert (
+        Validate(tbl)
+        .rows_distinct(columns_subset=["x", "z"])
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 4
+    )
+    assert (
+        Validate(tbl).rows_distinct(columns_subset="x").interrogate().n_passed(i=1, scalar=True)
+        == 4
+    )
+    assert (
+        Validate(tbl).rows_distinct(columns_subset="y").interrogate().n_passed(i=1, scalar=True)
+        == 4
+    )
+    assert (
+        Validate(tbl).rows_distinct(columns_subset="z").interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
 
