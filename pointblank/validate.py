@@ -2512,7 +2512,7 @@ class Validate:
 
         Let's validate that the rows in the table are distinct with `rows_distinct()`. We'll
         determine if this validation had any failing test units (there are four test units, one for
-        each row). A failing test units means that a given row is not distinct from any another row.
+        each row). A failing test units means that a given row is not distinct from every other row.
 
         ```{python}
         import pointblank as pb
