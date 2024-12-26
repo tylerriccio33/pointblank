@@ -3050,6 +3050,7 @@ class Validate:
             .col_vals_lt(columns="b", value=9, pre=lambda df: df.filter(pl.col("a") > 1))
             .interrogate()
         )
+        ```
 
         The first validation step checks that all values in column `a` are greater than `0`. Let's
         use the `n()` method to determine the number of test units this validation step.
