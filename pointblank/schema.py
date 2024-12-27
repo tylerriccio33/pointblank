@@ -132,7 +132,22 @@ class Schema:
         this_column_list = self.get_column_list()
         other_column_list = other.get_column_list()
 
-        return set(this_column_list).issubset(other_column_list)
+        # Iteratively move through the columns in `this_column_list` and determine if:
+        # - the column is present in `other_column_list`
+        # - the dtype of the column in `this_column_list` is the same as the dtype in
+        #   `other_column_list`
+
+        for col in this_column_list:
+            if col not in other_column_list:
+                return False
+            else:
+                this_dtype = self.columns[this_column_list.index(col)][1]
+                other_dtype = other.columns[other_column_list.index(col)][1]
+
+                if this_dtype != other_dtype:
+                    return False
+
+        return True
 
     def _compare_schema_columns_complete(self, other: Schema) -> bool:
         """
