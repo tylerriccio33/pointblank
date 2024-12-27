@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
+
 from dataclasses import dataclass
 
 import narwhals as nw
 
-from pointblank._utils import _get_tbl_type
+from pointblank._utils import _get_tbl_type, _is_lib_present
 from pointblank._constants import IBIS_BACKENDS
 
 
@@ -65,6 +67,10 @@ class Schema:
         if self.tbl is not None:
             self._collect_schema_from_table()
 
+        # Get the table type and store as an attribute (only if a table is provided)
+        if self.tbl is not None:
+            self.tbl_type = _get_tbl_type(self.tbl)
+
     def _validate_schema_inputs(self):
         if not isinstance(self.columns, list):
             raise ValueError("`columns` must be a list.")
@@ -105,6 +111,84 @@ class Schema:
             raise ValueError(
                 "The provided table object cannot be converted to a Narwhals DataFrame."
             )
+
+    def get_tbl_type(self) -> str:
+        """
+        Get the type of table from which the schema was collected.
+
+        Returns
+        -------
+        str
+            The type of table.
+        """
+        return self.tbl_type
+
+    def get_column_list(self) -> list[str]:
+        """
+        Return a list of column names from the schema.
+
+        Returns
+        -------
+        list[str]
+            A list of column names.
+        """
+        return [col[0] for col in self.columns]
+
+    def get_dtype_list(self) -> list[str]:
+        """
+        Return a list of data types from the schema.
+
+        Returns
+        -------
+        list[str]
+            A list of data types.
+        """
+        return [col[1] for col in self.columns]
+
+    def get_schema_coerced(self, to: str | None = None) -> dict[str, str]:
+
+        # If a table isn't provided, we cannot use this method
+        if self.tbl is None:
+            raise ValueError(
+                "A table object must be provided to use the `get_schema_coerced()` method."
+            )
+
+        # Pandas coercions
+        if self.tbl_type == "pandas":
+
+            if to == "polars":
+
+                # Check if Polars is available
+                if not _is_lib_present("polars"):
+                    raise ImportError(
+                        "Performing Pandas -> Polars schema conversion requires the Polars library."
+                    )
+
+                import polars as pl
+
+                # Convert the DataFrame to a Polars DataFrame
+                new_schema = copy.deepcopy(Schema(tbl=pl.from_pandas(self.tbl)))
+                return new_schema
+
+        if self.tbl_type == "polars":
+
+            if to == "pandas":
+
+                # Check if Pandas is available
+                if not _is_lib_present("pandas"):
+                    raise ImportError(
+                        "Performing Polars -> Pandas schema conversion requires the Pandas library."
+                    )
+
+                # Check if Arrow is available
+                if not _is_lib_present("pyarrow"):
+                    raise ImportError(
+                        "Performing Polars -> Pandas schema conversion requires the pyarrow library."
+                    )
+
+                # Convert the DataFrame to a Pandas DataFrame
+                new_schema = copy.deepcopy(Schema(tbl=(self.tbl.to_pandas())))
+                return new_schema
 
     def __str__(self):
         return "Pointblank Schema\n" + "\n".join([f"  {col[0]}: {col[1]}" for col in self.columns])
