@@ -27,6 +27,7 @@ from pointblank.validate import (
     _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
+from pointblank.schema import Schema
 
 
 TBL_LIST = [
@@ -1339,6 +1340,51 @@ def test_rows_distinct(request, tbl_fixture):
     )
     assert (
         Validate(tbl).rows_distinct(columns_subset="z").interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+
+
+def test_col_schema_match():
+
+    tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    schema = Schema(columns=[("a", "String"), ("b", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Schema produced using the tbl object
+    schema = Schema(tbl=tbl)
+
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    schema = Schema(columns=[("a", "string"), ("b", "int64"), ("c", "float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
         == 0
     )
 
