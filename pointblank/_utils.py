@@ -3,10 +3,109 @@ from __future__ import annotations
 import re
 import inspect
 
+from typing import Any
+
 import narwhals as nw
 from narwhals.typing import FrameT
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
+
+
+def _get_tbl_type(data: FrameT) -> str:
+
+    type_str = str(type(data))
+
+    ibis_tbl = "ibis.expr.types.relations.Table" in type_str
+
+    # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
+    # `get_native_namespace()`
+
+    if not ibis_tbl:
+
+        df_ns_str = str(nw.from_native(data).__native_namespace__())
+
+        # Detect through regex if the table is a polars or pandas DataFrame
+        if re.search(r"polars", df_ns_str, re.IGNORECASE):
+            return "polars"
+        elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
+            return "pandas"
+
+    # If ibis is present, then get the table's backend name
+    ibis_present = _is_lib_present(lib_name="ibis")
+
+    if ibis_present:
+        import ibis
+
+        # TODO: Getting the backend 'name' is currently a bit brittle right now; as it is,
+        #       we either extract the backend name from the table name or get the backend name
+        #       from the get_backend() method and name attribute
+
+        backend = ibis.get_backend(data).name
+
+        # Try using the get_name() method to get the table name, this is important for elucidating
+        # the original table type since it sometimes gets handled by duckdb
+
+        if backend == "duckdb":
+
+            try:
+                tbl_name = data.get_name()
+            except AttributeError:
+                tbl_name = None
+
+            if tbl_name is not None:
+
+                if "memtable" in tbl_name:
+                    return "memtable"
+
+                if "read_parquet" in tbl_name:
+                    return "parquet"
+
+            else:
+                return "duckdb"
+
+        return backend
+
+    return "unknown"
+
+
+def _is_lib_present(lib_name: str) -> bool:
+    import importlib
+
+    try:
+        importlib.import_module(lib_name)
+        return True
+    except ImportError:
+        return False
+
+
+def _select_df_lib(preference: str = "polars") -> Any:
+
+    # Determine whether Pandas or Polars is available
+    try:
+        import pandas as pd
+    except ImportError:
+        pd = None
+
+    try:
+        import polars as pl
+    except ImportError:
+        pl = None
+
+    # If neither Pandas nor Polars is available, raise an ImportError
+    if pd is None and pl is None:
+        raise ImportError(
+            "Generating a report with the `get_tabular_report()` method requires either the "
+            "Polars or the Pandas library to be installed."
+        )
+
+    # Return the library based on preference, if both are available
+    if pd is not None and pl is not None:
+        if preference == "polars":
+            return pl
+        else:
+            return pd
+
+    return pl if pl is not None else pd
 
 
 def _convert_to_narwhals(df: FrameT) -> nw.DataFrame:
