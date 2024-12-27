@@ -70,6 +70,7 @@ quartodoc:
         - name: Validate.col_vals_regex
         - name: Validate.col_exists
         - name: Validate.rows_distinct
+        - name: Validate.col_schema_match
         - name: col
     - title: Interrogation and Reporting
       desc: >
