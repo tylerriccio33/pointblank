@@ -9,6 +9,8 @@ import narwhals as nw
 from pointblank._utils import _get_tbl_type, _is_lib_present
 from pointblank._constants import IBIS_BACKENDS
 
+__all__ = ["Schema"]
+
 
 @dataclass
 class Schema:
@@ -111,6 +113,66 @@ class Schema:
             raise ValueError(
                 "The provided table object cannot be converted to a Narwhals DataFrame."
             )
+
+    def _compare_schema_columns_is_subset(self, other: Schema) -> bool:
+        """
+        Compare the columns of the schema with another schema to ensure that all column names are
+        at least in the other schema. Column order is not considered here.
+
+        Parameters
+        ----------
+        other
+            The other schema to compare against.
+
+        Returns
+        -------
+        bool
+            True if the columns are the same, False otherwise.
+        """
+        this_column_list = self.get_column_list()
+        other_column_list = other.get_column_list()
+
+        return set(this_column_list).issubset(other_column_list)
+
+    def _compare_schema_columns_complete(self, other: Schema) -> bool:
+        """
+        Compare the columns of the schema with another schema to ensure that all column names are
+        available in both schemas. Column order is not considered here.
+
+        Parameters
+        ----------
+        other
+            The other schema to compare against.
+
+        Returns
+        -------
+        bool
+            True if the columns are the same, False otherwise.
+        """
+        this_column_list = self.get_column_list()
+        other_column_list = other.get_column_list()
+
+        return set(this_column_list) == set(other_column_list)
+
+    def _compare_schema_columns_complete_in_order(self, other: Schema) -> bool:
+        """
+        Compare the columns of the schema with another schema. Ensure that all column names are the
+        same and that they are in the same order.
+
+        Parameters
+        ----------
+        other
+            The other schema to compare against.
+
+        Returns
+        -------
+        bool
+            True if the columns are the same, False otherwise.
+        """
+        this_column_list = self.get_column_list()
+        other_column_list = other.get_column_list()
+
+        return this_column_list == other_column_list
 
     def get_tbl_type(self) -> str:
         """
