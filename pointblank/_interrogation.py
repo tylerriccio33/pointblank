@@ -1648,7 +1648,15 @@ class ColSchemaMatch:
         # Perform column schema matching
         res = schema_expect._compare_schema_columns_is_subset(other=schema_actual)
 
-        print(res)
+        # Check if the schema is complete
+        if self.complete:
+            res = res and schema_expect._compare_schema_columns_complete(other=schema_actual)
+
+        # Check if the schema is in order
+        if self.in_order:
+            res = res and schema_expect._compare_schema_columns_complete_in_order(
+                other=schema_actual
+            )
 
         self.test_unit_res = res
 
