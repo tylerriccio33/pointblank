@@ -360,6 +360,11 @@ def test_schema_coercion_raises_no_lib():
         with pytest.raises(ImportError):
             schema_pl.get_schema_coerced(to="pandas")
 
+    # Mock the absence of the pyarrow library
+    with patch.dict(sys.modules, {"pyarrow": None}):
+        with pytest.raises(ImportError):
+            schema_pl.get_schema_coerced(to="pandas")
+
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_schema_input_errors(request, tbl_fixture):
