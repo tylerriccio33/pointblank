@@ -290,3 +290,15 @@ def test_schema_input_errors(request, tbl_fixture):
 
     with pytest.raises(ValueError):
         Schema(tbl=tbl, a="int")
+
+    with pytest.raises(ValueError):
+        Schema(columns=("a", "int", "extra"))
+
+    with pytest.raises(ValueError):
+        Schema(columns=[("a", "int"), ["b", "str"]])
+
+    with pytest.raises(ValueError):
+        Schema(columns=("a", "int"))
+
+    with pytest.raises(ValueError):
+        Schema(columns=(1, "int"))
