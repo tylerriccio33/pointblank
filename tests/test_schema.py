@@ -274,6 +274,75 @@ def test_get_dtype_list_game_revenue_duckdb():
     ]
 
 
+def test_schema_coercion_pd_to_pl():
+    schema_pd = Schema(tbl=load_dataset(dataset="small_table", tbl_type="pandas"))
+    schema_pl = schema_pd.get_schema_coerced(to="polars")
+
+    assert schema_pd.columns == [
+        ("date_time", "Datetime(time_unit='ns', time_zone=None)"),
+        ("date", "Datetime(time_unit='ns', time_zone=None)"),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Float64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", "String"),
+    ]
+
+    assert schema_pl.columns == [
+        ("date_time", "Datetime(time_unit='ns', time_zone=None)"),
+        ("date", "Datetime(time_unit='ns', time_zone=None)"),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Float64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", "String"),
+    ]
+
+    assert str(type(schema_pl.tbl)) == "<class 'polars.dataframe.frame.DataFrame'>"
+
+
+def test_schema_coercion_pl_to_pd():
+    schema_pl = Schema(tbl=load_dataset(dataset="small_table", tbl_type="polars"))
+    schema_pd = schema_pl.get_schema_coerced(to="pandas")
+
+    assert schema_pl.columns == [
+        ("date_time", "Datetime(time_unit='us', time_zone=None)"),
+        ("date", "Date"),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Int64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", "String"),
+    ]
+
+    assert schema_pd.columns == [
+        ("date_time", "Datetime(time_unit='us', time_zone=None)"),
+        ("date", "Datetime(time_unit='ms', time_zone=None)"),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Float64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", "String"),
+    ]
+
+    assert str(type(schema_pd.tbl)) == "<class 'pandas.core.frame.DataFrame'>"
+
+
+def test_schema_coercion_raises_no_tbl():
+
+    schema = Schema(columns=[("a", "int"), ("b", "str")])
+
+    with pytest.raises(ValueError):
+        schema.get_schema_coerced(to="polars")
+
+    with pytest.raises(ValueError):
+        schema.get_schema_coerced(to="pandas")
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_schema_input_errors(request, tbl_fixture):
 
