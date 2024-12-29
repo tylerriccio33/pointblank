@@ -1,6 +1,8 @@
 import pathlib
+import sys
 
 import pytest
+from unittest.mock import patch
 
 from pointblank.schema import Schema
 from pointblank.validate import load_dataset
@@ -341,6 +343,22 @@ def test_schema_coercion_raises_no_tbl():
 
     with pytest.raises(ValueError):
         schema.get_schema_coerced(to="pandas")
+
+
+def test_schema_coercion_raises_no_lib():
+
+    schema_pd = Schema(tbl=load_dataset(dataset="small_table", tbl_type="pandas"))
+    schema_pl = Schema(tbl=load_dataset(dataset="small_table", tbl_type="polars"))
+
+    # Mock the absence of the polars library
+    with patch.dict(sys.modules, {"polars": None}):
+        with pytest.raises(ImportError):
+            schema_pd.get_schema_coerced(to="polars")
+
+    # Mock the absence of the pandas library
+    with patch.dict(sys.modules, {"pandas": None}):
+        with pytest.raises(ImportError):
+            schema_pl.get_schema_coerced(to="pandas")
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
