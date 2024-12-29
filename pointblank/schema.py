@@ -80,12 +80,6 @@ class Schema:
         if not all(isinstance(col, tuple) for col in self.columns):
             raise ValueError("All elements of `columns` must be tuples.")
 
-        if not all(len(col) == 2 for col in self.columns):
-            raise ValueError("All tuples in `columns` must have exactly two elements.")
-
-        if not all(isinstance(col[0], str) for col in self.columns):
-            raise ValueError("The first element of each tuple in `columns` must be a string.")
-
     def _collect_schema_from_table(self):
 
         # Determine if this table can be converted to a Narwhals DataFrame
