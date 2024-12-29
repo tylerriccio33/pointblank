@@ -104,7 +104,7 @@ class Schema:
             self.columns = list(schema_dict.items())
 
         else:
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 "The provided table object cannot be converted to a Narwhals DataFrame."
             )
 
