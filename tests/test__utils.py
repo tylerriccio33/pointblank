@@ -2,6 +2,9 @@ import pytest
 import pandas as pd
 import polars as pl
 
+import sys
+from unittest.mock import patch
+
 import narwhals as nw
 
 from pointblank._utils import (
@@ -16,6 +19,8 @@ from pointblank._utils import (
     _get_fn_name,
     _get_assertion_from_fname,
     _check_invalid_fields,
+    _select_df_lib,
+    _get_tbl_type,
 )
 
 
@@ -390,3 +395,34 @@ def test_check_invalid_fields():
             fields=["numeric", "str", "bool", "datetime", "duration", "invalid"],
             valid_fields=["numeric", "str", "bool", "datetime", "duration"],
         )
+
+
+def test_select_df_lib():
+
+    # Mock the absence of the both the Pandas and Polars libraries
+    with patch.dict(sys.modules, {"pandas": None, "polars": None}):
+        # An ImportError is raised when the `pandas` and `polars` packages are not installed
+        with pytest.raises(ImportError):
+            _select_df_lib()
+
+    # Mock the absence of the Pandas library
+    with patch.dict(sys.modules, {"pandas": None}):
+        # The Polars library is selected when the `pandas` package is not installed
+        assert _select_df_lib(preference="polars") == pl
+        assert _select_df_lib(preference="pandas") == pl
+
+    # Mock the absence of the Polars library
+    with patch.dict(sys.modules, {"polars": None}):
+        # The Pandas library is selected when the `polars` package is not installed
+        assert _select_df_lib(preference="pandas") == pd
+        assert _select_df_lib(preference="polars") == pd
+
+    # Where both the Pandas and Polars libraries are available
+    assert _select_df_lib(preference="pandas") == pd
+    assert _select_df_lib(preference="polars") == pl
+
+
+def test_get_tbl_type():
+
+    assert _get_tbl_type(pd.DataFrame()) == "pandas"
+    assert _get_tbl_type(pl.DataFrame()) == "polars"
