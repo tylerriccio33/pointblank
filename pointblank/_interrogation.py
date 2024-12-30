@@ -1645,9 +1645,6 @@ class ColSchemaMatch:
         schema_expect = self.schema
         schema_actual = Schema(tbl=self.data_tbl)
 
-        # Perform column schema matching
-        # res = schema_expect._compare_schema_columns_is_subset(other=schema_actual)
-
         # Check if the schema is complete and in order (most restrictive check)
         if self.complete and self.in_order:
             # complete: True, in_order: True
