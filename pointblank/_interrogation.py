@@ -1634,7 +1634,7 @@ class ColSchemaMatch:
         otherwise.
     """
 
-    data_tbl: FrameT
+    data_tbl: FrameT | Any
     schema: any
     complete: bool
     in_order: bool
