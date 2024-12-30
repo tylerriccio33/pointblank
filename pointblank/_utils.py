@@ -49,7 +49,7 @@ def _get_tbl_type(data: FrameT) -> str:
 
             try:
                 tbl_name = data.get_name()
-            except AttributeError:
+            except AttributeError:  # pragma: no cover
                 tbl_name = None
 
             if tbl_name is not None:
