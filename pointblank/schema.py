@@ -34,6 +34,88 @@ class Schema:
         A DataFrame or Ibis table object from which the schema will be collected.
     **kwargs
         Individual column arguments. These will be ignored if the `columns=` parameter is provided.
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+    A schema can be constructed via the `Schema` class in multiple ways. Let's use the following
+    Polars DataFrame as a basis for constructing a schema:
+
+    ```{python}
+    import polars as pl
+
+    df = pl.DataFrame({
+        "name": ["Alice", "Bob", "Charlie"],
+        "age": [25, 30, 35],
+        "height": [5.6, 6.0, 5.8]
+    })
+    ```
+
+    You could use provide `Schema(columns=)` a list of tuples containing column names and data
+    types:
+
+    ```{python}
+    schema = pb.Schema(columns=[("name", "String"), ("age", "Int64"), ("height", "Float64")])
+    ```
+
+    Alternatively, you could provide a dictionary containing column names and dtypes:
+
+    ```{python}
+    schema = pb.Schema(columns={"name": "String", "age": "Int64", "height": "Float64"})
+    ```
+
+    You could also provide individual column arguments in the form of keyword arguments:
+
+    ```{python}
+    schema = pb.Schema(name="String", age="Int64", height="Float64")
+    ```
+
+    Finally, could also provide a DataFrame or Ibis table object from which the schema will be
+    collected:
+
+    ```python
+    schema = pb.Schema(tbl=df)
+    ```
+
+    Whichever method you choose, you can verify the schema inputs by printing the `schema` object:
+
+    ```{python}
+    print(schema)
+    ```
+
+    The `Schema` object can be used to validate the structure of a table against the schema. The
+    relevant `Validate` method for this is `col_schema_match()`. In a validation workflow, you'll
+    have a target table (defined at the beginning of the workflow) and you might want to ensure that
+    your expectations of the table structure are met. The `col_schema_match()` method works with a
+    `Schema` object to validate the structure of the table. Here's an example of how you could use
+    the `col_schema_match()` method in a validation workflow:
+
+    ```{python}
+    import pointblank as pb
+
+    # Define the schema
+    schema = pb.Schema(name="String", age="Int64", height="Float64")
+
+    # Define a validation that checks the schema against the table (`df`)
+    validation = (
+        pb.Validate(data=df)
+        .col_schema_match(schema)
+        .interrogate()
+    )
+
+    # Display the validation results
+    validation
+    ```
+
+    The `col_schema_match()` validation method will validate the structure of the table against the
+    schema during interrogation. If the structure of the table does not match the schema, the single
+    test unit will fail. In this case, the defined schema matched the structure of the table, so the
+    validation passed.
     """
 
     columns: list[tuple[str, str]] | None = None
