@@ -23,10 +23,9 @@ from pointblank.validate import (
     _fmt_lg,
     _create_table_time_html,
     _create_table_type_html,
-    _select_df_lib,
-    _get_tbl_type,
 )
 from pointblank.thresholds import Thresholds
+from pointblank.schema import Schema
 
 
 TBL_LIST = [
@@ -474,7 +473,7 @@ def test_validation_attr_getters_no_dict(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
-def test_validation_report(request, tbl_fixture):
+def test_get_json_report(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
@@ -557,7 +556,7 @@ def test_validation_check_column_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Raise a ValueError when `column=` is not a string
+    # Raise a ValueError when `columns=` is not a string
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(columns=9, value=0)
     with pytest.raises(ValueError):
@@ -578,6 +577,12 @@ def test_validation_check_column_input(request, tbl_fixture):
         Validate(tbl).col_vals_in_set(columns=9, set=[1, 2, 3, 4, 5])
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_not_in_set(columns=9, set=[5, 6, 7])
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_null(columns=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_not_null(columns=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_exists(columns=9)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -687,6 +692,12 @@ def test_validation_check_active_input(request, tbl_fixture):
         Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], active=9)
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7], active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_null(columns="x", active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_not_null(columns="x", active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_exists(columns="x", active=9)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -1343,6 +1354,327 @@ def test_rows_distinct(request, tbl_fixture):
     )
 
 
+def test_col_schema_match():
+
+    tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # Completely correct schema supplied to `columns=`
+    schema = Schema(columns=[("a", "String"), ("b", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Schema produced using the tbl object (supplied to `tbl=`)
+    schema = Schema(tbl=tbl)
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Having an incorrect dtype in supplied schema
+    schema = Schema(columns=[("a", "wrong"), ("b", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Schema expressed in a different order (yet complete)
+    schema = Schema(columns=[("b", "Int64"), ("c", "Float64"), ("a", "String")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Schema expressed in a different order (yet complete) - wrong column name
+    schema = Schema(columns=[("b", "Int64"), ("c", "Float64"), ("wrong", "String")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Schema has duplicate column/dtype
+    schema = Schema(columns=[("a", "String"), ("a", "String"), ("b", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Schema has duplicate column/dtype - wrong column name
+    schema = Schema(
+        columns=[("a", "String"), ("a", "String"), ("wrong", "Int64"), ("c", "Float64")]
+    )
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Supplied schema is a subset of the actual schema (in the correct order)
+    schema = Schema(columns=[("b", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Supplied schema is a subset of the actual schema (in the correct order) - wrong column name
+    schema = Schema(columns=[("wrong", "Int64"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Supplied schema is a subset of the actual schema but in a different order
+    schema = Schema(columns=[("c", "Float64"), ("b", "Int64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Supplied schema is a subset of the actual schema but in a different order - wrong column name
+    schema = Schema(columns=[("wrong", "Float64"), ("b", "Int64")])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
 
@@ -1726,6 +2058,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_vals_not_null(columns="date_time")
         .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
         .col_exists(columns="z")
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
         .interrogate()
     )
 
@@ -1892,37 +2225,6 @@ def test_create_table_type_html():
     assert _create_table_type_html(
         tbl_type="pandas", tbl_name="tbl_name"
     ) != _create_table_type_html(tbl_type="pandas", tbl_name=None)
-
-
-def test_select_df_lib():
-
-    # Mock the absence of the both the Pandas and Polars libraries
-    with patch.dict(sys.modules, {"pandas": None, "polars": None}):
-        # An ImportError is raised when the `pandas` and `polars` packages are not installed
-        with pytest.raises(ImportError):
-            _select_df_lib()
-
-    # Mock the absence of the Pandas library
-    with patch.dict(sys.modules, {"pandas": None}):
-        # The Polars library is selected when the `pandas` package is not installed
-        assert _select_df_lib(preference="polars") == pl
-        assert _select_df_lib(preference="pandas") == pl
-
-    # Mock the absence of the Polars library
-    with patch.dict(sys.modules, {"polars": None}):
-        # The Pandas library is selected when the `polars` package is not installed
-        assert _select_df_lib(preference="pandas") == pd
-        assert _select_df_lib(preference="polars") == pd
-
-    # Where both the Pandas and Polars libraries are available
-    assert _select_df_lib(preference="pandas") == pd
-    assert _select_df_lib(preference="polars") == pl
-
-
-def test_get_tbl_type():
-
-    assert _get_tbl_type(pd.DataFrame()) == "pandas"
-    assert _get_tbl_type(pl.DataFrame()) == "polars"
 
 
 def test_pointblank_config_class():

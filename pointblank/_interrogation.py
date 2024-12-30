@@ -11,6 +11,7 @@ from pointblank._utils import _column_test_prep, _column_subset_test_prep, _conv
 from pointblank.thresholds import _threshold_check
 from pointblank._constants import IBIS_BACKENDS
 from pointblank.column import Column
+from pointblank.schema import Schema
 
 
 @dataclass
@@ -1601,6 +1602,70 @@ class RowsDistinct:
             columns_subset=self.columns_subset,
             tbl_type=self.tbl_type,
         ).rows_distinct()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+
+@dataclass
+class ColSchemaMatch:
+    """
+    Check if a column exists in a DataFrame or has a certain data type.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    schema
+        A schema to check against.
+    complete
+        `True` to check if the schema is complete, `False` otherwise.
+    in_order
+        `True` to check if the schema is in order, `False` otherwise.
+    threshold
+        The maximum number of failing test units to allow.
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT | Any
+    schema: any
+    complete: bool
+    in_order: bool
+    threshold: int
+
+    def __post_init__(self):
+
+        schema_expect = self.schema
+        schema_actual = Schema(tbl=self.data_tbl)
+
+        if self.complete and self.in_order:
+            # Check if the schema is complete and in order (most restrictive check)
+            # complete: True, in_order: True
+            res = schema_expect._compare_schema_columns_complete_in_order(other=schema_actual)
+
+        elif not self.complete and not self.in_order:
+            # Check if the schema is at least a subset, and, order of columns does not matter
+            # complete: False, in_order: False
+            res = schema_expect._compare_schema_columns_subset_any_order(other=schema_actual)
+
+        elif self.complete:
+            # Check if the schema is complete, but the order of columns does not matter
+            # complete: True, in_order: False
+            res = schema_expect._compare_schema_columns_complete_any_order(other=schema_actual)
+
+        else:
+            # Check if the schema is a subset (doesn't need to be complete) and in order
+            # complete: False, in_order: True
+            res = schema_expect._compare_schema_columns_subset_in_order(other=schema_actual)
+
+        self.test_unit_res = res
 
     def get_test_results(self):
         return self.test_unit_res
