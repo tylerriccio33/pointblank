@@ -2046,6 +2046,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_vals_not_null(columns="date_time")
         .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
         .col_exists(columns="z")
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
         .interrogate()
     )
 
