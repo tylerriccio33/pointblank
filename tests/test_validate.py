@@ -473,7 +473,7 @@ def test_validation_attr_getters_no_dict(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
-def test_validation_report(request, tbl_fixture):
+def test_get_json_report(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
