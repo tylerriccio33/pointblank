@@ -692,6 +692,12 @@ def test_validation_check_active_input(request, tbl_fixture):
         Validate(tbl).col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5], active=9)
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_not_in_set(columns="x", set=[5, 6, 7], active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_null(columns="x", active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_not_null(columns="x", active=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_exists(columns="x", active=9)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
