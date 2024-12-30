@@ -556,7 +556,7 @@ def test_validation_check_column_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Raise a ValueError when `column=` is not a string
+    # Raise a ValueError when `columns=` is not a string
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(columns=9, value=0)
     with pytest.raises(ValueError):
@@ -577,6 +577,12 @@ def test_validation_check_column_input(request, tbl_fixture):
         Validate(tbl).col_vals_in_set(columns=9, set=[1, 2, 3, 4, 5])
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_not_in_set(columns=9, set=[5, 6, 7])
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_null(columns=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_vals_not_null(columns=9)
+    with pytest.raises(ValueError):
+        Validate(tbl).col_exists(columns=9)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
