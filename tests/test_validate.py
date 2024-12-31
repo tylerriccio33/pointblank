@@ -1712,10 +1712,24 @@ def test_col_schema_match():
     )
 
     # Completely correct schema supplied to `columns=` except for the case mismatch in dtypes
-    schema = Schema(columns=[("a", "String"), ("b", "Int64"), ("c", "Float64")])
+    schema = Schema(columns=[("a", "string"), ("b", "INT64"), ("c", "FloaT64")])
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, case_sensitive_colnames=False)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True, case_sensitive_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
@@ -1723,7 +1737,31 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=True, case_sensitive_colnames=False
+            schema=schema, in_order=False, complete=False, case_sensitive_dtypes=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema supplied to `columns=` except for the case mismatch in
+    # colnames and dtypes
+    schema = Schema(columns=[("A", "string"), ("b", "INT64"), ("C", "FloaT64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_colnames=False, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            in_order=False,
+            complete=True,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1732,7 +1770,11 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=True, case_sensitive_colnames=False
+            schema=schema,
+            in_order=False,
+            complete=True,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1741,7 +1783,11 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=False, case_sensitive_colnames=False
+            schema=schema,
+            in_order=False,
+            complete=False,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
