@@ -190,14 +190,15 @@ class Schema:
                 "The provided table object cannot be converted to a Narwhals DataFrame."
             )
 
-    def _compare_schema_columns_subset_any_order(self, other: Schema) -> bool:
+    def _compare_schema_columns_complete_in_order(
+        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+    ) -> bool:
         """
-        Compare the columns of the schema with another schema to ensure that all column names are
-        at least in the other schema. Column order is not considered here. This method is performed
-        when:
+        Compare the columns of the schema with another schema. Ensure that all column names are the
+        same and that they are in the same order. This method is performed when:
 
-        - `complete`: False
-        - `in_order`: False
+        - `complete`: True
+        - `in_order`: True
 
         Parameters
         ----------
@@ -209,27 +210,42 @@ class Schema:
         bool
             True if the columns are the same, False otherwise.
         """
-        this_column_list = self.get_column_list()
-        other_column_list = other.get_column_list()
 
-        # Iteratively move through the columns in `this_column_list` and determine if:
-        # - the column is present in `other_column_list`
-        # - the dtype of the column in `this_column_list` is the same as the dtype in
-        #   `other_column_list`
+        if not case_sensitive_colnames:
+            this_column_list = [col.lower() for col in self.get_column_list()]
+            other_column_list = [col.lower() for col in other.get_column_list()]
+        else:
+            this_column_list = self.get_column_list()
+            other_column_list = other.get_column_list()
 
+        # Check if the column lists are the same length, this is a quick check to determine
+        # if the schemas are different
+        if len(this_column_list) != len(other_column_list):
+            return False
+
+        # Check that the column names are the same in both schemas and in the same order
+        if this_column_list != other_column_list:
+            return False
+
+        # Iteratively move through the columns in `this_column_list` and determine if the dtype of
+        # the column in `this_column_list` is the same as the dtype in `other_column_list`
         for col in this_column_list:
-            if col not in other_column_list:
-                return False
-            else:
-                this_dtype = self.columns[this_column_list.index(col)][1]
-                other_dtype = other.columns[other_column_list.index(col)][1]
 
-                if this_dtype != other_dtype:
-                    return False
+            this_dtype = self.columns[this_column_list.index(col)][1]
+            other_dtype = other.columns[other_column_list.index(col)][1]
+
+            if not case_sensitive_dtypes:
+                this_dtype = this_dtype.lower()
+                other_dtype = other_dtype.lower()
+
+            if this_dtype != other_dtype:
+                return False
 
         return True
 
-    def _compare_schema_columns_complete_any_order(self, other: Schema) -> bool:
+    def _compare_schema_columns_complete_any_order(
+        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+    ) -> bool:
         """
         Compare the columns of the schema with another schema to ensure that all column names are
         available in both schemas. Column order is not considered here. This method is performed
@@ -247,8 +263,13 @@ class Schema:
         bool
             True if the columns are the same, False otherwise.
         """
-        this_column_list = self.get_column_list()
-        other_column_list = other.get_column_list()
+
+        if not case_sensitive_colnames:
+            this_column_list = [col.lower() for col in self.get_column_list()]
+            other_column_list = [col.lower() for col in other.get_column_list()]
+        else:
+            this_column_list = self.get_column_list()
+            other_column_list = other.get_column_list()
 
         # Check if the column names lists are the same length, this is a quick check to determine
         # if the schemas are different
@@ -272,58 +293,18 @@ class Schema:
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
 
-                if this_dtype != other_dtype:
-                    return False
-
-        return True
-
-    def _compare_schema_columns_complete_in_order(self, other: Schema) -> bool:
-        """
-        Compare the columns of the schema with another schema. Ensure that all column names are the
-        same and that they are in the same order. This method is performed when:
-
-        - `complete`: True
-        - `in_order`: True
-
-        Parameters
-        ----------
-        other
-            The other schema to compare against.
-
-        Returns
-        -------
-        bool
-            True if the columns are the same, False otherwise.
-        """
-        this_column_list = self.get_column_list()
-        other_column_list = other.get_column_list()
-
-        # Check if the column lists are the same length, this is a quick check to determine
-        # if the schemas are different
-        if len(this_column_list) != len(other_column_list):
-            return False
-
-        # Check that the column names are the same in both schemas
-        if this_column_list != other_column_list:
-            return False
-
-        # Iteratively move through the columns in `this_column_list` and determine if:
-        # - the column is present in `other_column_list` at the same index
-        # - the dtype of the column in `this_column_list` is the same as the dtype in
-        #   `other_column_list`
-        for col in this_column_list:
-            if col not in other_column_list:
-                return False
-            else:
-                this_dtype = self.columns[this_column_list.index(col)][1]
-                other_dtype = other.columns[other_column_list.index(col)][1]
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
 
                 if this_dtype != other_dtype:
                     return False
 
         return True
 
-    def _compare_schema_columns_subset_in_order(self, other: Schema) -> bool:
+    def _compare_schema_columns_subset_in_order(
+        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+    ) -> bool:
         """
         Compare the columns of the schema with another schema. Ensure that all column names in the
         schema are available in the other schema and that they are in the same order. This method is
@@ -342,8 +323,13 @@ class Schema:
         bool
             True if the columns are the same, False otherwise.
         """
-        this_column_list = self.get_column_list()
-        other_column_list = other.get_column_list()
+
+        if not case_sensitive_colnames:
+            this_column_list = [col.lower() for col in self.get_column_list()]
+            other_column_list = [col.lower() for col in other.get_column_list()]
+        else:
+            this_column_list = self.get_column_list()
+            other_column_list = other.get_column_list()
 
         # Iteratively move through the columns in `this_column_list` and determine if:
         # - the column is present in `other_column_list`
@@ -362,6 +348,10 @@ class Schema:
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
 
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
+
                 if this_dtype != other_dtype:
                     return False
 
@@ -371,6 +361,56 @@ class Schema:
 
         if this_column_list != other_column_list_subset:
             return False
+
+        return True
+
+    def _compare_schema_columns_subset_any_order(
+        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+    ) -> bool:
+        """
+        Compare the columns of the schema with another schema to ensure that all column names are
+        at least in the other schema. Column order is not considered here. This method is performed
+        when:
+
+        - `complete`: False
+        - `in_order`: False
+
+        Parameters
+        ----------
+        other
+            The other schema to compare against.
+
+        Returns
+        -------
+        bool
+            True if the columns are the same, False otherwise.
+        """
+
+        if not case_sensitive_colnames:
+            this_column_list = [col.lower() for col in self.get_column_list()]
+            other_column_list = [col.lower() for col in other.get_column_list()]
+        else:
+            this_column_list = self.get_column_list()
+            other_column_list = other.get_column_list()
+
+        # Iteratively move through the columns in `this_column_list` and determine if:
+        # - the column is present in `other_column_list`
+        # - the dtype of the column in `this_column_list` is the same as the dtype in
+        #   `other_column_list`
+
+        for col in this_column_list:
+            if col not in other_column_list:
+                return False
+            else:
+                this_dtype = self.columns[this_column_list.index(col)][1]
+                other_dtype = other.columns[other_column_list.index(col)][1]
+
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
+
+                if this_dtype != other_dtype:
+                    return False
 
         return True
 

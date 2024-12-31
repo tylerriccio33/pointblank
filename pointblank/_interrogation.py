@@ -1622,6 +1622,10 @@ class ColSchemaMatch:
         `True` to check if the schema is complete, `False` otherwise.
     in_order
         `True` to check if the schema is in order, `False` otherwise.
+    case_sensitive_colnames
+        `True` to perform column-name matching in a case-sensitive manner, `False` otherwise.
+    case_sensitive_dtypes
+        `True` to perform data-type matching in a case-sensitive manner, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
     tbl_type
@@ -1638,6 +1642,8 @@ class ColSchemaMatch:
     schema: any
     complete: bool
     in_order: bool
+    case_sensitive_colnames: bool
+    case_sensitive_dtypes: bool
     threshold: int
 
     def __post_init__(self):
@@ -1648,22 +1654,38 @@ class ColSchemaMatch:
         if self.complete and self.in_order:
             # Check if the schema is complete and in order (most restrictive check)
             # complete: True, in_order: True
-            res = schema_expect._compare_schema_columns_complete_in_order(other=schema_actual)
+            res = schema_expect._compare_schema_columns_complete_in_order(
+                other=schema_actual,
+                case_sensitive_colnames=self.case_sensitive_colnames,
+                case_sensitive_dtypes=self.case_sensitive_dtypes,
+            )
 
         elif not self.complete and not self.in_order:
             # Check if the schema is at least a subset, and, order of columns does not matter
             # complete: False, in_order: False
-            res = schema_expect._compare_schema_columns_subset_any_order(other=schema_actual)
+            res = schema_expect._compare_schema_columns_subset_any_order(
+                other=schema_actual,
+                case_sensitive_colnames=self.case_sensitive_colnames,
+                case_sensitive_dtypes=self.case_sensitive_dtypes,
+            )
 
         elif self.complete:
             # Check if the schema is complete, but the order of columns does not matter
             # complete: True, in_order: False
-            res = schema_expect._compare_schema_columns_complete_any_order(other=schema_actual)
+            res = schema_expect._compare_schema_columns_complete_any_order(
+                other=schema_actual,
+                case_sensitive_colnames=self.case_sensitive_colnames,
+                case_sensitive_dtypes=self.case_sensitive_dtypes,
+            )
 
         else:
             # Check if the schema is a subset (doesn't need to be complete) and in order
             # complete: False, in_order: True
-            res = schema_expect._compare_schema_columns_subset_in_order(other=schema_actual)
+            res = schema_expect._compare_schema_columns_subset_in_order(
+                other=schema_actual,
+                case_sensitive_colnames=self.case_sensitive_colnames,
+                case_sensitive_dtypes=self.case_sensitive_dtypes,
+            )
 
         self.test_unit_res = res
 

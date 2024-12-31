@@ -1674,6 +1674,126 @@ def test_col_schema_match():
         == 0
     )
 
+    # Completely correct schema supplied to `columns=` except for the case mismatch in colnames
+    schema = Schema(columns=[("a", "String"), ("B", "Int64"), ("C", "Float64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_colnames=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=True, in_order=False, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=False, in_order=True, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=False, in_order=False, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema supplied to `columns=` except for the case mismatch in dtypes
+    schema = Schema(columns=[("a", "string"), ("b", "INT64"), ("c", "FloaT64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=True, in_order=False, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=False, in_order=True, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=False, in_order=False, case_sensitive_dtypes=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema supplied to `columns=` except for the case mismatch in
+    # colnames and dtypes
+    schema = Schema(columns=[("A", "string"), ("b", "INT64"), ("C", "FloaT64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_colnames=False, case_sensitive_dtypes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,
+            in_order=False,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=True,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=False,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
