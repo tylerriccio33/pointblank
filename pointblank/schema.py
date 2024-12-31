@@ -234,6 +234,10 @@ class Schema:
             this_dtype = self.columns[this_column_list.index(col)][1]
             other_dtype = other.columns[other_column_list.index(col)][1]
 
+            if not case_sensitive_dtypes:
+                this_dtype = this_dtype.lower()
+                other_dtype = other_dtype.lower()
+
             if this_dtype != other_dtype:
                 return False
 
@@ -289,6 +293,10 @@ class Schema:
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
 
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
+
                 if this_dtype != other_dtype:
                     return False
 
@@ -339,6 +347,10 @@ class Schema:
 
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
+
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
 
                 if this_dtype != other_dtype:
                     return False
@@ -392,6 +404,10 @@ class Schema:
             else:
                 this_dtype = self.columns[this_column_list.index(col)][1]
                 other_dtype = other.columns[other_column_list.index(col)][1]
+
+                if not case_sensitive_dtypes:
+                    this_dtype = this_dtype.lower()
+                    other_dtype = other_dtype.lower()
 
                 if this_dtype != other_dtype:
                     return False
