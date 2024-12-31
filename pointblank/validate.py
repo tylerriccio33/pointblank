@@ -3020,6 +3020,8 @@ class Validate:
                     schema=value["schema"],
                     complete=value["complete"],
                     in_order=value["in_order"],
+                    case_sensitive_colnames=value["case_sensitive_colnames"],
+                    case_sensitive_dtypes=value["case_sensitive_dtypes"],
                     threshold=threshold,
                 ).get_test_results()
 
