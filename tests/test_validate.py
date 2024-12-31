@@ -552,6 +552,15 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_report_json_no_steps(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).get_json_report() == "[]"
+    assert Validate(tbl).interrogate().get_json_report() == "[]"
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_column_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -2234,6 +2243,34 @@ def test_no_interrogation_validation_report_html_snap(snapshot):
 
     # Use the snapshot fixture to create and save the snapshot
     snapshot.assert_match(edited_report_html_str, "no_interrogation_validation_report.html")
+
+
+def test_no_steps_validation_report_html_snap(snapshot):
+
+    validation = Validate(
+        data=load_dataset(),
+        tbl_name="small_table",
+        thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(html_str, "no_steps_validation_report.html")
+
+
+def test_no_steps_validation_report_html_with_interrogate():
+
+    validation = Validate(
+        data=load_dataset(),
+        tbl_name="small_table",
+        thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+    )
+
+    assert (
+        validation.interrogate().get_tabular_report().as_raw_html()
+        == validation.get_tabular_report().as_raw_html()
+    )
 
 
 def test_load_dataset():
