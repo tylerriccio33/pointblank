@@ -552,6 +552,15 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_report_json_no_steps(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).get_json_report() == "[]"
+    assert Validate(tbl).interrogate().get_json_report() == "[]"
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_column_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
