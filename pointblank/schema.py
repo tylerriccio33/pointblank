@@ -191,7 +191,11 @@ class Schema:
             )
 
     def _compare_schema_columns_complete_in_order(
-        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+        self,
+        other: Schema,
+        case_sensitive_colnames: bool,
+        case_sensitive_dtypes: bool,
+        full_match_dytpes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema. Ensure that all column names are the
@@ -238,13 +242,20 @@ class Schema:
                 this_dtype = this_dtype.lower()
                 other_dtype = other_dtype.lower()
 
-            if this_dtype != other_dtype:
+            if full_match_dytpes and this_dtype != other_dtype:
+                return False
+
+            if not full_match_dytpes and this_dtype not in other_dtype:
                 return False
 
         return True
 
     def _compare_schema_columns_complete_any_order(
-        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+        self,
+        other: Schema,
+        case_sensitive_colnames: bool,
+        case_sensitive_dtypes: bool,
+        full_match_dytpes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema to ensure that all column names are
@@ -297,13 +308,20 @@ class Schema:
                     this_dtype = this_dtype.lower()
                     other_dtype = other_dtype.lower()
 
-                if this_dtype != other_dtype:
+                if full_match_dytpes and this_dtype != other_dtype:
+                    return False
+
+                if not full_match_dytpes and this_dtype not in other_dtype:
                     return False
 
         return True
 
     def _compare_schema_columns_subset_in_order(
-        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+        self,
+        other: Schema,
+        case_sensitive_colnames: bool,
+        case_sensitive_dtypes: bool,
+        full_match_dytpes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema. Ensure that all column names in the
@@ -352,7 +370,10 @@ class Schema:
                     this_dtype = this_dtype.lower()
                     other_dtype = other_dtype.lower()
 
-                if this_dtype != other_dtype:
+                if full_match_dytpes and this_dtype != other_dtype:
+                    return False
+
+                if not full_match_dytpes and this_dtype not in other_dtype:
                     return False
 
         # With the subset of columns in `this_column_list`, ensure that the columns are in the same
@@ -365,7 +386,11 @@ class Schema:
         return True
 
     def _compare_schema_columns_subset_any_order(
-        self, other: Schema, case_sensitive_colnames: bool, case_sensitive_dtypes: bool
+        self,
+        other: Schema,
+        case_sensitive_colnames: bool,
+        case_sensitive_dtypes: bool,
+        full_match_dytpes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema to ensure that all column names are
@@ -409,7 +434,10 @@ class Schema:
                     this_dtype = this_dtype.lower()
                     other_dtype = other_dtype.lower()
 
-                if this_dtype != other_dtype:
+                if full_match_dytpes and this_dtype != other_dtype:
+                    return False
+
+                if not full_match_dytpes and this_dtype not in other_dtype:
                     return False
 
         return True

@@ -1626,6 +1626,8 @@ class ColSchemaMatch:
         `True` to perform column-name matching in a case-sensitive manner, `False` otherwise.
     case_sensitive_dtypes
         `True` to perform data-type matching in a case-sensitive manner, `False` otherwise.
+    full_match_dytpes
+        `True` to perform a full match of data types, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
     tbl_type
@@ -1644,6 +1646,7 @@ class ColSchemaMatch:
     in_order: bool
     case_sensitive_colnames: bool
     case_sensitive_dtypes: bool
+    full_match_dytpes: bool
     threshold: int
 
     def __post_init__(self):
@@ -1658,6 +1661,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
+                full_match_dytpes=self.full_match_dytpes,
             )
 
         elif not self.complete and not self.in_order:
@@ -1667,6 +1671,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
+                full_match_dytpes=self.full_match_dytpes,
             )
 
         elif self.complete:
@@ -1676,6 +1681,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
+                full_match_dytpes=self.full_match_dytpes,
             )
 
         else:
@@ -1685,6 +1691,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
+                full_match_dytpes=self.full_match_dytpes,
             )
 
         self.test_unit_res = res
