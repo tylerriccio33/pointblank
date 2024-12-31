@@ -1686,7 +1686,7 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=True, case_sensitive_colnames=False
+            schema=schema, complete=True, in_order=False, case_sensitive_colnames=False
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1695,7 +1695,7 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=True, case_sensitive_colnames=False
+            schema=schema, complete=False, in_order=True, case_sensitive_colnames=False
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1704,7 +1704,7 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=False, case_sensitive_colnames=False
+            schema=schema, complete=False, in_order=False, case_sensitive_colnames=False
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1722,14 +1722,14 @@ def test_col_schema_match():
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, in_order=False, complete=True, case_sensitive_dtypes=False)
+        .col_schema_match(schema=schema, complete=True, in_order=False, case_sensitive_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, in_order=False, complete=True, case_sensitive_dtypes=False)
+        .col_schema_match(schema=schema, complete=False, in_order=True, case_sensitive_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
@@ -1737,7 +1737,7 @@ def test_col_schema_match():
     assert (
         Validate(data=tbl)
         .col_schema_match(
-            schema=schema, in_order=False, complete=False, case_sensitive_dtypes=False
+            schema=schema, complete=False, in_order=False, case_sensitive_dtypes=False
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1758,8 +1758,8 @@ def test_col_schema_match():
         Validate(data=tbl)
         .col_schema_match(
             schema=schema,
-            in_order=False,
             complete=True,
+            in_order=False,
             case_sensitive_colnames=False,
             case_sensitive_dtypes=False,
         )
@@ -1771,21 +1771,21 @@ def test_col_schema_match():
         Validate(data=tbl)
         .col_schema_match(
             schema=schema,
-            in_order=False,
-            complete=True,
-            case_sensitive_colnames=False,
-            case_sensitive_dtypes=False,
-        )
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 1
-    )
-    assert (
-        Validate(data=tbl)
-        .col_schema_match(
-            schema=schema,
-            in_order=False,
             complete=False,
+            in_order=True,
+            case_sensitive_colnames=False,
+            case_sensitive_dtypes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=False,
             case_sensitive_colnames=False,
             case_sensitive_dtypes=False,
         )
