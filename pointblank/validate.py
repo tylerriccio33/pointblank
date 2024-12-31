@@ -4351,6 +4351,143 @@ class Validate:
         # Get the thresholds object
         thresholds = self.thresholds
 
+        # Determine if there are any validation steps
+        no_validation_steps = len(self.validation_info) == 0
+
+        # If there are no steps, prepare a fairly empty table with a message indicating that there
+        # are no validation steps
+        if no_validation_steps:
+
+            # Create the title text
+            title_text = _get_title_text(
+                title=title, tbl_name=self.tbl_name, interrogation_performed=False
+            )
+
+            # Create the label, table type, and thresholds HTML fragments
+            label_html = _create_label_html(label=self.label, start_time="")
+            table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
+            thresholds_html = _create_thresholds_html(thresholds=thresholds)
+
+            # Compose the subtitle HTML fragment
+            combined_subtitle = (
+                "<div>"
+                f"{label_html}"
+                '<div style="padding-top: 10px; padding-bottom: 5px;">'
+                f"{table_type_html}"
+                f"{thresholds_html}"
+                "</div>"
+                "</div>"
+            )
+
+            df = df_lib.DataFrame(
+                {
+                    "status_color": "",
+                    "i": "",
+                    "type_upd": "NO VALIDATION STEPS",
+                    "columns_upd": "",
+                    "values_upd": "",
+                    "tbl": "",
+                    "eval": "",
+                    "test_units": "",
+                    "pass": "",
+                    "fail": "",
+                    "w_upd": "",
+                    "s_upd": "",
+                    "n_upd": "",
+                    "extract_upd": "",
+                }
+            )
+
+            gt_tbl = (
+                GT(df, id="pb_tbl")
+                .fmt_markdown(columns=["pass", "fail", "extract_upd"])
+                .opt_table_font(font=google_font(name="IBM Plex Sans"))
+                .opt_align_table_header(align="left")
+                .tab_style(style=style.css("height: 20px;"), locations=loc.body())
+                .tab_style(
+                    style=style.text(weight="bold", color="#666666"), locations=loc.column_labels()
+                )
+                .tab_style(
+                    style=style.text(size="28px", weight="bold", align="left", color="#444444"),
+                    locations=loc.title(),
+                )
+                .tab_style(
+                    style=[style.fill(color="#FED8B1"), style.text(weight="bold")],
+                    locations=loc.body(),
+                )
+                .cols_label(
+                    cases={
+                        "status_color": "",
+                        "i": "",
+                        "type_upd": "STEP",
+                        "columns_upd": "COLUMNS",
+                        "values_upd": "VALUES",
+                        "tbl": "TBL",
+                        "eval": "EVAL",
+                        "test_units": "UNITS",
+                        "pass": "PASS",
+                        "fail": "FAIL",
+                        "w_upd": "W",
+                        "s_upd": "S",
+                        "n_upd": "N",
+                        "extract_upd": "EXT",
+                    }
+                )
+                .cols_width(
+                    cases={
+                        "status_color": "4px",
+                        "i": "35px",
+                        "type_upd": "190px",
+                        "columns_upd": "120px",
+                        "values_upd": "120px",
+                        "tbl": "50px",
+                        "eval": "50px",
+                        "test_units": "60px",
+                        "pass": "60px",
+                        "fail": "60px",
+                        "w_upd": "30px",
+                        "s_upd": "30px",
+                        "n_upd": "30px",
+                        "extract_upd": "65px",
+                    }
+                )
+                .cols_align(
+                    align="center",
+                    columns=["tbl", "eval", "w_upd", "s_upd", "n_upd", "extract_upd"],
+                )
+                .cols_align(align="right", columns=["test_units", "pass", "fail"])
+                .cols_move_to_start(
+                    [
+                        "status_color",
+                        "i",
+                        "type_upd",
+                        "columns_upd",
+                        "values_upd",
+                        "tbl",
+                        "eval",
+                        "test_units",
+                        "pass",
+                        "fail",
+                        "w_upd",
+                        "s_upd",
+                        "n_upd",
+                        "extract_upd",
+                    ]
+                )
+                .tab_options(table_font_size="90%")
+                .tab_source_note(
+                    source_note=html(
+                        "Use validation methods (like <code>col_vals_gt()</code>) to add"
+                        " steps to the validation plan."
+                    )
+                )
+            )
+
+            if incl_header:
+                gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
+
+            return gt_tbl
+
         # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
