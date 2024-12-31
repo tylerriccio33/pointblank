@@ -1803,6 +1803,167 @@ def test_col_schema_match():
         == 1
     )
 
+    # Matching dtypes with substrings in the supplied schema (`full_match_dytpes=False` case)
+    schema = Schema(columns=[("a", "Str"), ("b", "Int"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Matching dtypes with substrings in the supplied schema (`full_match_dytpes=True` case)
+    schema = Schema(columns=[("a", "Str"), ("b", "Int"), ("c", "Float64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, full_match_dytpes=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dytpes=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dytpes=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dytpes=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Matching dtypes with substrings in the supplied schema and using case-insensitive matching
+    schema = Schema(columns=[("a", "str"), ("b", "Int"), ("c", "float64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=False, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,
+            in_order=False,
+            case_sensitive_dtypes=False,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=True,
+            case_sensitive_dtypes=False,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=False,
+            case_sensitive_dtypes=False,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Matching dtypes with substrings in the supplied schema and using case-insensitive matching
+    # (`case_sensitive_dtypes=True` case)
+    schema = Schema(columns=[("a", "str"), ("b", "Int"), ("c", "float64")])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=True, full_match_dytpes=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,
+            in_order=False,
+            case_sensitive_dtypes=True,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=True,
+            case_sensitive_dtypes=True,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=False,
+            in_order=False,
+            case_sensitive_dtypes=True,
+            full_match_dytpes=False,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
