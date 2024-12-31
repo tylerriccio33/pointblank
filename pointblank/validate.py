@@ -2587,6 +2587,8 @@ class Validate:
         schema: Schema,
         complete: bool = True,
         in_order: bool = True,
+        case_sensitive_colnames: bool = True,
+        case_sensitive_dtypes: bool = True,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2613,6 +2615,14 @@ class Validate:
             Should the schema match be in order? If `True`, then the columns in the schema must
             appear in the same order as they do in the target table. If `False`, then the order of
             columns in the schema and the target table can differ.
+        case_sensitive_colnames
+            Should the schema match be case-sensitive with regard to column names? If `True`, then
+            the column names in the schema and the target table must match exactly. If `False`, then
+            the column names are compared in a case-insensitive manner.
+        case_sensitive_dtypes
+            Should the schema match be case-sensitive with regard to column data types? If `True`,
+            then the column data types in the schema and the target table must match exactly. If
+            `False`, then the column data types are compared in a case-insensitive manner.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
         thresholds
@@ -2697,14 +2707,24 @@ class Validate:
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
+        _check_boolean_input(param=complete, param_name="complete")
+        _check_boolean_input(param=in_order, param_name="in_order")
+        _check_boolean_input(param=case_sensitive_colnames, param_name="case_sensitive_colnames")
+        _check_boolean_input(param=case_sensitive_dtypes, param_name="case_sensitive_dtypes")
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # Package up schema, complete, and in_order into a dictionary for the validation step
-        values = {"schema": schema, "complete": complete, "in_order": in_order}
+        # Package up the `schema=` and boolean params into a dictionary for later interrogation
+        values = {
+            "schema": schema,
+            "complete": complete,
+            "in_order": in_order,
+            "case_sensitive_colnames": case_sensitive_colnames,
+            "case_sensitive_dtypes": case_sensitive_dtypes,
+        }
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
