@@ -1622,6 +1622,10 @@ class ColSchemaMatch:
         `True` to check if the schema is complete, `False` otherwise.
     in_order
         `True` to check if the schema is in order, `False` otherwise.
+    case_sensitive_colnames
+        `True` to perform column-name matching in a case-sensitive manner, `False` otherwise.
+    case_sensitive_dtypes
+        `True` to perform data-type matching in a case-sensitive manner, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
     tbl_type
@@ -1638,6 +1642,8 @@ class ColSchemaMatch:
     schema: any
     complete: bool
     in_order: bool
+    case_sensitive_colnames: bool
+    case_sensitive_dtypes: bool
     threshold: int
 
     def __post_init__(self):
