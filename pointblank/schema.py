@@ -118,7 +118,7 @@ class Schema:
     validation passed.
     """
 
-    columns: list[tuple[str, str]] | None = None
+    columns: str | list[str] | list[tuple[str, str]] | None = None
     tbl: any | None = None
 
     def __init__(
