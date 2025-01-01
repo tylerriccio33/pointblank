@@ -247,6 +247,11 @@ class Schema:
         # the column in `this_column_list` is the same as the dtype in `other_column_list`
         for col in this_column_list:
 
+            # Skip dtype checks if the tuple value of `col` only contains the column name
+            # (i.e., is a single element tuple)
+            if len(self.columns[this_column_list.index(col)]) == 1:
+                continue
+
             this_dtype = self.columns[this_column_list.index(col)][1]
             other_dtype = other.columns[other_column_list.index(col)][1]
 
@@ -307,6 +312,12 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
+
+                # Skip dtype checks if the tuple value of `col` only contains the column name
+                # (i.e., is a single element tuple)
+                if len(self.columns[this_column_list.index(col)]) == 1:
+                    continue
+
                 this_dtype = self.columns[this_column_list.index(col)][1]
 
                 # The corresponding column in the other schema is present but not necessarily at
@@ -369,6 +380,12 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
+
+                # Skip dtype checks if the tuple value of `col` only contains the column name
+                # (i.e., is a single element tuple)
+                if len(self.columns[this_column_list.index(col)]) == 1:
+                    continue
+
                 this_dtype = self.columns[this_column_list.index(col)][1]
 
                 # The corresponding column in the other schema is present but not necessarily at
@@ -439,6 +456,12 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
+
+                # Skip dtype checks if the tuple value of `col` only contains the column name
+                # (i.e., is a single element tuple)
+                if len(self.columns[this_column_list.index(col)]) == 1:
+                    continue
+
                 this_dtype = self.columns[this_column_list.index(col)][1]
                 other_dtype = other.columns[other_column_list.index(col)][1]
 
