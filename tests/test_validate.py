@@ -1965,6 +1965,306 @@ def test_col_schema_match():
     )
 
 
+def test_col_schema_match_columns_only():
+
+    tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # Completely correct schema supplied to `columns=`
+    schema = Schema(columns=["a", "b", "c"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Schema expressed in a different order (yet complete)
+    schema = Schema(columns=["b", "c", "a"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Schema expressed in a different order (yet complete) - wrong column name
+    schema = Schema(columns=["b", "c", "wrong"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Schema has duplicate column
+    schema = Schema(columns=["a", "a", "b", "c"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Schema has duplicate column/dtype - wrong column name
+    schema = Schema(columns=["a", "a", "wrong", "c"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Supplied schema is a subset of the actual schema (in the correct order)
+    schema = Schema(columns=["b", "c"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Supplied schema is a subset of the actual schema (in the correct order) - wrong column name
+    schema = Schema(columns=["wrong", "c"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Supplied schema is a subset of the actual schema but in a different order
+    schema = Schema(columns=["c", "b"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Supplied schema is a subset of the actual schema but in a different order - wrong column name
+    schema = Schema(columns=["wrong", "b"])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    # Completely correct schema supplied to `columns=` except for the case mismatch in colnames
+    schema = Schema(columns=["a", "B", "C"])
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, case_sensitive_colnames=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=True, in_order=False, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=False, in_order=True, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(
+            schema=schema, complete=False, in_order=False, case_sensitive_colnames=False
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
 
