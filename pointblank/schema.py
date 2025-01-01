@@ -16,24 +16,36 @@ __all__ = ["Schema"]
 class Schema:
     """Definition of a schema object.
 
-    The schema object defines the structure of a table, including the table name and its columns.
-    A schema for a table can be defined by adding column names and types for each of the columns
-    as tuples in a list, as a dictionary, or as individual keyword arguments. The schema object
-    can then be used to validate the structure of a table against the schema.
+    The schema object defines the structure of a table. Once it is defined, the object can be used
+    in a validation workflow, using `Validate` and its methods, to ensure that the structure of a
+    table matches the expected schema. The validation method that works with the schema object is
+    called `col_schema_match()`.
 
-    We can alternatively provide a DataFrame or Ibis table object and the schema will be collected
-    from either type of object. Note that if `tbl=` is provided then there shouldn't be any other
-    inputs provided through either `columns=` or `**kwargs`.
+    A schema for a table can be constructed with `Schema` in a number of ways:
+
+    1. providing a list of column names to `columns=` (to check only the column names)
+    2. using a list of two-element tuples in `columns=` (to check both column names and dtypes)
+    3. providing a dictionary to `columns=`, where the keys are column names and the values are
+    dtypes
+    4. providing individual column arguments in the form of keyword arguments (in the form of
+    `column=dtype`)
+
+    The schema object can also be constructed by providing a DataFrame or Ibis table object (using
+    the `tbl=` parameter) and the schema will be collected from either type of object. The schema
+    object can be printed to display the column names and dtypes. Note that if `tbl=` is provided
+    then there shouldn't be any other inputs provided through either `columns=` or `**kwargs`.
 
     Parameters
     ----------
     columns
-        A list of tuples or a dictionary containing column information. If provided, this will take
-        precedence over any individual column arguments provided via `**kwargs`.
+        A list of strings (representing column names), a list of tuples (for column names and column
+        dtypes), or a dictionary containing column and dtype information. If any of these inputs are
+        provided here, it will take precedence over any column arguments provided via `**kwargs`.
     tbl
         A DataFrame or Ibis table object from which the schema will be collected.
     **kwargs
-        Individual column arguments. These will be ignored if the `columns=` parameter is provided.
+        Individual column arguments that are in the form of `[column]=[dtype]`. These will be
+        ignored if the `columns=` parameter is not `None`.
 
     Examples
     --------
