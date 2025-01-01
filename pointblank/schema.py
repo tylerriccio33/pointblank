@@ -582,6 +582,17 @@ def _process_columns(
         A list of tuples containing column information.
     """
     if columns is not None:
+
+        if isinstance(columns, list):
+
+            if all(isinstance(col, str) for col in columns):
+                return [(col,) for col in columns]
+            else:
+                return columns
+
+        if isinstance(columns, str):
+            return [(columns,)]
+
         if isinstance(columns, dict):
             return list(columns.items())
         return columns
