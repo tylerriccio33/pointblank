@@ -21,14 +21,15 @@ class Schema:
     table matches the expected schema. The validation method that works with the schema object is
     called `col_schema_match()`.
 
-    A schema for a table can be constructed with `Schema` in a number of ways:
+    A schema for a table can be constructed with the `Schema` class in a number of ways:
 
     1. providing a list of column names to `columns=` (to check only the column names)
-    2. using a list of two-element tuples in `columns=` (to check both column names and dtypes)
+    2. using a list of two-element tuples in `columns=` (to check both column names and dtypes,
+    should be in the form of `[(column_name, dtype), ...]`)
     3. providing a dictionary to `columns=`, where the keys are column names and the values are
     dtypes
-    4. providing individual column arguments in the form of keyword arguments (in the form of
-    `column=dtype`)
+    4. providing individual column arguments in the form of keyword arguments (constructed as
+    `column_name=dtype`)
 
     The schema object can also be constructed by providing a DataFrame or Ibis table object (using
     the `tbl=` parameter) and the schema will be collected from either type of object. The schema
