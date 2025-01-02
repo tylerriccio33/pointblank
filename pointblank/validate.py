@@ -2273,7 +2273,7 @@ class Validate:
 
         validation = (
             pb.Validate(data=tbl)
-            .col_vals_regex(columns="a", pattern=r"r[a-z]-\d{4}")
+            .col_vals_regex(columns="a", pattern=r"r[a-z]-[0-9]{4}")
             .interrogate()
         )
 
@@ -2289,7 +2289,7 @@ class Validate:
         ```{python}
         validation = (
             pb.Validate(data=tbl)
-            .col_vals_regex(columns="b", pattern=r"r[a-z]-\d{4}")
+            .col_vals_regex(columns="b", pattern=r"r[a-z]-[0-9]{4}")
             .interrogate()
         )
 
@@ -2589,7 +2589,7 @@ class Validate:
         in_order: bool = True,
         case_sensitive_colnames: bool = True,
         case_sensitive_dtypes: bool = True,
-        full_match_dytpes: bool = True,
+        full_match_dtypes: bool = True,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2624,7 +2624,7 @@ class Validate:
             Should the schema match be case-sensitive with regard to column data types? If `True`,
             then the column data types in the schema and the target table must match exactly. If
             `False`, then the column data types are compared in a case-insensitive manner.
-        full_match_dytpes
+        full_match_dtypes
             Should the schema match require a full match of data types? If `True`, then the column
             data types in the schema and the target table must match exactly. If `False` then
             substring matches are allowed, so a schema data type of `Int` would match a target table
@@ -2717,7 +2717,7 @@ class Validate:
         _check_boolean_input(param=in_order, param_name="in_order")
         _check_boolean_input(param=case_sensitive_colnames, param_name="case_sensitive_colnames")
         _check_boolean_input(param=case_sensitive_dtypes, param_name="case_sensitive_dtypes")
-        _check_boolean_input(param=full_match_dytpes, param_name="full_match_dytpes")
+        _check_boolean_input(param=full_match_dtypes, param_name="full_match_dtypes")
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
@@ -2731,7 +2731,7 @@ class Validate:
             "in_order": in_order,
             "case_sensitive_colnames": case_sensitive_colnames,
             "case_sensitive_dtypes": case_sensitive_dtypes,
-            "full_match_dytpes": full_match_dytpes,
+            "full_match_dtypes": full_match_dtypes,
         }
 
         val_info = _ValidationInfo(
@@ -2827,7 +2827,7 @@ class Validate:
             .col_vals_gt(columns="item_revenue", value=0)
             .col_vals_gt(columns="session_duration", value=5)
             .col_vals_in_set(columns="item_type", set=["iap", "ad"])
-            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         )
 
         validation.interrogate(get_first_n=10)
@@ -3030,7 +3030,7 @@ class Validate:
                     in_order=value["in_order"],
                     case_sensitive_colnames=value["case_sensitive_colnames"],
                     case_sensitive_dtypes=value["case_sensitive_dtypes"],
-                    full_match_dytpes=value["full_match_dytpes"],
+                    full_match_dtypes=value["full_match_dtypes"],
                     threshold=threshold,
                 ).get_test_results()
 

@@ -1626,7 +1626,7 @@ class ColSchemaMatch:
         `True` to perform column-name matching in a case-sensitive manner, `False` otherwise.
     case_sensitive_dtypes
         `True` to perform data-type matching in a case-sensitive manner, `False` otherwise.
-    full_match_dytpes
+    full_match_dtypes
         `True` to perform a full match of data types, `False` otherwise.
     threshold
         The maximum number of failing test units to allow.
@@ -1646,7 +1646,7 @@ class ColSchemaMatch:
     in_order: bool
     case_sensitive_colnames: bool
     case_sensitive_dtypes: bool
-    full_match_dytpes: bool
+    full_match_dtypes: bool
     threshold: int
 
     def __post_init__(self):
@@ -1661,7 +1661,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
-                full_match_dytpes=self.full_match_dytpes,
+                full_match_dtypes=self.full_match_dtypes,
             )
 
         elif not self.complete and not self.in_order:
@@ -1671,7 +1671,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
-                full_match_dytpes=self.full_match_dytpes,
+                full_match_dtypes=self.full_match_dtypes,
             )
 
         elif self.complete:
@@ -1681,7 +1681,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
-                full_match_dytpes=self.full_match_dytpes,
+                full_match_dtypes=self.full_match_dtypes,
             )
 
         else:
@@ -1691,7 +1691,7 @@ class ColSchemaMatch:
                 other=schema_actual,
                 case_sensitive_colnames=self.case_sensitive_colnames,
                 case_sensitive_dtypes=self.case_sensitive_dtypes,
-                full_match_dytpes=self.full_match_dytpes,
+                full_match_dtypes=self.full_match_dtypes,
             )
 
         self.test_unit_res = res
