@@ -48,6 +48,11 @@ class Schema:
         Individual column arguments that are in the form of `[column]=[dtype]`. These will be
         ignored if the `columns=` parameter is not `None`.
 
+    Returns
+    -------
+    Schema
+        A schema object.
+
     Examples
     --------
     ```{python}
