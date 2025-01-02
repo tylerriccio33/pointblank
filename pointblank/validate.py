@@ -2687,7 +2687,7 @@ class Validate:
         You can print the schema object to verify that the expected schema is as intended.
 
         ```{python}
-        schema
+        print(schema)
         ```
 
         Now, we'll use the `col_schema_match()` method to validate the table against the expected
