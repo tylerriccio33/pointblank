@@ -1803,63 +1803,63 @@ def test_col_schema_match():
         == 1
     )
 
-    # Matching dtypes with substrings in the supplied schema (`full_match_dytpes=False` case)
+    # Matching dtypes with substrings in the supplied schema (`full_match_dtypes=False` case)
     schema = Schema(columns=[("a", "Str"), ("b", "Int"), ("c", "Float64")])
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, full_match_dytpes=False)
+        .col_schema_match(schema=schema, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dytpes=False)
+        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dytpes=False)
+        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dytpes=False)
+        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
     )
 
-    # Matching dtypes with substrings in the supplied schema (`full_match_dytpes=True` case)
+    # Matching dtypes with substrings in the supplied schema (`full_match_dtypes=True` case)
     schema = Schema(columns=[("a", "Str"), ("b", "Int"), ("c", "Float64")])
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, full_match_dytpes=True)
+        .col_schema_match(schema=schema, full_match_dtypes=True)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dytpes=True)
+        .col_schema_match(schema=schema, complete=True, in_order=False, full_match_dtypes=True)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dytpes=True)
+        .col_schema_match(schema=schema, complete=False, in_order=True, full_match_dtypes=True)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 0
     )
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dytpes=True)
+        .col_schema_match(schema=schema, complete=False, in_order=False, full_match_dtypes=True)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 0
@@ -1869,7 +1869,7 @@ def test_col_schema_match():
     schema = Schema(columns=[("a", "str"), ("b", "Int"), ("c", "float64")])
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, case_sensitive_dtypes=False, full_match_dytpes=False)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=False, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
@@ -1881,7 +1881,7 @@ def test_col_schema_match():
             complete=True,
             in_order=False,
             case_sensitive_dtypes=False,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1894,7 +1894,7 @@ def test_col_schema_match():
             complete=False,
             in_order=True,
             case_sensitive_dtypes=False,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1907,7 +1907,7 @@ def test_col_schema_match():
             complete=False,
             in_order=False,
             case_sensitive_dtypes=False,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1919,7 +1919,7 @@ def test_col_schema_match():
     schema = Schema(columns=[("a", "str"), ("b", "Int"), ("c", "float64")])
     assert (
         Validate(data=tbl)
-        .col_schema_match(schema=schema, case_sensitive_dtypes=True, full_match_dytpes=False)
+        .col_schema_match(schema=schema, case_sensitive_dtypes=True, full_match_dtypes=False)
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 0
@@ -1931,7 +1931,7 @@ def test_col_schema_match():
             complete=True,
             in_order=False,
             case_sensitive_dtypes=True,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1944,7 +1944,7 @@ def test_col_schema_match():
             complete=False,
             in_order=True,
             case_sensitive_dtypes=True,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)
@@ -1957,7 +1957,7 @@ def test_col_schema_match():
             complete=False,
             in_order=False,
             case_sensitive_dtypes=True,
-            full_match_dytpes=False,
+            full_match_dtypes=False,
         )
         .interrogate()
         .n_passed(i=1, scalar=True)

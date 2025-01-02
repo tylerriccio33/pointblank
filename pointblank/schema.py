@@ -237,7 +237,7 @@ class Schema:
         other: Schema,
         case_sensitive_colnames: bool,
         case_sensitive_dtypes: bool,
-        full_match_dytpes: bool,
+        full_match_dtypes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema. Ensure that all column names are the
@@ -298,10 +298,10 @@ class Schema:
                     this_dtype[i] = this_dtype[i].lower()
                     other_dtype = other_dtype.lower()
 
-                if full_match_dytpes and this_dtype[i] == other_dtype:
+                if full_match_dtypes and this_dtype[i] == other_dtype:
                     dtype_matches.append(True)
 
-                if not full_match_dytpes and this_dtype[i] in other_dtype:
+                if not full_match_dtypes and this_dtype[i] in other_dtype:
                     dtype_matches.append(True)
 
             # If there are no matches for any of the dtypes provided, return False
@@ -315,7 +315,7 @@ class Schema:
         other: Schema,
         case_sensitive_colnames: bool,
         case_sensitive_dtypes: bool,
-        full_match_dytpes: bool,
+        full_match_dtypes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema to ensure that all column names are
@@ -383,10 +383,10 @@ class Schema:
                         this_dtype[i] = this_dtype[i].lower()
                         other_dtype = other_dtype.lower()
 
-                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                    if full_match_dtypes and this_dtype[i] == other_dtype:
                         dtype_matches.append(True)
 
-                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                    if not full_match_dtypes and this_dtype[i] in other_dtype:
                         dtype_matches.append(True)
 
                 # If there are no matches for any of the dtypes provided, return False
@@ -400,7 +400,7 @@ class Schema:
         other: Schema,
         case_sensitive_colnames: bool,
         case_sensitive_dtypes: bool,
-        full_match_dytpes: bool,
+        full_match_dtypes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema. Ensure that all column names in the
@@ -464,10 +464,10 @@ class Schema:
                         this_dtype[i] = this_dtype[i].lower()
                         other_dtype = other_dtype.lower()
 
-                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                    if full_match_dtypes and this_dtype[i] == other_dtype:
                         dtype_matches.append(True)
 
-                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                    if not full_match_dtypes and this_dtype[i] in other_dtype:
                         dtype_matches.append(True)
 
                 # If there are no matches for any of the dtypes provided, return False
@@ -488,7 +488,7 @@ class Schema:
         other: Schema,
         case_sensitive_colnames: bool,
         case_sensitive_dtypes: bool,
-        full_match_dytpes: bool,
+        full_match_dtypes: bool,
     ) -> bool:
         """
         Compare the columns of the schema with another schema to ensure that all column names are
@@ -546,10 +546,10 @@ class Schema:
                         this_dtype[i] = this_dtype[i].lower()
                         other_dtype = other_dtype.lower()
 
-                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                    if full_match_dtypes and this_dtype[i] == other_dtype:
                         dtype_matches.append(True)
 
-                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                    if not full_match_dtypes and this_dtype[i] in other_dtype:
                         dtype_matches.append(True)
 
                 # If there are no matches for any of the dtypes provided, return False
