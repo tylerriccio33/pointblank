@@ -74,27 +74,27 @@ class Schema:
     })
     ```
 
-    You could use provide `Schema(columns=)` a list of tuples containing column names and data
-    types:
+    You could provide `Schema(columns=)` a list of tuples containing column names and data types:
 
     ```{python}
     schema = pb.Schema(columns=[("name", "String"), ("age", "Int64"), ("height", "Float64")])
     ```
 
-    Alternatively, you could provide a dictionary containing column names and dtypes:
+    Alternatively, a dictionary containing column names and dtypes also works:
 
     ```{python}
     schema = pb.Schema(columns={"name": "String", "age": "Int64", "height": "Float64"})
     ```
 
-    You could also provide individual column arguments in the form of keyword arguments:
+    Another input method involves using individual column arguments in the form of keyword
+    arguments:
 
     ```{python}
     schema = pb.Schema(name="String", age="Int64", height="Float64")
     ```
 
-    Finally, could also provide a DataFrame or Ibis table object from which the schema will be
-    collected:
+    Finally, could also provide a DataFrame (Polars and Pandas) or an Ibis table object to `tbl=`
+    and the schema will be collected:
 
     ```python
     schema = pb.Schema(tbl=df)
@@ -122,7 +122,7 @@ class Schema:
     # Define a validation that checks the schema against the table (`df`)
     validation = (
         pb.Validate(data=df)
-        .col_schema_match(schema)
+        .col_schema_match(schema=schema)
         .interrogate()
     )
 
@@ -135,16 +135,15 @@ class Schema:
     test unit will fail. In this case, the defined schema matched the structure of the table, so the
     validation passed.
 
-    We can also use the `col_schema_match()` method to check only the column names of the table
-    against the schema. This can be done by providing a list of column names to the `columns=`
-    parameter of the `Schema` object:
+    We can also choose to check only the column names of the target table. This can be done by
+    providing a simplified `Schema` object, which is given a list of column names:
 
     ```{python}
     schema = pb.Schema(columns=["name", "age", "height"])
 
     validation = (
         pb.Validate(data=df)
-        .col_schema_match(schema)
+        .col_schema_match(schema=schema)
         .interrogate()
     )
 
