@@ -134,6 +134,27 @@ class Schema:
     schema during interrogation. If the structure of the table does not match the schema, the single
     test unit will fail. In this case, the defined schema matched the structure of the table, so the
     validation passed.
+
+    We can also use the `col_schema_match()` method to check only the column names of the table
+    against the schema. This can be done by providing a list of column names to the `columns=`
+    parameter of the `Schema` object:
+
+    ```{python}
+    schema = pb.Schema(columns=["name", "age", "height"])
+
+    validation = (
+        pb.Validate(data=df)
+        .col_schema_match(schema)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In this case, the schema only checks the column names of the table against the schema during
+    interrogation. If the column names of the table do not match the schema, the single test unit
+    will fail. In this case, the defined schema matched the column names of the table, so the
+    validation passed.
     """
 
     columns: str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None = (
