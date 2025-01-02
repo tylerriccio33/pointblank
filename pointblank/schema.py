@@ -42,7 +42,8 @@ class Schema:
         dtypes), or a dictionary containing column and dtype information. If any of these inputs are
         provided here, it will take precedence over any column arguments provided via `**kwargs`.
     tbl
-        A DataFrame or Ibis table object from which the schema will be collected.
+        A DataFrame (Polars or Pandas) or an Ibis table object from which the schema will be
+        collected.
     **kwargs
         Individual column arguments that are in the form of `[column]=[dtype]`. These will be
         ignored if the `columns=` parameter is not `None`.
