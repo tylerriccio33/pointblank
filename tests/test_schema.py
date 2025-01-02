@@ -50,7 +50,6 @@ def tbl_sqlite():
 
 
 def test_schema_str(capfd):
-
     schema = Schema(columns=[("a", "int"), ("b", "str")])
     print(schema)
     captured = capfd.readouterr()
@@ -68,6 +67,22 @@ def test_equivalent_inputs():
     schema_1 = Schema(columns=[("a", "int"), ("b", "str")])
     schema_2 = Schema(columns={"a": "int", "b": "str"})
     schema_3 = Schema(a="int", b="str")
+
+    assert schema_1.columns == schema_2.columns
+    assert schema_2.columns == schema_3.columns
+
+
+def test_schema_only_columns_equivalent_inputs():
+    schema_1 = Schema(columns=["a", "b"])
+    schema_2 = Schema(columns=[("a",), ("b",)])
+
+    assert schema_1.columns == schema_2.columns
+
+
+def test_schema_single_column_equivalent_inputs():
+    schema_1 = Schema(columns=["a"])
+    schema_2 = Schema(columns="a")
+    schema_3 = Schema(columns=[("a",)])
 
     assert schema_1.columns == schema_2.columns
     assert schema_2.columns == schema_3.columns
