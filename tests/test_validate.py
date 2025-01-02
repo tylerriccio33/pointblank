@@ -1401,6 +1401,62 @@ def test_col_schema_match():
         == 1
     )
 
+    # Completely correct schema supplied to `columns=` (using dictionary)
+    schema = Schema(columns={"a": "String", "b": "Int64", "c": "Float64"})
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema (using kwargs)
+    schema = Schema(columns={"a": "String", "b": "Int64", "c": "Float64"})
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
     # Schema produced using the tbl object (supplied to `tbl=`)
     schema = Schema(tbl=tbl)
     assert (
@@ -1975,8 +2031,64 @@ def test_col_schema_match_list_of_dtypes():
         }
     )
 
-    # Completely correct schema supplied to `columns=`, using 1-element lists for dtypes
+    # Completely correct schema supplied, using 1-element lists for dtypes
     schema = Schema(columns=[("a", ["String"]), ("b", ["Int64"]), ("c", ["Float64"])])
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema supplied, using 1-element lists for dtypes (using dict for schema)
+    schema = Schema(columns={"a": ["String"], "b": ["Int64"], "c": ["Float64"]})
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Completely correct schema supplied, using 1-element lists for dtypes (using kwargs for schema)
+    schema = Schema(a=["String"], b=["Int64"], c=["Float64"])
     assert (
         Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
         == 1
@@ -2007,6 +2119,64 @@ def test_col_schema_match_list_of_dtypes():
     schema = Schema(
         columns=[("a", ["str", "String"]), ("b", ["Int64", "Int"]), ("c", ["Float64", "float"])]
     )
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Having one of two dtypes being correct in 2-element lists for dtypes (using dict for schema)
+    schema = Schema(
+        columns={"a": ["str", "String"], "b": ["Int64", "Int"], "c": ["Float64", "float"]}
+    )
+    assert (
+        Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=True, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+    assert (
+        Validate(data=tbl)
+        .col_schema_match(schema=schema, in_order=False, complete=False)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    # Having one of two dtypes being correct in 2-element lists for dtypes (using kwargs for schema)
+    schema = Schema(a=["str", "String"], b=["Int64", "Int"], c=["Float64", "float"])
     assert (
         Validate(data=tbl).col_schema_match(schema=schema).interrogate().n_passed(i=1, scalar=True)
         == 1
