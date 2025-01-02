@@ -130,12 +130,16 @@ class Schema:
     validation passed.
     """
 
-    columns: str | list[str] | list[tuple[str, str]] | None = None
+    columns: str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None = (
+        None
+    )
     tbl: any | None = None
 
     def __init__(
         self,
-        columns: list[tuple[str, str]] | dict[str, str] | None = None,
+        columns: (
+            str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None
+        ) = None,
         tbl: any | None = None,
         **kwargs,
     ):
