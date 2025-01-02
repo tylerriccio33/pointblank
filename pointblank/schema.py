@@ -285,14 +285,27 @@ class Schema:
             this_dtype = self.columns[this_column_list.index(col)][1]
             other_dtype = other.columns[other_column_list.index(col)][1]
 
-            if not case_sensitive_dtypes:
-                this_dtype = this_dtype.lower()
-                other_dtype = other_dtype.lower()
+            # There may be multiple dtypes for a column, so we need to promote scalar dtypes to
+            # lists before iterating through them
+            if isinstance(this_dtype, str):
+                this_dtype = [this_dtype]
 
-            if full_match_dytpes and this_dtype != other_dtype:
-                return False
+            dtype_matches = []
 
-            if not full_match_dytpes and this_dtype not in other_dtype:
+            for i in range(len(this_dtype)):
+
+                if not case_sensitive_dtypes:
+                    this_dtype[i] = this_dtype[i].lower()
+                    other_dtype = other_dtype.lower()
+
+                if full_match_dytpes and this_dtype[i] == other_dtype:
+                    dtype_matches.append(True)
+
+                if not full_match_dytpes and this_dtype[i] in other_dtype:
+                    dtype_matches.append(True)
+
+            # If there are no matches for any of the dtypes provided, return False
+            if not any(dtype_matches):
                 return False
 
         return True
@@ -357,14 +370,27 @@ class Schema:
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
 
-                if not case_sensitive_dtypes:
-                    this_dtype = this_dtype.lower()
-                    other_dtype = other_dtype.lower()
+                # There may be multiple dtypes for a column, so we need to promote scalar dtypes to
+                # lists before iterating through them
+                if isinstance(this_dtype, str):
+                    this_dtype = [this_dtype]
 
-                if full_match_dytpes and this_dtype != other_dtype:
-                    return False
+                dtype_matches = []
 
-                if not full_match_dytpes and this_dtype not in other_dtype:
+                for i in range(len(this_dtype)):
+
+                    if not case_sensitive_dtypes:
+                        this_dtype[i] = this_dtype[i].lower()
+                        other_dtype = other_dtype.lower()
+
+                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                        dtype_matches.append(True)
+
+                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                        dtype_matches.append(True)
+
+                # If there are no matches for any of the dtypes provided, return False
+                if not any(dtype_matches):
                     return False
 
         return True
@@ -425,14 +451,27 @@ class Schema:
                 # Get the dtype of the column in the other schema
                 other_dtype = other.columns[other_col_index][1]
 
-                if not case_sensitive_dtypes:
-                    this_dtype = this_dtype.lower()
-                    other_dtype = other_dtype.lower()
+                # There may be multiple dtypes for a column, so we need to promote scalar dtypes to
+                # lists before iterating through them
+                if isinstance(this_dtype, str):
+                    this_dtype = [this_dtype]
 
-                if full_match_dytpes and this_dtype != other_dtype:
-                    return False
+                dtype_matches = []
 
-                if not full_match_dytpes and this_dtype not in other_dtype:
+                for i in range(len(this_dtype)):
+
+                    if not case_sensitive_dtypes:
+                        this_dtype[i] = this_dtype[i].lower()
+                        other_dtype = other_dtype.lower()
+
+                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                        dtype_matches.append(True)
+
+                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                        dtype_matches.append(True)
+
+                # If there are no matches for any of the dtypes provided, return False
+                if not any(dtype_matches):
                     return False
 
         # With the subset of columns in `this_column_list`, ensure that the columns are in the same
@@ -495,14 +534,26 @@ class Schema:
                 this_dtype = self.columns[this_column_list.index(col)][1]
                 other_dtype = other.columns[other_column_list.index(col)][1]
 
-                if not case_sensitive_dtypes:
-                    this_dtype = this_dtype.lower()
-                    other_dtype = other_dtype.lower()
+                # There may be multiple dtypes for a column, so we need to promote scalar dtypes to
+                # lists before iterating through them
+                if isinstance(this_dtype, str):
+                    this_dtype = [this_dtype]
 
-                if full_match_dytpes and this_dtype != other_dtype:
-                    return False
+                dtype_matches = []
 
-                if not full_match_dytpes and this_dtype not in other_dtype:
+                for i in range(len(this_dtype)):
+                    if not case_sensitive_dtypes:
+                        this_dtype[i] = this_dtype[i].lower()
+                        other_dtype = other_dtype.lower()
+
+                    if full_match_dytpes and this_dtype[i] == other_dtype:
+                        dtype_matches.append(True)
+
+                    if not full_match_dytpes and this_dtype[i] in other_dtype:
+                        dtype_matches.append(True)
+
+                # If there are no matches for any of the dtypes provided, return False
+                if not any(dtype_matches):
                     return False
 
         return True
