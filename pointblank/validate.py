@@ -2273,7 +2273,7 @@ class Validate:
 
         validation = (
             pb.Validate(data=tbl)
-            .col_vals_regex(columns="a", pattern=r"r[a-z]-\d{4}")
+            .col_vals_regex(columns="a", pattern=r"r[a-z]-[0-9]{4}")
             .interrogate()
         )
 
@@ -2289,7 +2289,7 @@ class Validate:
         ```{python}
         validation = (
             pb.Validate(data=tbl)
-            .col_vals_regex(columns="b", pattern=r"r[a-z]-\d{4}")
+            .col_vals_regex(columns="b", pattern=r"r[a-z]-[0-9]{4}")
             .interrogate()
         )
 
@@ -2827,7 +2827,7 @@ class Validate:
             .col_vals_gt(columns="item_revenue", value=0)
             .col_vals_gt(columns="session_duration", value=5)
             .col_vals_in_set(columns="item_type", set=["iap", "ad"])
-            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+            .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         )
 
         validation.interrogate(get_first_n=10)
