@@ -5327,16 +5327,32 @@ def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
     return icon_svg
 
 
-def _transform_eval(n: list[int], interrogation_performed: bool, active: list[bool]) -> list[str]:
+def _transform_eval(
+    n: list[int], interrogation_performed: bool, eval_error: list[bool], active: list[bool]
+) -> list[str]:
 
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
 
-    return [
-        '<span style="color:#4CA64C;">&check;</span>' if active[i] else "&mdash;"
-        for i in range(len(n))
-    ]
+    symbol_list = []
+
+    for i in range(len(n)):
+
+        # If there was an evaluation error, then add a collision mark
+        if eval_error[i]:
+            symbol_list.append('<span style="color:#CF142B;">&#128165;</span>')
+            continue
+
+        # If the validation step is inactive, then add an em dash
+        if not active[i]:
+            symbol_list.append("&mdash;")
+            continue
+
+        # Otherwise, add a green check mark
+        symbol_list.append('<span style="color:#4CA64C;">&check;</span>')
+
+    return symbol_list
 
 
 def _transform_test_units(
