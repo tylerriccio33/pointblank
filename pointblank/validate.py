@@ -304,6 +304,7 @@ class _ValidationInfo:
     brief: str | None = None
     active: bool | None = None
     # Interrogation results
+    eval_error: bool | None = None
     all_passed: bool | None = None
     n: int | None = None
     n_passed: int | None = None
