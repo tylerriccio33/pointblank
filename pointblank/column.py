@@ -71,6 +71,13 @@ class Column:
 
     def __repr__(self):
         return self.name
+    def resolve(self, columns: list[str]) -> list[str]:
+        if self.name:
+            return [self.name]
+        if isinstance(self.exprs, str):
+            return [self.exprs] if self.exprs in columns else []
+        resolved_columns = self.exprs.resolve(columns)
+        return [col for col in columns if col in resolved_columns]
 
 
 def col(name: str) -> Column:
