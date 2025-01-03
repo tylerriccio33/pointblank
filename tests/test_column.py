@@ -1,7 +1,28 @@
 import pytest
 
 from pointblank.validate import Validate
-from pointblank.column import Column, col
+from pointblank.column import (
+    Column,
+    col,
+    StartsWith,
+    EndsWith,
+    Contains,
+    Matches,
+    Everything,
+    FirstN,
+    LastN,
+    starts_with,
+    ends_with,
+    contains,
+    matches,
+    everything,
+    first_n,
+    last_n,
+    AndSelector,
+    OrSelector,
+    SubSelector,
+    NotSelector,
+)
 
 import pandas as pd
 import polars as pl
@@ -55,15 +76,70 @@ def tbl_memtable():
     )
 
 
+@pytest.fixture
+def tbl_pl_variable_names():
+
+    return pl.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_pd_variable_names():
+
+    return pd.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_memtable_variable_names():
+    return ibis.memtable(
+        pd.DataFrame(
+            {
+                "word": ["apple", "banana"],
+                "low_numbers": [1, 2],
+                "high_numbers": [13500, 95000],
+                "low_floats": [41.6, 41.2],
+                "high_floats": [41.6, 41.2],
+                "superhigh_floats": [23453.23, 32453532.33],
+                "date": ["2021-01-01", "2021-01-02"],
+                "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+                "bools": [True, False],
+            }
+        )
+    )
+
+
 def test_column_class():
-    col1 = Column(name="col1")
-    assert col1.name == "col1"
+    col1 = Column("col1")
+    assert col1.exprs == "col1"
     assert str(col1) == "col1"
 
 
 def test_col_function():
     col1 = col("col1")
-    assert col1.name == "col1"
+    assert col1.exprs == "col1"
     assert str(col1) == "col1"
 
 
@@ -864,3 +940,458 @@ def test_col_vals_outside_col(request, tbl_fixture):
     #     .n_passed(i=1, scalar=True)
     #     == 0
     # )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_selector_classes(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Column(exprs="not_present").resolve(columns=tbl.columns) == ["not_present"]
+    assert Column(exprs="not_present").name == "not_present"
+
+    # StartsWith tests
+
+    assert Column(exprs=StartsWith("low")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+    ]
+    assert Column(exprs=StartsWith("LOW")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+    ]
+    assert Column(exprs=StartsWith("LOW", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=StartsWith("not_present")).resolve(columns=tbl.columns) == []
+    assert Column(exprs=StartsWith("low")).name == ""
+    assert Column(exprs=StartsWith("low")).exprs == StartsWith(text="low")
+
+    # EndsWith tests
+
+    assert Column(exprs=EndsWith("floats")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+    assert Column(exprs=EndsWith("FLOATS")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+    assert Column(exprs=EndsWith("FLOATS", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=EndsWith("not_present")).resolve(columns=tbl.columns) == []
+    assert Column(exprs=EndsWith("floats")).name == ""
+    assert Column(exprs=EndsWith("floats")).exprs == EndsWith(text="floats")
+
+    # Contains tests
+
+    assert Column(exprs=Contains("numbers")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert Column(exprs=Contains("NUMBERS")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert Column(exprs=Contains("NUMBERS", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=Contains("not_present")).resolve(columns=tbl.columns) == []
+    assert Column(exprs=Contains("numbers")).name == ""
+    assert Column(exprs=Contains("numbers")).exprs == Contains(text="numbers")
+
+    # Matches tests
+
+    assert Column(exprs=Matches("at")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+    ]
+    assert Column(exprs=Matches("numb")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert Column(exprs=Matches("NUMB")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert Column(exprs=Matches("NUMB", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=Matches(r"^..._numbers$")).resolve(columns=tbl.columns) == ["low_numbers"]
+    assert Column(exprs=Matches("not_present")).resolve(columns=tbl.columns) == []
+    assert Column(exprs=Matches("at")).name == ""
+    assert Column(exprs=Matches("at")).exprs == Matches(pattern="at")
+
+    # Everything tests
+
+    assert Column(exprs=Everything()).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert Column(exprs=Everything()).name == ""
+    assert Column(exprs=Everything()).exprs == Everything()
+
+    # FirstN tests
+
+    assert Column(exprs=FirstN(3)).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert Column(exprs=FirstN(9)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert Column(exprs=FirstN(20)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert Column(exprs=FirstN(0)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=FirstN(3, offset=1)).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+    ]
+    assert Column(exprs=FirstN(3, offset=10)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=FirstN(0, offset=3)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=FirstN(0, offset=10)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=FirstN(5, offset=-1)).resolve(columns=tbl.columns) == []
+
+    assert Column(exprs=FirstN(3)).name == ""
+    assert Column(exprs=FirstN(3)).exprs == FirstN(n=3)
+
+    # LastN tests
+
+    assert Column(exprs=LastN(3)).resolve(columns=tbl.columns) == [
+        "date",
+        "datetime",
+        "bools",
+    ]
+    assert Column(exprs=LastN(9)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert Column(exprs=LastN(20)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert Column(exprs=LastN(0)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=LastN(3, offset=1)).resolve(columns=tbl.columns) == [
+        "superhigh_floats",
+        "date",
+        "datetime",
+    ]
+    assert Column(exprs=LastN(3, offset=10)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=LastN(0, offset=3)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=LastN(0, offset=10)).resolve(columns=tbl.columns) == []
+    assert Column(exprs=LastN(5, offset=-1)).resolve(columns=tbl.columns) == []
+
+    assert Column(exprs=LastN(3)).name == ""
+    assert Column(exprs=LastN(3)).exprs == LastN(n=3)
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_selector_helper_functions(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert col("not_present").resolve(columns=tbl.columns) == ["not_present"]
+    assert col("not_present").name == "not_present"
+
+    # starts_with() tests
+
+    assert col(starts_with("low")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+    ]
+    assert col(starts_with("LOW")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+    ]
+    assert col(starts_with("LOW", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert col(starts_with("not_present")).resolve(columns=tbl.columns) == []
+    assert col(starts_with("low")).name == ""
+    assert col(starts_with("low")).exprs == StartsWith(text="low")
+
+    # ends_with() tests
+
+    assert col(ends_with("floats")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+    assert col(ends_with("FLOATS")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+    assert col(ends_with("FLOATS", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert col(ends_with("not_present")).resolve(columns=tbl.columns) == []
+    assert col(ends_with("floats")).name == ""
+    assert col(ends_with("floats")).exprs == EndsWith(text="floats")
+
+    # contains() tests
+
+    assert col(contains("numbers")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert col(contains("NUMBERS")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert col(contains("NUMBERS", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert col(contains("not_present")).resolve(columns=tbl.columns) == []
+    assert col(contains("numbers")).name == ""
+    assert col(contains("numbers")).exprs == Contains(text="numbers")
+
+    # matches() tests
+
+    assert col(matches("at")).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+    ]
+    assert col(matches("numb")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert col(matches("NUMB")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert col(matches("NUMB", case_sensitive=True)).resolve(columns=tbl.columns) == []
+    assert col(matches(r"^..._numbers$")).resolve(columns=tbl.columns) == ["low_numbers"]
+    assert col(matches("not_present")).resolve(columns=tbl.columns) == []
+    assert col(matches("at")).name == ""
+    assert col(matches("at")).exprs == Matches(pattern="at")
+
+    # everything() tests
+
+    assert col(everything()).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert col(everything()).name == ""
+    assert col(everything()).exprs == Everything()
+
+    # first_n() tests
+
+    assert col(first_n(3)).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+    ]
+    assert col(first_n(9)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert col(first_n(20)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert col(first_n(0)).resolve(columns=tbl.columns) == []
+    assert col(first_n(3, offset=1)).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+    ]
+    assert col(first_n(3, offset=10)).resolve(columns=tbl.columns) == []
+    assert col(first_n(0, offset=3)).resolve(columns=tbl.columns) == []
+    assert col(first_n(0, offset=10)).resolve(columns=tbl.columns) == []
+    assert col(first_n(5, offset=-1)).resolve(columns=tbl.columns) == []
+
+    assert col(first_n(3)).name == ""
+    assert col(first_n(3)).exprs == FirstN(n=3)
+
+    # last_n() tests
+
+    assert col(last_n(3)).resolve(columns=tbl.columns) == [
+        "date",
+        "datetime",
+        "bools",
+    ]
+    assert col(last_n(9)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert col(last_n(20)).resolve(columns=tbl.columns) == list(tbl.columns)
+    assert col(last_n(0)).resolve(columns=tbl.columns) == []
+    assert col(last_n(3, offset=1)).resolve(columns=tbl.columns) == [
+        "superhigh_floats",
+        "date",
+        "datetime",
+    ]
+    assert col(last_n(3, offset=10)).resolve(columns=tbl.columns) == []
+    assert col(last_n(0, offset=3)).resolve(columns=tbl.columns) == []
+    assert col(last_n(0, offset=10)).resolve(columns=tbl.columns) == []
+    assert col(last_n(5, offset=-1)).resolve(columns=tbl.columns) == []
+
+    assert col(last_n(3)).name == ""
+    assert col(last_n(3)).exprs == LastN(n=3)
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_selector_set_ops_classes(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Column(exprs=AndSelector(StartsWith("low"), EndsWith("floats"))).resolve(
+        columns=tbl.columns
+    ) == ["low_floats"]
+    assert Column(exprs=AndSelector(StartsWith("low"), EndsWith("floats"))).name == ""
+
+    assert Column(exprs=OrSelector(StartsWith("low"), EndsWith("floats"))).resolve(
+        columns=tbl.columns
+    ) == ["low_numbers", "low_floats", "high_floats", "superhigh_floats"]
+    assert Column(exprs=OrSelector(StartsWith("low"), EndsWith("floats"))).name == ""
+
+    assert Column(exprs=SubSelector(StartsWith("low"), EndsWith("floats"))).resolve(
+        columns=tbl.columns
+    ) == ["low_numbers"]
+    assert Column(exprs=SubSelector(StartsWith("low"), EndsWith("floats"))).name == ""
+
+    assert Column(exprs=NotSelector(StartsWith("low"))).resolve(columns=tbl.columns) == [
+        "word",
+        "high_numbers",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+    assert Column(exprs=NotSelector(StartsWith("low"))).name == ""
+
+    assert Column(exprs=NotSelector(EndsWith("floats"))).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "date",
+        "datetime",
+        "bools",
+    ]
+    assert Column(exprs=NotSelector(EndsWith("floats"))).name == ""
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_selector_set_ops_functions(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert col(starts_with("low") & ends_with("floats")).resolve(columns=tbl.columns) == [
+        "low_floats"
+    ]
+    assert col(starts_with("low") & ends_with("floats")).name == ""
+
+    assert col(starts_with("low") | ends_with("floats")).resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+    assert col(starts_with("low") | ends_with("floats")).name == ""
+
+    assert col(starts_with("low") - ends_with("floats")).resolve(columns=tbl.columns) == [
+        "low_numbers"
+    ]
+    assert col(starts_with("low") - ends_with("floats")).name == ""
+
+    assert col(~starts_with("low")).resolve(columns=tbl.columns) == [
+        "word",
+        "high_numbers",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+    assert col(~starts_with("low")).name == ""
+
+    assert col(~ends_with("floats")).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "date",
+        "datetime",
+        "bools",
+    ]
+
+    assert col(~contains("numbers")).resolve(columns=tbl.columns) == [
+        "word",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+
+    assert col(~matches("at")).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "bools",
+    ]
+
+    assert col(~everything()).resolve(columns=tbl.columns) == []
+
+    assert col(~first_n(3)).resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+
+    assert col(~first_n(3, offset=1)).resolve(columns=tbl.columns) == [
+        "word",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+
+    assert col(~last_n(3)).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
+
+    assert col(~last_n(3, offset=1)).resolve(columns=tbl.columns) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "bools",
+    ]
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_selector_set_ops_functions_complex(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert col(starts_with("low") & ends_with("floats") | contains("numbers")).resolve(
+        columns=tbl.columns
+    ) == ["low_numbers", "high_numbers", "low_floats"]
+
+    assert col(
+        starts_with("low") & ends_with("floats") | contains("numbers") - matches("numb")
+    ).resolve(columns=tbl.columns) == ["low_floats"]
+
+    assert col(ends_with("floats") | starts_with("low") - matches("numb")).resolve(
+        columns=tbl.columns
+    ) == ["low_floats", "high_floats", "superhigh_floats"]
+
+    assert col((starts_with("low") & ends_with("floats")) | contains("numbers")).resolve(
+        columns=tbl.columns
+    ) == ["low_numbers", "high_numbers", "low_floats"]
+
+    assert col(everything() - (starts_with("low") & ends_with("floats"))).resolve(
+        columns=tbl.columns
+    ) == [
+        "word",
+        "low_numbers",
+        "high_numbers",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+        "bools",
+    ]
+
+    assert col(everything() - starts_with("low") & ends_with("floats")).resolve(
+        columns=tbl.columns
+    ) == [
+        "high_floats",
+        "superhigh_floats",
+    ]
