@@ -5154,6 +5154,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
