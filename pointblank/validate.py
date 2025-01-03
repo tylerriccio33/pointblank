@@ -2884,6 +2884,10 @@ class Validate:
 
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
 
+        # Expand `validation_info` by evaluating any column expressions in `column`
+        # (the `_evaluate_column_exprs()` method will eval and expand as needed)
+        self._evaluate_column_exprs(validation_info=self.validation_info)
+
         for validation in self.validation_info:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
