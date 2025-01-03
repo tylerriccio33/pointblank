@@ -80,7 +80,7 @@ class Column:
         return [col for col in columns if col in resolved_columns]
 
 
-def col(name: str) -> Column:
+def col(exprs: str | ColumnSelector) -> Column:
     """
     Helper function for referencing a column in the input table.
 
@@ -150,8 +150,11 @@ def col(name: str) -> Column:
     validation
     ```
 
-    From the excerpt of the validation table, values in `a` were greater than values in `b` for
-    every row (or test unit). Using `value=pb.col("b")` specified that the greater-than comparison
-    is across columns, not with a fixed literal value.
+    From results of the validation table it can be seen that values in `a` were greater than values
+    in `b` for every row (or test unit). Using `value=pb.col("b")` specified that the greater-than
+    comparison is across columns, not with a fixed literal value.
+    """
+    return Column(exprs=exprs)
+
     """
     return Column(name=name)
