@@ -502,8 +502,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -654,8 +654,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -805,8 +805,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -955,8 +955,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1103,8 +1103,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1255,8 +1255,8 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1409,11 +1409,13 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The lower bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the lower
+            bound.
         right
-            The upper bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The upper bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the upper
+            bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -1581,11 +1583,13 @@ class Validate:
             A single column or a list of columns to validate. If multiple columns are supplied,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The lower bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the lower
+            bound.
         right
-            The upper bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The upper bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the upper
+            bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
