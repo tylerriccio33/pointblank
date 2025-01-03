@@ -499,7 +499,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -651,7 +652,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -802,7 +804,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -952,7 +955,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -1100,7 +1104,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -1252,7 +1257,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
@@ -1406,7 +1412,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         left
             The lower bound of the range. This can be a single numeric value or a single column name
@@ -1580,7 +1587,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         left
             The lower bound of the range. This can be a single numeric value or a single column name
@@ -1749,7 +1757,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         set
             A list of values to compare against.
@@ -1886,7 +1895,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         set
             A list of values to compare against.
@@ -2020,7 +2030,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
@@ -2149,7 +2160,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
@@ -2281,7 +2293,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pattern
             A regular expression pattern to compare against.
@@ -2419,7 +2432,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         thresholds
             Failure threshold levels so that the validation step can react accordingly when
