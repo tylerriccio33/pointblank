@@ -2587,6 +2587,7 @@ class Validate:
         if columns_subset is not None and isinstance(columns_subset, str):
             columns_subset = [columns_subset]
 
+        # TODO: incorporate Column object
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=columns_subset,
