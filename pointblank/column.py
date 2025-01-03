@@ -3,6 +3,62 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 __all__ = ["col"]
+@dataclass
+class ColumnSelector:
+    def resolve(self, columns: list[str]) -> list[str]:
+        raise NotImplementedError
+
+    def __and__(self, other: ColumnSelector) -> ColumnSelector:
+        return AndSelector(self, other)
+
+    def __or__(self, other: ColumnSelector) -> ColumnSelector:
+        return OrSelector(self, other)
+
+    def __sub__(self, other: ColumnSelector) -> ColumnSelector:
+        return SubSelector(self, other)
+
+    def __invert__(self) -> ColumnSelector:
+        return NotSelector(self)
+@dataclass
+class AndSelector(ColumnSelector):
+    left: ColumnSelector
+    right: ColumnSelector
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        left_columns = self.left.resolve(columns)
+        right_columns = self.right.resolve(columns)
+        return [col for col in left_columns if col in right_columns]
+
+
+@dataclass
+class OrSelector(ColumnSelector):
+    left: ColumnSelector
+    right: ColumnSelector
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        left_columns = self.left.resolve(columns)
+        right_columns = self.right.resolve(columns)
+        return list(set(left_columns + right_columns))
+
+
+@dataclass
+class SubSelector(ColumnSelector):
+    left: ColumnSelector
+    right: ColumnSelector
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        left_columns = self.left.resolve(columns)
+        right_columns = self.right.resolve(columns)
+        return [col for col in left_columns if col not in right_columns]
+
+
+@dataclass
+class NotSelector(ColumnSelector):
+    selector: ColumnSelector
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        selected_columns = self.selector.resolve(columns)
+        return [col for col in columns if col not in selected_columns]
 
 
 @dataclass
