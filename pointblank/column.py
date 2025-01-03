@@ -77,7 +77,8 @@ class Column:
             self.name = ""
 
     def __repr__(self):
-        return self.name
+        return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
+
     def resolve(self, columns: list[str]) -> list[str]:
         if self.name:
             return [self.name]
