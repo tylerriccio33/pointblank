@@ -4578,6 +4578,7 @@ class Validate:
         assertion_type = validation_info_dict["assertion_type"]
         inclusive = validation_info_dict["inclusive"]
         active = validation_info_dict["active"]
+        eval_error = validation_info_dict["eval_error"]
 
         # Iterate over the values in the `values` entry
         for i, value in enumerate(values):
@@ -4647,8 +4648,12 @@ class Validate:
         validation_info_dict["eval"] = _transform_eval(
             n=validation_info_dict["n"],
             interrogation_performed=interrogation_performed,
+            eval_error=eval_error,
             active=active,
         )
+
+        # Remove the `eval_error` entry from the dictionary
+        validation_info_dict.pop("eval_error")
 
         # ------------------------------------------------
         # Process the `test_units` entry
@@ -5037,6 +5042,21 @@ class Validate:
             gt_tbl = gt_tbl.tab_style(
                 style=style.fill(color="#F2F2F2"),
                 locations=loc.body(rows=inactive_steps),
+            )
+
+        # Transform `eval_error` to a list of indices of validations with evaluation errors
+
+        # If there are evaluation errors, then style those rows to be red
+        if eval_error:
+            gt_tbl = gt_tbl.tab_style(
+                style=style.fill(color="#FFC1C159"),
+                locations=loc.body(rows=[i for i, error in enumerate(eval_error) if error]),
+            )
+            gt_tbl = gt_tbl.tab_style(
+                style=style.text(color="#B22222"),
+                locations=loc.body(
+                    columns="columns_upd", rows=[i for i, error in enumerate(eval_error) if error]
+                ),
             )
 
         return gt_tbl
