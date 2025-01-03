@@ -165,6 +165,7 @@ def test_validation_info():
         label=None,
         brief=None,
         active=True,
+        eval_error=False,
         all_passed=True,
         n=4,
         n_passed=4,
@@ -191,6 +192,7 @@ def test_validation_info():
     assert v.label is None
     assert v.brief is None
     assert v.active is True
+    assert v.eval_error is False
     assert v.all_passed is True
     assert v.n == 4
     assert v.n_passed == 4
@@ -270,6 +272,7 @@ def test_validation_plan(request, tbl_fixture):
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
@@ -295,6 +298,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
+    assert val_info.eval_error is None
     assert val_info.all_passed is None
     assert val_info.n is None
     assert val_info.n_passed is None
@@ -338,6 +342,7 @@ def test_validation_plan(request, tbl_fixture):
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
@@ -363,6 +368,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
+    assert val_info.eval_error is None
     assert val_info.all_passed is True
     assert val_info.n == 4
     assert val_info.n_passed == 4
