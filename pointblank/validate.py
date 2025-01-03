@@ -2899,6 +2899,14 @@ class Validate:
                 validation.time_processed = end_time.isoformat(timespec="milliseconds")
                 continue
 
+            # Skip the validation step if `eval_error` is `True` and record the time of processing
+            if validation.eval_error:
+                end_time = datetime.datetime.now(datetime.timezone.utc)
+                validation.proc_duration_s = (end_time - start_time).total_seconds()
+                validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                validation.active = False
+                continue
+
             # Make a copy of the table for this step
             data_tbl_step = data_tbl
 
