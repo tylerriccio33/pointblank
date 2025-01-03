@@ -1,8 +1,21 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
 
-__all__ = ["col"]
+from dataclasses import dataclass, field
+
+__all__ = [
+    "col",
+    "starts_with",
+    "ends_with",
+    "contains",
+    "matches",
+    "everything",
+    "first_n",
+    "last_n",
+]
+
+
 @dataclass
 class ColumnSelector:
     def resolve(self, columns: list[str]) -> list[str]:
