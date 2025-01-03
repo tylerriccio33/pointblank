@@ -608,11 +608,16 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
         if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
+        for column in columns:
 
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
-                column=columns,
+                column=column,
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
@@ -621,22 +626,6 @@ class Validate:
             )
 
             self._add_validation(validation_info=val_info)
-
-        else:
-
-            for column in columns:
-
-                val_info = _ValidationInfo(
-                    assertion_type=assertion_type,
-                    column=column,
-                    values=value,
-                    na_pass=na_pass,
-                    pre=pre,
-                    thresholds=thresholds,
-                    active=active,
-                )
-
-                self._add_validation(validation_info=val_info)
 
         return self
 
@@ -770,6 +759,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -915,6 +909,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1058,6 +1057,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1205,6 +1209,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1352,6 +1361,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1518,6 +1532,11 @@ class Validate:
 
         value = (left, right)
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1685,6 +1704,11 @@ class Validate:
 
         value = (left, right)
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1819,6 +1843,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1950,6 +1979,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2075,6 +2109,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2199,6 +2238,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2334,6 +2378,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2458,6 +2507,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
