@@ -5137,8 +5137,12 @@ class Validate:
             # For each column resolved, create a new validation step and add it to the list of
             # expanded validation steps
             for column in columns_resolved:
-                validation.column = column
-                expanded_validation_info.append(validation)
+
+                new_validation = copy.deepcopy(validation)
+
+                new_validation.column = column
+
+                expanded_validation_info.append(new_validation)
 
         # Replace the `validation_info` attribute with the expanded version
         self.validation_info = expanded_validation_info
