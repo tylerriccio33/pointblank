@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from importlib_resources import files
 
+import copy
 import base64
 import commonmark
 import datetime
