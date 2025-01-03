@@ -67,7 +67,14 @@ class Column:
     A class to represent a column in a table.
     """
 
-    name: str
+    exprs: str | ColumnSelector
+    name: str = field(init=False)
+
+    def __post_init__(self):
+        if isinstance(self.exprs, str):
+            self.name = self.exprs
+        else:
+            self.name = ""
 
     def __repr__(self):
         return self.name
