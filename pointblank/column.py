@@ -364,4 +364,4 @@ def last_n(n: int, offset: int = 0) -> LastN:
     LastN
         A `LastN` object, which can be used to select the last `n` columns.
     """
-    return Column(name=name)
+    return LastN(n=n, offset=offset)
