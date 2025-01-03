@@ -5029,6 +5029,74 @@ class Validate:
 
         return self
 
+    def _evaluate_column_exprs(self, validation_info):
+        """
+        Evaluate any column expressions stored in the `column` attribute and expand those validation
+        steps into multiple. Errors in evaluation (such as no columns matched) will be caught and
+        recorded in the `eval_error` attribute.
+
+        Parameters
+        ----------
+        validation_info
+            Information about the validation to evaluate and expand.
+        """
+
+        # Create a list to store the expanded validation steps
+        expanded_validation_info = []
+
+        # Iterate over the validation steps
+        for i, validation in enumerate(validation_info):
+
+            # Get the column expression
+            column_expr = validation.column
+
+            # If the value is not a Column object, then skip the evaluation and append
+            # the validation step to the list of expanded validation steps
+            if not isinstance(column_expr, Column):
+                expanded_validation_info.append(validation)
+                continue
+
+            # Evaluate the column expression
+            try:
+
+                # Get the table for this step, it can either be:
+                # 1. the target table itself
+                # 2. the target table modified by a `pre` attribute
+
+                if validation.pre is None:
+                    table = self.data
+                else:
+                    table = validation.pre(self.data)
+
+                # Get the columns from the table as a list
+                columns = list(table.columns)
+
+                # Evaluate the column expression
+                columns_resolved = column_expr.resolve(columns=columns)
+
+            except Exception:
+                validation.eval_error = True
+
+            # If no columns were resolved, then create a patched validation step with the
+            # `eval_error` and `column` attributes set
+            if not columns_resolved:
+                validation.eval_error = True
+                validation.column = str(column_expr)
+
+                expanded_validation_info.append(validation)
+                continue
+
+            # For each column resolved, create a new validation step and add it to the list of
+            # expanded validation steps
+            for column in columns_resolved:
+                validation.column = column
+                expanded_validation_info.append(validation)
+
+        # Replace the `validation_info` attribute with the expanded version
+        self.validation_info = expanded_validation_info
+
+        return self
+
     def _get_validation_dict(self, i: int | list[int] | None, attr: str) -> dict[int, int]:
         """
         Utility function to get a dictionary of validation attributes for each validation step.
