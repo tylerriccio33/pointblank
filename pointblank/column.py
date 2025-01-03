@@ -239,5 +239,129 @@ def col(exprs: str | ColumnSelector) -> Column:
     """
     return Column(exprs=exprs)
 
+
+def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
+    """
+    Select columns that start with specified text.
+
+    Parameters
+    ----------
+    text
+        The text that the column name should start with.
+    case_sensitive
+        Whether column names should be treated as case-sensitive. The default is `False`.
+
+    Returns
+    -------
+    StartsWith
+        A `StartsWith` object, which can be used to select columns that start with the specified
+        text.
+    """
+    return StartsWith(text=text, case_sensitive=case_sensitive)
+
+
+def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
+    """
+    Select columns that end with specified text.
+
+    Parameters
+    ----------
+    text
+        The text that the column name should end with.
+    case_sensitive
+        Whether column names should be treated as case-sensitive. The default is `False`.
+
+    Returns
+    -------
+    EndsWith
+        An `EndsWith` object, which can be used to select columns that end with the specified text.
+    """
+    return EndsWith(text=text, case_sensitive=case_sensitive)
+
+
+def contains(text: str, case_sensitive: bool = False) -> Contains:
+    """
+    Select columns that contain specified text.
+
+    Parameters
+    ----------
+    text
+        The text that the column name should contain.
+    case_sensitive
+        Whether column names should be treated as case-sensitive. The default is `False`.
+
+    Returns
+    -------
+    Contains
+        A `Contains` object, which can be used to select columns that contain the specified text.
+    """
+    return Contains(text=text, case_sensitive=case_sensitive)
+
+
+def matches(pattern: str, case_sensitive: bool = False) -> Matches:
+    """
+    Select columns that match a specified regular expression pattern.
+
+    Parameters
+    ----------
+    pattern
+        The regular expression pattern that the column name should match.
+    case_sensitive
+        Whether column names should be treated as case-sensitive. The default is `False`.
+
+    Returns
+    -------
+    Matches
+        A `Matches` object, which can be used to select columns that match the specified pattern.
+    """
+    return Matches(pattern=pattern, case_sensitive=case_sensitive)
+
+
+def everything() -> Everything:
+    """
+    Select all columns.
+
+    Returns
+    -------
+    Everything
+        An `Everything` object, which can be used to select all columns.
+    """
+    return Everything()
+
+
+def first_n(n: int, offset: int = 0) -> FirstN:
+    """
+    Select the first `n` columns in the column list.
+
+    Parameters
+    ----------
+    n
+        The number of columns to select.
+    offset
+        The offset from the start of the column list. The default is `0`.
+
+    Returns
+    -------
+    FirstN
+        A `FirstN` object, which can be used to select the first `n` columns.
+    """
+    return FirstN(n=n, offset=offset)
+
+
+def last_n(n: int, offset: int = 0) -> LastN:
+    """
+    Select the last `n` columns in the column list.
+
+    Parameters
+    ----------
+    n
+        The number of columns to select.
+    offset
+        The offset from the end of the column list. The default is `0`.
+
+    Returns
+    -------
+    LastN
+        A `LastN` object, which can be used to select the last `n` columns.
     """
     return Column(name=name)
