@@ -19,6 +19,81 @@ class ColumnSelector:
 
     def __invert__(self) -> ColumnSelector:
         return NotSelector(self)
+
+
+@dataclass
+class StartsWith(ColumnSelector):
+    text: str
+    case_sensitive: bool = False
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        if self.case_sensitive:
+            return [col for col in columns if col.startswith(self.text)]
+        return [col for col in columns if col.lower().startswith(self.text.lower())]
+
+
+@dataclass
+class EndsWith(ColumnSelector):
+    text: str
+    case_sensitive: bool = False
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        if self.case_sensitive:
+            return [col for col in columns if col.endswith(self.text)]
+        return [col for col in columns if col.lower().endswith(self.text.lower())]
+
+
+@dataclass
+class Contains(ColumnSelector):
+    text: str
+    case_sensitive: bool = False
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        if self.case_sensitive:
+            return [col for col in columns if self.text in col]
+        return [col for col in columns if self.text.lower() in col.lower()]
+
+
+@dataclass
+class Matches(ColumnSelector):
+    pattern: str
+    case_sensitive: bool = False
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        matches = (
+            [col for col in columns if re.search(self.pattern, col)]
+            if self.case_sensitive
+            else [col for col in columns if re.search(self.pattern, col, re.IGNORECASE)]
+        )
+        return matches if matches else []
+
+
+@dataclass
+class Everything(ColumnSelector):
+    def resolve(self, columns: list[str]) -> list[str]:
+        return columns
+
+
+@dataclass
+class FirstN(ColumnSelector):
+    n: int
+    offset: int = 0
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        return columns[self.offset : self.offset + self.n]
+
+
+@dataclass
+class LastN(ColumnSelector):
+    n: int
+    offset: int = 0
+
+    def resolve(self, columns: list[str]) -> list[str]:
+        reversed_columns = columns[::-1]
+        selected_columns = reversed_columns[self.offset : self.offset + self.n]
+        return selected_columns[::-1]
+
+
 @dataclass
 class AndSelector(ColumnSelector):
     left: ColumnSelector
