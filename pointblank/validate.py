@@ -479,7 +479,7 @@ class Validate:
 
     def col_vals_gt(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -631,7 +631,7 @@ class Validate:
 
     def col_vals_lt(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -782,7 +782,7 @@ class Validate:
 
     def col_vals_eq(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -932,7 +932,7 @@ class Validate:
 
     def col_vals_ne(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1080,7 +1080,7 @@ class Validate:
 
     def col_vals_ge(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1232,7 +1232,7 @@ class Validate:
 
     def col_vals_le(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1384,7 +1384,7 @@ class Validate:
 
     def col_vals_between(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -1556,7 +1556,7 @@ class Validate:
 
     def col_vals_outside(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -1728,7 +1728,7 @@ class Validate:
 
     def col_vals_in_set(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1865,7 +1865,7 @@ class Validate:
 
     def col_vals_not_in_set(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -2001,7 +2001,7 @@ class Validate:
 
     def col_vals_null(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2130,7 +2130,7 @@ class Validate:
 
     def col_vals_not_null(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2259,7 +2259,7 @@ class Validate:
 
     def col_vals_regex(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -2401,7 +2401,7 @@ class Validate:
 
     def col_exists(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ) -> Validate:
@@ -2643,6 +2643,7 @@ class Validate:
             columns_subset = [columns_subset]
 
         # TODO: incorporate Column object
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=columns_subset,
