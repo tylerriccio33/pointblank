@@ -3564,6 +3564,91 @@ def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_nam
     assert v.validation_info[1].pre is not None
 
 
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions_no_match(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a validation that evaluates with no issues in the first and third steps but has
+    # an evaluation failure in the second step because a column selector fails to resolve any
+    # table columns
+    v = (
+        Validate(tbl)
+        .col_vals_le(columns="high_floats", value=100)
+        .col_vals_gt(columns=col(contains("not_present")), value=10)
+        .col_vals_lt(columns="low_numbers", value=5)
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 3
+
+    # Check properties of the first (all passing, okay eval) validation step
+    assert v.validation_info[0].assertion_type == "col_vals_le"
+    assert v.validation_info[0].column == "high_floats"
+    assert v.validation_info[0].values == 100
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is None
+
+    # Check properties of the second (eval failure) validation step
+    assert v.validation_info[1].assertion_type == "col_vals_gt"
+    assert v.validation_info[1].column == "Contains(text='not_present', case_sensitive=False)"
+    assert v.validation_info[1].values == 10
+    assert v.validation_info[1].active is False
+    assert v.validation_info[1].eval_error is True
+    assert v.validation_info[1].all_passed is None
+    assert v.validation_info[1].n is None
+    assert v.validation_info[1].n_passed is None
+    assert v.validation_info[1].pre is None
+
+    # Check properties of the third (all passing, okay eval) validation step
+    assert v.validation_info[2].assertion_type == "col_vals_lt"
+    assert v.validation_info[2].column == "low_numbers"
+    assert v.validation_info[2].values == 5
+    assert v.validation_info[2].active is True
+    assert v.validation_info[2].eval_error is None
+    assert v.validation_info[2].all_passed is True
+    assert v.validation_info[2].n == 2
+    assert v.validation_info[2].n_passed == 2
+    assert v.validation_info[2].pre is None
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions_no_match_snap(request, tbl_fixture, snapshot):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a validation that evaluates with no issues in the first and third steps but has
+    # an evaluation failure in the second step because a column selector fails to resolve any
+    # table columns
+    v = (
+        Validate(tbl, tbl_name="example_table", label="Simple pointblank validation example")
+        .col_vals_le(columns="high_floats", value=100)
+        .col_vals_gt(columns=col(contains("not_present")), value=10)
+        .col_vals_lt(columns="low_numbers", value=5)
+        .interrogate()
+    )
+
+    html_str = v.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "selector_helper_functions_no_match.html")
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
 
