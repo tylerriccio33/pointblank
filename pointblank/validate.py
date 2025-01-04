@@ -29,7 +29,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
-from pointblank.column import Column
+from pointblank.column import Column, col, ColumnSelector
 from pointblank.schema import Schema
 from pointblank._interrogation import (
     ColValsCompareOne,
@@ -601,16 +601,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -753,16 +754,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -904,16 +906,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1053,16 +1056,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1206,16 +1210,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1359,16 +1364,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1531,18 +1537,20 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # Place the `left` and `right` values in a tuple for inclusion in the validation info
         value = (left, right)
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1714,10 +1722,15 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # Place the `left` and `right` values in a tuple for inclusion in the validation info
         value = (left, right)
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1848,16 +1861,17 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -1985,16 +1999,17 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -2116,16 +2131,17 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -2246,16 +2262,17 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -2387,16 +2404,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
@@ -2517,16 +2535,17 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
-
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If the `value` is Column value, place it in a list for iteration
-        if isinstance(columns, Column):
+        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
+        if isinstance(columns, ColumnSelector):
+            columns = col(columns)
+
+        # If `columns` is Column value or a string, place it in a list for iteration
+        if isinstance(columns, (Column, str)):
             columns = [columns]
 
         # Iterate over the columns and create a validation step for each
