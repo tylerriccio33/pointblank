@@ -3404,14 +3404,15 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
             columns=col(starts_with("w") & ends_with("d")), set=["apple", "banana"]
         )  # 16
         .col_vals_outside(columns=col(~first_n(1) & ~last_n(7)), left=10, right=15)  # 17
+        .col_vals_regex(columns=col("word"), pattern="a")  # 18
         .interrogate()
     )
 
     # Check the length of the validation plan
-    assert len(v.validation_info) == 17
+    assert len(v.validation_info) == 18
 
     # Check the assertion type across all validation steps
-    assert [v.validation_info[i].assertion_type for i in range(17)] == [
+    assert [v.validation_info[i].assertion_type for i in range(18)] == [
         "col_vals_gt",
         "col_vals_lt",
         "col_vals_lt",
@@ -3429,10 +3430,11 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
         "col_vals_le",
         "col_vals_in_set",
         "col_vals_outside",
+        "col_vals_regex",
     ]
 
     # Check column names across all validation steps
-    assert [v.validation_info[i].column for i in range(17)] == [
+    assert [v.validation_info[i].column for i in range(18)] == [
         "low_numbers",
         "low_numbers",
         "high_numbers",
@@ -3450,10 +3452,11 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
         "superhigh_floats",
         "word",
         "low_numbers",
+        "word",
     ]
 
     # Check values across all validation steps
-    assert [v.validation_info[i].values for i in range(17)] == [
+    assert [v.validation_info[i].values for i in range(18)] == [
         0,
         200000,
         200000,
@@ -3471,20 +3474,21 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
         4e7,
         ["apple", "banana"],
         (10, 15),
+        "a",
     ]
 
     # Check that all validation steps are active
-    assert [v.validation_info[i].active for i in range(17)] == [True] * 17
+    assert [v.validation_info[i].active for i in range(18)] == [True] * 18
 
     # Check that all validation steps have no evaluation errors
-    assert [v.validation_info[i].eval_error for i in range(17)] == [None] * 17
+    assert [v.validation_info[i].eval_error for i in range(18)] == [None] * 18
 
     # Check that all validation steps have passed
-    assert [v.validation_info[i].all_passed for i in range(17)] == [True] * 17
+    assert [v.validation_info[i].all_passed for i in range(18)] == [True] * 18
 
     # Check that all test unit counts and passing counts are correct (2)
-    assert [v.validation_info[i].n for i in range(17)] == [2] * 17
-    assert [v.validation_info[i].n_passed for i in range(17)] == [2] * 17
+    assert [v.validation_info[i].n for i in range(18)] == [2] * 18
+    assert [v.validation_info[i].n_passed for i in range(18)] == [2] * 18
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
