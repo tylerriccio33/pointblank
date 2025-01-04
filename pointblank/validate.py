@@ -5197,7 +5197,7 @@ class Validate:
                 # Evaluate the column expression
                 columns_resolved = column_expr.resolve(columns=columns)
 
-            except Exception:
+            except Exception:  # noqa
                 validation.eval_error = True
 
             # If no columns were resolved, then create a patched validation step with the
