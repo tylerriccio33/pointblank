@@ -26,6 +26,16 @@ from pointblank.validate import (
 )
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema
+from pointblank.column import (
+    col,
+    starts_with,
+    ends_with,
+    contains,
+    matches,
+    everything,
+    first_n,
+    last_n,
+)
 
 
 TBL_LIST = [
@@ -149,6 +159,61 @@ def tbl_dates_times_text_sqlite():
     return ibis.sqlite.connect(file_path).table("tbl_dates_times_text")
 
 
+@pytest.fixture
+def tbl_pl_variable_names():
+
+    return pl.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_pd_variable_names():
+
+    return pd.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_memtable_variable_names():
+    return ibis.memtable(
+        pd.DataFrame(
+            {
+                "word": ["apple", "banana"],
+                "low_numbers": [1, 2],
+                "high_numbers": [13500, 95000],
+                "low_floats": [41.6, 41.2],
+                "high_floats": [41.6, 41.2],
+                "superhigh_floats": [23453.23, 32453532.33],
+                "date": ["2021-01-01", "2021-01-02"],
+                "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+                "bools": [True, False],
+            }
+        )
+    )
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -240,7 +305,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
-def test_validation_plan(request, tbl_fixture):
+def test_validation_plan_and_interrogation(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
@@ -3293,6 +3358,112 @@ def test_col_schema_match_columns_only():
         .n_passed(i=1, scalar=True)
         == 1
     )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a large validation plan and interrogate the input table
+    v = (
+        Validate(tbl)
+        .col_vals_gt(columns=col("low_numbers"), value=0)  # 1
+        .col_vals_lt(columns=col(ends_with("NUMBERS")), value=200000)  # 2 & 3
+        .col_vals_between(
+            columns=col(ends_with("FLOATS") - contains("superhigh")), left=0, right=100
+        )  # 4 & 5
+        .col_vals_ge(columns=col(ends_with("floats") | matches("num")), value=0)  # 6, 7, 8, 9, 10
+        .col_vals_le(
+            columns=col(everything() - last_n(3) - first_n(1)), value=4e7
+        )  # 11, 12, 13, 14, 15
+        .col_vals_in_set(
+            columns=col(starts_with("w") & ends_with("d")), set=["apple", "banana"]
+        )  # 16
+        .col_vals_outside(columns=col(~first_n(1) & ~last_n(7)), left=10, right=15)  # 17
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 17
+
+    # Check the assertion type across all validation steps
+    assert [v.validation_info[i].assertion_type for i in range(17)] == [
+        "col_vals_gt",
+        "col_vals_lt",
+        "col_vals_lt",
+        "col_vals_between",
+        "col_vals_between",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_in_set",
+        "col_vals_outside",
+    ]
+
+    # Check column names across all validation steps
+    assert [v.validation_info[i].column for i in range(17)] == [
+        "low_numbers",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "word",
+        "low_numbers",
+    ]
+
+    # Check values across all validation steps
+    assert [v.validation_info[i].values for i in range(17)] == [
+        0,
+        200000,
+        200000,
+        (0, 100),
+        (0, 100),
+        0,
+        0,
+        0,
+        0,
+        0,
+        4e7,
+        4e7,
+        4e7,
+        4e7,
+        4e7,
+        ["apple", "banana"],
+        (10, 15),
+    ]
+
+    # Check that all validation steps are active
+    assert [v.validation_info[i].active for i in range(17)] == [True] * 17
+
+    # Check that all validation steps have no evaluation errors
+    assert [v.validation_info[i].eval_error for i in range(17)] == [None] * 17
+
+    # Check that all validation steps have passed
+    assert [v.validation_info[i].all_passed for i in range(17)] == [True] * 17
+
+    # Check that all test unit counts and passing counts are correct (2)
+    assert [v.validation_info[i].n for i in range(17)] == [2] * 17
+    assert [v.validation_info[i].n_passed for i in range(17)] == [2] * 17
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
