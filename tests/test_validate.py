@@ -3491,6 +3491,79 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
     assert [v.validation_info[i].n_passed for i in range(18)] == [2] * 18
 
 
+def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_names):
+
+    # Create a validation plan and interrogate the input table
+    v = (
+        Validate(tbl_pl_variable_names)
+        .col_vals_gt(
+            columns=col(starts_with("higher")),
+            value=100,
+            pre=lambda df: df.with_columns(
+                higher_floats=pl.col("high_floats") * 10,
+                even_higher_floats=pl.col("high_floats") * 100,
+            ),
+        )
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 1
+
+    # Check properties of the validation step
+    assert v.validation_info[0].assertion_type == "col_vals_gt"
+    assert v.validation_info[0].column == "higher_floats"
+    assert v.validation_info[0].values == 100
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is not None
+
+    # Create a slightly different validation plan and interrogate the input table; this will:
+    # - have two validation steps (matches both new columns produced via `pre=`)
+    # - will succeed in the first but not in the second (+ would fail with any of the start columns)
+    v = (
+        Validate(tbl_pl_variable_names)
+        .col_vals_between(
+            columns=col(contains("higher")),
+            left=100,
+            right=1000,
+            pre=lambda df: df.with_columns(
+                higher_floats=pl.col("high_floats") * 10,
+                even_higher_floats=pl.col("high_floats") * 100,
+            ),
+        )
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 2
+
+    # Check properties of the first (all passing) validation step
+    assert v.validation_info[0].assertion_type == "col_vals_between"
+    assert v.validation_info[0].column == "higher_floats"
+    assert v.validation_info[0].values == (100, 1000)
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is not None
+
+    # Check properties of the second (all failing) validation step
+    assert v.validation_info[1].assertion_type == "col_vals_between"
+    assert v.validation_info[1].column == "even_higher_floats"
+    assert v.validation_info[1].values == (100, 1000)
+    assert v.validation_info[1].active is True
+    assert v.validation_info[1].eval_error is None
+    assert v.validation_info[1].all_passed is False
+    assert v.validation_info[1].n == 2
+    assert v.validation_info[1].n_passed == 0
+    assert v.validation_info[1].pre is not None
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
 
