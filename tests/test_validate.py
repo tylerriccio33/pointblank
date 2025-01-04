@@ -666,6 +666,27 @@ def test_validation_check_column_input(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_check_column_input_with_col(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that using `col(column_name)` in `columns=` is allowed and doesn't raise an error
+    Validate(tbl).col_vals_gt(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_lt(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_eq(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_ne(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_ge(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_le(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_between(columns=col("x"), left=0, right=5).interrogate()
+    Validate(tbl).col_vals_outside(columns=col("x"), left=-5, right=0).interrogate()
+    Validate(tbl).col_vals_in_set(columns=col("x"), set=[1, 2, 3, 4, 5]).interrogate()
+    Validate(tbl).col_vals_not_in_set(columns=col("x"), set=[5, 6, 7]).interrogate()
+    Validate(tbl).col_vals_null(columns=col("x")).interrogate()
+    Validate(tbl).col_vals_not_null(columns=col("x")).interrogate()
+    Validate(tbl).col_exists(columns=col("x")).interrogate()
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_na_pass_input(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
