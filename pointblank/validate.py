@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from importlib_resources import files
 
+import copy
 import base64
 import commonmark
 import datetime
@@ -304,6 +305,7 @@ class _ValidationInfo:
     brief: str | None = None
     active: bool | None = None
     # Interrogation results
+    eval_error: bool | None = None
     all_passed: bool | None = None
     n: int | None = None
     n_passed: int | None = None
@@ -477,7 +479,7 @@ class Validate:
 
     def col_vals_gt(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -497,11 +499,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -606,6 +609,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -624,7 +632,7 @@ class Validate:
 
     def col_vals_lt(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -644,11 +652,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -752,6 +761,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -770,7 +784,7 @@ class Validate:
 
     def col_vals_eq(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -790,11 +804,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -897,6 +912,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -915,7 +935,7 @@ class Validate:
 
     def col_vals_ne(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -935,11 +955,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1040,6 +1061,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1058,7 +1084,7 @@ class Validate:
 
     def col_vals_ge(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1078,11 +1104,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1187,6 +1214,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1205,7 +1237,7 @@ class Validate:
 
     def col_vals_le(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1225,11 +1257,12 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a column name given
-            in `col()`.
+            The value to compare against. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1334,6 +1367,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1352,7 +1390,7 @@ class Validate:
 
     def col_vals_between(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -1374,14 +1412,17 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The lower bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the lower
+            bound.
         right
-            The upper bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The upper bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the upper
+            bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -1500,6 +1541,11 @@ class Validate:
 
         value = (left, right)
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1519,7 +1565,7 @@ class Validate:
 
     def col_vals_outside(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -1541,14 +1587,17 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         left
-            The lower bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The lower bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the lower
+            bound.
         right
-            The upper bound of the range. Can be a single numeric value or a column name given in
-            `col()`.
+            The upper bound of the range. This can be a single numeric value or a single column name
+            given in `col()`. The latter option allows for a column-column comparison for the upper
+            bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -1667,6 +1716,11 @@ class Validate:
 
         value = (left, right)
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1686,7 +1740,7 @@ class Validate:
 
     def col_vals_in_set(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1703,7 +1757,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         set
             A list of values to compare against.
@@ -1801,6 +1856,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1818,7 +1878,7 @@ class Validate:
 
     def col_vals_not_in_set(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1835,7 +1895,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         set
             A list of values to compare against.
@@ -1932,6 +1993,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -1949,7 +2015,7 @@ class Validate:
 
     def col_vals_null(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -1964,7 +2030,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
@@ -2057,6 +2124,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2073,7 +2145,7 @@ class Validate:
 
     def col_vals_not_null(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2088,7 +2160,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
@@ -2181,6 +2254,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2197,7 +2275,7 @@ class Validate:
 
     def col_vals_regex(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -2215,7 +2293,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         pattern
             A regular expression pattern to compare against.
@@ -2316,6 +2395,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2334,7 +2418,7 @@ class Validate:
 
     def col_exists(
         self,
-        columns: str | list[str],
+        columns: str | list[str] | Column,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ) -> Validate:
@@ -2348,7 +2432,8 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. If multiple columns are supplied,
+            A single column or a list of columns to validate. Can also use `col()` with column
+            selectors to specify one or more columns. If multiple columns are supplied or resolved,
             there will be a separate validation step generated for each column.
         thresholds
             Failure threshold levels so that the validation step can react accordingly when
@@ -2440,6 +2525,11 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # If the `value` is Column value, place it in a list for iteration
+        if isinstance(columns, Column):
+            columns = [columns]
+
+        # Iterate over the columns and create a validation step for each
         for column in columns:
 
             val_info = _ValidationInfo(
@@ -2569,6 +2659,8 @@ class Validate:
 
         if columns_subset is not None and isinstance(columns_subset, str):
             columns_subset = [columns_subset]
+
+        # TODO: incorporate Column object
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -2867,6 +2959,10 @@ class Validate:
 
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
 
+        # Expand `validation_info` by evaluating any column expressions in `column`
+        # (the `_evaluate_column_exprs()` method will eval and expand as needed)
+        self._evaluate_column_exprs(validation_info=self.validation_info)
+
         for validation in self.validation_info:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
@@ -2876,6 +2972,14 @@ class Validate:
                 end_time = datetime.datetime.now(datetime.timezone.utc)
                 validation.proc_duration_s = (end_time - start_time).total_seconds()
                 validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                continue
+
+            # Skip the validation step if `eval_error` is `True` and record the time of processing
+            if validation.eval_error:
+                end_time = datetime.datetime.now(datetime.timezone.utc)
+                validation.proc_duration_s = (end_time - start_time).total_seconds()
+                validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                validation.active = False
                 continue
 
             # Make a copy of the table for this step
@@ -4549,6 +4653,7 @@ class Validate:
         assertion_type = validation_info_dict["assertion_type"]
         inclusive = validation_info_dict["inclusive"]
         active = validation_info_dict["active"]
+        eval_error = validation_info_dict["eval_error"]
 
         # Iterate over the values in the `values` entry
         for i, value in enumerate(values):
@@ -4618,8 +4723,12 @@ class Validate:
         validation_info_dict["eval"] = _transform_eval(
             n=validation_info_dict["n"],
             interrogation_performed=interrogation_performed,
+            eval_error=eval_error,
             active=active,
         )
+
+        # Remove the `eval_error` entry from the dictionary
+        validation_info_dict.pop("eval_error")
 
         # ------------------------------------------------
         # Process the `test_units` entry
@@ -5010,6 +5119,21 @@ class Validate:
                 locations=loc.body(rows=inactive_steps),
             )
 
+        # Transform `eval_error` to a list of indices of validations with evaluation errors
+
+        # If there are evaluation errors, then style those rows to be red
+        if eval_error:
+            gt_tbl = gt_tbl.tab_style(
+                style=style.fill(color="#FFC1C159"),
+                locations=loc.body(rows=[i for i, error in enumerate(eval_error) if error]),
+            )
+            gt_tbl = gt_tbl.tab_style(
+                style=style.text(color="#B22222"),
+                locations=loc.body(
+                    columns="columns_upd", rows=[i for i, error in enumerate(eval_error) if error]
+                ),
+            )
+
         return gt_tbl
 
     def _add_validation(self, validation_info):
@@ -5025,6 +5149,78 @@ class Validate:
         validation_info.i = len(self.validation_info) + 1
 
         self.validation_info.append(validation_info)
+
+        return self
+
+    def _evaluate_column_exprs(self, validation_info):
+        """
+        Evaluate any column expressions stored in the `column` attribute and expand those validation
+        steps into multiple. Errors in evaluation (such as no columns matched) will be caught and
+        recorded in the `eval_error` attribute.
+
+        Parameters
+        ----------
+        validation_info
+            Information about the validation to evaluate and expand.
+        """
+
+        # Create a list to store the expanded validation steps
+        expanded_validation_info = []
+
+        # Iterate over the validation steps
+        for i, validation in enumerate(validation_info):
+
+            # Get the column expression
+            column_expr = validation.column
+
+            # If the value is not a Column object, then skip the evaluation and append
+            # the validation step to the list of expanded validation steps
+            if not isinstance(column_expr, Column):
+                expanded_validation_info.append(validation)
+                continue
+
+            # Evaluate the column expression
+            try:
+
+                # Get the table for this step, it can either be:
+                # 1. the target table itself
+                # 2. the target table modified by a `pre` attribute
+
+                if validation.pre is None:
+                    table = self.data
+                else:
+                    table = validation.pre(self.data)
+
+                # Get the columns from the table as a list
+                columns = list(table.columns)
+
+                # Evaluate the column expression
+                columns_resolved = column_expr.resolve(columns=columns)
+
+            except Exception:  # pragma: no cover
+                validation.eval_error = True
+
+            # If no columns were resolved, then create a patched validation step with the
+            # `eval_error` and `column` attributes set
+            if not columns_resolved:
+                validation.eval_error = True
+                validation.column = str(column_expr)
+
+                expanded_validation_info.append(validation)
+                continue
+
+            # For each column resolved, create a new validation step and add it to the list of
+            # expanded validation steps
+            for column in columns_resolved:
+
+                new_validation = copy.deepcopy(validation)
+
+                new_validation.column = column
+
+                expanded_validation_info.append(new_validation)
+
+        # Replace the `validation_info` attribute with the expanded version
+        self.validation_info = expanded_validation_info
 
         return self
 
@@ -5085,6 +5281,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
@@ -5209,16 +5406,32 @@ def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
     return icon_svg
 
 
-def _transform_eval(n: list[int], interrogation_performed: bool, active: list[bool]) -> list[str]:
+def _transform_eval(
+    n: list[int], interrogation_performed: bool, eval_error: list[bool], active: list[bool]
+) -> list[str]:
 
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
 
-    return [
-        '<span style="color:#4CA64C;">&check;</span>' if active[i] else "&mdash;"
-        for i in range(len(n))
-    ]
+    symbol_list = []
+
+    for i in range(len(n)):
+
+        # If there was an evaluation error, then add a collision mark
+        if eval_error[i]:
+            symbol_list.append('<span style="color:#CF142B;">&#128165;</span>')
+            continue
+
+        # If the validation step is inactive, then add an em dash
+        if not active[i]:
+            symbol_list.append("&mdash;")
+            continue
+
+        # Otherwise, add a green check mark
+        symbol_list.append('<span style="color:#4CA64C;">&check;</span>')
+
+    return symbol_list
 
 
 def _transform_test_units(

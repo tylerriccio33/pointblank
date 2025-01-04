@@ -26,6 +26,16 @@ from pointblank.validate import (
 )
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema
+from pointblank.column import (
+    col,
+    starts_with,
+    ends_with,
+    contains,
+    matches,
+    everything,
+    first_n,
+    last_n,
+)
 
 
 TBL_LIST = [
@@ -149,6 +159,61 @@ def tbl_dates_times_text_sqlite():
     return ibis.sqlite.connect(file_path).table("tbl_dates_times_text")
 
 
+@pytest.fixture
+def tbl_pl_variable_names():
+
+    return pl.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_pd_variable_names():
+
+    return pd.DataFrame(
+        {
+            "word": ["apple", "banana"],
+            "low_numbers": [1, 2],
+            "high_numbers": [13500, 95000],
+            "low_floats": [41.6, 41.2],
+            "high_floats": [41.6, 41.2],
+            "superhigh_floats": [23453.23, 32453532.33],
+            "date": ["2021-01-01", "2021-01-02"],
+            "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+            "bools": [True, False],
+        }
+    )
+
+
+@pytest.fixture
+def tbl_memtable_variable_names():
+    return ibis.memtable(
+        pd.DataFrame(
+            {
+                "word": ["apple", "banana"],
+                "low_numbers": [1, 2],
+                "high_numbers": [13500, 95000],
+                "low_floats": [41.6, 41.2],
+                "high_floats": [41.6, 41.2],
+                "superhigh_floats": [23453.23, 32453532.33],
+                "date": ["2021-01-01", "2021-01-02"],
+                "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+                "bools": [True, False],
+            }
+        )
+    )
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -165,6 +230,7 @@ def test_validation_info():
         label=None,
         brief=None,
         active=True,
+        eval_error=False,
         all_passed=True,
         n=4,
         n_passed=4,
@@ -191,6 +257,7 @@ def test_validation_info():
     assert v.label is None
     assert v.brief is None
     assert v.active is True
+    assert v.eval_error is False
     assert v.all_passed is True
     assert v.n == 4
     assert v.n_passed == 4
@@ -238,7 +305,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
-def test_validation_plan(request, tbl_fixture):
+def test_validation_plan_and_interrogation(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
@@ -270,6 +337,7 @@ def test_validation_plan(request, tbl_fixture):
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
@@ -295,6 +363,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
+    assert val_info.eval_error is None
     assert val_info.all_passed is None
     assert val_info.n is None
     assert val_info.n_passed is None
@@ -338,6 +407,7 @@ def test_validation_plan(request, tbl_fixture):
         "label",
         "brief",
         "active",
+        "eval_error",
         "all_passed",
         "n",
         "n_passed",
@@ -363,6 +433,7 @@ def test_validation_plan(request, tbl_fixture):
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
+    assert val_info.eval_error is None
     assert val_info.all_passed is True
     assert val_info.n == 4
     assert val_info.n_passed == 4
@@ -592,6 +663,27 @@ def test_validation_check_column_input(request, tbl_fixture):
         Validate(tbl).col_vals_not_null(columns=9)
     with pytest.raises(ValueError):
         Validate(tbl).col_exists(columns=9)
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_check_column_input_with_col(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that using `col(column_name)` in `columns=` is allowed and doesn't raise an error
+    Validate(tbl).col_vals_gt(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_lt(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_eq(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_ne(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_ge(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_le(columns=col("x"), value=0).interrogate()
+    Validate(tbl).col_vals_between(columns=col("x"), left=0, right=5).interrogate()
+    Validate(tbl).col_vals_outside(columns=col("x"), left=-5, right=0).interrogate()
+    Validate(tbl).col_vals_in_set(columns=col("x"), set=[1, 2, 3, 4, 5]).interrogate()
+    Validate(tbl).col_vals_not_in_set(columns=col("x"), set=[5, 6, 7]).interrogate()
+    Validate(tbl).col_vals_null(columns=col("x")).interrogate()
+    Validate(tbl).col_vals_not_null(columns=col("x")).interrogate()
+    Validate(tbl).col_exists(columns=col("x")).interrogate()
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -3287,6 +3379,274 @@ def test_col_schema_match_columns_only():
         .n_passed(i=1, scalar=True)
         == 1
     )
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a large validation plan and interrogate the input table
+    v = (
+        Validate(tbl)
+        .col_vals_gt(columns=col("low_numbers"), value=0)  # 1
+        .col_vals_lt(columns=col(ends_with("NUMBERS")), value=200000)  # 2 & 3
+        .col_vals_between(
+            columns=col(ends_with("FLOATS") - contains("superhigh")), left=0, right=100
+        )  # 4 & 5
+        .col_vals_ge(columns=col(ends_with("floats") | matches("num")), value=0)  # 6, 7, 8, 9, 10
+        .col_vals_le(
+            columns=col(everything() - last_n(3) - first_n(1)), value=4e7
+        )  # 11, 12, 13, 14, 15
+        .col_vals_in_set(
+            columns=col(starts_with("w") & ends_with("d")), set=["apple", "banana"]
+        )  # 16
+        .col_vals_outside(columns=col(~first_n(1) & ~last_n(7)), left=10, right=15)  # 17
+        .col_vals_regex(columns=col("word"), pattern="a")  # 18
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 18
+
+    # Check the assertion type across all validation steps
+    assert [v.validation_info[i].assertion_type for i in range(18)] == [
+        "col_vals_gt",
+        "col_vals_lt",
+        "col_vals_lt",
+        "col_vals_between",
+        "col_vals_between",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_ge",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_le",
+        "col_vals_in_set",
+        "col_vals_outside",
+        "col_vals_regex",
+    ]
+
+    # Check column names across all validation steps
+    assert [v.validation_info[i].column for i in range(18)] == [
+        "low_numbers",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "low_numbers",
+        "high_numbers",
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "word",
+        "low_numbers",
+        "word",
+    ]
+
+    # Check values across all validation steps
+    assert [v.validation_info[i].values for i in range(18)] == [
+        0,
+        200000,
+        200000,
+        (0, 100),
+        (0, 100),
+        0,
+        0,
+        0,
+        0,
+        0,
+        4e7,
+        4e7,
+        4e7,
+        4e7,
+        4e7,
+        ["apple", "banana"],
+        (10, 15),
+        "a",
+    ]
+
+    # Check that all validation steps are active
+    assert [v.validation_info[i].active for i in range(18)] == [True] * 18
+
+    # Check that all validation steps have no evaluation errors
+    assert [v.validation_info[i].eval_error for i in range(18)] == [None] * 18
+
+    # Check that all validation steps have passed
+    assert [v.validation_info[i].all_passed for i in range(18)] == [True] * 18
+
+    # Check that all test unit counts and passing counts are correct (2)
+    assert [v.validation_info[i].n for i in range(18)] == [2] * 18
+    assert [v.validation_info[i].n_passed for i in range(18)] == [2] * 18
+
+
+def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_names):
+
+    # Create a validation plan and interrogate the input table
+    v = (
+        Validate(tbl_pl_variable_names)
+        .col_vals_gt(
+            columns=col(starts_with("higher")),
+            value=100,
+            pre=lambda df: df.with_columns(
+                higher_floats=pl.col("high_floats") * 10,
+                even_higher_floats=pl.col("high_floats") * 100,
+            ),
+        )
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 1
+
+    # Check properties of the validation step
+    assert v.validation_info[0].assertion_type == "col_vals_gt"
+    assert v.validation_info[0].column == "higher_floats"
+    assert v.validation_info[0].values == 100
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is not None
+
+    # Create a slightly different validation plan and interrogate the input table; this will:
+    # - have two validation steps (matches both new columns produced via `pre=`)
+    # - will succeed in the first but not in the second (+ would fail with any of the start columns)
+    v = (
+        Validate(tbl_pl_variable_names)
+        .col_vals_between(
+            columns=col(contains("higher")),
+            left=100,
+            right=1000,
+            pre=lambda df: df.with_columns(
+                higher_floats=pl.col("high_floats") * 10,
+                even_higher_floats=pl.col("high_floats") * 100,
+            ),
+        )
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 2
+
+    # Check properties of the first (all passing) validation step
+    assert v.validation_info[0].assertion_type == "col_vals_between"
+    assert v.validation_info[0].column == "higher_floats"
+    assert v.validation_info[0].values == (100, 1000)
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is not None
+
+    # Check properties of the second (all failing) validation step
+    assert v.validation_info[1].assertion_type == "col_vals_between"
+    assert v.validation_info[1].column == "even_higher_floats"
+    assert v.validation_info[1].values == (100, 1000)
+    assert v.validation_info[1].active is True
+    assert v.validation_info[1].eval_error is None
+    assert v.validation_info[1].all_passed is False
+    assert v.validation_info[1].n == 2
+    assert v.validation_info[1].n_passed == 0
+    assert v.validation_info[1].pre is not None
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions_no_match(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a validation that evaluates with no issues in the first and third steps but has
+    # an evaluation failure in the second step because a column selector fails to resolve any
+    # table columns
+    v = (
+        Validate(tbl)
+        .col_vals_le(columns="high_floats", value=100)
+        .col_vals_gt(columns=col(contains("not_present")), value=10)
+        .col_vals_lt(columns="low_numbers", value=5)
+        .interrogate()
+    )
+
+    # Check the length of the validation plan
+    assert len(v.validation_info) == 3
+
+    # Check properties of the first (all passing, okay eval) validation step
+    assert v.validation_info[0].assertion_type == "col_vals_le"
+    assert v.validation_info[0].column == "high_floats"
+    assert v.validation_info[0].values == 100
+    assert v.validation_info[0].active is True
+    assert v.validation_info[0].eval_error is None
+    assert v.validation_info[0].all_passed is True
+    assert v.validation_info[0].n == 2
+    assert v.validation_info[0].n_passed == 2
+    assert v.validation_info[0].pre is None
+
+    # Check properties of the second (eval failure) validation step
+    assert v.validation_info[1].assertion_type == "col_vals_gt"
+    assert v.validation_info[1].column == "Contains(text='not_present', case_sensitive=False)"
+    assert v.validation_info[1].values == 10
+    assert v.validation_info[1].active is False
+    assert v.validation_info[1].eval_error is True
+    assert v.validation_info[1].all_passed is None
+    assert v.validation_info[1].n is None
+    assert v.validation_info[1].n_passed is None
+    assert v.validation_info[1].pre is None
+
+    # Check properties of the third (all passing, okay eval) validation step
+    assert v.validation_info[2].assertion_type == "col_vals_lt"
+    assert v.validation_info[2].column == "low_numbers"
+    assert v.validation_info[2].values == 5
+    assert v.validation_info[2].active is True
+    assert v.validation_info[2].eval_error is None
+    assert v.validation_info[2].all_passed is True
+    assert v.validation_info[2].n == 2
+    assert v.validation_info[2].n_passed == 2
+    assert v.validation_info[2].pre is None
+
+
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_selector_helper_functions_no_match_snap(request, tbl_fixture, snapshot):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Create a validation that evaluates with no issues in the first and third steps but has
+    # an evaluation failure in the second step because a column selector fails to resolve any
+    # table columns
+    v = (
+        Validate(tbl, tbl_name="example_table", label="Simple pointblank validation example")
+        .col_vals_le(columns="high_floats", value=100)
+        .col_vals_gt(columns=col(contains("not_present")), value=10)
+        .col_vals_lt(columns="low_numbers", value=5)
+        .interrogate()
+    )
+
+    html_str = v.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "selector_helper_functions_no_match.html")
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)

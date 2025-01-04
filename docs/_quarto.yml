@@ -73,7 +73,23 @@ quartodoc:
         - name: Validate.col_exists
         - name: Validate.rows_distinct
         - name: Validate.col_schema_match
+    - title: Column Selection
+      desc: >
+        A flexible way to select columns for validation is to use the `col()` function along with
+        column selection helper functions. A combination of `col()` + `starts_with()`, `matches()`,
+        etc., allows for the selection of multiple target columns (mapping a validation across many
+        steps). Furthermore, the `col()` function can be used to declare a comparison column (e.g.,
+        for the `value=` argument in many `col_vals_*()` methods) when you can't use a fixed value
+        for comparison.
+      contents:
         - name: col
+        - name: starts_with
+        - name: ends_with
+        - name: contains
+        - name: matches
+        - name: everything
+        - name: first_n
+        - name: last_n
     - title: Interrogation and Reporting
       desc: >
         The validation plan is put into action when `interrogate()` is called. The workflow for

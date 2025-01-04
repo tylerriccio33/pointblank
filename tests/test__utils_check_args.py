@@ -9,6 +9,7 @@ from pointblank._utils_check_args import (
     _check_thresholds,
 )
 from pointblank.thresholds import Thresholds
+from pointblank.column import col, starts_with
 
 
 def test_check_boolean_input():
@@ -23,6 +24,8 @@ def test_check_column():
 
     assert _check_column(column="test") is None
     assert _check_column(column=["one", "two", "three"]) is None
+    assert _check_column(column=col(starts_with("test"))) is None
+    assert _check_column(column=col("test")) is None
 
     with pytest.raises(ValueError):
         _check_column(column=123)
