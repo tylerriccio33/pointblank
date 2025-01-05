@@ -309,10 +309,13 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `starts_with()` selector
-    function can be used to select columns that start with some specified text. So if a set of table
-    columns consists of `name`, `age`, and `address`, and you want to validate columns that start
-    with `"a"`, you can use `columns=starts_with("a")`. This will select `age` and `address`
-    columns.
+    function can be used to select columns that start with some specified text. So if the set of
+    table columns consists of
+
+    `[name_first, name_last, age, address]`
+
+    and you want to validate columns that start with `"name"`, you can use
+    `columns=starts_with("name")`. This will select the `name_first` and `name_last` columns.
 
     There will be a validation step created for every resolved column. Note that if there aren't any
     columns resolved from using `starts_with()` (or any other expression using selector functions),
@@ -360,8 +363,8 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     Additional Flexibilty through Composition with Other Column Selectors
     ---------------------------------------------------------------------
     The `starts_with()` function can be composed with other column selectors to create fine-grained
-    column selections. For example, to select columns that start with `a` and end with `e`, you can
-    use the `starts_with()` and `ends_with()` functions together. The only condition is that the
+    column selections. For example, to select columns that start with `"a"` and end with `"e"`, you
+    can use the `starts_with()` and `ends_with()` functions together. The only condition is that the
     expressions are wrapped in the `col()` function, like this:
 
     ```python
@@ -391,10 +394,10 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     pb.config(report_incl_header=False, report_incl_footer=False)
     ```
 
-    Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, and `days_worked` and
-    we'd like to validate that the values in columns that start with `paid` are greater than `10`.
+    Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, and `person_id` and
+    we'd like to validate that the values in columns that start with `"paid"` are greater than `10`.
     We can use the `starts_with()` column selector function to specify the columns that start with
-    `paid` as the columns to validate.
+    `"paid"` as the columns to validate.
 
     ```{python}
     import polars as pl
@@ -419,12 +422,12 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     ```
 
     From the results of the validation table we get two validation steps, one for `paid_2021` and
-    one for `paid_2022`. The values in both columns were greater than `10`.
+    one for `paid_2022`. The values in both columns were all greater than `10`.
 
     We can also use the `starts_with()` function in combination with other column selectors (within
     `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select columns that start with `paid` and end with `2023`
-    or `2024`, we can use the `&` and `|` operators to combine column selectors.
+    multiple conditions). For example, to select columns that start with `"paid"` and match the text
+    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -461,6 +464,22 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     """
     Select columns that end with specified text.
 
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `ends_with()` selector
+    function can be used to select columns that end with some specified text. So if the set of table
+    columns consists of
+
+    `[first_name, last_name, age, address]`
+
+    and you want to validate columns that end with `"name"`, you can use
+    `columns=ends_with("name")`. This will select the `first_name` and `last_name` columns.
+
+    There will be a validation step created for every resolved column. Note that if there aren't any
+    columns resolved from using `ends_with()` (or any other expression using selector functions),
+    the validation step will fail to be evaluated during the interrogation process. Such a failure
+    to evaluate will be reported in the validation results but it won't affect the interrogation
+    process overall (i.e., the process won't be halted).
+
     Parameters
     ----------
     text
@@ -472,6 +491,127 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     -------
     EndsWith
         An `EndsWith` object, which can be used to select columns that end with the specified text.
+
+    Relevant Validation Methods where `ends_with()` can be Used
+    -----------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `ends_with()` selector function doesn't need to be used in isolation. Read the next section
+    for information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `ends_with()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select columns that end with `"e"` and start with `"a"`, you
+    can use the `ends_with()` and `starts_with()` functions together. The only condition is that the
+    expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(ends_with("e") & starts_with("a"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `name`, `2021_pay`, `2022_pay`, and `person_id` and
+    we'd like to validate that the values in columns that end with `"pay"` are greater than `10`.
+    We can use the `ends_with()` column selector function to specify the columns that end with
+    `"pay"` as the columns to validate.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2021_pay": [16.32, 16.25, 15.75],
+            "2022_pay": [18.62, 16.95, 18.25],
+            "person_id": ["A123", "B456", "C789"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.ends_with("pay"), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2021_pay` and one
+    for `2022_pay`. The values in both columns were all greater than `10`.
+
+    We can also use the `ends_with()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select columns that end with `"pay"` and match the text
+    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2022_hours": [160, 180, 160],
+            "2023_hours": [182, 168, 175],
+            "2024_hours": [200, 165, 190],
+            "2022_pay": [18.62, 16.95, 18.25],
+            "2023_pay": [19.29, 17.75, 18.35],
+            "2024_pay": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.ends_with("pay") & pb.matches("2023|2024")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2023_pay` and one
+    for `2024_pay`.
     """
     return EndsWith(text=text, case_sensitive=case_sensitive)
 
@@ -479,6 +619,23 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
 def contains(text: str, case_sensitive: bool = False) -> Contains:
     """
     Select columns that contain specified text.
+
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `contains()` selector function
+    can be used to select columns that contain some specified text. So if the set of table columns
+    consists of
+
+    `[profit, conv_first, conv_last, highest_conv, age]`
+
+    and you want to validate columns that have `"conv"` in the name, you can use
+    `columns=contains("conv")`. This will select the `conv_first`, `conv_last`, and `highest_conv`
+    columns.
+
+    There will be a validation step created for every resolved column. Note that if there aren't any
+    columns resolved from using `contains()` (or any other expression using selector functions), the
+    validation step will fail to be evaluated during the interrogation process. Such a failure to
+    evaluate will be reported in the validation results but it won't affect the interrogation
+    process overall (i.e., the process won't be halted).
 
     Parameters
     ----------
@@ -491,6 +648,127 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     -------
     Contains
         A `Contains` object, which can be used to select columns that contain the specified text.
+
+    Relevant Validation Methods where `contains()` can be Used
+    ----------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `contains()` selector function doesn't need to be used in isolation. Read the next section
+    for information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `contains()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select columns that have the text `"_n"` and start with
+    `"item"`, you can use the `contains()` and `starts_with()` functions together. The only
+    condition is that the expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(contains("_n") & starts_with("item"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `name`, `2021_pay_total`, `2022_pay_total`, and `person_id`
+    and we'd like to validate that the values in columns having `"pay"` in the name are greater than
+    `10`. We can use the `contains()` column selector function to specify the column names that
+    contain `"pay"` as the columns to validate.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2021_pay_total": [16.32, 16.25, 15.75],
+            "2022_pay_total": [18.62, 16.95, 18.25],
+            "person_id": ["A123", "B456", "C789"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.contains("pay"), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2021_pay_total`
+    and one for `2022_pay_total`. The values in both columns were all greater than `10`.
+
+    We can also use the `contains()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select columns that contain `"pay"` and match the text
+    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2022_hours": [160, 180, 160],
+            "2023_hours": [182, 168, 175],
+            "2024_hours": [200, 165, 190],
+            "2022_pay_total": [18.62, 16.95, 18.25],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.contains("pay") & pb.matches("2023|2024")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2023_pay_total`
+    and one for `2024_pay_total`.
     """
     return Contains(text=text, case_sensitive=case_sensitive)
 
@@ -498,6 +776,23 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
 def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     """
     Select columns that match a specified regular expression pattern.
+
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `matches()` selector function
+    can be used to select columns matching a provided regular expression pattern. So if the set of
+    table columns consists of
+
+    `[rev_01, rev_02, profit_01, profit_02, age]`
+
+    and you want to validate columns that have two digits at the end of the name, you can use
+    `columns=matches(r"\d{2}$")`. This will select the `rev_01`, `rev_02`, `profit_01`, and
+    `profit_02` columns.
+
+    There will be a validation step created for every resolved column. Note that if there aren't any
+    columns resolved from using `matches()` (or any other expression using selector functions), the
+    validation step will fail to be evaluated during the interrogation process. Such a failure to
+    evaluate will be reported in the validation results but it won't affect the interrogation
+    process overall (i.e., the process won't be halted).
 
     Parameters
     ----------
@@ -510,6 +805,127 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     -------
     Matches
         A `Matches` object, which can be used to select columns that match the specified pattern.
+
+    Relevant Validation Methods where `matches()` can be Used
+    ---------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `matches()` selector function doesn't need to be used in isolation. Read the next section
+    for information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `matches()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select columns that have the text starting with five digits
+    and end with `"_id"`, you can use the `matches()` and `ends_with()` functions together. The only
+    condition is that the expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(matches(r"^\d{5}") & ends_with("_id"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `name`, `id_old`, `new_identifier`, and `pay_2021` and we'd
+    like to validate that text values in columns having `"id"` or `"identifier"` in the name have a
+    specific syntax. We can use the `matches()` column selector function to specify the columns that
+    match the pattern.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "id_old": ["ID0021", "ID0032", "ID0043"],
+            "new_identifier": ["ID9054", "ID9065", "ID9076"],
+            "pay_2021": [16.32, 16.25, 15.75],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_regex(columns=pb.matches("id|identifier"), pattern=r"ID\d{4}")
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `id_old` and one
+    for `new_identifier`. The values in both columns all match the pattern `"ID\d{4}"`.
+
+    We can also use the `matches()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select columns that contain `"pay"` and match the text
+    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2022_hours": [160, 180, 160],
+            "2023_hours": [182, 168, 175],
+            "2024_hours": [200, 165, 190],
+            "2022_pay_total": [18.62, 16.95, 18.25],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.contains("pay") & pb.matches("2023|2024")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2023_pay_total`
+    and one for `2024_pay_total`.
     """
     return Matches(pattern=pattern, case_sensitive=case_sensitive)
 
@@ -518,10 +934,130 @@ def everything() -> Everything:
     """
     Select all columns.
 
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `everything()` selector
+    function can be used to select every columns. If you have a table with six columns and they're
+    all suitable for a specific type of validation, you can use `columns=everything())` and all
+    six columns will be selected for validation.
+
     Returns
     -------
     Everything
         An `Everything` object, which can be used to select all columns.
+
+    Relevant Validation Methods where `everything()` can be Used
+    ------------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `everything()` selector function doesn't need to be used in isolation. Read the next section
+    for information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `everything()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select all column names except those having starting with
+    "id_", you can use the `everything()` and `starts_with()` functions together. The only condition
+    is that the expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(everything() - starts_with("id_"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with several numeric columns and we'd like to validate that all these
+    columns have less than `1000`. We can use the `everything()` column selector function to select
+    all columns for validation.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "2023_hours": [182, 168, 175],
+            "2024_hours": [200, 165, 190],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_lt(columns=pb.everything(), value=1000)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get four validation steps, one each column in the
+    table. The values in every column were all lower than `1000`.
+
+    We can also use the `everything()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select every column except those that begin with `"2023"`
+    we can use the `-` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "2023_hours": [182, 168, 175],
+            "2024_hours": [200, 165, 190],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_lt(columns=pb.col(pb.everything() - pb.starts_with("2023")), value=1000)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `2024_hours` and
+    one for `2024_pay_total`.
     """
     return Everything()
 
@@ -530,17 +1066,151 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     """
     Select the first `n` columns in the column list.
 
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `first_n()` selector function
+    can be used to select columns positioned at the start of the column list. So if the set of table
+    columns consists of
+
+    `[rev_01, rev_02, profit_01, profit_02, age]`
+
+    and you want to validate the first two columns, you can use `columns=first_n(2)`. This will
+    select the `rev_01` and `rev_02` columns and a validation step will be created for each.
+
+    The `offset=` parameter can be used to skip a certain number of columns from the start of the
+    column list. So if you want to select the third and fourth columns, you can use
+    `columns=first_n(2, offset=2)`.
+
     Parameters
     ----------
     n
-        The number of columns to select.
+        The number of columns to select from the start of the column list. Should be a positive
+        integer value. If `n` is greater than the number of columns in the table, all columns will
+        be selected.
     offset
-        The offset from the start of the column list. The default is `0`.
+        The offset from the start of the column list. The default is `0`. If `offset` is greater
+        than the number of columns in the table, no columns will be selected.
 
     Returns
     -------
     FirstN
         A `FirstN` object, which can be used to select the first `n` columns.
+
+    Relevant Validation Methods where `first_n()` can be Used
+    ---------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `first_n()` selector function doesn't need to be used in isolation. Read the next section
+    for information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `first_n()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select all column names starting with "rev" along with the
+    first two columns, you can use the `first_n()` and `starts_with()` functions together. The only
+    condition is that the expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(first_n(2) | starts_with("rev"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `paid_2021`, `paid_2022`, `paid_2023`, `paid_2024`, and
+    `name` and we'd like to validate that the values in the first four columns are greater than
+    `10`. We can use the `first_n()` column selector function to specify that the first four columns
+    in the table are the columns to validate.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "paid_2021": [17.94, 16.55, 17.85],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+            "name": ["Alice", "Bob", "Charlie"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.first_n(4), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get four validation steps. The values in all those
+    columns were all greater than `10`.
+
+    We can also use the `first_n()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select the first four columns but also omit those columns
+    that end with `"2023"`, we can use the `-` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "paid_2021": [17.94, 16.55, 17.85],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+            "name": ["Alice", "Bob", "Charlie"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.col(pb.first_n(4) - pb.ends_with("2023")), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get three validation steps, one for `paid_2021`,
+    `paid_2022`, and `paid_2024`.
     """
     return FirstN(n=n, offset=offset)
 
@@ -549,16 +1219,150 @@ def last_n(n: int, offset: int = 0) -> LastN:
     """
     Select the last `n` columns in the column list.
 
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `last_n()` selector function
+    can be used to select columns positioned at the end of the column list. So if the set of table
+    columns consists of
+
+    `[age, rev_01, rev_02, profit_01, profit_02]`
+
+    and you want to validate the last two columns, you can use `columns=last_n(2)`. This will select
+    the `profit_01` and `profit_02` columns and a validation step will be created for each.
+
+    The `offset=` parameter can be used to skip a certain number of columns from the end of the
+    column list. So if you want to select the third and fourth columns from the end, you can use
+    `columns=last_n(2, offset=2)`.
+
     Parameters
     ----------
     n
-        The number of columns to select.
+        The number of columns to select from the end of the column list. Should be a positive
+        integer value. If `n` is greater than the number of columns in the table, all columns will
+        be selected.
     offset
-        The offset from the end of the column list. The default is `0`.
+        The offset from the end of the column list. The default is `0`. If `offset` is greater than
+        the number of columns in the table, no columns will be selected.
 
     Returns
     -------
     LastN
         A `LastN` object, which can be used to select the last `n` columns.
+
+    Relevant Validation Methods where `last_n()` can be Used
+    --------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `last_n()` selector function doesn't need to be used in isolation. Read the next section for
+    information on how to compose it with other column selectors for more refined ways to select
+    columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `last_n()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select all column names starting with "rev" along with the
+    last two columns, you can use the `last_n()` and `starts_with()` functions together. The only
+    condition is that the expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(last_n(2) | starts_with("rev"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, `paid_2023`, and
+    `paid_2024` and we'd like to validate that the values in the last four columns are greater than
+    `10`. We can use the `last_n()` column selector function to specify that the last four columns
+    in the table are the columns to validate.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "paid_2021": [17.94, 16.55, 17.85],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.last_n(4), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get four validation steps. The values in all those
+    columns were all greater than `10`.
+
+    We can also use the `last_n()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select the last four columns but also omit those columns
+    that end with `"2023"`, we can use the `-` operator to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "paid_2021": [17.94, 16.55, 17.85],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.col(pb.last_n(4) - pb.ends_with("2023")), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get three validation steps, one for `paid_2021`,
+    `paid_2022`, and `paid_2024`.
     """
     return LastN(n=n, offset=offset)
