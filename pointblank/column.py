@@ -189,7 +189,22 @@ def col(exprs: str | ColumnSelector) -> Column:
     value being compared is a column value. During validation (i.e., when `interrogate()` is
     called), pointblank will then check that the column exists in the input table.
 
-    This function can be used in the `value=` argument of the following validation methods:
+    Parameters
+    ----------
+    exprs
+        Either the name of a single column in the target table, provided as a string, or, an
+        expression involving column selector functions (e.g., `starts_with("a")`,
+        `ends_with("e") | starts_with("a")`, etc.). Please read the documentation for further
+        details on which input forms are valid depending on the context.
+
+    Returns
+    -------
+    Column
+        A `Column` object representing the column.
+
+    Usage with the `columns=` Argument
+    -----------------------------------
+    The `col()` function can be used in the `columns=` argument of the following validation methods:
 
     - `col_vals_gt()`
     - `col_vals_lt()`
@@ -199,19 +214,54 @@ def col(exprs: str | ColumnSelector) -> Column:
     - `col_vals_ne()`
     - `col_vals_between()`
     - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
 
-    For the last two methods cited, `col()` can be used with either of the `left=` and `right=`
-    arguments, or both.
+    If specifying a single column with certainty (you have the exact name), `col()` is not necessary
+    since you can just pass the column name as a string (though it is still valid to use
+    `col("column_name")`, if preferred). However, if you want to select columns based on complex
+    logic involving multiple column selector functions (e.g., columns that start with `"a"` but
+    don't end with `"e"`), you need to use `col()` to wrap expressions involving column selector
+    functions and logical operators such as `&`, `|`, `-`, and `~`.
 
-    Parameters
-    ----------
-    name
-        The name of the column in the input table.
+    Here is an example of such usage with the `col_vals_gt()` validation method:
 
-    Returns
-    -------
-    Column
-        A `Column` object representing the column.
+    ```python
+    col_vals_gt(columns=col(starts_with("a") & ~ends_with("e")), value=10)
+    ```
+
+    If using only a single column selector function, you can pass the function directly to the
+    `columns=` argument of the validation method, or, you can use `col()` to wrap the function
+    (either is valid though the first is more concise). Here is an example of that simpler usage:
+
+    ```python
+    col_vals_gt(columns=starts_with("a"), value=10)
+    ```
+
+    Usage with the `value=`, `left=`, and `right=` Arguments
+    --------------------------------------------------------
+    The `col()` function can be used in the `value=` argument of the following validation methods
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+
+    and in the `left=` and `right=` arguments (either or both) of these two validation methods
+
+    - `col_vals_between()`
+    - `col_vals_outside()`
+
+    You cannot use column selector functions such as `starts_with()` in either of the `value=`,
+    `left=`, or `right=` arguments since there would be no guarantee that a single column will be
+    resolved from the target table with this approach. The `col()` function is used to signal that
+    the value being compared is a column value and not a literal value.
 
     Examples
     --------
@@ -257,6 +307,19 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     """
     Select columns that start with specified text.
 
+    Many validation methods have a `columns=` argument that can be used to specify the columns for
+    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `starts_with()` selector
+    function can be used to select columns that start with some specified text. So if a set of table
+    columns consists of `name`, `age`, and `address`, and you want to validate columns that start
+    with `"a"`, you can use `columns=starts_with("a")`. This will select `age` and `address`
+    columns.
+
+    There will be a validation step created for every resolved column. Note that if there aren't any
+    columns resolved from using `starts_with()` (or any other expression using selector functions),
+    the validation step will fail to be evaluated during the interrogation process. Such a failure
+    to evaluate will be reported in the validation results but it won't affect the interrogation
+    process overall (i.e., the process won't be halted).
+
     Parameters
     ----------
     text
@@ -269,6 +332,127 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     StartsWith
         A `StartsWith` object, which can be used to select columns that start with the specified
         text.
+
+    Relevant Validation Methods where `starts_with()` can be Used
+    -------------------------------------------------------------
+    This selector function can be used in the `columns=` argument of the following validation
+    methods:
+
+    - `col_vals_gt()`
+    - `col_vals_lt()`
+    - `col_vals_ge()`
+    - `col_vals_le()`
+    - `col_vals_eq()`
+    - `col_vals_ne()`
+    - `col_vals_between()`
+    - `col_vals_outside()`
+    - `col_vals_in_set()`
+    - `col_vals_not_in_set()`
+    - `col_vals_null()`
+    - `col_vals_not_null()`
+    - `col_vals_regex()`
+    - `col_exists()`
+
+    The `starts_with()` selector function doesn't need to be used in isolation. Read the next
+    section for information on how to compose it with other column selectors for more refined ways
+    to select columns.
+
+    Additional Flexibilty through Composition with Other Column Selectors
+    ---------------------------------------------------------------------
+    The `starts_with()` function can be composed with other column selectors to create fine-grained
+    column selections. For example, to select columns that start with `a` and end with `e`, you can
+    use the `starts_with()` and `ends_with()` functions together. The only condition is that the
+    expressions are wrapped in the `col()` function, like this:
+
+    ```python
+    col(starts_with("a") & ends_with("e"))
+    ```
+
+    There are four operators that can be used to compose column selectors:
+
+    - `&` (*and*)
+    - `|` (*or*)
+    - `-` (*difference*)
+    - `~` (*not*)
+
+    The `&` operator is used to select columns that satisfy both conditions. The `|` operator is
+    used to select columns that satisfy either condition. The `-` operator is used to select columns
+    that satisfy the first condition but not the second. The `~` operator is used to select columns
+    that don't satisfy the condition. As many selector functions can be used as needed and the
+    operators can be combined to create complex column selection criteria (parentheses can be used
+    to group conditions and control the order of evaluation).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False)
+    ```
+
+    Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, and `days_worked` and
+    we'd like to validate that the values in columns that start with `paid` are greater than `10`.
+    We can use the `starts_with()` column selector function to specify the columns that start with
+    `paid` as the columns to validate.
+
+    ```{python}
+    import polars as pl
+    import pointblank as pb
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "paid_2021": [16.32, 16.25, 15.75],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "person_id": ["A123", "B456", "C789"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.starts_with("paid"), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `paid_2021` and
+    one for `paid_2022`. The values in both columns were greater than `10`.
+
+    We can also use the `starts_with()` function in combination with other column selectors (within
+    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
+    multiple conditions). For example, to select columns that start with `paid` and end with `2023`
+    or `2024`, we can use the `&` and `|` operators to combine column selectors.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "hours_2022": [160, 180, 160],
+            "hours_2023": [182, 168, 175],
+            "hours_2024": [200, 165, 190],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.starts_with("paid") & pb.matches("23|24")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    From the results of the validation table we get two validation steps, one for `paid_2023` and
+    one for `paid_2024`.
     """
     return StartsWith(text=text, case_sensitive=case_sensitive)
 
