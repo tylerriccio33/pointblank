@@ -309,8 +309,8 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `starts_with()` selector
-    function can be used to select columns that start with some specified text. So if the set of
-    table columns consists of
+    function can be used to select one or more columns that start with some specified text. So if
+    the set of table columns consists of
 
     `[name_first, name_last, age, address]`
 
@@ -466,8 +466,8 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `ends_with()` selector
-    function can be used to select columns that end with some specified text. So if the set of table
-    columns consists of
+    function can be used to select one or more columns that end with some specified text. So if the
+    set of table columns consists of
 
     `[first_name, last_name, age, address]`
 
@@ -622,8 +622,8 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `contains()` selector function
-    can be used to select columns that contain some specified text. So if the set of table columns
-    consists of
+    can be used to select one or more columns that contain some specified text. So if the set of
+    table columns consists of
 
     `[profit, conv_first, conv_last, highest_conv, age]`
 
@@ -779,8 +779,8 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `matches()` selector function
-    can be used to select columns matching a provided regular expression pattern. So if the set of
-    table columns consists of
+    can be used to select one or more columns matching a provided regular expression pattern. So if
+    the set of table columns consists of
 
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
@@ -936,9 +936,9 @@ def everything() -> Everything:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `everything()` selector
-    function can be used to select every columns. If you have a table with six columns and they're
-    all suitable for a specific type of validation, you can use `columns=everything())` and all
-    six columns will be selected for validation.
+    function can be used to select every column in the table. If you have a table with six columns
+    and they're all suitable for a specific type of validation, you can use `columns=everything())`
+    and all six columns will be selected for validation.
 
     Returns
     -------
@@ -1068,8 +1068,8 @@ def first_n(n: int, offset: int = 0) -> FirstN:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `first_n()` selector function
-    can be used to select columns positioned at the start of the column list. So if the set of table
-    columns consists of
+    can be used to select *n* columns positioned at the start of the column list. So if the set of
+    table columns consists of
 
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
@@ -1221,8 +1221,8 @@ def last_n(n: int, offset: int = 0) -> LastN:
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
     validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `last_n()` selector function
-    can be used to select columns positioned at the end of the column list. So if the set of table
-    columns consists of
+    can be used to select *n* columns positioned at the end of the column list. So if the set of
+    table columns consists of
 
     `[age, rev_01, rev_02, profit_01, profit_02]`
 
