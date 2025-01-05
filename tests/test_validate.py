@@ -3601,6 +3601,142 @@ def test_validation_with_single_selectors(request, tbl_fixture):
     assert v.validation_info[0].n_passed == 2
 
 
+@pytest.mark.parametrize(
+    "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
+)
+def test_validation_with_single_selectors_across_validations(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # `col_vals_gt()`
+
+    v_col = Validate(tbl).col_vals_gt(columns=col("low_numbers"), value=0).interrogate()
+    v_sel = Validate(tbl).col_vals_gt(columns=starts_with("low"), value=0).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_lt()`
+
+    v_col = Validate(tbl).col_vals_lt(columns=col("low_numbers"), value=200000).interrogate()
+    v_sel = Validate(tbl).col_vals_lt(columns=starts_with("low"), value=200000).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_ge()`
+
+    v_col = Validate(tbl).col_vals_ge(columns=col("low_numbers"), value=0).interrogate()
+    v_sel = Validate(tbl).col_vals_ge(columns=starts_with("low"), value=0).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_le()`
+
+    v_col = Validate(tbl).col_vals_le(columns=col("low_numbers"), value=200000).interrogate()
+    v_sel = Validate(tbl).col_vals_le(columns=starts_with("low"), value=200000).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_eq()`
+
+    v_col = Validate(tbl).col_vals_eq(columns=col("low_numbers"), value=0).interrogate()
+    v_sel = Validate(tbl).col_vals_eq(columns=starts_with("low"), value=0).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_ne()`
+
+    v_col = Validate(tbl).col_vals_ne(columns=col("low_numbers"), value=0).interrogate()
+    v_sel = Validate(tbl).col_vals_ne(columns=starts_with("low"), value=0).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_between()`
+
+    v_col = (
+        Validate(tbl)
+        .col_vals_between(columns=col("low_numbers"), left=0, right=200000)
+        .interrogate()
+    )
+    v_sel = (
+        Validate(tbl)
+        .col_vals_between(columns=starts_with("low"), left=0, right=200000)
+        .interrogate()
+    )
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_outside()`
+
+    v_col = (
+        Validate(tbl)
+        .col_vals_outside(columns=col("low_numbers"), left=0, right=200000)
+        .interrogate()
+    )
+    v_sel = (
+        Validate(tbl)
+        .col_vals_outside(columns=starts_with("low"), left=0, right=200000)
+        .interrogate()
+    )
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 2
+
+    # `col_vals_in_set()`
+
+    v_col = (
+        Validate(tbl).col_vals_in_set(columns=col("word"), set=["apple", "banana"]).interrogate()
+    )
+    v_sel = (
+        Validate(tbl)
+        .col_vals_in_set(columns=starts_with("w"), set=["apple", "banana"])
+        .interrogate()
+    )
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+    # `col_vals_not_in_set()`
+
+    v_col = (
+        Validate(tbl)
+        .col_vals_not_in_set(columns=col("word"), set=["apple", "banana"])
+        .interrogate()
+    )
+    v_sel = (
+        Validate(tbl)
+        .col_vals_not_in_set(columns=starts_with("w"), set=["apple", "banana"])
+        .interrogate()
+    )
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+    # `col_vals_null()`
+
+    v_col = Validate(tbl).col_vals_null(columns=col("word")).interrogate()
+    v_sel = Validate(tbl).col_vals_null(columns=starts_with("w")).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+    # `col_vals_not_null()`
+
+    v_col = Validate(tbl).col_vals_not_null(columns=col("word")).interrogate()
+    v_sel = Validate(tbl).col_vals_not_null(columns=starts_with("w")).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+    # `col_vals_regex()`
+
+    v_col = Validate(tbl).col_vals_regex(columns=col("word"), pattern="a").interrogate()
+    v_sel = Validate(tbl).col_vals_regex(columns=starts_with("w"), pattern="a").interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+    # `col_exists()`
+
+    v_col = Validate(tbl).col_exists(columns=col("word")).interrogate()
+    v_sel = Validate(tbl).col_exists(columns=starts_with("w")).interrogate()
+    assert len(v_col.validation_info) == 1
+    assert len(v_sel.validation_info) == 1
+
+
 def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_names):
 
     # Create a validation plan and interrogate the input table
