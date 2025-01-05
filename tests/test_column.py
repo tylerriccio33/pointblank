@@ -1087,6 +1087,10 @@ def test_selector_helper_functions(request, tbl_fixture):
 
     # starts_with() tests
 
+    assert starts_with("low").resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "low_floats",
+    ]
     assert col(starts_with("low")).resolve(columns=tbl.columns) == [
         "low_numbers",
         "low_floats",
@@ -1102,6 +1106,11 @@ def test_selector_helper_functions(request, tbl_fixture):
 
     # ends_with() tests
 
+    assert ends_with("floats").resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+    ]
     assert col(ends_with("floats")).resolve(columns=tbl.columns) == [
         "low_floats",
         "high_floats",
@@ -1119,6 +1128,10 @@ def test_selector_helper_functions(request, tbl_fixture):
 
     # contains() tests
 
+    assert contains("numbers").resolve(columns=tbl.columns) == [
+        "low_numbers",
+        "high_numbers",
+    ]
     assert col(contains("numbers")).resolve(columns=tbl.columns) == [
         "low_numbers",
         "high_numbers",
@@ -1134,6 +1147,13 @@ def test_selector_helper_functions(request, tbl_fixture):
 
     # matches() tests
 
+    assert matches("at").resolve(columns=tbl.columns) == [
+        "low_floats",
+        "high_floats",
+        "superhigh_floats",
+        "date",
+        "datetime",
+    ]
     assert col(matches("at")).resolve(columns=tbl.columns) == [
         "low_floats",
         "high_floats",

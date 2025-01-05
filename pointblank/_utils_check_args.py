@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Callable
 from pointblank.thresholds import Thresholds
-from pointblank.column import Column
+from pointblank.column import Column, ColumnSelector
 
 
 def _check_boolean_input(param: bool, param_name: str):
@@ -45,7 +45,7 @@ def _check_column(column: str | list[str]):
             raise ValueError("If a list is supplied to `column=` all elements must be strings.")
         return
 
-    if isinstance(column, Column):
+    if isinstance(column, (Column, ColumnSelector)):
         return
 
     if not isinstance(column, str):
