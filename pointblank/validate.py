@@ -49,6 +49,7 @@ from pointblank.thresholds import (
 from pointblank._utils import (
     _get_tbl_type,
     _is_lib_present,
+    _check_any_df_lib,
     _select_df_lib,
     _get_fn_name,
     _check_invalid_fields,
@@ -4474,6 +4475,9 @@ class Validate:
             incl_header = global_config.report_incl_header
         if incl_footer is None:
             incl_footer = global_config.report_incl_footer
+
+        # Do we have a DataFrame library to work with?
+        _check_any_df_lib(method_used="get_tabular_report")
 
         df_lib = _select_df_lib(preference="polars")
 
