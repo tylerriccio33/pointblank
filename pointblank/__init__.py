@@ -23,6 +23,7 @@ from pointblank.column import (
 from pointblank.validate import Validate, load_dataset, config
 from pointblank.schema import Schema
 from pointblank.thresholds import Thresholds
+from pointblank.preview import preview
 
 __all__ = [
     "TF",
@@ -39,4 +40,5 @@ __all__ = [
     "last_n",
     "load_dataset",
     "config",
+    "preview",
 ]
