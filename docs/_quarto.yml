@@ -115,7 +115,9 @@ quartodoc:
     - title: Utilities
       desc: >
         The utilities group contain functions that are helpful for the validation process. We can
-        load datasets with `load_dataset()` and set global configuration parameters with `config()`.
+        load datasets with `load_dataset()`, preview a table with `preview()`, and set global
+        configuration parameters with `config()`.
       contents:
         - name: load_dataset
+        - name: preview
         - name: config

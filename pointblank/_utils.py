@@ -78,7 +78,7 @@ def _is_lib_present(lib_name: str) -> bool:
         return False
 
 
-def _select_df_lib(preference: str = "polars") -> Any:
+def _check_any_df_lib(method_used: str) -> None:
 
     # Determine whether Pandas or Polars is available
     try:
@@ -91,6 +91,29 @@ def _select_df_lib(preference: str = "polars") -> Any:
     except ImportError:
         pl = None
 
+    # If neither Pandas nor Polars is available, raise an ImportError
+    if pd is None and pl is None:
+        raise ImportError(
+            f"Using the `{method_used}()` method requires either the "
+            "Polars or the Pandas library to be installed."
+        )
+
+
+def _select_df_lib(preference: str = "polars") -> Any:
+
+    # Determine whether Pandas is available
+    try:
+        import pandas as pd
+    except ImportError:
+        pd = None
+
+    # Determine whether Pandas is available
+    try:
+        import polars as pl
+    except ImportError:
+        pl = None
+
+    # TODO: replace this with the `_check_any_df_lib()` function, introduce `method_used=` param
     # If neither Pandas nor Polars is available, raise an ImportError
     if pd is None and pl is None:
         raise ImportError(
