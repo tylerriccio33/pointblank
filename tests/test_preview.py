@@ -119,3 +119,18 @@ def test_preview_with_columns_subset_no_fail(tbl_type):
     preview(tbl, columns_subset=col(first_n(2) | last_n(2)))
     preview(tbl, columns_subset=col(everything() - last_n(2)))
     preview(tbl, columns_subset=col(~first_n(2)))
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_preview_with_columns_subset_failing(tbl_type):
+
+    tbl = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+
+    with pytest.raises(ValueError):
+        preview(tbl, columns_subset="player_id", n_head=100, n_tail=100)
+    with pytest.raises(ValueError):
+        preview(tbl, columns_subset="fake_id")
+    with pytest.raises(ValueError):
+        preview(tbl, columns_subset=["fake_id", "item_name", "item_revenue"])
+    with pytest.raises(ValueError):
+        preview(tbl, columns_subset=col(matches("fake_id")))
