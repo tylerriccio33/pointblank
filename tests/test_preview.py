@@ -3,6 +3,16 @@ import sys
 
 from unittest.mock import patch
 
+from pointblank.column import (
+    col,
+    starts_with,
+    ends_with,
+    contains,
+    matches,
+    everything,
+    first_n,
+    last_n,
+)
 from pointblank.preview import preview
 from pointblank.validate import load_dataset
 
@@ -87,3 +97,25 @@ def test_preview_no_polars_duckdb_table():
     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
         with pytest.raises(ImportError):
             preview(small_table)
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_preview_with_columns_subset_no_fail(tbl_type):
+
+    tbl = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+
+    preview(tbl, columns_subset="player_id")
+    preview(tbl, columns_subset=["player_id"])
+    preview(tbl, columns_subset=["player_id", "item_name", "item_revenue"])
+    preview(tbl, columns_subset=col("player_id"))
+    preview(tbl, columns_subset=col(matches("player_id")))
+    preview(tbl, columns_subset=col(matches("_id")))
+    preview(tbl, columns_subset=starts_with("item"))
+    preview(tbl, columns_subset=ends_with("revenue"))
+    preview(tbl, columns_subset=matches("_id"))
+    preview(tbl, columns_subset=contains("_"))
+    preview(tbl, columns_subset=everything())
+    preview(tbl, columns_subset=col(starts_with("item") | matches("player")))
+    preview(tbl, columns_subset=col(first_n(2) | last_n(2)))
+    preview(tbl, columns_subset=col(everything() - last_n(2)))
+    preview(tbl, columns_subset=col(~first_n(2)))
