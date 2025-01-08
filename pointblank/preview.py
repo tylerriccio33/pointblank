@@ -5,7 +5,7 @@ from typing import Any
 from narwhals.typing import FrameT
 from great_tables import GT, style, loc, google_font, html
 
-from pointblank.column import Column, col, ColumnSelector
+from pointblank.column import Column
 from pointblank.schema import Schema
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
