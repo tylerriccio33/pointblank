@@ -18,6 +18,7 @@ def preview(
     n_head: int = 5,
     n_tail: int = 5,
     limit: int | None = 50,
+    show_row_numbers: bool = True,
     max_col_width: int | None = 250,
 ) -> GT:
     """
