@@ -5,7 +5,7 @@ from typing import Any
 from narwhals.typing import FrameT
 from great_tables import GT, style, loc, google_font, html
 
-from pointblank.column import Column, col, ColumnSelector
+from pointblank.column import Column
 from pointblank.schema import Schema
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
@@ -18,6 +18,7 @@ def preview(
     n_head: int = 5,
     n_tail: int = 5,
     limit: int | None = 50,
+    show_row_numbers: bool = True,
     max_col_width: int | None = 250,
 ) -> GT:
     """
@@ -27,19 +28,20 @@ def preview(
     preview of the table. The function shows a subset of the rows from the start and end of the
     table, with the number of rows from the start and end determined by the `n_head=` and `n_tail=`
     parameters (set to `5` by default). This function works with any table that is supported by the
-    `pointblank` library, including `pandas`, `polars`, and Ibis backend tables (e.g., DuckDB,
-    MySQL, PostgreSQL, SQLite, Parquet, etc.).
+    `pointblank` library, including Pandas, Polars, and Ibis backend tables (e.g., DuckDB, MySQL,
+    PostgreSQL, SQLite, Parquet, etc.).
 
     The view is optimized for readability, with column names and data types displayed in a compact
     format. The column widths are sized to fit the column names, dtypes, and column content up to
     a configurable maximum width of `max_col_width=` pixels. The table can be scrolled horizontally
-    to view even very large datasets. Since the output is a `GT` (Great Tables) object, it can be
+    to view even very large datasets. Since the output is a Great Tables (`GT`) object, it can be
     further customized using the `great_tables` API.
 
     Parameters
     ----------
     data
-        The table to preview.
+        The table to preview, which could be a DataFrame object or an Ibis table object. Read the
+        *Supported Input Table Types* section for details on the supported table types.
     columns_subset
         The columns to display in the table, by default `None` (all columns are shown). This can
         be a string, a list of strings, a `Column` object, or a `ColumnSelector` object. The latter
@@ -48,18 +50,39 @@ def preview(
         as a string or list of strings) or if column selector expressions don't resolve to any
         columns.
     n_head
-        The number of rows to show from the start of the table, by default 5.
+        The number of rows to show from the start of the table. Set to `5` by default.
     n_tail
-        The number of rows to show from the end of the table, by default 5.
+        The number of rows to show from the end of the table. Set to `5` by default.
     limit
-        The maximum number of rows to display, by default 50.
+        The limit value for the sum of `n_head=` and `n_tail=` (the total number of rows shown).
+        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised.
+    show_row_numbers
+        Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
+        in the full table.
     max_col_width
-        The maximum width of the columns in pixels, by default 250.
+        The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
 
     Returns
     -------
     GT
         A GT object that displays the preview of the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
+    requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
+    Pandas DataFrame, the availability of Ibis is not needed.
 
     Examples
     --------
@@ -131,45 +154,89 @@ def preview(
     if n_head + n_tail > limit:
         raise ValueError(f"The sum of `n_head=` and `n_tail=` cannot exceed the limit ({limit}).")
 
-    # Do we have a DataFrame library to work with?
+    # Do we have a DataFrame library to work with? We need at least one to display
+    # the table using Great Tables
     _check_any_df_lib(method_used="preview_tbl")
 
-    # Set flag for whether the full dataset is shown
+    # Set flag for whether the full dataset is shown, or just the head and tail; if the table
+    # is very small, the value likely will be `True`
     full_dataset = False
 
-    # Select the DataFrame library to use for viewing the table
-    df_lib = _select_df_lib(preference="polars")
-    df_lib_name = df_lib.__name__
-
-    # Determine if the table is a DataFrame or a DB table
+    # Determine if the table is a DataFrame or an Ibis table
     tbl_type = _get_tbl_type(data=data)
-
     ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
     pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type
 
+    # Select the DataFrame library to use for displaying the Ibis table
+    df_lib_gt = _select_df_lib(preference="polars")
+    df_lib_name_gt = df_lib_gt.__name__
+
+    # If the table is a DataFrame (Pandas or Polars), set `df_lib_name_gt` to the name of the
+    # library (e.g., "polars" or "pandas")
+    if pl_pb_tbl:
+        df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
+
+    # If `columns_subset=` is not None, resolve the columns to display
+    if columns_subset is not None:
+
+        col_names = _get_column_names(data, ibis_tbl=ibis_tbl, df_lib_name_gt=df_lib_name_gt)
+
+        resolved_columns = _validate_columns_subset(
+            columns_subset=columns_subset, col_names=col_names
+        )
+
+        if len(resolved_columns) == 0:
+            raise ValueError(
+                "The `columns_subset=` value doesn't resolve to any columns in the table."
+            )
+
+        # Select the columns to display in the table with the `resolved_columns` value
+        data = _select_columns(
+            data, resolved_columns=resolved_columns, ibis_tbl=ibis_tbl, tbl_type=tbl_type
+        )
+
+    # From an Ibis table:
+    # - get the row count
+    # - subset the table to get the first and last n rows (if small, don't filter the table)
+    # - get the row numbers for the table
+    # - convert the table to a Polars or Pandas DF
     if ibis_tbl:
+
+        # Get the Schema of the table
+        tbl_schema = Schema(tbl=data)
 
         # Get the row count for the table
         ibis_rows = data.count()
-        n_rows = ibis_rows.to_polars() if df_lib_name == "polars" else int(ibis_rows.to_pandas())
+        n_rows = ibis_rows.to_polars() if df_lib_name_gt == "polars" else int(ibis_rows.to_pandas())
 
         # If n_head + n_tail is greater than the row count, display the entire table
         if n_head + n_tail > n_rows:
             full_dataset = True
             data_subset = data
+            row_number_list = range(1, n_rows + 1)
         else:
             # Get the first and last n rows of the table
             data_head = data.head(n=n_head)
+            row_numbers_head = range(1, n_head + 1)
             data_tail = data[(n_rows - n_tail) : n_rows]
+            row_numbers_tail = range(n_rows - n_tail + 1, n_rows + 1)
             data_subset = data_head.union(data_tail)
+            row_number_list = list(row_numbers_head) + list(row_numbers_tail)
 
-        # Convert to Polars DF
-        if df_lib_name == "pandas":
-            data = data_subset.to_pandas()
-        else:
+        # Convert either to Polars or Pandas depending on the available library
+        if df_lib_name_gt == "polars":
             data = data_subset.to_polars()
+        else:
+            data = data_subset.to_pandas()
 
+    # From a DataFrame:
+    # - get the row count
+    # - subset the table to get the first and last n rows (if small, don't filter the table)
+    # - get the row numbers for the table
     if pl_pb_tbl:
+
+        # Get the Schema of the table
+        tbl_schema = Schema(tbl=data)
 
         if tbl_type == "polars":
 
@@ -178,11 +245,15 @@ def preview(
             n_rows = int(data.height)
 
             # If n_head + n_tail is greater than the row count, display the entire table
-            if n_head + n_tail > n_rows:
+            if n_head + n_tail >= n_rows:
                 full_dataset = True
-                data_subset = data
+                row_number_list = range(1, n_rows + 1)
             else:
                 data = pl.concat([data.head(n=n_head), data.tail(n=n_tail)])
+
+                row_number_list = list(range(1, n_head + 1)) + list(
+                    range(n_rows - n_tail + 1, n_rows + 1)
+                )
 
         if tbl_type == "pandas":
 
@@ -191,36 +262,23 @@ def preview(
             n_rows = data.shape[0]
 
             # If n_head + n_tail is greater than the row count, display the entire table
-            if n_head + n_tail > n_rows:
+            if n_head + n_tail >= n_rows:
                 full_dataset = True
                 data_subset = data
+
+                row_number_list = range(1, n_rows + 1)
             else:
                 data = pd.concat([data.head(n=n_head), data.tail(n=n_tail)])
 
-    # If the columns_subset is not None, get the columns to display
-    if columns_subset is not None:
-        col_names = _get_column_names(data, ibis_tbl, df_lib_name)
-        resolved_columns = _validate_columns_subset(columns_subset, col_names)
+                row_number_list = list(range(1, n_head + 1)) + list(
+                    range(n_rows - n_tail + 1, n_rows + 1)
+                )
 
-        if len(resolved_columns) == 0:
-            raise ValueError(
-                "The `columns_subset=` value doesn't resolve to any columns in the table."
-            )
-
-        # Select the columns to display in the table with `resolved_columns`
-        data = _select_columns(data, resolved_columns, ibis_tbl, tbl_type)
-
-    # Get the Schema of the table
-    tbl_schema = Schema(tbl=data)
-
-    # Get dictionary of column names and data types
+    # From the table schema, get a list of tuples containing column names and data types
     col_dtype_dict = tbl_schema.columns
 
-    # Get a list of column names
-    if ibis_tbl:
-        col_names = data.columns if df_lib_name == "polars" else list(data.columns)
-    else:
-        col_names = list(data.columns)
+    # Extract the column names from the list of tuples (first element of each tuple)
+    col_names = [col[0] for col in col_dtype_dict]
 
     # Iterate over the list of tuples and create a new dictionary with the
     # column names and data types
@@ -236,27 +294,19 @@ def preview(
     # For each of the columns get the average number of characters printed for each of the values
     max_length_col_vals = []
 
-    for col in col_dtype_dict.keys():
+    for column in col_dtype_dict.keys():
 
-        if ibis_tbl:
-            if df_lib_name == "pandas":
-                data_col = data[[col]]
-            else:
-                data_col = data.select([col])
+        # Select a single column of values
+        data_col = data[[column]] if df_lib_name_gt == "pandas" else data.select([column])
 
-        else:
-            if tbl_type == "polars":
-                data_col = data.select([col])
-            else:
-                data_col = data[[col]]
-
-        built_gt = GT(data=data_col).fmt_markdown(columns=col)._build_data(context="html")
-        column_values = gt.gt._get_column_of_values(built_gt, column_name=col, context="html")
+        # Using Great Tables, render the columns and get the list of values as formatted strings
+        built_gt = GT(data=data_col).fmt_markdown(columns=column)._build_data(context="html")
+        column_values = gt.gt._get_column_of_values(built_gt, column_name=column, context="html")
 
         # Get the maximum number of characters in the column
         max_length_col_vals.append(max([len(str(val)) for val in column_values]))
 
-    length_col_names = [len(col) for col in col_dtype_dict.keys()]
+    length_col_names = [len(column) for column in col_dtype_dict.keys()]
     length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
 
     # Comparing the length of the column names, the data types, and the max length of the
@@ -280,6 +330,32 @@ def preview(
         for k, v in col_dtype_dict_short.items()
     }
 
+    # Prepend a column that contains the row numbers if `show_row_numbers=True`
+    if show_row_numbers:
+
+        if df_lib_name_gt == "polars":
+
+            import polars as pl
+
+            row_number_series = pl.Series("_row_num_", row_number_list)
+            data = data.insert_column(0, row_number_series)
+
+        if df_lib_name_gt == "pandas":
+
+            import pandas as pd
+
+            data.insert(0, "_row_num_", row_number_list)
+
+        # Get the highest number in the `row_number_list` and calculate a width that will
+        # safely fit a number of that magnitude
+        max_row_num = max(row_number_list)
+        max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+
+        # Update the col_width_dict to include the row number column
+        col_width_dict = {"_row_num_": f"{max_row_num_width}px"} | col_width_dict
+        # Update the col_dtype_labels_dict to include the row number column (use empty string)
+        col_dtype_labels_dict = {"_row_num_": ""} | col_dtype_labels_dict
+
     gt_tbl = (
         GT(data=data, id="pb_preview_tbl")
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
@@ -301,9 +377,17 @@ def preview(
         )
         .tab_style(
             style=style.borders(
-                sides=["top", "bottom"], color="#E5E5E5", style="dashed", weight="1px"
+                sides=["top", "bottom"], color="#E9E9E", style="solid", weight="1px"
             ),
             locations=loc.body(),
+        )
+        .tab_options(
+            table_body_vlines_style="solid",
+            table_body_vlines_width="1px",
+            table_body_vlines_color="#E9E9E9",
+            column_labels_vlines_style="solid",
+            column_labels_vlines_width="1px",
+            column_labels_vlines_color="#F2F2F2",
         )
         .cols_label(cases=col_dtype_labels_dict)
         .cols_width(cases=col_width_dict)
@@ -316,12 +400,22 @@ def preview(
             locations=loc.body(rows=n_head - 1),
         )
 
+    if show_row_numbers:
+
+        gt_tbl = gt_tbl.tab_style(
+            style=[
+                style.text(color="gray", font=google_font(name="IBM Plex Mono"), size="10px"),
+                style.borders(sides="right", color="#6699CC80", style="solid", weight="2px"),
+            ],
+            locations=loc.body(columns="_row_num_"),
+        )
+
     return gt_tbl
 
 
-def _get_column_names(data: FrameT | Any, ibis_tbl: bool, df_lib_name: str) -> list[str]:
+def _get_column_names(data: FrameT | Any, ibis_tbl: bool, df_lib_name_gt: str) -> list[str]:
     if ibis_tbl:
-        return data.columns if df_lib_name == "polars" else list(data.columns)
+        return data.columns if df_lib_name_gt == "polars" else list(data.columns)
     return list(data.columns)
 
 
