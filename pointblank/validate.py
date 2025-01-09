@@ -5651,7 +5651,9 @@ def _create_label_html(label: str | None, start_time: str) -> str:
     )
 
 
-def _create_table_type_html(tbl_type: str | None, tbl_name: str | None) -> str:
+def _create_table_type_html(
+    tbl_type: str | None, tbl_name: str | None, font_size: str = "smaller"
+) -> str:
 
     if tbl_type is None:
         return ""
@@ -5665,7 +5667,7 @@ def _create_table_type_html(tbl_type: str | None, tbl_name: str | None) -> str:
         return (
             f"<span style='background-color: {style['background']}; color: {style['text']}; padding: 0.5em 0.5em; "
             f"position: inherit; text-transform: uppercase; margin: 5px 10px 5px 0px; border: solid 1px {style['background']}; "
-            f"font-weight: bold; padding: 2px 10px 2px 10px; font-size: smaller;'>{style['label']}</span>"
+            f"font-weight: bold; padding: 2px 10px 2px 10px; font-size: {font_size};'>{style['label']}</span>"
         )
 
     return (
