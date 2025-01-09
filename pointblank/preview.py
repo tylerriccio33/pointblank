@@ -7,6 +7,7 @@ from great_tables import GT, style, loc, google_font, html
 
 from pointblank.column import Column
 from pointblank.schema import Schema
+from pointblank.validate import _create_table_type_html, _create_table_dims_html
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
 __all__ = ["preview"]
@@ -19,6 +20,7 @@ def preview(
     n_tail: int = 5,
     limit: int | None = 50,
     show_row_numbers: bool = True,
+    incl_header: bool = True,
     max_col_width: int | None = 250,
 ) -> GT:
     """
@@ -59,6 +61,9 @@ def preview(
     show_row_numbers
         Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
         in the full table.
+    incl_header
+        Should the table include a header with the table type and table dimensions? Set to `True` by
+        default.
     max_col_width
         The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
 
@@ -176,6 +181,12 @@ def preview(
     if pl_pb_tbl:
         df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
 
+        # Handle imports of Polars or Pandas here
+        if df_lib_name_gt == "polars":
+            import polars as pl
+        else:
+            import pandas as pd
+
     # If `columns_subset=` is not None, resolve the columns to display
     if columns_subset is not None:
 
@@ -240,8 +251,6 @@ def preview(
 
         if tbl_type == "polars":
 
-            import polars as pl
-
             n_rows = int(data.height)
 
             # If n_head + n_tail is greater than the row count, display the entire table
@@ -256,8 +265,6 @@ def preview(
                 )
 
         if tbl_type == "pandas":
-
-            import pandas as pd
 
             n_rows = data.shape[0]
 
@@ -289,6 +296,16 @@ def preview(
         k: v.split("(")[0] if "(" in v else v for k, v in col_dtype_dict.items()
     }
 
+    # Create a dictionary of column and row positions where the value is None/NA/NULL
+    # This is used to highlight these values in the table
+    if df_lib_name_gt == "polars":
+        none_values = {k: data[k].is_null().to_list() for k in col_names}
+    else:
+        none_values = {k: data[k].isnull() for k in col_names}
+
+    none_values = [(k, i) for k, v in none_values.items() for i, val in enumerate(v) if val]
+
+    # Import Great Tables to get preliminary renders of the columns
     import great_tables as gt
 
     # For each of the columns get the average number of characters printed for each of the values
@@ -342,8 +359,6 @@ def preview(
 
         if df_lib_name_gt == "pandas":
 
-            import pandas as pd
-
             data.insert(0, "_row_num_", row_number_list)
 
         # Get the highest number in the `row_number_list` and calculate a width that will
@@ -356,9 +371,29 @@ def preview(
         # Update the col_dtype_labels_dict to include the row number column (use empty string)
         col_dtype_labels_dict = {"_row_num_": ""} | col_dtype_labels_dict
 
+        # Create the label, table type, and thresholds HTML fragments
+        table_type_html = _create_table_type_html(
+            tbl_type=tbl_type, tbl_name=None, font_size="10px"
+        )
+
+        tbl_dims_html = _create_table_dims_html(
+            columns=len(col_names), rows=n_rows, font_size="10px"
+        )
+
+        # Compose the subtitle HTML fragment
+        combined_subtitle = (
+            "<div>"
+            '<div style="padding-top: 0; padding-bottom: 7px;">'
+            f"{table_type_html}"
+            f"{tbl_dims_html}"
+            "</div>"
+            "</div>"
+        )
+
     gt_tbl = (
         GT(data=data, id="pb_preview_tbl")
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
         .fmt_markdown(columns=col_names)
         .tab_style(
             style=style.css(
@@ -392,6 +427,23 @@ def preview(
         .cols_label(cases=col_dtype_labels_dict)
         .cols_width(cases=col_width_dict)
     )
+
+    if incl_header:
+        gt_tbl = gt_tbl.tab_header(title=html(combined_subtitle))
+        gt_tbl = gt_tbl.tab_options(heading_subtitle_font_size="12px")
+
+    if none_values:
+        for column, none_index in none_values:
+            gt_tbl = gt_tbl.tab_style(
+                style=[style.text(color="#B22222"), style.fill(color="#FFC1C159")],
+                locations=loc.body(rows=none_index, columns=column),
+            )
+
+        if tbl_type == "pandas":
+            gt_tbl = gt_tbl.sub_missing(missing_text="NA")
+
+        if ibis_tbl:
+            gt_tbl = gt_tbl.sub_missing(missing_text="NULL")
 
     if not full_dataset:
 
