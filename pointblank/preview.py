@@ -7,6 +7,7 @@ from great_tables import GT, style, loc, google_font, html
 
 from pointblank.column import Column
 from pointblank.schema import Schema
+from pointblank.validate import _create_table_type_html, _create_table_dims_html
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
 __all__ = ["preview"]
@@ -370,9 +371,29 @@ def preview(
         # Update the col_dtype_labels_dict to include the row number column (use empty string)
         col_dtype_labels_dict = {"_row_num_": ""} | col_dtype_labels_dict
 
+        # Create the label, table type, and thresholds HTML fragments
+        table_type_html = _create_table_type_html(
+            tbl_type=tbl_type, tbl_name=None, font_size="10px"
+        )
+
+        tbl_dims_html = _create_table_dims_html(
+            columns=len(col_names), rows=n_rows, font_size="10px"
+        )
+
+        # Compose the subtitle HTML fragment
+        combined_subtitle = (
+            "<div>"
+            '<div style="padding-top: 0; padding-bottom: 7px;">'
+            f"{table_type_html}"
+            f"{tbl_dims_html}"
+            "</div>"
+            "</div>"
+        )
+
     gt_tbl = (
         GT(data=data, id="pb_preview_tbl")
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
         .fmt_markdown(columns=col_names)
         .tab_style(
             style=style.css(
@@ -406,6 +427,10 @@ def preview(
         .cols_label(cases=col_dtype_labels_dict)
         .cols_width(cases=col_width_dict)
     )
+
+    if incl_header:
+        gt_tbl = gt_tbl.tab_header(title=html(combined_subtitle))
+        gt_tbl = gt_tbl.tab_options(heading_subtitle_font_size="12px")
 
     if none_values:
         for column, none_index in none_values:
