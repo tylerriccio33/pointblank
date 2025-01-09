@@ -13,7 +13,7 @@ from pointblank.column import (
     first_n,
     last_n,
 )
-from pointblank.preview import preview
+from pointblank.preview import preview, get_column_count, get_row_count
 from pointblank.validate import load_dataset
 
 
@@ -134,3 +134,55 @@ def test_preview_with_columns_subset_failing(tbl_type):
         preview(tbl, columns_subset=["fake_id", "item_name", "item_revenue"])
     with pytest.raises(ValueError):
         preview(tbl, columns_subset=col(matches("fake_id")))
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_get_column_count(tbl_type):
+
+    small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+
+    assert get_column_count(small_table) == 8
+    assert get_column_count(game_revenue) == 11
+
+
+def test_get_column_count_failing():
+
+    with pytest.raises(ValueError):
+        get_column_count(None)
+    with pytest.raises(ValueError):
+        get_column_count("not a table")
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_get_row_count(tbl_type):
+
+    small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+
+    assert get_row_count(small_table) == 13
+    assert get_row_count(game_revenue) == 2000
+
+
+def test_get_row_count_no_polars_duckdb_table():
+
+    small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    # Mock the absence of the Polars library, which is the default library for making
+    # a table for the preview; this should not raise an error since Pandas is the
+    # fallback library and is available
+    with patch.dict(sys.modules, {"polars": None}):
+        assert get_row_count(small_table) == 13
+
+    # Mock the absence of the Pandas library, which is a secondary library for making
+    # a table for the preview; this should not raise an error since Polars is the default
+    # library and is available
+    with patch.dict(sys.modules, {"pandas": None}):
+        assert get_row_count(small_table) == 13
+
+    # Mock the absence of both the Polars and Pandas libraries, which are the libraries
+    # for making a table for the preview; this should raise an error since there are no
+    # libraries available to make a table for the preview
+    with patch.dict(sys.modules, {"polars": None, "pandas": None}):
+        with pytest.raises(ImportError):
+            assert get_row_count(small_table) == 13
