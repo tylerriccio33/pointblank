@@ -19,6 +19,7 @@ def preview(
     n_tail: int = 5,
     limit: int | None = 50,
     show_row_numbers: bool = True,
+    incl_header: bool = True,
     max_col_width: int | None = 250,
 ) -> GT:
     """
@@ -59,6 +60,9 @@ def preview(
     show_row_numbers
         Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
         in the full table.
+    incl_header
+        Should the table include a header with the table type and table dimensions? Set to `True` by
+        default.
     max_col_width
         The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
 
