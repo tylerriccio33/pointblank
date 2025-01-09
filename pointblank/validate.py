@@ -5682,15 +5682,6 @@ def _create_table_type_html(
 
 def _create_table_dims_html(columns: int, rows: int, font_size: str = "10px") -> str:
 
-    if columns is None and rows is None:
-        return ""
-
-    if columns is None or columns == 0:
-        columns = "&mdash;"
-
-    if rows is None or rows == 0:
-        rows = "&mdash;"
-
     return (
         f"<span style='background-color: #eecbff; color: #333333; padding: 0.5em 0.5em; "
         f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 5px; "
