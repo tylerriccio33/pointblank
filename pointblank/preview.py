@@ -10,7 +10,7 @@ from pointblank.schema import Schema
 from pointblank.validate import _create_table_type_html, _create_table_dims_html
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
-__all__ = ["preview"]
+__all__ = ["preview", "get_column_count", "get_row_count"]
 
 
 def preview(
@@ -498,3 +498,169 @@ def _select_columns(
     if tbl_type == "polars":
         return data.select(resolved_columns)
     return data[resolved_columns]
+
+
+def get_column_count(data: FrameT | Any) -> int:
+    """
+    Get the number of columns in a table.
+
+    The `get_column_count()` function returns the number of columns in a table. The function works
+    with any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the column count, which could be a DataFrame object or an Ibis
+        table object. Read the *Supported Input Table Types* section for details on the supported
+        table types.
+
+    Returns
+    -------
+    int
+        The number of columns in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_column_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    To get the number of columns in a table, we can use the `get_column_count()` function. Here's an
+    example using the `small_table` dataset (itself loaded using the `load_dataset()` function):
+
+    ```{python}
+    import pointblank as pb
+
+    small_table_polars = pb.load_dataset("small_table")
+
+    pb.get_column_count(small_table_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `get_column_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```{python}
+    small_table_duckdb = pb.load_dataset("small_table", tbl_type="duckdb")
+
+    pb.get_column_count(small_table_duckdb)
+    ```
+
+    The function always returns the number of columns in the table as an integer value, which is
+    `8` for the `small_table` dataset.
+    """
+
+    if "ibis.expr.types.relations.Table" in str(type(data)):
+        return len(data.columns)
+
+    elif "polars" in str(type(data)):
+        return len(data.columns)
+
+    elif "pandas" in str(type(data)):
+        return data.shape[1]
+
+    else:
+        raise ValueError("The input table type supplied in `data=` is not supported.")
+
+
+def get_row_count(data: FrameT | Any) -> int:
+    """
+    Get the number of rows in a table.
+
+    The `get_row_count()` function returns the number of rows in a table. The function works with
+    any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the row count, which could be a DataFrame object or an Ibis table
+        object. Read the *Supported Input Table Types* section for details on the supported table
+        types.
+
+    Returns
+    -------
+    int
+        The number of rows in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_row_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    Getting the number of rows in a table is easily done by using the `get_row_count()` function.
+    Here's an example using the `game_revenue` dataset (itself loaded using the `load_dataset()`
+    function):
+
+    ```{python}
+    import pointblank as pb
+
+    game_revenue_polars = pb.load_dataset("game_revenue")
+
+    pb.get_row_count(game_revenue_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `get_row_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```{python}
+    game_revenue_duckdb = pb.load_dataset("game_revenue", tbl_type="duckdb")
+
+    pb.get_row_count(game_revenue_duckdb)
+    ```
+
+    The function always returns the number of rows in the table as an integer value, which is `2000`
+    for the `game_revenue` dataset.
+    """
+
+    if "ibis.expr.types.relations.Table" in str(type(data)):
+
+        # Determine whether Pandas or Polars is available to get the row count
+        _check_any_df_lib(method_used="get_row_count")
+
+        # Select the DataFrame library to use for displaying the Ibis table
+        df_lib = _select_df_lib(preference="polars")
+        df_lib_name = df_lib.__name__
+
+        if df_lib_name == "pandas":
+            return int(data.count().to_pandas())
+        else:
+            return int(data.count().to_polars())
+
+    elif "polars" in str(type(data)):
+        return int(data.height)
+
+    elif "pandas" in str(type(data)):
+        return data.shape[0]
+
+    else:
+        raise ValueError("The input table type supplied in `data=` is not supported.")
