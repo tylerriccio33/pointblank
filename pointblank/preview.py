@@ -176,6 +176,12 @@ def preview(
     if pl_pb_tbl:
         df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
 
+        # Handle imports of Polars or Pandas here
+        if df_lib_name_gt == "polars":
+            import polars as pl
+        else:
+            import pandas as pd
+
     # If `columns_subset=` is not None, resolve the columns to display
     if columns_subset is not None:
 
@@ -240,8 +246,6 @@ def preview(
 
         if tbl_type == "polars":
 
-            import polars as pl
-
             n_rows = int(data.height)
 
             # If n_head + n_tail is greater than the row count, display the entire table
@@ -256,8 +260,6 @@ def preview(
                 )
 
         if tbl_type == "pandas":
-
-            import pandas as pd
 
             n_rows = data.shape[0]
 
@@ -289,6 +291,16 @@ def preview(
         k: v.split("(")[0] if "(" in v else v for k, v in col_dtype_dict.items()
     }
 
+    # Create a dictionary of column and row positions where the value is None/NA/NULL
+    # This is used to highlight these values in the table
+    if df_lib_name_gt == "polars":
+        none_values = {k: data[k].is_null().to_list() for k in col_names}
+    else:
+        none_values = {k: data[k].isnull() for k in col_names}
+
+    none_values = [(k, i) for k, v in none_values.items() for i, val in enumerate(v) if val]
+
+    # Import Great Tables to get preliminary renders of the columns
     import great_tables as gt
 
     # For each of the columns get the average number of characters printed for each of the values
@@ -342,8 +354,6 @@ def preview(
 
         if df_lib_name_gt == "pandas":
 
-            import pandas as pd
-
             data.insert(0, "_row_num_", row_number_list)
 
         # Get the highest number in the `row_number_list` and calculate a width that will
@@ -392,6 +402,19 @@ def preview(
         .cols_label(cases=col_dtype_labels_dict)
         .cols_width(cases=col_width_dict)
     )
+
+    if none_values:
+        for column, none_index in none_values:
+            gt_tbl = gt_tbl.tab_style(
+                style=[style.text(color="#B22222"), style.fill(color="#FFC1C159")],
+                locations=loc.body(rows=none_index, columns=column),
+            )
+
+        if tbl_type == "pandas":
+            gt_tbl = gt_tbl.sub_missing(missing_text="NA")
+
+        if ibis_tbl:
+            gt_tbl = gt_tbl.sub_missing(missing_text="NULL")
 
     if not full_dataset:
 
