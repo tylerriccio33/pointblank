@@ -164,6 +164,14 @@ def test_get_row_count(tbl_type):
     assert get_row_count(game_revenue) == 2000
 
 
+def test_get_row_count_failing():
+
+    with pytest.raises(ValueError):
+        get_row_count(None)
+    with pytest.raises(ValueError):
+        get_row_count("not a table")
+
+
 def test_get_row_count_no_polars_duckdb_table():
 
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
