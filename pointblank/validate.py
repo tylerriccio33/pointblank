@@ -2858,6 +2858,121 @@ class Validate:
 
         return self
 
+    def row_count_match(
+        self,
+        count: int | FrameT | Any,
+        inverse: bool = False,
+        pre: Callable | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Validate whether the row count of the table matches a specified count.
+
+        The `row_count_match()` method checks whether the row count of the target table matches a
+        specified count. This validation will operate over a single test unit, which is whether the
+        row count matches the specified count.
+
+        We also have the option to invert the validation step by setting `inverse=True`. This will
+        make the expectation that the row count of the target table *does not* match the specified
+        count.
+
+        Parameters
+        ----------
+        count
+            The expected row count of the table. This can be an integer value, a Polars DataFrame
+            object, or an Ibis backend table. If a DataFrame/table is provided, the row count of the
+            DataFrame will be used as the expected count.
+        inverse
+            Should the validation step be inverted? If `True`, then the expectation is that the row
+            count of the target table should not match the specified `count=` value.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
+
+        For the examples here, we'll use the built in dataset `"small_table"`. The table can be
+        obtained by calling `load_dataset("small_table")`.
+
+        ```{python}
+        import pointblank as pb
+
+        small_table = pb.load_dataset("small_table")
+
+        small_table
+        ```
+
+        Let's validate that the number of rows in the table matches a fixed value. In this case, we
+        will use the value `13` as the expected row count.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=small_table)
+            .row_count_match(count=13)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table shows that the expectation value of `13` matches the actual count of
+        rows in the target table. So, the single test unit passed.
+        """
+
+        assertion_type = _get_fn_name()
+
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+        _check_boolean_input(param=inverse, param_name="inverse")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        # If `count` is a DataFrame or table then use the row count of the DataFrame as
+        # the expected count
+        if _is_value_a_df(count) or "ibis.expr.types.relations.Table" in str(type(count)):
+            count = get_row_count(count)
+
+        # Package up the `count=` and boolean params into a dictionary for later interrogation
+        values = {"count": count, "inverse": inverse}
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            values=values,
+            pre=pre,
+            thresholds=thresholds,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
     def interrogate(
         self,
         collect_extracts: bool = True,
