@@ -64,6 +64,7 @@ from pointblank._utils_check_args import (
     _check_thresholds,
     _check_boolean_input,
 )
+from pointblank._utils_html import _create_table_type_html
 
 __all__ = ["Validate", "load_dataset", "config"]
 
