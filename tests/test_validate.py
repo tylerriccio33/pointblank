@@ -4320,6 +4320,8 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .row_count_match(count=2, inverse=True)
         .col_count_match(count=8)
         .col_count_match(count=2, inverse=True)
+        .rows_distinct()
+        .rows_distinct(columns_subset=["a", "b", "c"])
         .interrogate()
     )
 
