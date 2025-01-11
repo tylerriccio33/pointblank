@@ -3219,6 +3219,10 @@ class Validate:
 
         for validation in self.validation_info:
 
+            # Set the `i` value for the validation step (this is 1-indexed)
+            index_value = self.validation_info.index(validation) + 1
+            validation.i = index_value
+
             start_time = datetime.datetime.now(datetime.timezone.utc)
 
             # Skip the validation step if it is not active but still record the time of processing
