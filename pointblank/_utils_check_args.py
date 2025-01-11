@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from narwhals.typing import IntoDataFrameT
+
 from typing import Callable
 from pointblank.thresholds import Thresholds
 from pointblank.column import Column, ColumnSelector
@@ -71,6 +73,29 @@ def _check_value_float_int(value: float | int | any):
 
     if not isinstance(value, (float, int, Column)) or isinstance(value, bool):
         raise ValueError("`value=` must be a float, integer, or reference to a column.")
+
+
+def _check_count_float_int_tbl(count: float | int | any):
+    """
+    Check that input value of the `count=` parameter is a float, integer, or table
+
+    Parameters
+    ----------
+    count
+        The value to compare against in a validation.
+
+    Raises
+    ------
+    ValueError
+        When `count` is not a float or integer.
+    """
+
+    if (
+        not isinstance(count, (float, int))
+        or not isinstance(count, IntoDataFrameT)
+        or "ibis.expr.types.relations.Table" not in str(type(count))
+    ):
+        raise ValueError("`count=` must be a float, integer, or a data table.")
 
 
 def _check_set_types(set: list[float | int | str]):
