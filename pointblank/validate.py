@@ -4930,7 +4930,7 @@ class Validate:
             if assertion_type[i] in ["col_schema_match", "row_count_match", "col_count_match"]:
                 columns_upd.append("&mdash;")
             else:
-                columns_upd.append(column)
+                columns_upd.append(str(column))
 
         # Add the `columns_upd` entry to the dictionary
         validation_info_dict["columns_upd"] = columns_upd
