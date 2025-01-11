@@ -2113,6 +2113,24 @@ def test_col_schema_match():
     )
 
 
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_row_count_match(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).row_count_match(count=4).interrogate().n_passed(i=1, scalar=True) == 1
+
+    assert (
+        Validate(tbl)
+        .row_count_match(count=3, inverse=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
+
+
 def test_col_schema_match_list_of_dtypes():
 
     tbl = pl.DataFrame(
