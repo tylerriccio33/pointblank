@@ -20,10 +20,16 @@ from pointblank.column import (
     first_n,
     last_n,
 )
-from pointblank.validate import Validate, load_dataset, config
+from pointblank.validate import (
+    Validate,
+    load_dataset,
+    config,
+    preview,
+    get_column_count,
+    get_row_count,
+)
 from pointblank.schema import Schema
 from pointblank.thresholds import Thresholds
-from pointblank.preview import preview, get_column_count, get_row_count
 
 __all__ = [
     "TF",
