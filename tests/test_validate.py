@@ -4297,6 +4297,8 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
         .col_exists(columns="z")
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
+        .row_count_match(count=13)
+        .row_count_match(count=2, inverse=True)
         .interrogate()
     )
 
