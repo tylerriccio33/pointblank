@@ -2131,6 +2131,24 @@ def test_row_count_match(request, tbl_fixture):
     assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
 
 
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_col_count_match(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert Validate(tbl).col_count_match(count=3).interrogate().n_passed(i=1, scalar=True) == 1
+
+    assert (
+        Validate(tbl)
+        .col_count_match(count=8, inverse=True)
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert Validate(tbl).col_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
+
+
 def test_col_schema_match_list_of_dtypes():
 
     tbl = pl.DataFrame(
@@ -4299,6 +4317,8 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
         .row_count_match(count=13)
         .row_count_match(count=2, inverse=True)
+        .col_count_match(count=8)
+        .col_count_match(count=2, inverse=True)
         .interrogate()
     )
 
