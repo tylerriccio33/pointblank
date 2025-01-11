@@ -240,7 +240,7 @@ class _ValidationInfo:
     i
         The validation step number.
     i_o
-        The original validation step number (if a step creates multiple steps). Unused.
+        The original validation step number (if a step creates multiple steps).
     step_id
         The ID of the step (if a step creates multiple steps). Unused.
     sha1
@@ -3219,6 +3219,10 @@ class Validate:
 
         for validation in self.validation_info:
 
+            # Set the `i` value for the validation step (this is 1-indexed)
+            index_value = self.validation_info.index(validation) + 1
+            validation.i = index_value
+
             start_time = datetime.datetime.now(datetime.timezone.utc)
 
             # Skip the validation step if it is not active but still record the time of processing
@@ -5222,6 +5226,11 @@ class Validate:
         validation_info_dict.pop("active")
         validation_info_dict.pop("all_passed")
 
+        # If no interrogation performed, populate the `i` entry with a sequence of integers
+        # from `1` to the number of validation steps
+        if not interrogation_performed:
+            validation_info_dict["i"] = list(range(1, len(validation_info_dict["type_upd"]) + 1))
+
         # Create a table time string
         table_time = _create_table_time_html(time_start=self.time_start, time_end=self.time_end)
 
@@ -5452,7 +5461,11 @@ class Validate:
             Information about the validation to add.
         """
 
-        validation_info.i = len(self.validation_info) + 1
+        # Get the largest value of `i_o` in the `validation_info`
+        max_i_o = max([validation.i_o for validation in self.validation_info], default=0)
+
+        # Set the `i_o` attribute to the largest value of `i_o` plus 1
+        validation_info.i_o = max_i_o + 1
 
         self.validation_info.append(validation_info)
 

@@ -354,7 +354,8 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     ]
 
     # Check the attributes of the `validation_info` object
-    assert val_info.i == 1
+    assert val_info.i is None
+    assert val_info.i_o == 1
     assert val_info.assertion_type == "col_vals_gt"
     assert val_info.column == "x"
     assert val_info.values == 0

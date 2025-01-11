@@ -1,6 +1,6 @@
 [
     {
-        "i": 1,
+        "i": null,
         "assertion_type": "col_vals_gt",
         "all_passed": null,
         "n": null,

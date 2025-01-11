@@ -1,6 +1,7 @@
 [
     {
-        "i": 1,
+        "i": null,
+        "i_o": 1,
         "assertion_type": "col_vals_gt",
         "column": "x",
         "values": 0,

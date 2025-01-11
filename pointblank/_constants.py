@@ -85,6 +85,7 @@ IBIS_BACKENDS = ["duckdb", "mysql", "postgres", "sqlite", "parquet", "memtable"]
 
 VALIDATION_REPORT_FIELDS = [
     "i",
+    "i_o",
     "assertion_type",
     "column",
     "values",
