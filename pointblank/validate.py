@@ -29,8 +29,12 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank.column import Column, col, ColumnSelector
-from pointblank.preview import get_column_count, get_row_count
 from pointblank.schema import Schema
+from pointblank.thresholds import (
+    Thresholds,
+    _normalize_thresholds_creation,
+    _convert_abs_count_to_fraction,
+)
 from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
@@ -42,11 +46,6 @@ from pointblank._interrogation import (
     ColCountMatch,
     NumberOfTestUnits,
     RowsDistinct,
-)
-from pointblank.thresholds import (
-    Thresholds,
-    _normalize_thresholds_creation,
-    _convert_abs_count_to_fraction,
 )
 from pointblank._utils import (
     _get_tbl_type,
@@ -65,9 +64,9 @@ from pointblank._utils_check_args import (
     _check_thresholds,
     _check_boolean_input,
 )
-from pointblank._utils_html import _create_table_type_html
+from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
 
-__all__ = ["Validate", "load_dataset", "config"]
+__all__ = ["Validate", "load_dataset", "config", "preview", "get_column_count", "get_row_count"]
 
 
 @dataclass
