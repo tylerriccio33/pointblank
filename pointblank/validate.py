@@ -240,7 +240,7 @@ class _ValidationInfo:
     i
         The validation step number.
     i_o
-        The original validation step number (if a step creates multiple steps). Unused.
+        The original validation step number (if a step creates multiple steps).
     step_id
         The ID of the step (if a step creates multiple steps). Unused.
     sha1
