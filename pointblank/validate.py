@@ -77,16 +77,21 @@ class PointblankConfig:
 
     report_incl_header: bool = True
     report_incl_footer: bool = True
+    preview_incl_header: bool = True
 
     def __repr__(self):
-        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer})"
+        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer}, preview_incl_header={self.preview_incl_header})"
 
 
 # Global configuration instance
 global_config = PointblankConfig()
 
 
-def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> PointblankConfig:
+def config(
+    report_incl_header: bool = True,
+    report_incl_footer: bool = True,
+    preview_incl_header: bool = True,
+) -> PointblankConfig:
     """
     Configuration settings for the pointblank library.
 
@@ -99,6 +104,9 @@ def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> 
     report_incl_footer
         Should the footer of the validation table report be displayed? The footer contains the
         starting and ending times of the interrogation.
+    preview_incl_header
+        Whether the header should be present in any preview table (generated via the `preview()`
+        function).
 
     Returns
     -------
@@ -109,6 +117,7 @@ def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> 
     global global_config
     global_config.report_incl_header = report_incl_header  # pragma: no cover
     global_config.report_incl_footer = report_incl_footer  # pragma: no cover
+    global_config.preview_incl_header = preview_incl_header  # pragma: no cover
 
 
 def load_dataset(
