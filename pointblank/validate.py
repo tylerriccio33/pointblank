@@ -4793,6 +4793,7 @@ class Validate:
         # Iterate over the values in the `column` entry
         for i, column in enumerate(columns):
 
+            if assertion_type[i] in ["col_schema_match", "row_count_match"]:
                 columns_upd.append("&mdash;")
             else:
                 columns_upd.append(column)
@@ -4848,6 +4849,16 @@ class Validate:
 
             elif assertion_type[i] in ["col_schema_match"]:
                 values_upd.append("SCHEMA")
+
+            elif assertion_type[i] in ["row_count_match"]:
+
+                count = values[i]["count"]
+                inverse = values[i]["inverse"]
+
+                if inverse:
+                    count = f"&ne; {count}"
+
+                values_upd.append(str(count))
 
             # If the assertion type is not recognized, add the value as a string
             else:
