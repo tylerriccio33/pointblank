@@ -7,7 +7,7 @@ from great_tables import GT, style, loc, google_font, html
 
 from pointblank.column import Column
 from pointblank.schema import Schema
-from pointblank.validate import _create_table_type_html, _create_table_dims_html
+from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
 from pointblank._utils import _get_tbl_type, _check_any_df_lib, _select_df_lib
 
 __all__ = ["preview", "get_column_count", "get_row_count"]

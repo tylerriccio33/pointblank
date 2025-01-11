@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from narwhals.typing import IntoDataFrameT
+
 from typing import Callable
 from pointblank.thresholds import Thresholds
 from pointblank.column import Column, ColumnSelector

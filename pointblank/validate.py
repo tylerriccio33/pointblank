@@ -25,11 +25,11 @@ from pointblank._constants import (
     IBIS_BACKENDS,
     ROW_BASED_VALIDATION_TYPES,
     VALIDATION_REPORT_FIELDS,
-    TABLE_TYPE_STYLES,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank.column import Column, col, ColumnSelector
+from pointblank.preview import get_row_count
 from pointblank.schema import Schema
 from pointblank._interrogation import (
     ColValsCompareOne,
@@ -38,6 +38,7 @@ from pointblank._interrogation import (
     ColValsRegex,
     ColExistsHasType,
     ColSchemaMatch,
+    RowCountMatch,
     NumberOfTestUnits,
     RowsDistinct,
 )
@@ -49,6 +50,7 @@ from pointblank.thresholds import (
 from pointblank._utils import (
     _get_tbl_type,
     _is_lib_present,
+    _is_value_a_df,
     _check_any_df_lib,
     _select_df_lib,
     _get_fn_name,
@@ -62,6 +64,7 @@ from pointblank._utils_check_args import (
     _check_thresholds,
     _check_boolean_input,
 )
+from pointblank._utils_html import _create_table_type_html
 
 __all__ = ["Validate", "load_dataset", "config"]
 
@@ -2858,6 +2861,121 @@ class Validate:
 
         return self
 
+    def row_count_match(
+        self,
+        count: int | FrameT | Any,
+        inverse: bool = False,
+        pre: Callable | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Validate whether the row count of the table matches a specified count.
+
+        The `row_count_match()` method checks whether the row count of the target table matches a
+        specified count. This validation will operate over a single test unit, which is whether the
+        row count matches the specified count.
+
+        We also have the option to invert the validation step by setting `inverse=True`. This will
+        make the expectation that the row count of the target table *does not* match the specified
+        count.
+
+        Parameters
+        ----------
+        count
+            The expected row count of the table. This can be an integer value, a Polars DataFrame
+            object, or an Ibis backend table. If a DataFrame/table is provided, the row count of the
+            DataFrame will be used as the expected count.
+        inverse
+            Should the validation step be inverted? If `True`, then the expectation is that the row
+            count of the target table should not match the specified `count=` value.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False)
+        ```
+
+        For the examples here, we'll use the built in dataset `"small_table"`. The table can be
+        obtained by calling `load_dataset("small_table")`.
+
+        ```{python}
+        import pointblank as pb
+
+        small_table = pb.load_dataset("small_table")
+
+        small_table
+        ```
+
+        Let's validate that the number of rows in the table matches a fixed value. In this case, we
+        will use the value `13` as the expected row count.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=small_table)
+            .row_count_match(count=13)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table shows that the expectation value of `13` matches the actual count of
+        rows in the target table. So, the single test unit passed.
+        """
+
+        assertion_type = _get_fn_name()
+
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+        _check_boolean_input(param=inverse, param_name="inverse")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        # If `count` is a DataFrame or table then use the row count of the DataFrame as
+        # the expected count
+        if _is_value_a_df(count) or "ibis.expr.types.relations.Table" in str(type(count)):
+            count = get_row_count(count)
+
+        # Package up the `count=` and boolean params into a dictionary for later interrogation
+        values = {"count": count, "inverse": inverse}
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            values=values,
+            pre=pre,
+            thresholds=thresholds,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
     def interrogate(
         self,
         collect_extracts: bool = True,
@@ -3165,7 +3283,28 @@ class Validate:
 
                 results_tbl = None
 
-            if assertion_category not in ["COL_EXISTS_HAS_TYPE", "COL_SCHEMA_MATCH"]:
+            if assertion_category == "ROW_COUNT_MATCH":
+
+                result_bool = RowCountMatch(
+                    data_tbl=data_tbl_step,
+                    count=value["count"],
+                    inverse=value["inverse"],
+                    threshold=threshold,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
+                validation.all_passed = result_bool
+                validation.n = 1
+                validation.n_passed = int(result_bool)
+                validation.n_failed = 1 - result_bool
+
+                results_tbl = None
+
+            if assertion_category not in [
+                "COL_EXISTS_HAS_TYPE",
+                "COL_SCHEMA_MATCH",
+                "ROW_COUNT_MATCH",
+            ]:
 
                 # Extract the `pb_is_good_` column from the table as a results list
                 if tbl_type in IBIS_BACKENDS:
@@ -4654,7 +4793,7 @@ class Validate:
         # Iterate over the values in the `column` entry
         for i, column in enumerate(columns):
 
-            if assertion_type[i] in ["col_schema_match"]:
+            if assertion_type[i] in ["col_schema_match", "row_count_match"]:
                 columns_upd.append("&mdash;")
             else:
                 columns_upd.append(column)
@@ -4710,6 +4849,16 @@ class Validate:
 
             elif assertion_type[i] in ["col_schema_match"]:
                 values_upd.append("SCHEMA")
+
+            elif assertion_type[i] in ["row_count_match"]:
+
+                count = values[i]["count"]
+                inverse = values[i]["inverse"]
+
+                if inverse:
+                    count = f"&ne; {count}"
+
+                values_upd.append(str(count))
 
             # If the assertion type is not recognized, add the value as a string
             else:
@@ -5648,55 +5797,6 @@ def _create_label_html(label: str | None, start_time: str) -> str:
         f"text-decoration-line: underline; text-underline-position: under; color: #333333; "
         f"font-variant-numeric: tabular-nums; padding-left: 4px; margin-right: 5px; "
         f"padding-right: 2px;'>{label}</span>"
-    )
-
-
-def _create_table_type_html(
-    tbl_type: str | None, tbl_name: str | None, font_size: str = "smaller"
-) -> str:
-
-    if tbl_type is None:
-        return ""
-
-    style = TABLE_TYPE_STYLES.get(tbl_type)
-
-    if style is None:
-        return ""
-
-    if tbl_name is None:
-        return (
-            f"<span style='background-color: {style['background']}; color: {style['text']}; padding: 0.5em 0.5em; "
-            f"position: inherit; text-transform: uppercase; margin: 5px 10px 5px 0px; border: solid 1px {style['background']}; "
-            f"font-weight: bold; padding: 2px 10px 2px 10px; font-size: {font_size};'>{style['label']}</span>"
-        )
-
-    return (
-        f"<span style='background-color: {style['background']}; color: {style['text']}; padding: 0.5em 0.5em; "
-        f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 0px; border: solid 1px {style['background']}; "
-        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;'>{style['label']}</span>"
-        f"<span style='background-color: none; color: #222222; padding: 0.5em 0.5em; "
-        f"position: inherit; margin: 5px 10px 5px -4px; border: solid 1px {style['background']}; "
-        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;'>{tbl_name}</span>"
-    )
-
-
-def _create_table_dims_html(columns: int, rows: int, font_size: str = "10px") -> str:
-
-    return (
-        f"<span style='background-color: #eecbff; color: #333333; padding: 0.5em 0.5em; "
-        f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 5px; "
-        f"font-weight: bold; border: solid 1px #eecbff; padding: 2px 15px 2px 15px; "
-        f"font-size: {font_size};'>Rows</span>"
-        f"<span style='background-color: none; color: #333333; padding: 0.5em 0.5em; "
-        f"position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
-        f"border: solid 1px #eecbff; padding: 2px 15px 2px 15px; font-size: {font_size};'>{rows}</span>"
-        f"<span style='background-color: #BDE7B4; color: #333333; padding: 0.5em 0.5em; "
-        f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 3px; "
-        f"font-weight: bold; border: solid 1px #BDE7B4; padding: 2px 15px 2px 15px; "
-        f"font-size: {font_size};'>Columns</span>"
-        f"<span style='background-color: none; color: #333333; padding: 0.5em 0.5em; "
-        f"position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
-        f"border: solid 1px #BDE7B4; padding: 2px 15px 2px 15px; font-size: {font_size};'>{columns}</span>"
     )
 
 

@@ -1701,6 +1701,55 @@ class ColSchemaMatch:
 
 
 @dataclass
+class RowCountMatch:
+    """
+    Check if rows in a DataFrame either match or don't match a fixed value.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    count
+        The fixed row count to check against.
+    inverse
+        `True` to check if the row count does not match the fixed value, `False` otherwise.
+    threshold
+        The maximum number of failing test units to allow.
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT
+    count: int
+    inverse: bool
+    threshold: int
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+
+        from pointblank.preview import get_row_count
+
+        if not self.inverse:
+
+            res = get_row_count(data=self.data_tbl) == self.count
+            print(res)
+        else:
+
+            res = get_row_count(data=self.data_tbl) != self.count
+
+        self.test_unit_res = res
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+
+@dataclass
 class NumberOfTestUnits:
     """
     Count the number of test units in a column.
