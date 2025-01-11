@@ -74,6 +74,7 @@ quartodoc:
         - name: Validate.rows_distinct
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
+        - name: Validate.col_count_match
     - title: Column Selection
       desc: >
         A flexible way to select columns for validation is to use the `col()` function along with
