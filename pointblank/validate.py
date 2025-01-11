@@ -4769,7 +4769,6 @@ class Validate:
         # Iterate over the values in the `column` entry
         for i, column in enumerate(columns):
 
-            if assertion_type[i] in ["col_schema_match"]:
                 columns_upd.append("&mdash;")
             else:
                 columns_upd.append(column)
