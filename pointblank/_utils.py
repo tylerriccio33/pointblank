@@ -104,7 +104,7 @@ def _is_value_a_df(value: Any) -> bool:
         ns = nw.get_native_namespace(value)
         if "polars" in str(ns) or "pandas" in str(ns):
             return True
-        else:
+        else:  # pragma: no cover
             return False
     except (AttributeError, TypeError):
         return False
