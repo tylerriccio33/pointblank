@@ -60,12 +60,13 @@ class Schema:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
     A schema can be constructed via the `Schema` class in multiple ways. Let's use the following
     Polars DataFrame as a basis for constructing a schema:
 
     ```{python}
+    import pointblank as pb
     import polars as pl
 
     df = pl.DataFrame({
@@ -115,8 +116,6 @@ class Schema:
     the `col_schema_match()` method in a validation workflow:
 
     ```{python}
-    import pointblank as pb
-
     # Define the schema
     schema = pb.Schema(name="String", age="Int64", height="Float64")
 

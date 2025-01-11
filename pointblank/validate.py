@@ -151,8 +151,11 @@ def load_dataset(
 
     small_table = pb.load_dataset()
 
-    small_table
+    pb.preview(small_table)
     ```
+
+    Note that the `small_table` dataset is a simple Polars DataFrame and using the `preview()`
+    function will display the table in an HTML viewing environment.
 
     The `game_revenue` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
     and setting `tbl_type="pandas"`:
@@ -162,8 +165,10 @@ def load_dataset(
 
     game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
 
-    game_revenue
+    pb.preview(game_revenue)
     ```
+
+    The `game_revenue` dataset is a more real-world dataset with a mix of data types.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
@@ -414,7 +419,8 @@ class Validate:
     # Load the small_table dataset
     small_table = pb.load_dataset()
 
-    small_table
+    # Preview the table
+    pb.preview(small_table)
     ```
 
     We ought to think about what's tolerable in terms of data quality so let's designate
@@ -545,12 +551,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -561,7 +568,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all greater than the value of `4`. We'll
@@ -569,8 +576,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_gt(columns="a", value=4)
@@ -699,12 +704,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -715,7 +721,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all less than the value of `10`. We'll
@@ -723,8 +729,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_lt(columns="a", value=10)
@@ -852,12 +856,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -867,15 +872,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all equal to the value of `5`. We'll determine
         if this validation had any failing test units (there are six test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_eq(columns="a", value=5)
@@ -1004,12 +1007,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1019,15 +1023,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are not equal to the value of `3`. We'll determine
         if this validation had any failing test units (there are six test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_ne(columns="a", value=3)
@@ -1154,12 +1156,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1170,7 +1173,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all greater than or equal to the value of `5`.
@@ -1178,8 +1181,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_ge(columns="a", value=5)
@@ -1308,12 +1309,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1324,7 +1326,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all less than or equal to the value of `9`.
@@ -1332,8 +1334,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_le(columns="a", value=9)
@@ -1473,12 +1473,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1489,7 +1490,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all between the fixed boundary values of `1`
@@ -1497,8 +1498,6 @@ class Validate:
         units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_between(columns="a", left=1, right=5)
@@ -1650,12 +1649,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1666,7 +1666,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all outside the fixed boundary values of `1`
@@ -1674,8 +1674,6 @@ class Validate:
         units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_outside(columns="a", left=1, right=4)
@@ -1812,12 +1810,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1827,7 +1826,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all in the set of `[2, 3, 4, 5, 6]`. We'll
@@ -1835,8 +1834,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_in_set(columns="a", set=[2, 3, 4, 5, 6])
@@ -1949,12 +1946,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1964,7 +1962,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that none of the values in column `a` are in the set of `[2, 3, 4, 5, 6]`.
@@ -1972,8 +1970,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_not_in_set(columns="a", set=[2, 3, 4, 5, 6])
@@ -2085,12 +2081,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2100,15 +2097,13 @@ class Validate:
             }
         ).with_columns(pl.col("a").cast(pl.Int64))
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all Null values. We'll determine if this
         validation had any failing test units (there are four test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_null(columns="a")
@@ -2216,12 +2211,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2231,15 +2227,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that none of the values in column `a` are Null values. We'll determine if
         this validation had any failing test units (there are four test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_not_null(columns="a")
@@ -2355,12 +2349,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2370,7 +2365,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that all of the values in column `a` match a particular regex pattern. We'll
@@ -2378,8 +2373,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_regex(columns="a", pattern=r"r[a-z]-[0-9]{4}")
@@ -2488,12 +2481,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
         numeric column (`b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2503,15 +2497,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the columns `a` and `b` actually exist in the table. We'll determine if
         this validation had any failing test units (each validation will have a single test unit).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_exists(columns=["a", "b"])
@@ -2621,12 +2613,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three string columns
         (`col_1`, `col_2`, and `col_3`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2637,7 +2630,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the rows in the table are distinct with `rows_distinct()`. We'll
@@ -2645,8 +2638,6 @@ class Validate:
         each row). A failing test units means that a given row is not distinct from every other row.
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .rows_distinct()
@@ -2777,13 +2768,14 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
 
         For the examples here, we'll use a simple Polars DataFrame with three columns (string,
         integer, and float). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2794,15 +2786,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the columns in the table match a predefined schema. A schema can be
         defined using the `Schema` class.
 
         ```{python}
-        import pointblank as pb
-
         schema = pb.Schema(
             columns=[("a", "String"), ("b", "Int64"), ("c", "Float64")]
         )
@@ -2933,7 +2923,7 @@ class Validate:
 
         small_table = pb.load_dataset("small_table")
 
-        small_table
+        pb.preview(small_table)
         ```
 
         Let's validate that the number of rows in the table matches a fixed value. In this case, we
@@ -3048,7 +3038,7 @@ class Validate:
 
         game_revenue = pb.load_dataset("game_revenue")
 
-        game_revenue
+        pb.preview(game_revenue)
         ```
 
         Let's validate that the number of columns in the table matches a fixed value. In this case,
@@ -3172,8 +3162,8 @@ class Validate:
         rows are limited to the first `n` rows.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         validation = (
             pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
@@ -3193,12 +3183,13 @@ class Validate:
         `get_data_extracts()` method.
 
         ```{python}
-        validation.get_data_extracts(i=3, frame=True)
+        pb.preview(validation.get_data_extracts(i=3, frame=True))
         ```
 
         The `get_data_extracts()` method will return a Polars DataFrame with the first 10 rows that
-        failed the validation step. There are actually 18 rows that failed but we limited the
-        collection of extracts with `get_first_n=10`.
+        failed the validation step (we passed that into the `preview()` function for a better
+        display). There are actually 18 rows that failed but we limited the collection of extracts
+        with `get_first_n=10`.
         """
 
         # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
@@ -3566,8 +3557,8 @@ class Validate:
         used to determine if all validation steps passed perfectly.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3633,8 +3624,8 @@ class Validate:
         bit different.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3745,8 +3736,8 @@ class Validate:
         number of passing test units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3829,8 +3820,8 @@ class Validate:
         number of failing test units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3912,8 +3903,8 @@ class Validate:
         units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3997,8 +3988,8 @@ class Validate:
         units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4088,8 +4079,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4192,8 +4183,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4297,8 +4288,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4403,14 +4394,20 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(preview_incl_header=False)
+        ```
         Let's perform a series of validation steps on a Polars DataFrame. We'll use the
         `col_vals_gt()` in the first step, `col_vals_lt()` in the second step, and `col_vals_ge()`
         in the third step. The `interrogate()` method executes the validation; then, we can extract
         the rows that failed for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4461,11 +4458,12 @@ class Validate:
         value for `i`. For example, to get the extracted table for the second step as a DataFrame:
 
         ```{python}
-        validation.get_data_extracts(i=2, frame=True)
+        pb.preview(validation.get_data_extracts(i=2, frame=True))
         ```
 
         The extracted table is now a DataFrame, which can serve as a more convenient format for
-        further analysis or visualization.
+        further analysis or visualization. We further used the `pb.preview()` function to show the
+        DataFrame in an HTML view.
         """
         result = self._get_validation_dict(i, "extract")
         if frame and isinstance(i, int):
@@ -4568,11 +4566,17 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(preview_incl_header=False)
+        ```
         Let's create a `Validate` object with three validation steps and then interrogate the data.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4598,13 +4602,14 @@ class Validate:
         during interrogation.
 
         ```{python}
-        validation.get_sundered_data()
+        pb.preview(validation.get_sundered_data())
         ```
 
-        The returned DataFrame contains the rows that passed all validation steps. From the six-row
-        input DataFrame, the first two rows and the last two rows had test units that failed
-        validation. Thus the middle two rows are the only ones that passed all validation steps and
-        that's what we see in the returned DataFrame.
+        The returned DataFrame contains the rows that passed all validation steps (we passed this
+        object to `pb.preview()` to show it in an HTML view). From the six-row input DataFrame, the
+        first two rows and the last two rows had test units that failed validation. Thus the middle
+        two rows are the only ones that passed all validation steps and that's what we see in the
+        returned DataFrame.
         """
 
         # Keep only the validation steps that:

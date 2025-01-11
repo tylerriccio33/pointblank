@@ -269,7 +269,7 @@ def col(exprs: str | ColumnSelector) -> Column:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `a` and `b` and we'd like to validate that the values in
@@ -277,8 +277,8 @@ def col(exprs: str | ColumnSelector) -> Column:
     reference the comparison column when creating the validation step.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -391,7 +391,7 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, and `person_id` and
@@ -400,8 +400,8 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     `"paid"` as the columns to validate.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -547,7 +547,7 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `name`, `2021_pay`, `2022_pay`, and `person_id` and
@@ -556,8 +556,8 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     `"pay"` as the columns to validate.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -704,7 +704,7 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `name`, `2021_pay_total`, `2022_pay_total`, and `person_id`
@@ -713,8 +713,8 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     contain `"pay"` as the columns to validate.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -861,7 +861,7 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `name`, `id_old`, `new_identifier`, and `pay_2021` and we'd
@@ -870,8 +870,8 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     match the pattern.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -1000,7 +1000,7 @@ def everything() -> Everything:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with several numeric columns and we'd like to validate that all these
@@ -1008,8 +1008,8 @@ def everything() -> Everything:
     all columns for validation.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -1150,7 +1150,7 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `paid_2021`, `paid_2022`, `paid_2023`, `paid_2024`, and
@@ -1159,8 +1159,8 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     in the table are the columns to validate.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
@@ -1303,7 +1303,7 @@ def last_n(n: int, offset: int = 0) -> LastN:
     #| echo: false
     #| output: false
     import pointblank as pb
-    pb.config(report_incl_header=False, report_incl_footer=False)
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
     ```
 
     Suppose we have a table with columns `name`, `paid_2021`, `paid_2022`, `paid_2023`, and
@@ -1312,8 +1312,8 @@ def last_n(n: int, offset: int = 0) -> LastN:
     in the table are the columns to validate.
 
     ```{python}
-    import polars as pl
     import pointblank as pb
+    import polars as pl
 
     tbl = pl.DataFrame(
         {
