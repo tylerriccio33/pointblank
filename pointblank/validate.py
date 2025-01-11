@@ -3283,7 +3283,28 @@ class Validate:
 
                 results_tbl = None
 
-            if assertion_category not in ["COL_EXISTS_HAS_TYPE", "COL_SCHEMA_MATCH"]:
+            if assertion_category == "ROW_COUNT_MATCH":
+
+                result_bool = RowCountMatch(
+                    data_tbl=data_tbl_step,
+                    count=value["count"],
+                    inverse=value["inverse"],
+                    threshold=threshold,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
+                validation.all_passed = result_bool
+                validation.n = 1
+                validation.n_passed = int(result_bool)
+                validation.n_failed = 1 - result_bool
+
+                results_tbl = None
+
+            if assertion_category not in [
+                "COL_EXISTS_HAS_TYPE",
+                "COL_SCHEMA_MATCH",
+                "ROW_COUNT_MATCH",
+            ]:
 
                 # Extract the `pb_is_good_` column from the table as a results list
                 if tbl_type in IBIS_BACKENDS:
