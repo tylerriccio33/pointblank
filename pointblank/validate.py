@@ -5226,6 +5226,11 @@ class Validate:
         validation_info_dict.pop("active")
         validation_info_dict.pop("all_passed")
 
+        # If no interrogation performed, populate the `i` entry with a sequence of integers
+        # from `1` to the number of validation steps
+        if not interrogation_performed:
+            validation_info_dict["i"] = list(range(1, len(validation_info_dict["type_upd"]) + 1))
+
         # Create a table time string
         table_time = _create_table_time_html(time_start=self.time_start, time_end=self.time_end)
 
