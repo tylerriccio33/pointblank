@@ -1733,7 +1733,7 @@ class RowCountMatch:
 
     def __post_init__(self):
 
-        from pointblank.preview import get_row_count
+        from pointblank.validate import get_row_count
 
         if not self.inverse:
 
@@ -1782,7 +1782,7 @@ class ColCountMatch:
 
     def __post_init__(self):
 
-        from pointblank.preview import get_column_count
+        from pointblank.validate import get_column_count
 
         if not self.inverse:
 

@@ -29,8 +29,12 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank.column import Column, col, ColumnSelector
-from pointblank.preview import get_column_count, get_row_count
 from pointblank.schema import Schema
+from pointblank.thresholds import (
+    Thresholds,
+    _normalize_thresholds_creation,
+    _convert_abs_count_to_fraction,
+)
 from pointblank._interrogation import (
     ColValsCompareOne,
     ColValsCompareTwo,
@@ -42,11 +46,6 @@ from pointblank._interrogation import (
     ColCountMatch,
     NumberOfTestUnits,
     RowsDistinct,
-)
-from pointblank.thresholds import (
-    Thresholds,
-    _normalize_thresholds_creation,
-    _convert_abs_count_to_fraction,
 )
 from pointblank._utils import (
     _get_tbl_type,
@@ -65,9 +64,9 @@ from pointblank._utils_check_args import (
     _check_thresholds,
     _check_boolean_input,
 )
-from pointblank._utils_html import _create_table_type_html
+from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
 
-__all__ = ["Validate", "load_dataset", "config"]
+__all__ = ["Validate", "load_dataset", "config", "preview", "get_column_count", "get_row_count"]
 
 
 @dataclass
@@ -78,16 +77,21 @@ class PointblankConfig:
 
     report_incl_header: bool = True
     report_incl_footer: bool = True
+    preview_incl_header: bool = True
 
     def __repr__(self):
-        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer})"
+        return f"PointblankConfig(report_incl_header={self.report_incl_header}, report_incl_footer={self.report_incl_footer}, preview_incl_header={self.preview_incl_header})"
 
 
 # Global configuration instance
 global_config = PointblankConfig()
 
 
-def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> PointblankConfig:
+def config(
+    report_incl_header: bool = True,
+    report_incl_footer: bool = True,
+    preview_incl_header: bool = True,
+) -> PointblankConfig:
     """
     Configuration settings for the pointblank library.
 
@@ -100,6 +104,9 @@ def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> 
     report_incl_footer
         Should the footer of the validation table report be displayed? The footer contains the
         starting and ending times of the interrogation.
+    preview_incl_header
+        Whether the header should be present in any preview table (generated via the `preview()`
+        function).
 
     Returns
     -------
@@ -110,6 +117,7 @@ def config(report_incl_header: bool = True, report_incl_footer: bool = True) -> 
     global global_config
     global_config.report_incl_header = report_incl_header  # pragma: no cover
     global_config.report_incl_footer = report_incl_footer  # pragma: no cover
+    global_config.preview_incl_header = preview_incl_header  # pragma: no cover
 
 
 def load_dataset(
@@ -143,8 +151,11 @@ def load_dataset(
 
     small_table = pb.load_dataset()
 
-    small_table
+    pb.preview(small_table)
     ```
+
+    Note that the `small_table` dataset is a simple Polars DataFrame and using the `preview()`
+    function will display the table in an HTML viewing environment.
 
     The `game_revenue` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
     and setting `tbl_type="pandas"`:
@@ -154,8 +165,10 @@ def load_dataset(
 
     game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
 
-    game_revenue
+    pb.preview(game_revenue)
     ```
+
+    The `game_revenue` dataset is a more real-world dataset with a mix of data types.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
@@ -406,7 +419,8 @@ class Validate:
     # Load the small_table dataset
     small_table = pb.load_dataset()
 
-    small_table
+    # Preview the table
+    pb.preview(small_table)
     ```
 
     We ought to think about what's tolerable in terms of data quality so let's designate
@@ -537,12 +551,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -553,7 +568,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all greater than the value of `4`. We'll
@@ -561,8 +576,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_gt(columns="a", value=4)
@@ -691,12 +704,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -707,7 +721,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all less than the value of `10`. We'll
@@ -715,8 +729,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_lt(columns="a", value=10)
@@ -844,12 +856,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -859,15 +872,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all equal to the value of `5`. We'll determine
         if this validation had any failing test units (there are six test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_eq(columns="a", value=5)
@@ -996,12 +1007,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1011,15 +1023,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are not equal to the value of `3`. We'll determine
         if this validation had any failing test units (there are six test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_ne(columns="a", value=3)
@@ -1146,12 +1156,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1162,7 +1173,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all greater than or equal to the value of `5`.
@@ -1170,8 +1181,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_ge(columns="a", value=5)
@@ -1300,12 +1309,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1316,7 +1326,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all less than or equal to the value of `9`.
@@ -1324,8 +1334,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_le(columns="a", value=9)
@@ -1465,12 +1473,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1481,7 +1490,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all between the fixed boundary values of `1`
@@ -1489,8 +1498,6 @@ class Validate:
         units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_between(columns="a", left=1, right=5)
@@ -1642,12 +1649,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
         `b`, and `c`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1658,7 +1666,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all outside the fixed boundary values of `1`
@@ -1666,8 +1674,6 @@ class Validate:
         units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_outside(columns="a", left=1, right=4)
@@ -1804,12 +1810,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1819,7 +1826,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all in the set of `[2, 3, 4, 5, 6]`. We'll
@@ -1827,8 +1834,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_in_set(columns="a", set=[2, 3, 4, 5, 6])
@@ -1941,12 +1946,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -1956,7 +1962,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that none of the values in column `a` are in the set of `[2, 3, 4, 5, 6]`.
@@ -1964,8 +1970,6 @@ class Validate:
         for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_not_in_set(columns="a", set=[2, 3, 4, 5, 6])
@@ -2077,12 +2081,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2092,15 +2097,13 @@ class Validate:
             }
         ).with_columns(pl.col("a").cast(pl.Int64))
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that values in column `a` are all Null values. We'll determine if this
         validation had any failing test units (there are four test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_null(columns="a")
@@ -2208,12 +2211,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two numeric columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2223,15 +2227,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that none of the values in column `a` are Null values. We'll determine if
         this validation had any failing test units (there are four test units, one for each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_not_null(columns="a")
@@ -2347,12 +2349,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with two string columns (`a` and
         `b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2362,7 +2365,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that all of the values in column `a` match a particular regex pattern. We'll
@@ -2370,8 +2373,6 @@ class Validate:
         each row).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_vals_regex(columns="a", pattern=r"r[a-z]-[0-9]{4}")
@@ -2480,12 +2481,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with a string columns (`a`) and a
         numeric column (`b`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2495,15 +2497,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the columns `a` and `b` actually exist in the table. We'll determine if
         this validation had any failing test units (each validation will have a single test unit).
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .col_exists(columns=["a", "b"])
@@ -2613,12 +2613,13 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
         For the examples here, we'll use a simple Polars DataFrame with three string columns
         (`col_1`, `col_2`, and `col_3`). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2629,7 +2630,7 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the rows in the table are distinct with `rows_distinct()`. We'll
@@ -2637,8 +2638,6 @@ class Validate:
         each row). A failing test units means that a given row is not distinct from every other row.
 
         ```{python}
-        import pointblank as pb
-
         validation = (
             pb.Validate(data=tbl)
             .rows_distinct()
@@ -2769,13 +2768,14 @@ class Validate:
         #| echo: false
         #| output: false
         import pointblank as pb
-        pb.config(report_incl_header=False, report_incl_footer=False)
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
 
         For the examples here, we'll use a simple Polars DataFrame with three columns (string,
         integer, and float). The table is shown below:
 
         ```{python}
+        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame(
@@ -2786,15 +2786,13 @@ class Validate:
             }
         )
 
-        tbl
+        pb.preview(tbl)
         ```
 
         Let's validate that the columns in the table match a predefined schema. A schema can be
         defined using the `Schema` class.
 
         ```{python}
-        import pointblank as pb
-
         schema = pb.Schema(
             columns=[("a", "String"), ("b", "Int64"), ("c", "Float64")]
         )
@@ -2925,7 +2923,7 @@ class Validate:
 
         small_table = pb.load_dataset("small_table")
 
-        small_table
+        pb.preview(small_table)
         ```
 
         Let's validate that the number of rows in the table matches a fixed value. In this case, we
@@ -3040,7 +3038,7 @@ class Validate:
 
         game_revenue = pb.load_dataset("game_revenue")
 
-        game_revenue
+        pb.preview(game_revenue)
         ```
 
         Let's validate that the number of columns in the table matches a fixed value. In this case,
@@ -3164,8 +3162,8 @@ class Validate:
         rows are limited to the first `n` rows.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         validation = (
             pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
@@ -3185,12 +3183,13 @@ class Validate:
         `get_data_extracts()` method.
 
         ```{python}
-        validation.get_data_extracts(i=3, frame=True)
+        pb.preview(validation.get_data_extracts(i=3, frame=True))
         ```
 
         The `get_data_extracts()` method will return a Polars DataFrame with the first 10 rows that
-        failed the validation step. There are actually 18 rows that failed but we limited the
-        collection of extracts with `get_first_n=10`.
+        failed the validation step (we passed that into the `preview()` function for a better
+        display). There are actually 18 rows that failed but we limited the collection of extracts
+        with `get_first_n=10`.
         """
 
         # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
@@ -3558,8 +3557,8 @@ class Validate:
         used to determine if all validation steps passed perfectly.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3625,8 +3624,8 @@ class Validate:
         bit different.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3737,8 +3736,8 @@ class Validate:
         number of passing test units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3821,8 +3820,8 @@ class Validate:
         number of failing test units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3904,8 +3903,8 @@ class Validate:
         units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -3989,8 +3988,8 @@ class Validate:
         units for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4080,8 +4079,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4184,8 +4183,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4289,8 +4288,8 @@ class Validate:
         validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4395,14 +4394,20 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(preview_incl_header=False)
+        ```
         Let's perform a series of validation steps on a Polars DataFrame. We'll use the
         `col_vals_gt()` in the first step, `col_vals_lt()` in the second step, and `col_vals_ge()`
         in the third step. The `interrogate()` method executes the validation; then, we can extract
         the rows that failed for each validation step.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4453,11 +4458,12 @@ class Validate:
         value for `i`. For example, to get the extracted table for the second step as a DataFrame:
 
         ```{python}
-        validation.get_data_extracts(i=2, frame=True)
+        pb.preview(validation.get_data_extracts(i=2, frame=True))
         ```
 
         The extracted table is now a DataFrame, which can serve as a more convenient format for
-        further analysis or visualization.
+        further analysis or visualization. We further used the `pb.preview()` function to show the
+        DataFrame in an HTML view.
         """
         result = self._get_validation_dict(i, "extract")
         if frame and isinstance(i, int):
@@ -4560,11 +4566,17 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(preview_incl_header=False)
+        ```
         Let's create a `Validate` object with three validation steps and then interrogate the data.
 
         ```{python}
-        import polars as pl
         import pointblank as pb
+        import polars as pl
 
         tbl = pl.DataFrame(
             {
@@ -4590,13 +4602,14 @@ class Validate:
         during interrogation.
 
         ```{python}
-        validation.get_sundered_data()
+        pb.preview(validation.get_sundered_data())
         ```
 
-        The returned DataFrame contains the rows that passed all validation steps. From the six-row
-        input DataFrame, the first two rows and the last two rows had test units that failed
-        validation. Thus the middle two rows are the only ones that passed all validation steps and
-        that's what we see in the returned DataFrame.
+        The returned DataFrame contains the rows that passed all validation steps (we passed this
+        object to `pb.preview()` to show it in an HTML view). From the six-row input DataFrame, the
+        first two rows and the last two rows had test units that failed validation. Thus the middle
+        two rows are the only ones that passed all validation steps and that's what we see in the
+        returned DataFrame.
         """
 
         # Keep only the validation steps that:
@@ -6010,3 +6023,659 @@ def _create_thresholds_html(thresholds: Thresholds) -> str:
         "</span>"
         "</span>"
     )
+
+
+def preview(
+    data: FrameT | Any,
+    columns_subset: str | list[str] | Column | None = None,
+    n_head: int = 5,
+    n_tail: int = 5,
+    limit: int | None = 50,
+    show_row_numbers: bool = True,
+    max_col_width: int | None = 250,
+    incl_header: bool = None,
+) -> GT:
+    """
+    Display a table preview that shows some rows from the top, some from the bottom.
+
+    To get a quick look at the data in a table, we can use the `preview()` function to display a
+    preview of the table. The function shows a subset of the rows from the start and end of the
+    table, with the number of rows from the start and end determined by the `n_head=` and `n_tail=`
+    parameters (set to `5` by default). This function works with any table that is supported by the
+    `pointblank` library, including Pandas, Polars, and Ibis backend tables (e.g., DuckDB, MySQL,
+    PostgreSQL, SQLite, Parquet, etc.).
+
+    The view is optimized for readability, with column names and data types displayed in a compact
+    format. The column widths are sized to fit the column names, dtypes, and column content up to
+    a configurable maximum width of `max_col_width=` pixels. The table can be scrolled horizontally
+    to view even very large datasets. Since the output is a Great Tables (`GT`) object, it can be
+    further customized using the `great_tables` API.
+
+    Parameters
+    ----------
+    data
+        The table to preview, which could be a DataFrame object or an Ibis table object. Read the
+        *Supported Input Table Types* section for details on the supported table types.
+    columns_subset
+        The columns to display in the table, by default `None` (all columns are shown). This can
+        be a string, a list of strings, a `Column` object, or a `ColumnSelector` object. The latter
+        two options allow for more flexible column selection using column selector functions. Errors
+        are raised if the column names provided don't match any columns in the table (when provided
+        as a string or list of strings) or if column selector expressions don't resolve to any
+        columns.
+    n_head
+        The number of rows to show from the start of the table. Set to `5` by default.
+    n_tail
+        The number of rows to show from the end of the table. Set to `5` by default.
+    limit
+        The limit value for the sum of `n_head=` and `n_tail=` (the total number of rows shown).
+        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised.
+    show_row_numbers
+        Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
+        in the full table.
+    max_col_width
+        The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
+    incl_header
+        Should the table include a header with the table type and table dimensions? Set to `True` by
+        default.
+
+    Returns
+    -------
+    GT
+        A GT object that displays the preview of the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
+    requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
+    Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    It's easy to preview a table using the `preview()` function. Here's an example using the
+    `small_table` dataset (itself loaded using the `load_dataset()` function):
+
+    ```{python}
+    import pointblank as pb
+
+    small_table_polars = pb.load_dataset("small_table")
+
+    pb.preview(small_table_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `preview()` function works with any table supported
+    by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an example using
+    a DuckDB table handled by Ibis:
+
+    ```{python}
+    small_table_duckdb = pb.load_dataset("small_table", tbl_type="duckdb")
+
+    pb.preview(small_table_duckdb)
+    ```
+
+    The blue dividing line marks the end of the first `n_head=` rows and the start of the last
+    `n_tail=` rows.
+
+    We can adjust the number of rows shown from the start and end of the table by setting the
+    `n_head=` and `n_tail=` parameters. Let's enlarge each of these to `10`:
+
+    ```{python}
+    pb.preview(small_table_polars, n_head=10, n_tail=10)
+    ```
+
+    In the above case, the entire dataset is shown since the sum of `n_head=` and `n_tail=` is
+    greater than the number of rows in the table (which is 13).
+
+    The `columns_subset=` parameter can be used to show only specific columns in the table. You can
+    provide a list of column names to make the selection. Let's try that with the `"game_revenue"`
+    dataset as a Pandas DataFrame:
+
+    ```{python}
+    game_revenue_pandas = pb.load_dataset("game_revenue", tbl_type="pandas")
+
+    pb.preview(game_revenue_pandas, columns_subset=["player_id", "item_name", "item_revenue"])
+    ```
+
+    Alternatively, we can use column selector functions like `starts_with()` and `matches()` to
+    select columns based on text or patterns:
+
+    ```{python}
+    pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("item"))
+    ```
+
+    Multiple column selector functions can be combined within `col()` using operators like `|` and
+    `&`:
+
+    ```{python}
+    pb.preview(
+      game_revenue_pandas,
+      n_head=2,
+      n_tail=2,
+      columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
+    )
+    ```
+    """
+
+    if incl_header is None:
+        incl_header = global_config.preview_incl_header
+
+    # Check that the n_head and n_tail aren't greater than the limit
+    if n_head + n_tail > limit:
+        raise ValueError(f"The sum of `n_head=` and `n_tail=` cannot exceed the limit ({limit}).")
+
+    # Do we have a DataFrame library to work with? We need at least one to display
+    # the table using Great Tables
+    _check_any_df_lib(method_used="preview_tbl")
+
+    # Set flag for whether the full dataset is shown, or just the head and tail; if the table
+    # is very small, the value likely will be `True`
+    full_dataset = False
+
+    # Determine if the table is a DataFrame or an Ibis table
+    tbl_type = _get_tbl_type(data=data)
+    ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
+    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type
+
+    # Select the DataFrame library to use for displaying the Ibis table
+    df_lib_gt = _select_df_lib(preference="polars")
+    df_lib_name_gt = df_lib_gt.__name__
+
+    # If the table is a DataFrame (Pandas or Polars), set `df_lib_name_gt` to the name of the
+    # library (e.g., "polars" or "pandas")
+    if pl_pb_tbl:
+        df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
+
+        # Handle imports of Polars or Pandas here
+        if df_lib_name_gt == "polars":
+            import polars as pl
+        else:
+            import pandas as pd
+
+    # If `columns_subset=` is not None, resolve the columns to display
+    if columns_subset is not None:
+
+        col_names = _get_column_names(data, ibis_tbl=ibis_tbl, df_lib_name_gt=df_lib_name_gt)
+
+        resolved_columns = _validate_columns_subset(
+            columns_subset=columns_subset, col_names=col_names
+        )
+
+        if len(resolved_columns) == 0:
+            raise ValueError(
+                "The `columns_subset=` value doesn't resolve to any columns in the table."
+            )
+
+        # Select the columns to display in the table with the `resolved_columns` value
+        data = _select_columns(
+            data, resolved_columns=resolved_columns, ibis_tbl=ibis_tbl, tbl_type=tbl_type
+        )
+
+    # From an Ibis table:
+    # - get the row count
+    # - subset the table to get the first and last n rows (if small, don't filter the table)
+    # - get the row numbers for the table
+    # - convert the table to a Polars or Pandas DF
+    if ibis_tbl:
+
+        # Get the Schema of the table
+        tbl_schema = Schema(tbl=data)
+
+        # Get the row count for the table
+        ibis_rows = data.count()
+        n_rows = ibis_rows.to_polars() if df_lib_name_gt == "polars" else int(ibis_rows.to_pandas())
+
+        # If n_head + n_tail is greater than the row count, display the entire table
+        if n_head + n_tail > n_rows:
+            full_dataset = True
+            data_subset = data
+            row_number_list = range(1, n_rows + 1)
+        else:
+            # Get the first and last n rows of the table
+            data_head = data.head(n=n_head)
+            row_numbers_head = range(1, n_head + 1)
+            data_tail = data[(n_rows - n_tail) : n_rows]
+            row_numbers_tail = range(n_rows - n_tail + 1, n_rows + 1)
+            data_subset = data_head.union(data_tail)
+            row_number_list = list(row_numbers_head) + list(row_numbers_tail)
+
+        # Convert either to Polars or Pandas depending on the available library
+        if df_lib_name_gt == "polars":
+            data = data_subset.to_polars()
+        else:
+            data = data_subset.to_pandas()
+
+    # From a DataFrame:
+    # - get the row count
+    # - subset the table to get the first and last n rows (if small, don't filter the table)
+    # - get the row numbers for the table
+    if pl_pb_tbl:
+
+        # Get the Schema of the table
+        tbl_schema = Schema(tbl=data)
+
+        if tbl_type == "polars":
+
+            n_rows = int(data.height)
+
+            # If n_head + n_tail is greater than the row count, display the entire table
+            if n_head + n_tail >= n_rows:
+                full_dataset = True
+                row_number_list = range(1, n_rows + 1)
+            else:
+                data = pl.concat([data.head(n=n_head), data.tail(n=n_tail)])
+
+                row_number_list = list(range(1, n_head + 1)) + list(
+                    range(n_rows - n_tail + 1, n_rows + 1)
+                )
+
+        if tbl_type == "pandas":
+
+            n_rows = data.shape[0]
+
+            # If n_head + n_tail is greater than the row count, display the entire table
+            if n_head + n_tail >= n_rows:
+                full_dataset = True
+                data_subset = data
+
+                row_number_list = range(1, n_rows + 1)
+            else:
+                data = pd.concat([data.head(n=n_head), data.tail(n=n_tail)])
+
+                row_number_list = list(range(1, n_head + 1)) + list(
+                    range(n_rows - n_tail + 1, n_rows + 1)
+                )
+
+    # From the table schema, get a list of tuples containing column names and data types
+    col_dtype_dict = tbl_schema.columns
+
+    # Extract the column names from the list of tuples (first element of each tuple)
+    col_names = [col[0] for col in col_dtype_dict]
+
+    # Iterate over the list of tuples and create a new dictionary with the
+    # column names and data types
+    col_dtype_dict = {k: v for k, v in col_dtype_dict}
+
+    # Create short versions of the data types by omitting any text in parentheses
+    col_dtype_dict_short = {
+        k: v.split("(")[0] if "(" in v else v for k, v in col_dtype_dict.items()
+    }
+
+    # Create a dictionary of column and row positions where the value is None/NA/NULL
+    # This is used to highlight these values in the table
+    if df_lib_name_gt == "polars":
+        none_values = {k: data[k].is_null().to_list() for k in col_names}
+    else:
+        none_values = {k: data[k].isnull() for k in col_names}
+
+    none_values = [(k, i) for k, v in none_values.items() for i, val in enumerate(v) if val]
+
+    # Import Great Tables to get preliminary renders of the columns
+    import great_tables as gt
+
+    # For each of the columns get the average number of characters printed for each of the values
+    max_length_col_vals = []
+
+    for column in col_dtype_dict.keys():
+
+        # Select a single column of values
+        data_col = data[[column]] if df_lib_name_gt == "pandas" else data.select([column])
+
+        # Using Great Tables, render the columns and get the list of values as formatted strings
+        built_gt = GT(data=data_col).fmt_markdown(columns=column)._build_data(context="html")
+        column_values = gt.gt._get_column_of_values(built_gt, column_name=column, context="html")
+
+        # Get the maximum number of characters in the column
+        max_length_col_vals.append(max([len(str(val)) for val in column_values]))
+
+    length_col_names = [len(column) for column in col_dtype_dict.keys()]
+    length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
+
+    # Comparing the length of the column names, the data types, and the max length of the
+    # column values, prefer the largest of these for the column widths (by column)
+    col_widths = [
+        f"{round(min(max(7.8 * max_length_col_vals[i] + 10, 7.8 * length_col_names[i] + 10, 7.8 * length_data_types[i] + 10), max_col_width))}px"
+        for i in range(len(col_dtype_dict.keys()))
+    ]
+
+    # Set the column width to the col_widths list
+    col_width_dict = {k: v for k, v in zip(col_names, col_widths)}
+
+    # For each of the values in the dictionary, prepend the column name to the data type
+    col_dtype_labels_dict = {
+        k: html(
+            f"<div><div style='white-space: nowrap; text-overflow: ellipsis; overflow: hidden; "
+            f"padding-bottom: 2px; margin-bottom: 2px;'>{k}</div><div style='white-space: nowrap; "
+            f"text-overflow: ellipsis; overflow: hidden; padding-top: 2px; margin-top: 2px;'>"
+            f"<em>{v}</em></div></div>"
+        )
+        for k, v in col_dtype_dict_short.items()
+    }
+
+    # Prepend a column that contains the row numbers if `show_row_numbers=True`
+    if show_row_numbers:
+
+        if df_lib_name_gt == "polars":
+
+            import polars as pl
+
+            row_number_series = pl.Series("_row_num_", row_number_list)
+            data = data.insert_column(0, row_number_series)
+
+        if df_lib_name_gt == "pandas":
+
+            data.insert(0, "_row_num_", row_number_list)
+
+        # Get the highest number in the `row_number_list` and calculate a width that will
+        # safely fit a number of that magnitude
+        max_row_num = max(row_number_list)
+        max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+
+        # Update the col_width_dict to include the row number column
+        col_width_dict = {"_row_num_": f"{max_row_num_width}px"} | col_width_dict
+        # Update the col_dtype_labels_dict to include the row number column (use empty string)
+        col_dtype_labels_dict = {"_row_num_": ""} | col_dtype_labels_dict
+
+        # Create the label, table type, and thresholds HTML fragments
+        table_type_html = _create_table_type_html(
+            tbl_type=tbl_type, tbl_name=None, font_size="10px"
+        )
+
+        tbl_dims_html = _create_table_dims_html(
+            columns=len(col_names), rows=n_rows, font_size="10px"
+        )
+
+        # Compose the subtitle HTML fragment
+        combined_subtitle = (
+            "<div>"
+            '<div style="padding-top: 0; padding-bottom: 7px;">'
+            f"{table_type_html}"
+            f"{tbl_dims_html}"
+            "</div>"
+            "</div>"
+        )
+
+    gt_tbl = (
+        GT(data=data, id="pb_preview_tbl")
+        .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
+        .fmt_markdown(columns=col_names)
+        .tab_style(
+            style=style.css(
+                "height: 14px; padding: 4px; white-space: nowrap; text-overflow: "
+                "ellipsis; overflow: hidden;"
+            ),
+            locations=loc.body(),
+        )
+        .tab_style(
+            style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="12px"),
+            locations=loc.body(),
+        )
+        .tab_style(
+            style=style.text(color="gray20", font=google_font(name="IBM Plex Mono"), size="12px"),
+            locations=loc.column_labels(),
+        )
+        .tab_style(
+            style=style.borders(
+                sides=["top", "bottom"], color="#E9E9E", style="solid", weight="1px"
+            ),
+            locations=loc.body(),
+        )
+        .tab_options(
+            table_body_vlines_style="solid",
+            table_body_vlines_width="1px",
+            table_body_vlines_color="#E9E9E9",
+            column_labels_vlines_style="solid",
+            column_labels_vlines_width="1px",
+            column_labels_vlines_color="#F2F2F2",
+        )
+        .cols_label(cases=col_dtype_labels_dict)
+        .cols_width(cases=col_width_dict)
+    )
+
+    if incl_header:
+        gt_tbl = gt_tbl.tab_header(title=html(combined_subtitle))
+        gt_tbl = gt_tbl.tab_options(heading_subtitle_font_size="12px")
+
+    if none_values:
+        for column, none_index in none_values:
+            gt_tbl = gt_tbl.tab_style(
+                style=[style.text(color="#B22222"), style.fill(color="#FFC1C159")],
+                locations=loc.body(rows=none_index, columns=column),
+            )
+
+        if tbl_type == "pandas":
+            gt_tbl = gt_tbl.sub_missing(missing_text="NA")
+
+        if ibis_tbl:
+            gt_tbl = gt_tbl.sub_missing(missing_text="NULL")
+
+    if not full_dataset:
+
+        gt_tbl = gt_tbl.tab_style(
+            style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="2px"),
+            locations=loc.body(rows=n_head - 1),
+        )
+
+    if show_row_numbers:
+
+        gt_tbl = gt_tbl.tab_style(
+            style=[
+                style.text(color="gray", font=google_font(name="IBM Plex Mono"), size="10px"),
+                style.borders(sides="right", color="#6699CC80", style="solid", weight="2px"),
+            ],
+            locations=loc.body(columns="_row_num_"),
+        )
+
+    return gt_tbl
+
+
+def _get_column_names(data: FrameT | Any, ibis_tbl: bool, df_lib_name_gt: str) -> list[str]:
+    if ibis_tbl:
+        return data.columns if df_lib_name_gt == "polars" else list(data.columns)
+    return list(data.columns)
+
+
+def _validate_columns_subset(
+    columns_subset: str | list[str] | Column, col_names: list[str]
+) -> list[str]:
+    if isinstance(columns_subset, str):
+        if columns_subset not in col_names:
+            raise ValueError("The `columns_subset=` value doesn't match any columns in the table.")
+        return [columns_subset]
+
+    if isinstance(columns_subset, list):
+        if all(isinstance(col, str) for col in columns_subset):
+            if not all(col in col_names for col in columns_subset):
+                raise ValueError(
+                    "Not all columns provided as `columns_subset=` match the table's columns."
+                )
+            return columns_subset
+
+    return columns_subset.resolve(columns=col_names)
+
+
+def _select_columns(
+    data: FrameT | Any, resolved_columns: list[str], ibis_tbl: bool, tbl_type: str
+) -> FrameT | Any:
+    if ibis_tbl:
+        return data[resolved_columns]
+    if tbl_type == "polars":
+        return data.select(resolved_columns)
+    return data[resolved_columns]
+
+
+def get_column_count(data: FrameT | Any) -> int:
+    """
+    Get the number of columns in a table.
+
+    The `get_column_count()` function returns the number of columns in a table. The function works
+    with any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the column count, which could be a DataFrame object or an Ibis
+        table object. Read the *Supported Input Table Types* section for details on the supported
+        table types.
+
+    Returns
+    -------
+    int
+        The number of columns in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_column_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    To get the number of columns in a table, we can use the `get_column_count()` function. Here's an
+    example using the `small_table` dataset (itself loaded using the `load_dataset()` function):
+
+    ```{python}
+    import pointblank as pb
+
+    small_table_polars = pb.load_dataset("small_table")
+
+    pb.get_column_count(small_table_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `get_column_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```{python}
+    small_table_duckdb = pb.load_dataset("small_table", tbl_type="duckdb")
+
+    pb.get_column_count(small_table_duckdb)
+    ```
+
+    The function always returns the number of columns in the table as an integer value, which is
+    `8` for the `small_table` dataset.
+    """
+
+    if "ibis.expr.types.relations.Table" in str(type(data)):
+        return len(data.columns)
+
+    elif "polars" in str(type(data)):
+        return len(data.columns)
+
+    elif "pandas" in str(type(data)):
+        return data.shape[1]
+
+    else:
+        raise ValueError("The input table type supplied in `data=` is not supported.")
+
+
+def get_row_count(data: FrameT | Any) -> int:
+    """
+    Get the number of rows in a table.
+
+    The `get_row_count()` function returns the number of rows in a table. The function works with
+    any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the row count, which could be a DataFrame object or an Ibis table
+        object. Read the *Supported Input Table Types* section for details on the supported table
+        types.
+
+    Returns
+    -------
+    int
+        The number of rows in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_row_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    Getting the number of rows in a table is easily done by using the `get_row_count()` function.
+    Here's an example using the `game_revenue` dataset (itself loaded using the `load_dataset()`
+    function):
+
+    ```{python}
+    import pointblank as pb
+
+    game_revenue_polars = pb.load_dataset("game_revenue")
+
+    pb.get_row_count(game_revenue_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `get_row_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```{python}
+    game_revenue_duckdb = pb.load_dataset("game_revenue", tbl_type="duckdb")
+
+    pb.get_row_count(game_revenue_duckdb)
+    ```
+
+    The function always returns the number of rows in the table as an integer value, which is `2000`
+    for the `game_revenue` dataset.
+    """
+
+    if "ibis.expr.types.relations.Table" in str(type(data)):
+
+        # Determine whether Pandas or Polars is available to get the row count
+        _check_any_df_lib(method_used="get_row_count")
+
+        # Select the DataFrame library to use for displaying the Ibis table
+        df_lib = _select_df_lib(preference="polars")
+        df_lib_name = df_lib.__name__
+
+        if df_lib_name == "pandas":
+            return int(data.count().to_pandas())
+        else:
+            return int(data.count().to_polars())
+
+    elif "polars" in str(type(data)):
+        return int(data.height)
+
+    elif "pandas" in str(type(data)):
+        return data.shape[0]
+
+    else:
+        raise ValueError("The input table type supplied in `data=` is not supported.")
