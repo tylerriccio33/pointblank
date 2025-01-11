@@ -25,11 +25,11 @@ from pointblank._constants import (
     IBIS_BACKENDS,
     ROW_BASED_VALIDATION_TYPES,
     VALIDATION_REPORT_FIELDS,
-    TABLE_TYPE_STYLES,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank.column import Column, col, ColumnSelector
+from pointblank.preview import get_row_count
 from pointblank.schema import Schema
 from pointblank._interrogation import (
     ColValsCompareOne,
@@ -38,6 +38,7 @@ from pointblank._interrogation import (
     ColValsRegex,
     ColExistsHasType,
     ColSchemaMatch,
+    RowCountMatch,
     NumberOfTestUnits,
     RowsDistinct,
 )
@@ -49,6 +50,7 @@ from pointblank.thresholds import (
 from pointblank._utils import (
     _get_tbl_type,
     _is_lib_present,
+    _is_value_a_df,
     _check_any_df_lib,
     _select_df_lib,
     _get_fn_name,
