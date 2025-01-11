@@ -4933,6 +4933,13 @@ class Validate:
 
             if assertion_type[i] in ["col_schema_match", "row_count_match", "col_count_match"]:
                 columns_upd.append("&mdash;")
+            elif assertion_type[i] in ["rows_distinct"]:
+                if not column:
+                    # If there is no column subset, then all columns are used
+                    columns_upd.append("ALL COLUMNS")
+                else:
+                    # With a column subset list, format with commas between the column names
+                    columns_upd.append(", ".join(column))
             else:
                 columns_upd.append(str(column))
 
@@ -4981,8 +4988,13 @@ class Validate:
             elif assertion_type[i] in ["col_vals_in_set", "col_vals_not_in_set"]:
                 values_upd.append(str(value)[1:-1].replace("'", ""))
 
-            # If the assertion type checks for NULL or not NULL values, use an em dash
-            elif assertion_type[i] in ["col_vals_null", "col_vals_not_null", "col_exists"]:
+            # Certain assertion types don't have an associated value, so use an em dash for those
+            elif assertion_type[i] in [
+                "col_vals_null",
+                "col_vals_not_null",
+                "col_exists",
+                "rows_distinct",
+            ]:
                 values_upd.append("&mdash;")
 
             elif assertion_type[i] in ["col_schema_match"]:
