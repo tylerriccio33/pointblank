@@ -5452,7 +5452,11 @@ class Validate:
             Information about the validation to add.
         """
 
-        validation_info.i = len(self.validation_info) + 1
+        # Get the largest value of `i_o` in the `validation_info`
+        max_i_o = max([validation.i_o for validation in self.validation_info], default=0)
+
+        # Set the `i_o` attribute to the largest value of `i_o` plus 1
+        validation_info.i_o = max_i_o + 1
 
         self.validation_info.append(validation_info)
 
