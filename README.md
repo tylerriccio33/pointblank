@@ -95,5 +95,5 @@ Pointblank is licensed under the MIT license.
 
 ## 🏛️ Governance
 
-This project is primarily maintained by [Rich Iannone](https://twitter.com/riannone).
+This project is primarily maintained by [Rich Iannone](https://bsky.app/profile/richmeister.bsky.social).
 Other authors may occasionally assist with some of these duties.
