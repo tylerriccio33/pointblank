@@ -1418,7 +1418,7 @@ def test_col_vals_regex(request, tbl_fixture):
     )
 
 
-def test_col_vals_regex_polars_tbl():
+def test_col_vals_expr_polars_tbl():
 
     df = load_dataset(tbl_type="polars")
 
@@ -1440,7 +1440,7 @@ def test_col_vals_regex_polars_tbl():
     )
 
 
-def test_col_vals_regex_pandas_tbl():
+def test_col_vals_expr_pandas_tbl():
 
     df = load_dataset(tbl_type="pandas")
 
