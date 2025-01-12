@@ -6151,7 +6151,7 @@ def preview(
     select columns based on text or patterns:
 
     ```{python}
-    pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("item"))
+    pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("session"))
     ```
 
     Multiple column selector functions can be combined within `col()` using operators like `|` and
