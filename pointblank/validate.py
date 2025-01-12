@@ -2516,6 +2516,13 @@ class Validate:
             .col_vals_expr(expr=pl.col("a") % 1 == 0)
             .interrogate()
         )
+
+        validation
+        ```
+
+        Printing the `validation` object shows the validation table in an HTML viewing environment.
+        The validation table shows the single entry that corresponds to the validation step created
+        by using `col_vals_expr()`. All test units passed, with no failing test units.
         """
 
         assertion_type = _get_fn_name()
