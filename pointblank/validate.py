@@ -6151,7 +6151,7 @@ def preview(
     select columns based on text or patterns:
 
     ```{python}
-    pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("item"))
+    pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("session"))
     ```
 
     Multiple column selector functions can be combined within `col()` using operators like `|` and
@@ -6169,6 +6169,9 @@ def preview(
 
     if incl_header is None:
         incl_header = global_config.preview_incl_header
+
+    # Make a copy of the data to avoid modifying the original
+    data = copy.deepcopy(data)
 
     # Check that the n_head and n_tail aren't greater than the limit
     if n_head + n_tail > limit:
