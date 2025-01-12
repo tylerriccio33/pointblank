@@ -1418,6 +1418,50 @@ def test_col_vals_regex(request, tbl_fixture):
     )
 
 
+def test_col_vals_expr_polars_tbl():
+
+    df = load_dataset(tbl_type="polars")
+
+    pl_expr = (pl.col("c") > pl.col("a")) & (pl.col("d") > pl.col("c"))
+    nw_expr = (nw.col("c") > nw.col("a")) & (nw.col("d") > nw.col("c"))
+
+    assert (
+        Validate(data=df).col_vals_expr(expr=pl_expr).interrogate().n_passed(i=1, scalar=True) == 6
+    )
+    assert (
+        Validate(data=df).col_vals_expr(expr=pl_expr).interrogate().n_failed(i=1, scalar=True) == 5
+    )
+
+    assert (
+        Validate(data=df).col_vals_expr(expr=nw_expr).interrogate().n_passed(i=1, scalar=True) == 6
+    )
+    assert (
+        Validate(data=df).col_vals_expr(expr=nw_expr).interrogate().n_failed(i=1, scalar=True) == 5
+    )
+
+
+def test_col_vals_expr_pandas_tbl():
+
+    df = load_dataset(tbl_type="pandas")
+
+    pd_expr = lambda df: (df["c"] > df["a"]) & (df["d"] > df["c"])  # noqa
+    nw_expr = (nw.col("c") > nw.col("a")) & (nw.col("d") > nw.col("c"))
+
+    assert (
+        Validate(data=df).col_vals_expr(expr=pd_expr).interrogate().n_passed(i=1, scalar=True) == 6
+    )
+    assert (
+        Validate(data=df).col_vals_expr(expr=pd_expr).interrogate().n_failed(i=1, scalar=True) == 7
+    )
+
+    assert (
+        Validate(data=df).col_vals_expr(expr=nw_expr).interrogate().n_passed(i=1, scalar=True) == 6
+    )
+    assert (
+        Validate(data=df).col_vals_expr(expr=nw_expr).interrogate().n_failed(i=1, scalar=True) == 7
+    )
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_rows_distinct(request, tbl_fixture):
 
@@ -4325,6 +4369,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_count_match(count=2, inverse=True)
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
+        .col_vals_expr(expr=pl.col("d") > pl.col("a"))
         .interrogate()
     )
 

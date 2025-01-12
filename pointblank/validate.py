@@ -40,6 +40,7 @@ from pointblank._interrogation import (
     ColValsCompareTwo,
     ColValsCompareSet,
     ColValsRegex,
+    ColValsExpr,
     ColExistsHasType,
     ColSchemaMatch,
     RowCountMatch,
@@ -2440,6 +2441,109 @@ class Validate:
 
         return self
 
+    def col_vals_expr(
+        self,
+        expr: any,
+        pre: Callable | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Validate column values using a custom expression.
+
+        The `col_vals_expr()` validation method checks whether column values in a table satisfy a
+        custom `expr=` expression. This validation will operate over the number of test units that
+        is equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
+
+        Parameters
+        ----------
+        expr
+            A column expression that will evaluate each row in the table, returning a boolean value
+            per table row. If the target table is a Polars DataFrame, the expression should either
+            be a Polars column expression or a Narwhals one. For a Pandas DataFrame, the expression
+            should either be a lambda expression or a Narwhals column expression.
+        pre
+            A pre-processing function or lambda to apply to the data table for the validation step.
+        thresholds
+            Failure threshold levels so that the validation step can react accordingly when
+            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
+            be created simply as an integer or float denoting the absolute number or fraction of
+            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
+            a dictionary of 1-3 entries, or a Thresholds object.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        For the examples here, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). The table is shown below:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [1, 2, 1, 7, 8, 6],
+                "b": [0, 0, 0, 1, 1, 1],
+                "c": [0.5, 0.3, 0.8, 1.4, 1.9, 1.2],
+            }
+        )
+
+        pb.preview(tbl)
+        ```
+
+        Let's validate that the values in column `a` are all integers. We'll determine if this
+        validation had any failing test units (there are six test units, one for each row).
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_expr(expr=pl.col("a") % 1 == 0)
+            .interrogate()
+        )
+        """
+
+        assertion_type = _get_fn_name()
+
+        # TODO: Add a check for the expression to ensure it's a valid expression object
+        # _check_expr(expr=expr)
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            column=None,
+            values=expr,
+            pre=pre,
+            thresholds=thresholds,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
     def col_exists(
         self,
         columns: str | list[str] | Column,
@@ -3353,6 +3457,15 @@ class Validate:
                     na_pass=na_pass,
                     threshold=threshold,
                     allowed_types=compatible_dtypes,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
+            if assertion_category == "COMPARE_EXPR":
+
+                results_tbl = ColValsExpr(
+                    data_tbl=data_tbl_step,
+                    expr=value,
+                    threshold=threshold,
                     tbl_type=tbl_type,
                 ).get_test_results()
 
@@ -4944,7 +5057,12 @@ class Validate:
         # Iterate over the values in the `column` entry
         for i, column in enumerate(columns):
 
-            if assertion_type[i] in ["col_schema_match", "row_count_match", "col_count_match"]:
+            if assertion_type[i] in [
+                "col_schema_match",
+                "row_count_match",
+                "col_count_match",
+                "col_vals_expr",
+            ]:
                 columns_upd.append("&mdash;")
             elif assertion_type[i] in ["rows_distinct"]:
                 if not column:
@@ -5012,6 +5130,9 @@ class Validate:
 
             elif assertion_type[i] in ["col_schema_match"]:
                 values_upd.append("SCHEMA")
+
+            elif assertion_type[i] in ["col_vals_expr"]:
+                values_upd.append("COLUMN EXPRESSION")
 
             elif assertion_type[i] in ["row_count_match", "col_count_match"]:
 
