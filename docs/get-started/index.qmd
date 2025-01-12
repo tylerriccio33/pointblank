@@ -4,7 +4,11 @@ jupyter: python3
 html-table-processing: none
 ---
 
-The pointblank library is all about assessing the state of data quality in a table. You provide the validation rules and the library will dutifully interrogate the data and provide useful reporting. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or various database tables (thanks to Ibis support). Let's walk through what table validation looks like in Pointblank!
+The Pointblank library is all about assessing the state of data quality in a table. You provide the
+validation rules and the library will dutifully interrogate the data and provide useful reporting.
+We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or various
+database tables (thanks to Ibis support). Let's walk through what table validation looks like in
+Pointblank.
 
 ## A Simple Validation Table
 
@@ -27,7 +31,9 @@ validation_1 = (
 validation_1
 ```
 
-Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side outlines the validation rules and the right-hand side provides the results of each validation step. While simple in principle, there's a lot of useful information packed into this validation table.
+Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side
+outlines the validation rules and the right-hand side provides the results of each validation step.
+While simple in principle, there's a lot of useful information packed into this validation table.
 
 Here's a diagram that describes a few of the important parts of the validation table:
 
@@ -35,11 +41,14 @@ Here's a diagram that describes a few of the important parts of the validation t
 
 There are three things that should be noted here:
 
-- validation steps: each step is a distinct test on the table focused on a certain aspect of the table
+- validation steps: each step is a separate test on the table, focused on a certain aspect of the
+table
 - validation rules: the validation type is provided here along with key constraints
-- validation results: interrogation results are provided here, with a breakdown of test units (*total*, *passing*, and *failing*), threshold states, and more
+- validation results: interrogation results are provided here, with a breakdown of test units
+(*total*, *passing*, and *failing*), threshold states, and more
 
-The intent is to provide the key information in one place, and have it be interpretable by a broad audience.
+The intent is to provide the key information in one place, and have it be interpretable by data
+stakeholders.
 
 ## Example Code, Step-by-Step
 
@@ -62,21 +71,30 @@ validation_2
 
 Note these three key pieces in the code:
 
-- the `Validate(data=...)` argument takes a DataFrame that you want to validate
+- the `Validate(data=...)` argument takes a DataFrame or database table that you want to validate
 - the methods starting with `col_*` specify validation steps that run on specific columns
 - the `interrogate()` method executes the validation plan on the table
 
-That's data validation with pointblank in a nutshell! In the next section we'll go a bit further by introducing a means to gauge data quality with failure thresholds.
+This common pattern is used in a validation workflow, where `Validate()` and `interrogate()` bookend
+a validation plan generated through calling validation methods. And that's data validation with
+Pointblank in a nutshell! In the next section we'll go a bit further by introducing a means to gauge
+data quality with failure thresholds.
 
 ## Understanding Test Units
 
-Each validation step will execute a validation test. For example, `col_vals_lt()` tests that each value in a column is less than a specified number. One important piece that's reported is the number of test units that pass or fail.
+Each validation step will execute a separate validation test on the target table. For example, the
+`col_vals_lt()` validation tests that each value in a column is less than a specified number. A key
+thing that's reported is the number of test units that pass or fail a validation step.
 
-Test units are dependent on the test being run. The `col_vals_*` tests each value in a column, so each value will be a test unit.
+Test units are dependent on the test being run. The `col_vals_*` tests each value in a column, so
+each value will be a test unit (and the number of test units is the number of rows in the target
+table).
 
-This matters because you can set thresholds that signal `WARN`, `STOP`, and `NOTIFY` states based the proportion or number of failing test units.
+This matters because you can set thresholds that signal `warn`, `stop`, and `notify` states based
+the proportion or number of failing test units.
 
-Here's a simple example that uses a single `col_vals_lt()` step along with thresholds.
+Here's a simple example that uses a single `col_vals_lt()` step along with thresholds set in the
+`thresholds=` argument of the validation method.
 
 ```{python}
 validation_3 = (
@@ -88,19 +106,29 @@ validation_3 = (
 validation_3
 ```
 
-The code uses `thresholds=(2, 4)` to set a `WARN` threshold of `2` and a `STOP` threshold of `4`. Notice these pieces in the validation table:
+The code uses `thresholds=(2, 4)` to set a `warn` threshold of `2` and a `stop` threshold of `4`.
+If you look at the validation report table, we can see:
 
-- The `FAIL` column shows that 2 tests units have failed
-- The `W` column (short for `WARN`) shows a filled yellow circle indicating it's reached threshold
-- The `S` column (short for `STOP`) shows an open red circle indicating it's below threshold
+- the `FAIL` column shows that 2 tests units have failed
+- the `W` column (short for `warn`) shows a filled yellow circle indicating those failing test units
+reached that threshold value
+- the `S` column (short for `stop`) shows an open red circle indicating that the number of failing
+test units is below that threshold
 
-The one final threshold, `N` (`NOTIFY`), wasn't set so appears on the validation table as a dash.
+The one final threshold, `N` (for `notify`), wasn't set so it appears on the validation table as a
+long dash.
 
-Thresholds let you take action at different levels of severity. The next section discusses setting and acting on thresholds in detail.
+Thresholds let you take action at different levels of severity. The next section discusses setting
+and acting on thresholds in detail.
 
 ## Using Threshold Levels
 
-Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 20% NULLs in the column.
+Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
+will be able to trigger custom actions (should those actions be defined).
+
+Here's an example where we test if a certain column has Null/missing values with
+`col_vals_not_null()`. This is a case where we want to *warn* on any Null values and *stop* where
+there are 20% Nulls in the column.
 
 ```{python}
 validation_4 = (
@@ -112,6 +140,8 @@ validation_4 = (
 validation_4
 ```
 
-In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was used, but we can also set thresholds globally by using `Validate(thresholds=...)`.
+In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was set to `(1, 0.2)`,
+indicating 1 failing test unit is set for `warn` and a `0.2` fraction of all failing test units is
+set to `stop`.
 
 For more on thresholds, see the [Thresholds article](./thresholds.qmd).
