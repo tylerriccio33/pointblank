@@ -1540,15 +1540,8 @@ class ColValsExpr:
                 expression_type = "narwhals"
             elif "polars" in str(type(self.expr)) and "expr" in str(type(self.expr)):
                 expression_type = "polars"
-            elif "function" in str(type(self.expr)):
-                expression_type = "pandas"
             else:
-                raise ValueError(
-                    """Invalid expression type. Use either of these types of column expressions:
-                    - narwhals,
-                    - polars,
-                    - pandas."""
-                )
+                expression_type = "pandas"
 
             # Determine whether this is a Pandas or Polars table
             tbl_type = _get_tbl_type(data=self.data_tbl)
