@@ -7,7 +7,12 @@ import narwhals as nw
 from narwhals.typing import FrameT
 from narwhals.dependencies import is_pandas_dataframe, is_polars_dataframe
 
-from pointblank._utils import _column_test_prep, _column_subset_test_prep, _convert_to_narwhals
+from pointblank._utils import (
+    _column_test_prep,
+    _column_subset_test_prep,
+    _convert_to_narwhals,
+    _get_tbl_type,
+)
 from pointblank.thresholds import _threshold_check
 from pointblank._constants import IBIS_BACKENDS
 from pointblank.column import Column
