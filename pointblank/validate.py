@@ -6170,6 +6170,9 @@ def preview(
     if incl_header is None:
         incl_header = global_config.preview_incl_header
 
+    # Make a copy of the data to avoid modifying the original
+    data = copy.deepcopy(data)
+
     # Check that the n_head and n_tail aren't greater than the limit
     if n_head + n_tail > limit:
         raise ValueError(f"The sum of `n_head=` and `n_tail=` cannot exceed the limit ({limit}).")
