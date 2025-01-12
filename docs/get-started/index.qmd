@@ -4,11 +4,11 @@ jupyter: python3
 html-table-processing: none
 ---
 
-The pointblank library is all about assessing the state of data quality in a table. You provide the validation rules and the library will dutifully interrogate the data and provide useful reporting. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or a selection of DB tables. Let's walk through what table validation looks like in pointblank!
+The pointblank library is all about assessing the state of data quality in a table. You provide the validation rules and the library will dutifully interrogate the data and provide useful reporting. We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or various database tables (thanks to Ibis support). Let's walk through what table validation looks like in Pointblank!
 
 ## A Simple Validation Table
 
-This is a validation table that is produced from a validation of a Polars DataFrame:
+This is a validation report table that is produced from a validation of a Polars DataFrame:
 
 ```{python}
 # | code-fold: true
@@ -33,11 +33,11 @@ Here's a diagram that describes a few of the important parts of the validation t
 
 ![](/assets/pointblank-validation-table.png){width=100%}
 
-There are three important sections of this table,
+There are three things that should be noted here:
 
-- validation steps: each step is a distinct test on the table focused on a certain part of the table (here, the different columns)
+- validation steps: each step is a distinct test on the table focused on a certain aspect of the table
 - validation rules: the validation type is provided here along with key constraints
-- validation results: post-interrogation results are provided here, with a breakdown of test units (total, passing, failing), threshold states, etc.
+- validation results: interrogation results are provided here, with a breakdown of test units (*total*, *passing*, and *failing*), threshold states, and more
 
 The intent is to provide the key information in one place, and have it be interpretable by a broad audience.
 
