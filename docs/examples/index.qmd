@@ -1,0 +1,507 @@
+---
+jupyter: python3
+html-table-processing: none
+---
+
+## The Basics of Pointblank, with Examples
+
+### Perform a simple validation with sample data
+
+Use `load_dataset()` to get a sample table (choosing the Polars variant here). The `Validate` class
+is the entry point. Then validation methods are added. Finally, finish with a call to the
+`interrogate()` method. You'll get a tabular validation report outlining what happened during
+interrogation.
+
+```{python}
+import pointblank as pb
+
+v = (
+    pb.Validate( # Use pb.Validate to start
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars")
+    )
+    .col_vals_gt(columns="d", value=1000)       # STEP 1 |
+    .col_vals_le(columns="c", value=5)          # STEP 2 | <-- Build up a validation plan
+    .col_exists(columns=["date", "date_time"])  # STEP 3 |
+    .interrogate()  # This will execute all validation steps and collect intel
+)
+
+v
+```
+
+If you need JSON output instead of a tabular report, use the `get_json_report()` method.
+
+```{python}
+import pointblank as pb
+
+v = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="pandas")
+    )
+    .col_vals_gt(columns="d", value=1000)
+    .col_vals_le(columns="c", value=5)
+    .col_exists(columns=["date", "date_time"])
+    .interrogate()
+)
+
+print(v.get_json_report())
+```
+
+Preview a table (any type) and get a consistent view of the data no matter what type of table it is.
+This is good for getting your bearings on a new dataset.
+
+```{python}
+import pointblank as pb
+
+data = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
+
+pb.preview(data=data)
+```
+
+All sorts of tables are supported, here we use a Parquet table.
+
+```{python}
+#| echo: false
+import pathlib
+path_to_parquet_file = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.parquet"
+```
+
+```{python}
+import pointblank as pb
+import ibis
+
+tbl = ibis.read_parquet(path_to_parquet_file)
+
+v = (
+    pb.Validate(tbl)
+    .col_vals_lt(columns="x", value=pb.col("z"), na_pass=True)
+    .interrogate()
+)
+
+v
+```
+
+
+### Perform a more comprehensive data validation with sample data
+
+The validation plan can be quite large if you want it to be. Here is validation of the `penguins`
+dataset as a DuckDB table.
+
+```{python}
+import pointblank as pb
+import ibis
+
+con = ibis.connect("duckdb://penguins.ddb")
+con.create_table("penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True)
+
+penguins = con.table("penguins")
+
+v = (
+    pb.Validate(data=penguins, tbl_name="Table of x and y")  # Add data to be validated
+    .col_vals_gt(columns="body_mass_g", value=1000000)
+    .col_vals_lt(columns="year", value=2024)
+    .col_vals_eq(columns="year", value=2007)
+    .col_vals_ne(columns="year", value=2007)
+    .col_vals_ge(columns="year", value=2007)
+    .col_vals_regex(columns="sex", pattern="fe")
+    .col_exists(columns="body_mass_g")
+    .col_vals_in_set(columns="year", set=[2020, 2018])
+    .col_vals_not_in_set(columns="year", set=[2010, 2011])
+    .col_vals_between(columns="year", left=2007, right=2010)
+    .col_vals_outside(columns="year", left=2008, right=2013)
+    .interrogate()
+)
+
+v
+```
+
+We can use the `pre=` argument to mutate table for a specific validation step.
+
+```{python}
+import polars as pl
+import pointblank as pb
+
+tbl = pl.DataFrame(
+   {
+       "word": ["apple", "banana"],
+       "low_numbers": [1, 2],
+       "high_numbers": [13500, 95000],
+       "low_floats": [41.6, 41.2],
+       "high_floats": [41.6, 41.2],
+       "superhigh_floats": [23453.23, 32453532.33],
+       "date": ["2021-01-01", "2021-01-02"],
+       "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+       "bools": [True, False],
+   }
+)
+
+v = (
+    pb.Validate(tbl)
+    .col_vals_between(
+        columns=pb.col(pb.contains("higher")),
+        left=100,
+        right=1000,
+        pre=lambda df: df.with_columns(
+            higher_floats=pl.col("high_floats") * 10, even_higher_floats=pl.col("high_floats") * 100
+            )
+        )
+    .interrogate()
+    )
+
+v
+```
+
+The following validation plan (collection of validation steps) is even larger. Here, in two
+different validation step, we use the `pre=` argument to mutate the target table with a lambda.
+
+```{python}
+import pointblank as pb
+import narwhals as nw
+
+validation = (
+    pb.Validate(
+        data=pb.load_dataset(),
+        tbl_name="small_table",
+        label="Simple pointblank validation example",
+        thresholds=pb.Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+    )
+    .col_vals_gt(columns="d", value=100)
+    .col_vals_lt(columns="c", value=5)
+    .col_vals_eq(columns="a", value=3)
+    .col_vals_ne(columns="c", value=10, na_pass=True)
+    .col_vals_le(columns="a", value=7)
+    .col_vals_ge(columns="d", value=500, na_pass=True)
+    .col_vals_between(columns="c", left=0, right=5, na_pass=True)
+    .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
+    .col_vals_eq(columns="a", value=10, active=False)
+    .col_vals_ge(
+        columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20)
+    )
+    .col_vals_gt(
+        columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+    )
+    .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+    .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
+    .col_vals_null(columns="c")
+    .col_vals_not_null(columns="date_time")
+    .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+    .col_exists(columns="z")
+    .rows_distinct()
+    .rows_distinct(columns_subset=["a", "b", "c"])
+    .interrogate()
+)
+
+validation
+```
+
+Pointblank has column selector functions. We can potentially generate multiple validation steps
+(spread across the resolved target columns) for each call of a validation method by using column
+selectors on `columns=`.
+
+```{python}
+import pointblank as pb
+
+v = (
+    pb.Validate(data=pb.load_dataset())
+    .col_vals_not_in_set(columns="f", set=["a", "b"])
+    .col_vals_gt(
+        columns=pb.col(pb.starts_with("a") | pb.starts_with("c")),
+        value=0
+    )
+    .col_vals_between(
+        columns=pb.col(pb.starts_with("a") | pb.starts_with("c")), left=2, right=7
+    )
+    .interrogate()
+)
+
+v
+```
+
+Here's some pretty advanced usage of column selectors in various validation steps. We can use these
+column selector functions by themselves or within `col()` (to take advantage of operators like `&`,
+`|`, `-`, and `~`).
+
+```{python}
+import polars as pl
+import pointblank as pb
+
+tbl = pl.DataFrame(
+   {
+       "word": ["apple", "banana"],
+       "low_numbers": [1, 2],
+       "high_numbers": [13500, 95000],
+       "low_floats": [41.6, 41.2],
+       "high_floats": [41.6, 41.2],
+       "superhigh_floats": [23453.23, 32453532.33],
+       "date": ["2021-01-01", "2021-01-02"],
+       "datetime": ["2021-01-01 00:00:00", "2021-01-02 00:00:00"],
+       "bools": [True, False],
+   }
+)
+
+v = (
+    pb.Validate(tbl)
+    .col_vals_gt(columns=pb.col("low_numbers"), value=0)
+    .col_vals_lt(columns=pb.ends_with("NUMBERS"), value=200000)
+    .col_vals_between(columns=pb.col(pb.ends_with("FLOATS") - pb.contains("superhigh")),left=0, right=100)
+    .col_vals_ge(columns=pb.col(pb.ends_with("floats") | pb.matches("num")), value=0)
+    .col_vals_le(columns=pb.col(pb.everything() - pb.last_n(3) - pb.first_n(1)), value=4e7)
+    .col_vals_in_set(columns=pb.col(pb.starts_with("w") & pb.ends_with("d")), set=["apple", "banana"])
+    .col_vals_outside(columns=pb.col(~pb.first_n(1) & ~pb.last_n(7)), left=10, right=15)
+    .col_vals_regex(columns=pb.col("word"), pattern="a")  # 18
+    .interrogate()
+    )
+
+v
+```
+
+
+### Types of validations that can be performed
+
+We can check for duplicate rows in the table with `rows_distinct()`.
+
+```{python}
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(tbl_type="polars"))
+    .rows_distinct()
+    .interrogate()
+)
+
+validation
+```
+
+This check for duplicates can operate down a single column...
+
+```{python}
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(tbl_type="polars"))
+    .rows_distinct(columns_subset="a")
+    .interrogate()
+)
+
+validation
+```
+
+...or with a subset of two or more columns.
+
+```{python}
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(tbl_type="pandas"))
+    .rows_distinct(columns_subset=["a", "b", "c"])
+    .interrogate()
+)
+
+validation
+```
+
+We can check the column count of the table with `col_count_match()` (useful after joining
+operations).
+
+```{python}
+import pointblank as pb
+
+small_table = pb.load_dataset("small_table")
+
+v = pb.Validate(small_table).col_count_match(count=8).interrogate()
+
+v
+```
+
+
+We can perform regular expression checks on data with `col_vals_regex()`.
+
+```{python}
+import pointblank as pb
+import pandas as pd
+
+tbl = pd.DataFrame(
+    {
+        "date": ["2021-01-01", "2021-02-01", pd.NA],
+        "dttm": ["2021-01-01 00:00:00", pd.NA, "2021-02-01 00:00:00"],
+        "text": [pd.NA, "5-egh-163", "8-kdg-938"],
+    }
+)
+
+validation = (
+    pb.Validate(tbl)
+    .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
+    .col_vals_regex(columns="text", pattern=r"^\d-[a-z]{3}-[0-9]{3}", na_pass=True)
+    .interrogate()
+)
+
+validation
+```
+
+We can checking the column schema in a table against an expected schema. Use `Schema` to define a
+schema expectation and `col_schema_match()` to put it to the test.
+
+```{python}
+import polars as pl
+import pointblank as pb
+
+tbl = pl.DataFrame(
+    {
+        "a": ["apple", "banana", "cherry", "date"],
+        "b": [1, 6, 3, 5],
+        "c": [1.1, 2.2, 3.3, 4.4],
+    }
+)
+
+# Use Schema to define column schema loosely or rigorously
+schema = pb.Schema(columns=[
+    ("a", ["Int64", "String"]),
+    ("b",),
+    ("c", "Float64")
+    ]
+)
+
+# Use `col_schema_match()` validation method to perform schema check
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=True,
+        in_order=True,
+        case_sensitive_colnames=True,
+        case_sensitive_dtypes=True,
+        full_match_dtypes=True,
+    )
+    .interrogate()
+)
+
+validation
+```
+
+If you have a custom check, you can define a column predicate expression in the `col_vals_expr()`
+validation method. Here, we're using a Pandas table but we can interchangably use a lamda or a
+Narwhals column expression.
+
+```{python}
+import pointblank as pb
+import narwhals as nw
+import polars as pl
+
+pd_expr = lambda df: df["d"] > df["a"]
+nw_expr = nw.col("d") > nw.col("a")
+
+v = (
+    pb.Validate(data=pb.load_dataset(tbl_type="pandas"))
+    .col_vals_expr(expr=pd_expr)
+    .interrogate()
+)
+
+v
+```
+
+With this check of a Polars table with `col_vals_expr()`, we can use a fairly sophisticated Polars
+column expression (a Narwhals one is okay here too).
+
+```{python}
+import pointblank as pb
+import polars as pl
+
+tbl = pl.DataFrame(
+    {
+        "a": [1, 2, 1, 7, 8, 6],
+        "b": [0, 0, 0, 1, 1, 1],
+        "c": [0.5, 0.3, 0.8, 1.4, 1.9, 1.2],
+    }
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_vals_expr(
+        expr=(
+            pl.when(pl.col("b") == 0)
+            .then(pl.col("a").is_between(0, 5))
+            .when(pl.col("b") == 1)
+            .then(pl.col("a") > 5)
+            .otherwise(pl.lit(True))
+        )
+    )
+    .interrogate()
+)
+
+validation
+```
+
+### Post-interrogation operations
+
+Get data extracts from validation steps with failures using `get_data_extracts()`. These extracts
+show which rows underwent failures (for the `col_vals*()` steps, which check values down an entire
+column).
+
+```{python}
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+    .col_vals_lt(columns="item_revenue", value=200)
+    .col_vals_gt(columns="item_revenue", value=0)
+    .col_vals_gt(columns="session_duration", value=5)
+    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .interrogate(get_first_n=10)
+)
+
+validation.get_data_extracts(i=3, frame=True)
+```
+
+
+
+
+Sundering data means splitting the table based on the validation results. Here, the target dataset
+is split into a table containing only the rows where there were no row-level failures found during
+interrogation.
+
+```{python}
+import pointblank as pb
+import polars as pl
+
+tbl = pl.DataFrame(
+    {
+        "a": [7, 6, 9, 7, 3, 2],
+        "b": [9, 8, 10, 5, 10, 6],
+        "c": ["c", "d", "a", "b", "a", "b"]
+    }
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_vals_gt(columns="a", value=5)
+    .col_vals_in_set(columns="c", set=["a", "b"])
+    .interrogate()
+)
+
+validation.get_sundered_data(type="pass")
+```
+
+
+### Global options for customizing reporting
+
+Use global options in `config()` to modify display of reporting. In this incantation, we don't want
+to show the header or footer of the validation report table.
+
+```{python}
+import polars as pl
+import pointblank as pb
+
+pb.config(report_incl_footer=False, report_incl_header=False)
+
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+    .col_vals_lt(columns="item_revenue", value=200)
+    .col_vals_gt(columns="item_revenue", value=0)
+    .col_vals_gt(columns="session_duration", value=5)
+    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .interrogate(get_first_n=10)
+)
+
+validation
+```
