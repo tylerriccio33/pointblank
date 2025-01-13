@@ -19,6 +19,7 @@ jobs:
           python -m pip install -e .
           python -m pip install ".[docs]"
           python -m pip install ibis-framework[duckdb]
+          python -m pip install pins
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
       - name: Build docs
