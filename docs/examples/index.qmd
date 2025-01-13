@@ -39,7 +39,6 @@ v = (
     )
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
-    .col_exists(columns=["date", "date_time"])
     .interrogate()
 )
 
@@ -56,30 +55,6 @@ data = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
 
 pb.preview(data=data)
 ```
-
-All sorts of tables are supported, here we use a Parquet table.
-
-```{python}
-#| echo: false
-import pathlib
-path_to_parquet_file = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.parquet"
-```
-
-```{python}
-import pointblank as pb
-import ibis
-
-tbl = ibis.read_parquet(path_to_parquet_file)
-
-v = (
-    pb.Validate(tbl)
-    .col_vals_lt(columns="x", value=pb.col("z"), na_pass=True)
-    .interrogate()
-)
-
-v
-```
-
 
 ### Perform a more comprehensive data validation with sample data
 
