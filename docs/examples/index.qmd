@@ -45,57 +45,8 @@ validation = (
 print(validation.get_json_report())
 ```
 
-Preview a table (any type) and get a consistent view of the data no matter what type of table it is.
-This is good for getting your bearings on a new dataset.
-
-```{python}
-import pointblank as pb
-
-data = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
-
-pb.preview(data=data)
-```
-
-### Perform a more comprehensive data validation with sample data
-
-The validation plan can be quite large if you want it to be. Here is validation of the `penguins`
-dataset as a DuckDB table.
-
-```{python}
-import pointblank as pb
-import ibis
-
-con = ibis.connect("duckdb://penguins.ddb")
-con.create_table(
-    "penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True
-)
-
-penguins = con.table("penguins")
-
-validation = (
-    pb.Validate(
-        data=penguins,
-        tbl_name="penguins",
-        label="The penguins dataset"
-    )
-    .col_vals_gt(columns="body_mass_g", value=1000000)
-    .col_vals_lt(columns="year", value=2024)
-    .col_vals_eq(columns="year", value=2007)
-    .col_vals_ne(columns="year", value=2007)
-    .col_vals_ge(columns="year", value=2007)
-    .col_vals_regex(columns="sex", pattern="fe")
-    .col_exists(columns="body_mass_g")
-    .col_vals_in_set(columns="year", set=[2020, 2018])
-    .col_vals_not_in_set(columns="year", set=[2010, 2011])
-    .col_vals_between(columns="year", left=2007, right=2010)
-    .col_vals_outside(columns="year", left=2008, right=2013)
-    .interrogate()
-)
-
-validation
-```
-
-We can use the `pre=` argument to mutate table for a specific validation step.
+We can use the `pre=` argument (available in every validation method) to mutate table for a specific
+validation step.
 
 ```{python}
 import polars as pl
@@ -134,8 +85,21 @@ validation = (
 validation
 ```
 
-The following validation plan (collection of validation steps) is even larger. Here, in two
-different validation step, we use the `pre=` argument to mutate the target table with a lambda.
+Preview a table (any type) and get a consistent view of the data no matter what type of table it is.
+This is good for getting your bearings on a new dataset.
+
+```{python}
+import pointblank as pb
+
+data = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
+
+pb.preview(data=data)
+```
+
+### Perform a more comprehensive data validation with sample data
+
+The validation plan can be quite large if you want it to be. Here, in two different validation
+steps, we use the `pre=` argument to mutate the target table with a lambda.
 
 ```{python}
 import pointblank as pb
