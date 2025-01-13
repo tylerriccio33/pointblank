@@ -5,34 +5,39 @@ html-table-processing: none
 ---
 
 ::::: {.callout}
-This is a work in progress. It's just an outline for now.
+This is a work in progress. And some of this article is just an outline for now.
 :::
 
-Thresholds enable you to signal failure at different severity levels. In the near future, thresholds will be able to trigger custom actions. For example, when testing a column for NULLs with `col_vals_not_null()` you might want to warn on any NULLs and stop where there are 10% NULLs in the column.
+Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
+will be able to trigger custom actions. For example, when testing a column for Null/missing values
+with `col_vals_not_null()` you might want to warn on any missing values and stop where there are
+10% missing values in the column.
 
 ```{python}
 import pointblank as pb
 
 validation_1 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_not_null(columns="a", thresholds=(1, 0.1))
+    .col_vals_not_null(columns="c", thresholds=(1, 0.1))
     .interrogate()
 )
 
 validation_1
 ```
 
-The code uses `thresholds=(1, 0.1)` to set a `WARN` threshold of 1 and a `STOP` threshold of 10% failing test units. Notice these pieces in the validation table:
+The code uses `thresholds=(1, 0.1)` to set a `warn` threshold of `1` and a `stop` threshold of `0.1`
+(which is 10%) failing test units. Notice these pieces in the validation table:
 
-- The `FAIL` column shows that x tests units have failed
-- The `W` column (short for `WARN`) shows a filled yellow circle indicating it's reached threshold
-- The `S` column (short for `STOP`) shows an open red circle indicating it's below threshold
+- The `FAIL` column shows that 2 tests units have failed
+- The `W` column (short for `warn`) shows a filled yellow circle indicating it's reached threshold
+- The `S` column (`stop`) shows an open red circle indicating it's below threshold
 
-The one final threshold, `N` (`NOTIFY`), wasn't set so appears on the validation table as a dash.
+The one final threshold, `N` (`notify`), wasn't set so appears on the validation table as a dash.
 
-## Using the `Validation(threshold=)` argument
+## Using the `Validation(threshold=)` Argument
 
-We can also define thresholds globally. This means that every validation step will re-use the same set of threshold values.
+We can also define thresholds globally. This means that every validation step will re-use the same
+set of threshold values.
 
 ```python
 import pointblank as pb
@@ -47,16 +52,21 @@ validation_2 = (
 validation_2
 ```
 
-In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the `thresholds=` value set in the `Validate()` call. Now, if you want to override these global threshold values for a given validation step, you can always use `threshold=` argument when calling a validation method.
+In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the `thresholds=` value
+set in the `Validate()` call. Now, if you want to override these global threshold values for a given
+validation step, you can always use the `threshold=` argument when calling a validation method (the
+argument is present in every validation method).
 
-## Defining Thresholds
+## Ways to Define Thresholds
 
-### Threshold shorthands
 
-The fastest way to define a threshold is to use a tuple with entries for `warn`, `stop`, and `nofify` levels.
+### Using a Tuple
+
+The fastest way to define a threshold is to use a tuple with entries for `warn`, `stop`, and
+`nofify` levels.
 
 ```python
-# [WARN, STOP, NOTIFY]
+# (warn, stop, notify)
 threshold = (1, 2, 3)
 
 Validate(data=..., threshold=threshold)
@@ -67,17 +77,19 @@ Note that a shorter tuple or even single values are also allowed:
 - `(1, 2)`: `warn` state at 1 failing test unit, `stop` state at 2 failing test units
 - `1` or `(1, )`: `warn` state at 1 failing test unit
 
-### Threshold cutoff values
+### The `Threshold` Class
+
+
+## Threshold Cutoff Values
 
 Threshold values can be specified in two ways:
 
 - percentage: a decimal value like 0.1 to mean 10% test units failed
 - number: a fixed number of test units failed
 
-Threshold cutoffs are inclusive so any value of failing test units greater than or equal to the cutoff will result in triggering the threshold. So if a threshold is defined with a cutoff value of `5`, then 5 failing test units will result in threshold.
-
-### The `Threshold` class
-
+Threshold cutoffs are inclusive so any value of failing test units greater than or equal to the
+cutoff will result in triggering the threshold. So if a threshold is defined with a cutoff value of
+`5`, then 5 failing test units will result in threshold.
 
 ## Triggering Actions
 
@@ -89,6 +101,4 @@ This is not currently implemented.
 
 ## Use Case: Global tolerance bands
 
-
-## Use Case: Schema Correctness After Table Joins
 
