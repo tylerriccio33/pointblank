@@ -6291,8 +6291,8 @@ class Validate:
             return "This validation step is inactive."
 
         # If no rows were extracted, create a message to indicate that no rows were extracted
-        if get_row_count(extract) == 0:
-            return "No rows were extracted."
+        # if get_row_count(extract) == 0:
+        #    return "No rows were extracted."
 
         if assertion_type in [
             "col_vals_gt",
@@ -6310,8 +6310,23 @@ class Validate:
             "col_vals_not_null",
         ]:
 
+            # Did the validation step pass?
+            all_passed = validation_step["all_passed"]
+
+            warn = validation_step["warn"]
+            stop = validation_step["stop"]
+            notify = validation_step["notify"]
+
+            n_failed = validation_step["n_failed"]
+            n = validation_step["n"]
+            extract_length = get_row_count(extract)
+
             # Get the column name for the step
             column = validation_step["column"]
+
+            # Get the position of the column in the table
+            column_list = list(self.data.columns)
+            column_index = column_list.index(column) + 1
 
             # Generate explantory text for the validation step
             if assertion_type == "col_vals_gt":
@@ -6347,40 +6362,305 @@ class Validate:
             elif assertion_type == "col_vals_not_null":
                 text = f"{column} IS NOT NULL"
 
-            # Create a preview of the extracted data
-            extract_preview = preview(
-                data=extract, n_head=1000, n_tail=1000, limit=2000, incl_header=False
-            )
+            if all_passed:
+                # Create a table with a sample of ten rows, highlighting the column of interest
+                tbl_preview = preview(
+                    data=self.data, n_head=5, n_tail=5, limit=10, incl_header=False
+                )
 
-            extract_preview = (
-                extract_preview.tab_style(
-                    style=[
-                        style.text(color="#B22222"),
-                        style.fill(color="#FFC1C159"),
-                        style.borders(
+                step_report = (
+                    tbl_preview.tab_style(
+                        style=[
+                            style.text(color="#006400"),
+                            style.fill(color="#4CA64C33"),
+                            style.borders(
+                                sides=["left", "right"],
+                                color="#1B4D3E80",
+                                style="solid",
+                                weight="2px",
+                            ),
+                        ],
+                        locations=loc.body(columns=column),
+                    )
+                    .tab_style(
+                        style=style.borders(
+                            sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
+                        ),
+                        locations=loc.column_labels(columns=column),
+                    )
+                    .tab_header(
+                        title=f"Report for Validation Step {i}",
+                        subtitle=html(
+                            "<div>"
+                            "ASSERTION <span style='border-style: solid; border-width: thin; "
+                            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+                            f"<code style='color: #303030;'>{text}</code></span><br>"
+                            f"<div style='padding-top: 3px;'><strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
+                            f"IN COLUMN <strong>{column_index}</strong></div>"
+                            "<div style='padding-top: 10px;'>PREVIEW OF TARGET TABLE:"
+                            "</div></div>"
+                        ),
+                    )
+                )
+
+            else:
+                # Create a preview of the extracted data
+                extract_preview = preview(
+                    data=extract, n_head=1000, n_tail=1000, limit=2000, incl_header=False
+                )
+
+                step_report = (
+                    extract_preview.tab_style(
+                        style=[
+                            style.text(color="#B22222"),
+                            style.fill(color="#FFC1C159"),
+                            style.borders(
+                                sides=["left", "right"], color="black", style="solid", weight="2px"
+                            ),
+                        ],
+                        locations=loc.body(columns=column),
+                    )
+                    .tab_style(
+                        style=style.borders(
                             sides=["left", "right"], color="black", style="solid", weight="2px"
                         ),
-                    ],
-                    locations=loc.body(columns=column),
+                        locations=loc.column_labels(columns=column),
+                    )
+                    .tab_header(
+                        title=f"Report for Validation Step {i}",
+                        subtitle=html(
+                            "<div>"
+                            "ASSERTION <span style='border-style: solid; border-width: thin; "
+                            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+                            f"<code style='color: #303030;'>{text}</code></span><br>"
+                            f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
+                            f"<strong>{n}</strong> TEST UNIT FAILURES "
+                            f"IN COLUMN <strong>{column_index}</strong></div>"
+                            "<div style='padding-top: 10px;'>EXTRACT OF "
+                            f"<strong>{extract_length}</strong> ROWS WITH "
+                            "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
+                            "</div></div>"
+                        ),
+                    )
                 )
-                .tab_style(
-                    style=style.borders(
-                        sides=["left", "right"], color="black", style="solid", weight="2px"
-                    ),
-                    locations=loc.column_labels(columns=column),
-                )
-                .tab_header(
-                    title=f"Report for Validation Step {i}",
-                    subtitle=html(
-                        f"ASSERTION <span style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px;'><code style='color: #303030;'>{text}</code></span>"
-                    ),
-                )
+
+        elif assertion_type == "col_schema_match":
+
+            # Get the parameters for column-schema matching
+            values_dict = validation_step["values"]
+
+            all_passed = validation_step["all_passed"]
+
+            schema = values_dict["schema"]
+            complete = values_dict["complete"]
+            in_order = values_dict["in_order"]
+            case_sensitive_colnames = values_dict["case_sensitive_colnames"]
+            case_sensitive_dtypes = values_dict["case_sensitive_dtypes"]
+            full_match_dtypes = values_dict["full_match_dtypes"]
+
+            # Place check mark in a circle with a green background and make the check mark text
+            # white in color
+            check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
+            cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
+            dash_mark_html = "<span>&mdash;</span>"
+
+            # Get the target table's schema
+            schema_target = Schema(tbl=self.data)
+
+            colnames_tgt = [x[0] for x in schema_target.columns]
+            dtypes_tgt = [str(x[1]) for x in schema_target.columns]
+
+            # Create a Polars DF with the target table columns and dtypes
+            import polars as pl
+
+            schema_tbl = pl.DataFrame(
+                {
+                    "index_target": range(1, len(colnames_tgt) + 1),
+                    "col_name_target": colnames_tgt,
+                    "dtype_target": dtypes_tgt,
+                }
             )
 
-        else:
-            extract_preview = None
+            # Now, add the expected columns and dtypes to the schema table in the correct locations
+            # based on the `complete` and `in_order` parameters
+            if complete and in_order:
 
-        return extract_preview
+                # Is the number of column names supplied equal to the number of columns in the
+                # target table?
+                if len(schema.columns) != len(schema_target.columns):
+                    n_col_names_equal_across_tables = False
+                else:
+                    n_col_names_equal_across_tables = True
+
+                # Get the expected column names and dtypes
+                colnames_exp = [x[0] for x in schema.columns]
+
+                # The dtype is optional and might be None, so we need to convert it to a string;
+                # however, if there is a list object, keep it a list
+                dtypes_exp = [
+                    (
+                        x[1]
+                        if len(x) > 1 and isinstance(x[1], list)
+                        else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
+                    )
+                    for x in schema.columns
+                ]
+
+                # Get indices of column name differences between `colnames_tgt` and `colnames_exp`
+                colname_diffs = [
+                    i
+                    for i, (col_tgt, col_exp) in enumerate(zip(colnames_tgt, colnames_exp))
+                    if col_tgt != col_exp
+                ]
+
+                # For dtypes, get the indices of differences between `dtypes_tgt` and `dtypes_exp`
+                # and note that `dtypes_exp` could be a list of strings and any of those strings
+                # could match `dtypes_tgt` and return a valid result (i.e., allow multiple attempts)
+                dtypes_diffs = [
+                    i
+                    for i, dtype_exp in enumerate(dtypes_exp)
+                    if dtype_exp != "None"
+                    and (
+                        (
+                            isinstance(dtype_exp, list)
+                            and not any(item in dtypes_tgt for item in dtype_exp)
+                        )
+                        or (
+                            not isinstance(dtype_exp, list)
+                            and not any(dtype_tgt == dtype_exp for dtype_tgt in dtypes_tgt)
+                        )
+                    )
+                ]
+
+                # Create a list of column names with check marks or cross marks based on the
+                # presence of the column name in the expected schema (all check marks for length
+                # of `colnames_tgt` and cross marks for the differences found in colname_diffs)
+                colnames_tgt_eval = [
+                    check_mark_html if i not in colname_diffs else cross_mark_html
+                    for i in range(len(colnames_tgt))
+                ]
+
+                # Create a list of dtypes with check marks or cross marks based on the presence of
+                # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
+                # cross marks for the differences found in dtypes_diffs)
+                dtypes_tgt_eval = [
+                    check_mark_html if i not in dtypes_diffs else cross_mark_html
+                    for i in range(len(dtypes_tgt))
+                ]
+
+                # dtypes_exp could be a list of strings, we need ensure those entries are strings
+                # with the data types being pipe separated
+                dtypes_exp_flat = [
+                    " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
+                    for dtype_exp in dtypes_exp
+                ]
+
+                # Create a Polars DF with the expected columns and dtypes
+                schema_exp = pl.DataFrame(
+                    {
+                        "index_exp": range(1, len(colnames_exp) + 1),
+                        "col_name_exp": colnames_exp,
+                        "col_name_exp_correct": colnames_tgt_eval,
+                        "dtype_exp": dtypes_exp_flat,
+                        "dtype_exp_correct": dtypes_tgt_eval,
+                    }
+                )
+
+                # Determine the maximum number of rows
+                max_rows = max(len(schema_tbl), len(schema_exp))
+
+                # Add empty rows to the shorter table
+                def add_empty_rows(df, num_rows):
+                    empty_df = pl.DataFrame({col: [None] * num_rows for col in df.columns})
+                    return pl.concat([df, empty_df], how="vertical")
+
+                if len(schema_tbl) < max_rows:
+                    schema_tbl = add_empty_rows(schema_tbl, max_rows - len(schema_tbl))
+
+                if len(schema_exp) < max_rows:
+                    schema_exp = add_empty_rows(schema_exp, max_rows - len(schema_exp))
+
+                # Concatenate the tables horizontally
+                schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+
+                step_report = (
+                    GT(schema_combined, id="pb_step_tbl")
+                    .fmt_markdown(columns=None)
+                    .opt_table_font(font=google_font(name="IBM Plex Sans"))
+                    .opt_align_table_header(align="left")
+                    .cols_label(
+                        cases={
+                            "index_target": "",
+                            "col_name_target": "COLUMN",
+                            "dtype_target": "DTYPE",
+                            "index_exp": "",
+                            "col_name_exp": "COLUMN",
+                            "col_name_exp_correct": "",
+                            "dtype_exp": "DTYPE",
+                            "dtype_exp_correct": "",
+                        }
+                    )
+                    .cols_width(
+                        cases={
+                            "index_target": "40px",
+                            "col_name_target": "150px",
+                            "dtype_target": "150px",
+                            "index_exp": "40px",
+                            "col_name_exp": "150px",
+                            "col_name_exp_correct": "30px",
+                            "dtype_exp": "150px",
+                            "dtype_exp_correct": "30px",
+                        }
+                    )
+                    .tab_style(
+                        style=style.text(
+                            color="black", font=google_font(name="IBM Plex Mono"), size="13px"
+                        ),
+                        locations=loc.body(
+                            columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+                        ),
+                    )
+                    .tab_style(
+                        style=style.text(size="13px"),
+                        locations=loc.body(columns=["index_target", "index_exp"]),
+                    )
+                    .tab_style(
+                        style=style.borders(
+                            sides="left", color="#E5E5E5", style="double", weight="3px"
+                        ),
+                        locations=loc.body(columns="index_exp"),
+                    )
+                    .tab_spanner(
+                        label="TARGET",
+                        columns=["index_target", "col_name_target", "dtype_target"],
+                    )
+                    .tab_spanner(
+                        label="EXPECTED",
+                        columns=[
+                            "index_exp",
+                            "col_name_exp",
+                            "col_name_exp_correct",
+                            "dtype_exp",
+                            "dtype_exp_correct",
+                        ],
+                    )
+                    .tab_header(
+                        title=f"Report for Validation Step {i}",
+                        subtitle=html("COLUMN SCHEMA MATCH"),
+                    )
+                    .tab_source_note(
+                        source_note=html(
+                            "Supplied Column Schema:<br>"
+                            f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px;'><code style='color: #303030;'>{schema.columns}</code></div>"
+                        )
+                    )
+                    .tab_options(source_notes_font_size="12px")
+                )
+
+        else:
+            step_report = None
+
+        return step_report
 
     def _add_validation(self, validation_info):
         """
