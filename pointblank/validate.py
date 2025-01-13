@@ -6283,6 +6283,17 @@ class Validate:
         # From validation_info, get the assertion type for the step
         assertion_type = validation_step["assertion_type"]
 
+        # Get the extracted data for the step
+        extract = self.get_data_extracts(i=i, frame=True)
+
+        # If the step is not active then return a message indicating that the step is inactive
+        if not validation_step["active"]:
+            return "This validation step is inactive."
+
+        # If no rows were extracted, create a message to indicate that no rows were extracted
+        if get_row_count(extract) == 0:
+            return "No rows were extracted."
+
         if assertion_type in [
             "col_vals_gt",
             "col_vals_lt",
@@ -6299,24 +6310,71 @@ class Validate:
             "col_vals_not_null",
         ]:
 
-            # Get the extracted data for the step
-            extract = self.get_data_extracts(i=i, frame=True)
-
             # Get the column name for the step
             column = validation_step["column"]
 
-            # If no rows were extracted, create a message to indicate that no rows were extracted
-            if get_row_count(extract) == 0:
-                return "No rows were extracted."
+            # Generate explantory text for the validation step
+            if assertion_type == "col_vals_gt":
+                text = f"{column} > {validation_step['values']}"
+            elif assertion_type == "col_vals_lt":
+                text = f"{column} < {validation_step['values']}"
+            elif assertion_type == "col_vals_eq":
+                text = f"{column} =  {validation_step['values']}"
+            elif assertion_type == "col_vals_ne":
+                text = f"{column} &ne; {validation_step['values']}"
+            elif assertion_type == "col_vals_ge":
+                text = f"{column} &ge; {validation_step['values']}"
+            elif assertion_type == "col_vals_le":
+                text = f"{column} &le; {validation_step['values']}"
+            elif assertion_type == "col_vals_between":
+                inclusive = validation_step["inclusive"]
+                symbol_left = "&le;" if inclusive[0] else "&lt;"
+                symbol_right = "&le;" if inclusive[1] else "&lt;"
+                text = f"{validation_step['values'][0]} {symbol_left} {column} {symbol_right} {validation_step['values'][1]}"
+            elif assertion_type == "col_vals_outside":
+                inclusive = validation_step["inclusive"]
+                symbol_left = "&lt;" if inclusive[0] else "&le;"
+                symbol_right = "&gt;" if inclusive[1] else "&ge;"
+                text = f"{column} {symbol_left} {validation_step['values'][0]}, {column} {symbol_right} {validation_step['values'][1]}"
+            elif assertion_type == "col_vals_in_set":
+                text = f"{column} IN {validation_step['values']}"
+            elif assertion_type == "col_vals_not_in_set":
+                text = f"{column} NOT IN {validation_step['values']}"
+            elif assertion_type == "col_vals_regex":
+                text = f"{column} MATCHES REGEX {validation_step['values']}"
+            elif assertion_type == "col_vals_null":
+                text = f"{column} IS NULL"
+            elif assertion_type == "col_vals_not_null":
+                text = f"{column} IS NOT NULL"
 
             # Create a preview of the extracted data
             extract_preview = preview(
                 data=extract, n_head=1000, n_tail=1000, limit=2000, incl_header=False
             )
 
-            extract_preview = extract_preview.tab_style(
-                style=[style.text(color="#B22222"), style.fill(color="#FFC1C159")],
-                locations=loc.body(columns=column),
+            extract_preview = (
+                extract_preview.tab_style(
+                    style=[
+                        style.text(color="#B22222"),
+                        style.fill(color="#FFC1C159"),
+                        style.borders(
+                            sides=["left", "right"], color="black", style="solid", weight="2px"
+                        ),
+                    ],
+                    locations=loc.body(columns=column),
+                )
+                .tab_style(
+                    style=style.borders(
+                        sides=["left", "right"], color="black", style="solid", weight="2px"
+                    ),
+                    locations=loc.column_labels(columns=column),
+                )
+                .tab_header(
+                    title=f"Report for Validation Step {i}",
+                    subtitle=html(
+                        f"ASSERTION <span style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px;'><code style='color: #303030;'>{text}</code></span>"
+                    ),
+                )
             )
 
         else:
