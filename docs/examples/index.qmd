@@ -15,7 +15,7 @@ interrogation.
 ```{python}
 import pointblank as pb
 
-v = (
+validation = (
     pb.Validate( # Use pb.Validate to start
         data=pb.load_dataset(dataset="small_table", tbl_type="polars")
     )
@@ -25,7 +25,7 @@ v = (
     .interrogate()  # This will execute all validation steps and collect intel
 )
 
-v
+validation
 ```
 
 If you need JSON output instead of a tabular report, use the `get_json_report()` method.
@@ -33,7 +33,7 @@ If you need JSON output instead of a tabular report, use the `get_json_report()`
 ```{python}
 import pointblank as pb
 
-v = (
+validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="small_table", tbl_type="pandas")
     )
@@ -42,7 +42,7 @@ v = (
     .interrogate()
 )
 
-print(v.get_json_report())
+print(validation.get_json_report())
 ```
 
 Preview a table (any type) and get a consistent view of the data no matter what type of table it is.
@@ -66,12 +66,18 @@ import pointblank as pb
 import ibis
 
 con = ibis.connect("duckdb://penguins.ddb")
-con.create_table("penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True)
+con.create_table(
+    "penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True
+)
 
 penguins = con.table("penguins")
 
-v = (
-    pb.Validate(data=penguins, tbl_name="Table of x and y")  # Add data to be validated
+validation = (
+    pb.Validate(
+        data=penguins,
+        tbl_name="penguins",
+        label="The penguins dataset"
+    )
     .col_vals_gt(columns="body_mass_g", value=1000000)
     .col_vals_lt(columns="year", value=2024)
     .col_vals_eq(columns="year", value=2007)
@@ -86,7 +92,7 @@ v = (
     .interrogate()
 )
 
-v
+validation
 ```
 
 We can use the `pre=` argument to mutate table for a specific validation step.
@@ -109,8 +115,11 @@ tbl = pl.DataFrame(
    }
 )
 
-v = (
-    pb.Validate(tbl)
+validation = (
+    pb.Validate(
+        data=tbl,
+        label="Mutating a table during interrogation"
+    )
     .col_vals_between(
         columns=pb.col(pb.contains("higher")),
         left=100,
@@ -122,7 +131,7 @@ v = (
     .interrogate()
     )
 
-v
+validation
 ```
 
 The following validation plan (collection of validation steps) is even larger. Here, in two
@@ -175,8 +184,12 @@ selectors on `columns=`.
 ```{python}
 import pointblank as pb
 
-v = (
-    pb.Validate(data=pb.load_dataset())
+validation = (
+    pb.Validate(
+        data=pb.load_dataset(),
+        tbl_name="small_table",
+        label="Using column selector functions"
+    )
     .col_vals_not_in_set(columns="f", set=["a", "b"])
     .col_vals_gt(
         columns=pb.col(pb.starts_with("a") | pb.starts_with("c")),
@@ -188,7 +201,7 @@ v = (
     .interrogate()
 )
 
-v
+validation
 ```
 
 Here's some pretty advanced usage of column selectors in various validation steps. We can use these
@@ -213,8 +226,11 @@ tbl = pl.DataFrame(
    }
 )
 
-v = (
-    pb.Validate(tbl)
+validation = (
+    pb.Validate(
+        data=tbl,
+        label="Column selectors: advanced"
+    )
     .col_vals_gt(columns=pb.col("low_numbers"), value=0)
     .col_vals_lt(columns=pb.ends_with("NUMBERS"), value=200000)
     .col_vals_between(columns=pb.col(pb.ends_with("FLOATS") - pb.contains("superhigh")),left=0, right=100)
@@ -226,9 +242,8 @@ v = (
     .interrogate()
     )
 
-v
+validation
 ```
-
 
 ### Types of validations that can be performed
 
@@ -282,9 +297,9 @@ import pointblank as pb
 
 small_table = pb.load_dataset("small_table")
 
-v = pb.Validate(small_table).col_count_match(count=8).interrogate()
+validation = pb.Validate(small_table).col_count_match(count=8).interrogate()
 
-v
+validation
 ```
 
 
@@ -364,13 +379,13 @@ import polars as pl
 pd_expr = lambda df: df["d"] > df["a"]
 nw_expr = nw.col("d") > nw.col("a")
 
-v = (
+validation = (
     pb.Validate(data=pb.load_dataset(tbl_type="pandas"))
     .col_vals_expr(expr=pd_expr)
     .interrogate()
 )
 
-v
+validation
 ```
 
 With this check of a Polars table with `col_vals_expr()`, we can use a fairly sophisticated Polars
@@ -427,12 +442,9 @@ validation = (
 validation.get_data_extracts(i=3, frame=True)
 ```
 
-
-
-
-Sundering data means splitting the table based on the validation results. Here, the target dataset
-is split into a table containing only the rows where there were no row-level failures found during
-interrogation.
+Sundering data with `get_sundered_data()` really amounts to splitting the table based on the
+validation results. Here, the target dataset is split into a table containing only the rows where
+there were no row-level failures found during interrogation.
 
 ```{python}
 import pointblank as pb
@@ -455,7 +467,6 @@ validation = (
 
 validation.get_sundered_data(type="pass")
 ```
-
 
 ### Global options for customizing reporting
 
