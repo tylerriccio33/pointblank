@@ -332,8 +332,8 @@ validation
 ```
 
 If you have a custom check, you can define a column predicate expression in the `col_vals_expr()`
-validation method. Here, we're using a Pandas table but we can interchangably use a lamda or a
-Narwhals column expression.
+validation method. Here, we're using a Pandas table but we can interchangably use a lambda or a
+Narwhals column expression in `expr=`.
 
 ```{python}
 import pointblank as pb
@@ -353,7 +353,7 @@ validation
 ```
 
 With this check of a Polars table with `col_vals_expr()`, we can use a fairly sophisticated Polars
-column expression (a Narwhals one is okay here too).
+column expression (a Narwhals equivalent can be used instead).
 
 ```{python}
 import pointblank as pb
