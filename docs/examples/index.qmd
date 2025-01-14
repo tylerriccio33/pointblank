@@ -122,10 +122,14 @@ validation = (
     .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
     .col_vals_eq(columns="a", value=10, active=False)
     .col_vals_ge(
-        columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20)
+        columns="a",
+        value=20,
+        pre=lambda dfn: dfn.with_columns(nw.col("a") * 20)
     )
     .col_vals_gt(
-        columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+        columns="new",
+        value=20,
+        pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
     )
     .col_vals_in_set(columns="f", set=["low", "mid", "high"])
     .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
@@ -202,7 +206,7 @@ validation = (
     .col_vals_le(columns=pb.col(pb.everything() - pb.last_n(3) - pb.first_n(1)), value=4e7)
     .col_vals_in_set(columns=pb.col(pb.starts_with("w") & pb.ends_with("d")), set=["apple", "banana"])
     .col_vals_outside(columns=pb.col(~pb.first_n(1) & ~pb.last_n(7)), left=10, right=15)
-    .col_vals_regex(columns=pb.col("word"), pattern="a")  # 18
+    .col_vals_regex(columns=pb.col("word"), pattern="a")
     .interrogate()
     )
 
@@ -314,17 +318,10 @@ schema = pb.Schema(columns=[
     ]
 )
 
-# Use `col_schema_match()` validation method to perform schema check
+# Use the `col_schema_match()` validation method to perform schema check
 validation = (
     pb.Validate(data=tbl)
-    .col_schema_match(
-        schema=schema,
-        complete=True,
-        in_order=True,
-        case_sensitive_colnames=True,
-        case_sensitive_dtypes=True,
-        full_match_dtypes=True,
-    )
+    .col_schema_match(schema=schema)
     .interrogate()
 )
 
@@ -406,6 +403,10 @@ validation = (
 validation.get_data_extracts(i=3, frame=True)
 ```
 
+Above, we obtained the rows that didn't pass validation in validation step 3 (a check on the
+`session_duration` column). Using `frame=True` means we want the DataFrame directly instead of a
+dictionary object.
+
 Sundering data with `get_sundered_data()` really amounts to splitting the table based on the
 validation results. Here, the target dataset is split into a table containing only the rows where
 there were no row-level failures found during interrogation.
@@ -431,6 +432,9 @@ validation = (
 
 validation.get_sundered_data(type="pass")
 ```
+
+You could also use `type="fail"` to get the rows in the table where there was at least one test unit
+failure.
 
 ### Global options for customizing reporting
 
