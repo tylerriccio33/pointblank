@@ -59,7 +59,7 @@ To make this all work seamlessly, we use [Narwhals](https://github.com/narwhals-
 
 ## Features
 
-Here's a short list of what we think makes pointblank a great tool for data validation:
+Here's a short list of what we think makes Pointblank a great tool for data validation:
 
 - **Declarative Syntax**: Define your data validation rules simply, using a declarative syntax
 - **Flexible**: We support tables from Polars, Pandas, Duckdb, MySQL, PostgreSQL, SQLite, and Parquet
@@ -69,9 +69,14 @@ Here's a short list of what we think makes pointblank a great tool for data vali
 - **Easy to Use**: Get started quickly with a simple API and super clear documentation
 - **Powerful**: You can develop complex data validation rules with flexible options for customization
 
+There's a lot of [interesting examples](https://rich-iannone.github.io/pointblank/examples/) you can
+check out in the documentation website. If you have any questions or would like to request a
+feature, you are always welcome to [create an issue](https://github.com/rich-iannone/pointblank/issues)
+or [start a discussion](https://github.com/rich-iannone/pointblank/discussions)!
+
 ## Installation
 
-You can install pointblank using pip:
+You can install Pointblank using pip:
 
 ```bash
 pip install pointblank
@@ -83,9 +88,9 @@ If you encounter a bug, have usage questions, or want to share ideas to make thi
 
 Please note that the pointblank project is released with a [contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).<br>By participating in this project you agree to abide by its terms.
 
-## Contributing to pointblank
+## Contributing to Pointblank
 
-There are many ways to contribute to the ongoing development of pointblank. Some contributions can be simple (like fixing typos, improving documentation, filing issues for feature requests or problems, etc.) and others might take more time and care (like answering questions and submitting PRs with code changes). Just know that anything you can do to help would be very much appreciated!
+There are many ways to contribute to the ongoing development of Pointblank. Some contributions can be simple (like fixing typos, improving documentation, filing issues for feature requests or problems, etc.) and others might take more time and care (like answering questions and submitting PRs with code changes). Just know that anything you can do to help would be very much appreciated!
 
 Please read over the [contributing guidelines](https://github.com/rich-iannone/pointblank/blob/main/CONTRIBUTING.md) for information on how to get started.
 
