@@ -6603,12 +6603,12 @@ class Validate:
                     .cols_width(
                         cases={
                             "index_target": "40px",
-                            "col_name_target": "150px",
-                            "dtype_target": "150px",
+                            "col_name_target": "190px",
+                            "dtype_target": "190px",
                             "index_exp": "40px",
-                            "col_name_exp": "150px",
+                            "col_name_exp": "190px",
                             "col_name_exp_correct": "30px",
-                            "dtype_exp": "150px",
+                            "dtype_exp": "190px",
                             "dtype_exp_correct": "30px",
                         }
                     )
@@ -6630,6 +6630,14 @@ class Validate:
                         ),
                         locations=loc.body(columns="index_exp"),
                     )
+                    .tab_style(
+                        style=style.css(
+                            "white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"
+                        ),
+                        locations=loc.body(
+                            columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+                        ),
+                    )
                     .tab_spanner(
                         label="TARGET",
                         columns=["index_target", "col_name_target", "dtype_target"],
@@ -6650,8 +6658,8 @@ class Validate:
                     )
                     .tab_source_note(
                         source_note=html(
-                            "Supplied Column Schema:<br>"
-                            f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px;'><code style='color: #303030;'>{schema.columns}</code></div>"
+                            "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                            f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
                         )
                     )
                     .tab_options(source_notes_font_size="12px")
