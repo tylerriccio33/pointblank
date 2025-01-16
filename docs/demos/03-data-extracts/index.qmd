@@ -1,0 +1,67 @@
+---
+pagetitle: "Examples: Data Extracts"
+notebook-links: false
+page-navigation: false
+toc: false
+html-table-processing: none
+---
+
+### Data Extracts
+
+Pulling out data extracts that highlight rows with validation failures.
+
+Validation with failures at *Step 3*:
+
+```{python}
+#| echo: false
+
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+    .col_vals_lt(columns="item_revenue", value=200)
+    .col_vals_gt(columns="item_revenue", value=0)
+    .col_vals_ge(columns="session_duration", value=5)
+    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .interrogate()
+)
+
+validation
+```
+
+<br>
+Extract from *Step 3* (`.col_vals_ge(columns="session_duration", value=5)`):
+
+```{python}
+#| echo: false
+pb.preview(validation.get_data_extracts(i=3, frame=True), n_head=10, n_tail=10)
+```
+
+```python
+import pointblank as pb
+
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
+    .col_vals_lt(columns="item_revenue", value=200)
+    .col_vals_gt(columns="item_revenue", value=0)
+    .col_vals_ge(columns="session_duration", value=5)
+    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .interrogate()
+)
+```
+
+```python
+pb.preview(validation.get_data_extracts(i=3, frame=True), n_head=20, n_tail=20)
+```
+
+<details>
+<summary>Preview of Input Table</summary>
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=10, n_tail=10)
+```
+
+</details>
