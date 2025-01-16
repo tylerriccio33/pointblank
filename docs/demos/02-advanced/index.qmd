@@ -33,20 +33,16 @@ validation = (
         set=["google", "facebook", "organic", "crosspromo", "other_campaign"]
     )
     .col_vals_not_in_set(columns="country", set=["Mongolia", "Germany"])        # STEP 6
-    .col_vals_expr(expr=nw.when(                                                # STEP 7
-        nw.col("item_type") == "iap")
-        .then(nw.col("item_name").str.contains(r"^[a-z]*?\d$"))
-    )
-    .col_vals_between(                                                          # STEP 8
+    .col_vals_between(                                                          # STEP 7
         columns="session_duration",
         left=10, right=50,
         pre = lambda df: df.select(pl.median("session_duration"))
     )
-    .rows_distinct(columns_subset=["player_id", "session_id", "time"])          # STEP 9
-    .row_count_match(count=2000)                                                # STEP 10
-    .col_count_match(count=11)                                                  # STEP 11
-    .col_vals_not_null(columns=pb.starts_with("item"))                          # STEP 12-14
-    .col_exists(columns="start_day")                                            # STEP 15
+    .rows_distinct(columns_subset=["player_id", "session_id", "time"])          # STEP 8
+    .row_count_match(count=2000)                                                # STEP 9
+    .col_count_match(count=11)                                                  # STEP 10
+    .col_vals_not_null(columns=pb.starts_with("item"))                          # STEPS 11-13
+    .col_exists(columns="start_day")                                            # STEP 14
     .interrogate()
 )
 
