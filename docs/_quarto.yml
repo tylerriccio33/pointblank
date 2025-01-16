@@ -20,6 +20,8 @@ website:
     left:
       - text: Get Started
         file: get-started/index.qmd
+      - text: Examples
+        file: demos/index.qmd
       - href: reference/index.qmd
         text: Reference
     right:

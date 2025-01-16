@@ -1809,11 +1809,8 @@ class RowCountMatch:
         from pointblank.validate import get_row_count
 
         if not self.inverse:
-
             res = get_row_count(data=self.data_tbl) == self.count
-            print(res)
         else:
-
             res = get_row_count(data=self.data_tbl) != self.count
 
         self.test_unit_res = res
@@ -1858,11 +1855,8 @@ class ColCountMatch:
         from pointblank.validate import get_column_count
 
         if not self.inverse:
-
             res = get_column_count(data=self.data_tbl) == self.count
-            print(res)
         else:
-
             res = get_column_count(data=self.data_tbl) != self.count
 
         self.test_unit_res = res

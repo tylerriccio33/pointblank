@@ -1,0 +1,112 @@
+---
+pagetitle: Examples
+notebook-links: false
+page-navigation: false
+toc: false
+html-table-processing: none
+---
+
+<style>
+.column-page .example {
+    padding: 5px;
+}
+
+iframe {
+    overflow: hidden;
+}
+
+h3 {
+    text-align: center;
+}
+
+h3 a {
+    text-decoration: none;
+    font-size: 20px;
+
+}
+</style>
+
+<p style='text-align: center; font-size: 24px'>A Selection of Examples</p>
+
+:::::: {.column-page}
+
+
+::::: {.grid}
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Starter Validation](./01-starter/index.qmd)
+</div>
+<img style='padding-bottom: 10px;' src="img/starter_validation.png" width="100%"></img>
+<p style='text-align: center; padding-top: 10px;'>A validation with the basics.</p>
+</div>
+:::
+
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Advanced Validation](./02-advanced/index.qmd)
+</div>
+<img style='padding-bottom: 10px;' src="img/advanced_validation.png" width="100%"></img>
+<p style='text-align: center;'>A validation with a comprehensive set of rules.</p>
+</div>
+:::
+
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Data Extracts](./03-data-extracts/index.qmd)
+</div>
+<img style='padding-bottom: 10px;' src="img/data_extracts.png" width="100%"></img>
+<p style='text-align: center;'>Pulling out data extracts that highlight rows with validation failures.</p>
+</div>
+:::
+
+
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Sundered Data](./04-sundered-data/index.qmd)
+</div>
+<img style='padding-bottom: 10px;' src="img/sundered_data.png" width="100%"></img>
+<p style='text-align: center;'>Splitting your data into 'pass' and 'fail' subsets.</p>
+</div>
+:::
+
+:::::
+
+::::::
+
+<hr>
+
+<div style='text-align: center;'>
+
+[Numeric Comparisons](./numeric-comparisons/index.qmd)
+
+[Comparison Checks Across Columns](./comparisons-across-columns/index.qmd)
+
+[Apply Validation Rules to Multiple Columns](./apply-checks-to-several-columns/index.qmd)
+
+[Checks for Missing Values](./checks-for-missing/index.qmd)
+
+[Expectations with a Text Pattern](./expect-text-pattern/index.qmd)
+
+[Set Membership](./set-membership/index.qmd)
+
+[Expect No Duplicate Rows](./expect-no-duplicate-rows/index.qmd)
+
+[Checking for Duplicate Values](./expect-no-duplicate-values/index.qmd)
+
+[Custom Expression for Checking Column Values](./col-vals-custom-expr/index.qmd)
+
+[Mutate the Table in a Validation Step](./mutate-table-in-step/index.qmd)
+
+[Verifying Row and Column Counts](./check-row-column-counts/index.qmd)
+
+[Set Failure Threshold Levels](./failure-thresholds/index.qmd)
+
+[Column Selector Functions: Easily Pick Columns](./column-selector-functions/index.qmd)
+
+[Check the Schema of a Table](./schema-check/index.qmd)
+
+</div>
