@@ -85,6 +85,8 @@ h3 a {
 
 [Comparison Checks Across Columns](./comparisons-across-columns/index.qmd)
 
+[Apply Validation Rules to Multiple Columns](/apply-checks-to-several-columns/index.qmd)
+
 [Checks for Missing Values](./checks-for-missing/index.qmd)
 
 [Expectations with a Text Pattern](./expect-text-pattern/index.qmd)
