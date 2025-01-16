@@ -6,7 +6,7 @@ toc: false
 html-table-processing: none
 ---
 
-### Numeric comparisons
+### Numeric Comparisons
 
 Perform comparisons of values in columns to fixed values.
 
