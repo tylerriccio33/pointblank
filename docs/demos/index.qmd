@@ -101,4 +101,6 @@ h3 a {
 
 [Verifying Row and Column Counts](./check-row-column-counts/index.qmd)
 
+[Set Failure Threshold Levels](./failure-thresholds/index.qmd)
+
 </div>
