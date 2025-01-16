@@ -83,6 +83,8 @@ h3 a {
 
 [Numeric Comparisons](./numeric-comparisons/index.qmd)
 
+[Comparison Checks Across Columns](./comparisons-across-columns/index.qmd)
+
 [Checks for Missing Values](./checks-for-missing/index.qmd)
 
 [Expectations with a Text Pattern](./expect-text-pattern/index.qmd)
