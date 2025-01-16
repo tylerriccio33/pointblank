@@ -105,6 +105,8 @@ h3 a {
 
 [Set Failure Threshold Levels](./failure-thresholds/index.qmd)
 
-[Column Selector Functions: Easily Pick Columns](/column-selector-functions/index.qmd)
+[Column Selector Functions: Easily Pick Columns](./column-selector-functions/index.qmd)
+
+[Check the Schema of a Table](./schema-check/index.qmd)
 
 </div>
