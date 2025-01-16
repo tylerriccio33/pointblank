@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Set Failure Threshold Levels
 
-Set threshold levels to gauge adverse data quality.
+You can threshold levels globally (and also at the step-level) to better gauge adverse data quality.
 
 ```{python}
 #| echo: false
