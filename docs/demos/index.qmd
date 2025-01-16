@@ -99,4 +99,6 @@ h3 a {
 
 [Mutate the Table in a Validation Step](./mutate-table-in-step/index.qmd)
 
+[Verifying Row and Column Counts](./check-row-column-counts/index.qmd)
+
 </div>
