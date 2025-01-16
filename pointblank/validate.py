@@ -5798,7 +5798,7 @@ class Validate:
                 values_upd.append("SCHEMA")
 
             elif assertion_type[i] in ["col_vals_expr"]:
-                values_upd.append("COLUMN EXPRESSION")
+                values_upd.append("COLUMN EXPR")
 
             elif assertion_type[i] in ["row_count_match", "col_count_match"]:
 
