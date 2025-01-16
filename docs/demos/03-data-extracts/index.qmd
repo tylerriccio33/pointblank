@@ -10,7 +10,7 @@ html-table-processing: none
 
 Pulling out data extracts that highlight rows with validation failures.
 
-Validation with failures at *Step 3*:
+Validation with failures at *Step 2*:
 
 ```{python}
 #| echo: false
@@ -18,12 +18,13 @@ Validation with failures at *Step 3*:
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
-    .col_vals_lt(columns="item_revenue", value=200)
-    .col_vals_gt(columns="item_revenue", value=0)
-    .col_vals_ge(columns="session_duration", value=5)
-    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
-    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue"),
+        tbl_name="game_revenue",
+        label="Validation with test unit failures available as an extract"
+    )
+    .col_vals_gt(columns="item_revenue", value=0)      # STEP 1: no test unit failures
+    .col_vals_ge(columns="session_duration", value=5)  # STEP 2: 14 test unit failures -> extract
     .interrogate()
 )
 
@@ -31,29 +32,31 @@ validation
 ```
 
 <br>
-Extract from *Step 3* (`.col_vals_ge(columns="session_duration", value=5)`):
+Extract from *Step 2* (`.col_vals_ge(columns="session_duration", value=5)`):
 
 ```{python}
 #| echo: false
-pb.preview(validation.get_data_extracts(i=3, frame=True), n_head=10, n_tail=10)
+pb.preview(validation.get_data_extracts(i=2, frame=True))
 ```
 
 ```python
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
-    .col_vals_lt(columns="item_revenue", value=200)
-    .col_vals_gt(columns="item_revenue", value=0)
-    .col_vals_ge(columns="session_duration", value=5)
-    .col_vals_in_set(columns="item_type", set=["iap", "ad"])
-    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue"),
+        tbl_name="game_revenue",
+        label="Validation with test unit failures available as an extract"
+    )
+    .col_vals_gt(columns="item_revenue", value=0)      # STEP 1: no test unit failures
+    .col_vals_ge(columns="session_duration", value=5)  # STEP 2: 14 test unit failures -> extract
+    .interrogate()
     .interrogate()
 )
 ```
 
 ```python
-pb.preview(validation.get_data_extracts(i=3, frame=True), n_head=20, n_tail=20)
+pb.preview(validation.get_data_extracts(i=2, frame=True), n_head=20, n_tail=20)
 ```
 
 <details>
@@ -61,7 +64,7 @@ pb.preview(validation.get_data_extracts(i=3, frame=True), n_head=20, n_tail=20)
 
 ```{python}
 # | echo: false
-pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=10, n_tail=10)
+pb.preview(pb.load_dataset(dataset="game_revenue"))
 ```
 
 </details>
