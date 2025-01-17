@@ -6468,13 +6468,14 @@ class Validate:
             # white in color
             check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
             cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
-            dash_mark_html = "<span>&mdash;</span>"
 
             # Get the target table's schema
             schema_target = Schema(tbl=self.data)
 
             colnames_tgt = [x[0] for x in schema_target.columns]
             dtypes_tgt = [str(x[1]) for x in schema_target.columns]
+
+            passing_symbol = check_mark_html if all_passed else cross_mark_html
 
             # Create a Polars DF with the target table columns and dtypes
             import polars as pl
@@ -6497,7 +6498,7 @@ class Validate:
                     schema_length = "longer"
                     difference = len(schema.columns) - len(schema_target.columns)
                 elif len(schema.columns) < len(schema_target.columns):
-                    schema_length = "short"
+                    schema_length = "shorter"
                     difference = len(schema_target.columns) - len(schema.columns)
                 else:
                     schema_length = "equal"
@@ -6560,10 +6561,10 @@ class Validate:
                 ]
 
                 # If the a `col_name_exp_correct` value is a cross mark, then the corresponding
-                # `dtype_exp_correct` entry should be a dash mark (since the column name is not
+                # `dtype_exp_correct` entry should be an empty string (since the column name is not
                 # correct, the dtype is not relevant)
                 dtypes_tgt_eval = [
-                    ("&mdash;" if colnames_tgt_eval[i] == cross_mark_html else dtypes_tgt_eval[i])
+                    ("" if colnames_tgt_eval[i] == cross_mark_html else dtypes_tgt_eval[i])
                     for i in range(len(colnames_tgt_eval))
                 ]
 
@@ -6574,36 +6575,37 @@ class Validate:
                     for dtype_exp in dtypes_exp
                 ]
 
-                # Replace instances of "None" with an em dash in `dtypes_exp`
-                dtypes_exp_flat = [
-                    "&mdash;" if dtype == "None" else dtype for dtype in dtypes_exp_flat
-                ]
+                # Replace instances of "None" with an empty string in `dtypes_exp_flat`
+                dtypes_exp_flat = ["" if dtype == "None" else dtype for dtype in dtypes_exp_flat]
 
                 # Create a Polars DF with the expected columns and dtypes, fill in the missing
-                # columns (ending with `_correct`) with dashes (if schema_length is "longer")
+                # columns (ending with `_correct`) with empty strings (if schema_length is "longer")
+                if schema_length == "longer":
+                    colnames_tgt_eval += [cross_mark_html] * difference
+                    dtypes_tgt_eval += [""] * difference
+
+                if schema_length == "shorter":
+                    # Get length of colnames_exp
+                    max_length = len(colnames_exp)
+                    # Truncate `colnames_exp` and `dtypes_exp_flat` to the `max_length`
+                    colnames_tgt_eval = colnames_tgt_eval[:max_length]
+                    dtypes_tgt_eval = dtypes_tgt_eval[:max_length]
+
+                # If dtypes_exp_flat is `""` then `dtypes_tgt_eval` should also be `""`
+                dtypes_tgt_eval = [
+                    ("" if dtypes_exp_flat[i] == "" else dtypes_tgt_eval[i])
+                    for i in range(len(dtypes_tgt_eval))
+                ]
+
                 schema_exp = pl.DataFrame(
                     {
                         "index_exp": range(1, len(colnames_exp) + 1),
                         "col_name_exp": colnames_exp,
-                        "col_name_exp_correct": colnames_tgt_eval + [cross_mark_html] * difference,
+                        "col_name_exp_correct": colnames_tgt_eval,
                         "dtype_exp": dtypes_exp_flat,
-                        "dtype_exp_correct": dtypes_tgt_eval + [dash_mark_html] * difference,
+                        "dtype_exp_correct": dtypes_tgt_eval,
                     }
                 )
-
-                # Determine the maximum number of rows
-                max_rows = max(len(schema_tbl), len(schema_exp))
-
-                # Add empty rows to the shorter table
-                def add_empty_rows(df, num_rows):
-                    empty_df = pl.DataFrame({col: [None] * num_rows for col in df.columns})
-                    return pl.concat([df, empty_df], how="vertical")
-
-                if len(schema_tbl) < max_rows:
-                    schema_tbl = add_empty_rows(schema_tbl, max_rows - len(schema_tbl))
-
-                if len(schema_exp) < max_rows:
-                    schema_exp = add_empty_rows(schema_exp, max_rows - len(schema_exp))
 
                 # Concatenate the tables horizontally
                 schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
@@ -6678,12 +6680,21 @@ class Validate:
                         ],
                     )
                     .tab_header(
-                        title=f"Report for Validation Step {i}",
+                        title=html(f"Report for Validation Step {i} {passing_symbol}"),
                         subtitle=html("COLUMN SCHEMA MATCH"),
                     )
                     .sub_missing(
-                        columns=["index_target", "col_name_target", "dtype_target", "dtype_exp"],
-                        missing_text=html("&mdash;"),
+                        columns=[
+                            "index_target",
+                            "col_name_target",
+                            "dtype_target",
+                            "index_exp",
+                            "col_name_exp",
+                            "col_name_exp_correct",
+                            "dtype_exp",
+                            "dtype_exp_correct",
+                        ],
+                        missing_text="",
                     )
                     .tab_source_note(
                         source_note=html(
