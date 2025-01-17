@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Column Selector Functions: Easily Pick Columns
 
-We can use column selector functions in the `columns=` argument to conveniently choose columns.
+Use column selector functions in the `columns=` argument to conveniently choose columns.
 
 ```{python}
 #| echo: false

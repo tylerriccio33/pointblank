@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Apply Validation Rules to Multiple Columns
 
-Create multiple validation steps by supplying a list of column names to the `columns=` argument.
+Create multiple validation steps by using a list of column names with `columns=`.
 
 ```{python}
 #| echo: false

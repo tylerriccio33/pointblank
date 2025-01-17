@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Checking for Duplicate Values
 
-We can check for duplicate values in a column. Use `rows_distinct()` with a `columns_subset=` value.
+To check for duplicate values down a column, use `rows_distinct()` with a `columns_subset=` value.
 
 ```{python}
 #| echo: false

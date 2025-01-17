@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Expectations with a Text Pattern
 
-With the `col_vals_regex()` validation method, we can check for conformance to a regular expression.
+With the `col_vals_regex()`, check for conformance to a regular expression.
 
 ```{python}
 #| echo: false
