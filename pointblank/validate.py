@@ -6493,10 +6493,15 @@ class Validate:
 
                 # Is the number of column names supplied equal to the number of columns in the
                 # target table?
-                if len(schema.columns) != len(schema_target.columns):
-                    n_col_names_equal_across_tables = False
+                if len(schema.columns) > len(schema_target.columns):
+                    schema_length = "longer"
+                    difference = len(schema.columns) - len(schema_target.columns)
+                elif len(schema.columns) < len(schema_target.columns):
+                    schema_length = "short"
+                    difference = len(schema_target.columns) - len(schema.columns)
                 else:
-                    n_col_names_equal_across_tables = True
+                    schema_length = "equal"
+                    difference = 0
 
                 # Get the expected column names and dtypes
                 colnames_exp = [x[0] for x in schema.columns]
@@ -6548,27 +6553,41 @@ class Validate:
 
                 # Create a list of dtypes with check marks or cross marks based on the presence of
                 # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
-                # cross marks for the differences found in dtypes_diffs)
+                # cross marks for the differences found in `dtypes_diffs`)
                 dtypes_tgt_eval = [
                     check_mark_html if i not in dtypes_diffs else cross_mark_html
                     for i in range(len(dtypes_tgt))
                 ]
 
-                # dtypes_exp could be a list of strings, we need ensure those entries are strings
+                # If the a `col_name_exp_correct` value is a cross mark, then the corresponding
+                # `dtype_exp_correct` entry should be a dash mark (since the column name is not
+                # correct, the dtype is not relevant)
+                dtypes_tgt_eval = [
+                    ("&mdash;" if colnames_tgt_eval[i] == cross_mark_html else dtypes_tgt_eval[i])
+                    for i in range(len(colnames_tgt_eval))
+                ]
+
+                # `dtypes_exp` could be a list of strings, we need ensure those entries are strings
                 # with the data types being pipe separated
                 dtypes_exp_flat = [
                     " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
                     for dtype_exp in dtypes_exp
                 ]
 
-                # Create a Polars DF with the expected columns and dtypes
+                # Replace instances of "None" with an em dash in `dtypes_exp`
+                dtypes_exp_flat = [
+                    "&mdash;" if dtype == "None" else dtype for dtype in dtypes_exp_flat
+                ]
+
+                # Create a Polars DF with the expected columns and dtypes, fill in the missing
+                # columns (ending with `_correct`) with dashes (if schema_length is "longer")
                 schema_exp = pl.DataFrame(
                     {
                         "index_exp": range(1, len(colnames_exp) + 1),
                         "col_name_exp": colnames_exp,
-                        "col_name_exp_correct": colnames_tgt_eval,
+                        "col_name_exp_correct": colnames_tgt_eval + [cross_mark_html] * difference,
                         "dtype_exp": dtypes_exp_flat,
-                        "dtype_exp_correct": dtypes_tgt_eval,
+                        "dtype_exp_correct": dtypes_tgt_eval + [dash_mark_html] * difference,
                     }
                 )
 
@@ -6661,6 +6680,10 @@ class Validate:
                     .tab_header(
                         title=f"Report for Validation Step {i}",
                         subtitle=html("COLUMN SCHEMA MATCH"),
+                    )
+                    .sub_missing(
+                        columns=["index_target", "col_name_target", "dtype_target", "dtype_exp"],
+                        missing_text=html("&mdash;"),
                     )
                     .tab_source_note(
                         source_note=html(
