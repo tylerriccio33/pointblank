@@ -6334,37 +6334,39 @@ class Validate:
 
             # Generate explantory text for the validation step
             if assertion_type == "col_vals_gt":
-                text = f"{column} > {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {validation_step['values']}</code>"
             elif assertion_type == "col_vals_lt":
-                text = f"{column} < {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} < {validation_step['values']}</code>"
             elif assertion_type == "col_vals_eq":
-                text = f"{column} =  {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} = {validation_step['values']}</code>"
             elif assertion_type == "col_vals_ne":
-                text = f"{column} &ne; {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ne; {validation_step['values']}</code>"
             elif assertion_type == "col_vals_ge":
-                text = f"{column} &ge; {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ge; {validation_step['values']}</code>"
             elif assertion_type == "col_vals_le":
-                text = f"{column} &le; {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &le; {validation_step['values']}</code>"
             elif assertion_type == "col_vals_between":
                 inclusive = validation_step["inclusive"]
                 symbol_left = "&le;" if inclusive[0] else "&lt;"
                 symbol_right = "&le;" if inclusive[1] else "&lt;"
-                text = f"{validation_step['values'][0]} {symbol_left} {column} {symbol_right} {validation_step['values'][1]}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{validation_step['values'][0]} {symbol_left} {column} {symbol_right} {validation_step['values'][1]}</code>"
             elif assertion_type == "col_vals_outside":
                 inclusive = validation_step["inclusive"]
                 symbol_left = "&lt;" if inclusive[0] else "&le;"
                 symbol_right = "&gt;" if inclusive[1] else "&ge;"
-                text = f"{column} {symbol_left} {validation_step['values'][0]}, {column} {symbol_right} {validation_step['values'][1]}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {validation_step['values'][0]}, {column} {symbol_right} {validation_step['values'][1]}</code>"
             elif assertion_type == "col_vals_in_set":
-                text = f"{column} IN {validation_step['values']}"
+                elements = ", ".join(validation_step["values"])
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
             elif assertion_type == "col_vals_not_in_set":
-                text = f"{column} NOT IN {validation_step['values']}"
+                elements = ", ".join(validation_step["values"])
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &NotElement; {{{elements}}}</code>"
             elif assertion_type == "col_vals_regex":
-                text = f"{column} MATCHES REGEX {validation_step['values']}"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> matches regex <code style='color: #303030; font-family: monospace; font-size: smaller;'>{validation_step['values']}</code>"
             elif assertion_type == "col_vals_null":
-                text = f"{column} IS NULL"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
             elif assertion_type == "col_vals_not_null":
-                text = f"{column} IS NOT NULL"
+                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
 
             if all_passed:
                 # Create a table with a sample of ten rows, highlighting the column of interest
@@ -6398,8 +6400,8 @@ class Validate:
                             "<div>"
                             "ASSERTION <span style='border-style: solid; border-width: thin; "
                             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
-                            f"<code style='color: #303030;'>{text}</code></span><br>"
-                            f"<div style='padding-top: 3px;'><strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
+                            f"{text}</span><br><div style='padding-top: 3px;'>"
+                            f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
                             f"IN COLUMN <strong>{column_index}</strong></div>"
                             "<div style='padding-top: 10px;'>PREVIEW OF TARGET TABLE:"
                             "</div></div>"
