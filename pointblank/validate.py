@@ -6269,6 +6269,10 @@ class Validate:
         """
 
         # If the step number is not valid, raise an error
+        if i <= 0:
+            raise ValueError("Step number must be an integer value greater than 0.")
+
+        # If the step number is not valid, raise an error
         if i not in self._get_validation_dict(i=None, attr="i"):
             raise ValueError(f"Step {i} does not exist in the validation plan.")
 
