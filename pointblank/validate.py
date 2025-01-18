@@ -6284,171 +6284,58 @@ class Validate:
             key: value[i - 1] for key, value in validation_info_dict.items() if key != "i"
         }
 
-        # From validation_info, get the assertion type for the step
+        # From `validation_step` pull out key values for the report
         assertion_type = validation_step["assertion_type"]
+        column = validation_step["column"]
+        values = validation_step["values"]
+        inclusive = validation_step["inclusive"]
+        all_passed = validation_step["all_passed"]
+        n = validation_step["n"]
+        n_failed = validation_step["n_failed"]
+        active = validation_step["active"]
+
+        # Get the column position in the table
+        if column is not None:
+            if isinstance(column, str):
+                column_list = list(self.data.columns)
+                column_position = column_list.index(column) + 1
+            elif isinstance(column, list):
+                column_position = [list(self.data.columns).index(col) + 1 for col in column]
+            else:
+                column_position = None
+        else:
+            column_position = None
+
+        # TODO: Show a report with the validation plan but state that the step is inactive
+        # If the step is not active then return a message indicating that the step is inactive
+        if not active:
+            return "This validation step is inactive."
 
         # Get the extracted data for the step
         extract = self.get_data_extracts(i=i, frame=True)
 
-        # If the step is not active then return a message indicating that the step is inactive
-        if not validation_step["active"]:
-            return "This validation step is inactive."
+        # Create a table with a sample of ten rows, highlighting the column of interest
+        tbl_preview = preview(data=self.data, n_head=5, n_tail=5, limit=10, incl_header=False)
 
         # If no rows were extracted, create a message to indicate that no rows were extracted
         # if get_row_count(extract) == 0:
         #    return "No rows were extracted."
 
-        if assertion_type in [
-            "col_vals_gt",
-            "col_vals_lt",
-            "col_vals_eq",
-            "col_vals_ne",
-            "col_vals_ge",
-            "col_vals_le",
-            "col_vals_between",
-            "col_vals_outside",
-            "col_vals_in_set",
-            "col_vals_not_in_set",
-            "col_vals_regex",
-            "col_vals_null",
-            "col_vals_not_null",
-        ]:
+        if assertion_type in ROW_BASED_VALIDATION_TYPES:
 
-            # Did the validation step pass?
-            all_passed = validation_step["all_passed"]
-
-            warn = validation_step["warn"]
-            stop = validation_step["stop"]
-            notify = validation_step["notify"]
-
-            n_failed = validation_step["n_failed"]
-            n = validation_step["n"]
-            extract_length = get_row_count(extract)
-
-            # Get the column name for the step
-            column = validation_step["column"]
-
-            # Get the position of the column in the table
-            column_list = list(self.data.columns)
-            column_index = column_list.index(column) + 1
-
-            # Generate explantory text for the validation step
-            if assertion_type == "col_vals_gt":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_lt":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} < {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_eq":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} = {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_ne":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ne; {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_ge":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ge; {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_le":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &le; {validation_step['values']}</code>"
-            elif assertion_type == "col_vals_between":
-                inclusive = validation_step["inclusive"]
-                symbol_left = "&le;" if inclusive[0] else "&lt;"
-                symbol_right = "&le;" if inclusive[1] else "&lt;"
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{validation_step['values'][0]} {symbol_left} {column} {symbol_right} {validation_step['values'][1]}</code>"
-            elif assertion_type == "col_vals_outside":
-                inclusive = validation_step["inclusive"]
-                symbol_left = "&lt;" if inclusive[0] else "&le;"
-                symbol_right = "&gt;" if inclusive[1] else "&ge;"
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {validation_step['values'][0]}, {column} {symbol_right} {validation_step['values'][1]}</code>"
-            elif assertion_type == "col_vals_in_set":
-                elements = ", ".join(validation_step["values"])
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
-            elif assertion_type == "col_vals_not_in_set":
-                elements = ", ".join(validation_step["values"])
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &NotElement; {{{elements}}}</code>"
-            elif assertion_type == "col_vals_regex":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> matches regex <code style='color: #303030; font-family: monospace; font-size: smaller;'>{validation_step['values']}</code>"
-            elif assertion_type == "col_vals_null":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
-            elif assertion_type == "col_vals_not_null":
-                text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
-
-            if all_passed:
-                # Create a table with a sample of ten rows, highlighting the column of interest
-                tbl_preview = preview(
-                    data=self.data, n_head=5, n_tail=5, limit=10, incl_header=False
-                )
-
-                step_report = (
-                    tbl_preview.tab_style(
-                        style=[
-                            style.text(color="#006400"),
-                            style.fill(color="#4CA64C33"),
-                            style.borders(
-                                sides=["left", "right"],
-                                color="#1B4D3E80",
-                                style="solid",
-                                weight="2px",
-                            ),
-                        ],
-                        locations=loc.body(columns=column),
-                    )
-                    .tab_style(
-                        style=style.borders(
-                            sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
-                        ),
-                        locations=loc.column_labels(columns=column),
-                    )
-                    .tab_header(
-                        title=f"Report for Validation Step {i}",
-                        subtitle=html(
-                            "<div>"
-                            "ASSERTION <span style='border-style: solid; border-width: thin; "
-                            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
-                            f"{text}</span><br><div style='padding-top: 3px;'>"
-                            f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
-                            f"IN COLUMN <strong>{column_index}</strong></div>"
-                            "<div style='padding-top: 10px;'>PREVIEW OF TARGET TABLE:"
-                            "</div></div>"
-                        ),
-                    )
-                )
-
-            else:
-                # Create a preview of the extracted data
-                extract_preview = preview(
-                    data=extract, n_head=1000, n_tail=1000, limit=2000, incl_header=False
-                )
-
-                step_report = (
-                    extract_preview.tab_style(
-                        style=[
-                            style.text(color="#B22222"),
-                            style.fill(color="#FFC1C159"),
-                            style.borders(
-                                sides=["left", "right"], color="black", style="solid", weight="2px"
-                            ),
-                        ],
-                        locations=loc.body(columns=column),
-                    )
-                    .tab_style(
-                        style=style.borders(
-                            sides=["left", "right"], color="black", style="solid", weight="2px"
-                        ),
-                        locations=loc.column_labels(columns=column),
-                    )
-                    .tab_header(
-                        title=f"Report for Validation Step {i}",
-                        subtitle=html(
-                            "<div>"
-                            "ASSERTION <span style='border-style: solid; border-width: thin; "
-                            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
-                            f"<code style='color: #303030;'>{text}</code></span><br>"
-                            f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
-                            f"<strong>{n}</strong> TEST UNIT FAILURES "
-                            f"IN COLUMN <strong>{column_index}</strong></div>"
-                            "<div style='padding-top: 10px;'>EXTRACT OF "
-                            f"<strong>{extract_length}</strong> ROWS WITH "
-                            "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
-                            "</div></div>"
-                        ),
-                    )
-                )
+            step_report = _step_report_row_based(
+                assertion_type=assertion_type,
+                i=i,
+                column=column,
+                column_position=column_position,
+                values=values,
+                inclusive=inclusive,
+                n=n,
+                n_failed=n_failed,
+                all_passed=all_passed,
+                extract=extract,
+                tbl_preview=tbl_preview,
+            )
 
         elif assertion_type == "col_schema_match":
 
@@ -6464,245 +6351,29 @@ class Validate:
             case_sensitive_dtypes = values_dict["case_sensitive_dtypes"]
             full_match_dtypes = values_dict["full_match_dtypes"]
 
-            # Place check mark in a circle with a green background and make the check mark text
-            # white in color
-            check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
-            cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
-
             # Get the target table's schema
             schema_target = Schema(tbl=self.data)
 
-            colnames_tgt = [x[0] for x in schema_target.columns]
-            dtypes_tgt = [str(x[1]) for x in schema_target.columns]
-
-            passing_symbol = check_mark_html if all_passed else cross_mark_html
-
-            # Create a Polars DF with the target table columns and dtypes
-            import polars as pl
-
-            schema_tbl = pl.DataFrame(
-                {
-                    "index_target": range(1, len(colnames_tgt) + 1),
-                    "col_name_target": colnames_tgt,
-                    "dtype_target": dtypes_tgt,
-                }
-            )
-
-            # Now, add the expected columns and dtypes to the schema table in the correct locations
-            # based on the `complete` and `in_order` parameters
+            # CASE I: The default case
             if complete and in_order:
 
-                # Is the number of column names supplied equal to the number of columns in the
-                # target table?
-                if len(schema.columns) > len(schema_target.columns):
-                    schema_length = "longer"
-                    difference = len(schema.columns) - len(schema_target.columns)
-                elif len(schema.columns) < len(schema_target.columns):
-                    schema_length = "shorter"
-                    difference = len(schema_target.columns) - len(schema.columns)
-                else:
-                    schema_length = "equal"
-                    difference = 0
+                colnames_tgt = [x[0] for x in schema_target.columns]
+                dtypes_tgt = [str(x[1]) for x in schema_target.columns]
 
-                # Get the expected column names and dtypes
-                colnames_exp = [x[0] for x in schema.columns]
-
-                # The dtype is optional and might be None, so we need to convert it to a string;
-                # however, if there is a list object, keep it a list
-                dtypes_exp = [
-                    (
-                        x[1]
-                        if len(x) > 1 and isinstance(x[1], list)
-                        else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
-                    )
-                    for x in schema.columns
-                ]
-
-                # Get indices of column name differences between `colnames_tgt` and `colnames_exp`
-                colname_diffs = [
-                    i
-                    for i, (col_tgt, col_exp) in enumerate(zip(colnames_tgt, colnames_exp))
-                    if col_tgt != col_exp
-                ]
-
-                # For dtypes, get the indices of differences between `dtypes_tgt` and `dtypes_exp`
-                # and note that `dtypes_exp` could be a list of strings and any of those strings
-                # could match `dtypes_tgt` and return a valid result (i.e., allow multiple attempts)
-                dtypes_diffs = [
-                    i
-                    for i, dtype_exp in enumerate(dtypes_exp)
-                    if dtype_exp != "None"
-                    and (
-                        (
-                            isinstance(dtype_exp, list)
-                            and not any(item in dtypes_tgt for item in dtype_exp)
-                        )
-                        or (
-                            not isinstance(dtype_exp, list)
-                            and not any(dtype_tgt == dtype_exp for dtype_tgt in dtypes_tgt)
-                        )
-                    )
-                ]
-
-                # Create a list of column names with check marks or cross marks based on the
-                # presence of the column name in the expected schema (all check marks for length
-                # of `colnames_tgt` and cross marks for the differences found in colname_diffs)
-                colnames_tgt_eval = [
-                    check_mark_html if i not in colname_diffs else cross_mark_html
-                    for i in range(len(colnames_tgt))
-                ]
-
-                # Create a list of dtypes with check marks or cross marks based on the presence of
-                # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
-                # cross marks for the differences found in `dtypes_diffs`)
-                dtypes_tgt_eval = [
-                    check_mark_html if i not in dtypes_diffs else cross_mark_html
-                    for i in range(len(dtypes_tgt))
-                ]
-
-                # If the a `col_name_exp_correct` value is a cross mark, then the corresponding
-                # `dtype_exp_correct` entry should be an empty string (since the column name is not
-                # correct, the dtype is not relevant)
-                dtypes_tgt_eval = [
-                    ("" if colnames_tgt_eval[i] == cross_mark_html else dtypes_tgt_eval[i])
-                    for i in range(len(colnames_tgt_eval))
-                ]
-
-                # `dtypes_exp` could be a list of strings, we need ensure those entries are strings
-                # with the data types being pipe separated
-                dtypes_exp_flat = [
-                    " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
-                    for dtype_exp in dtypes_exp
-                ]
-
-                # Replace instances of "None" with an empty string in `dtypes_exp_flat`
-                dtypes_exp_flat = ["" if dtype == "None" else dtype for dtype in dtypes_exp_flat]
-
-                # Create a Polars DF with the expected columns and dtypes, fill in the missing
-                # columns (ending with `_correct`) with empty strings (if schema_length is "longer")
-                if schema_length == "longer":
-                    colnames_tgt_eval += [cross_mark_html] * difference
-                    dtypes_tgt_eval += [""] * difference
-
-                if schema_length == "shorter":
-                    # Get length of colnames_exp
-                    max_length = len(colnames_exp)
-                    # Truncate `colnames_exp` and `dtypes_exp_flat` to the `max_length`
-                    colnames_tgt_eval = colnames_tgt_eval[:max_length]
-                    dtypes_tgt_eval = dtypes_tgt_eval[:max_length]
-
-                # If dtypes_exp_flat is `""` then `dtypes_tgt_eval` should also be `""`
-                dtypes_tgt_eval = [
-                    ("" if dtypes_exp_flat[i] == "" else dtypes_tgt_eval[i])
-                    for i in range(len(dtypes_tgt_eval))
-                ]
-
-                schema_exp = pl.DataFrame(
-                    {
-                        "index_exp": range(1, len(colnames_exp) + 1),
-                        "col_name_exp": colnames_exp,
-                        "col_name_exp_correct": colnames_tgt_eval,
-                        "dtype_exp": dtypes_exp_flat,
-                        "dtype_exp_correct": dtypes_tgt_eval,
-                    }
+                step_report = _step_report_schema_complete_in_order(
+                    step=i,
+                    schema=schema,
+                    schema_target=schema_target,
+                    colnames_tgt=colnames_tgt,
+                    dtypes_tgt=dtypes_tgt,
+                    all_passed=all_passed,
                 )
 
-                # Concatenate the tables horizontally
-                schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+            # CASE II: the case where `complete=True` and `in_order=False`
+            if complete and not in_order:
 
-                step_report = (
-                    GT(schema_combined, id="pb_step_tbl")
-                    .fmt_markdown(columns=None)
-                    .opt_table_font(font=google_font(name="IBM Plex Sans"))
-                    .opt_align_table_header(align="left")
-                    .cols_label(
-                        cases={
-                            "index_target": "",
-                            "col_name_target": "COLUMN",
-                            "dtype_target": "DTYPE",
-                            "index_exp": "",
-                            "col_name_exp": "COLUMN",
-                            "col_name_exp_correct": "",
-                            "dtype_exp": "DTYPE",
-                            "dtype_exp_correct": "",
-                        }
-                    )
-                    .cols_width(
-                        cases={
-                            "index_target": "40px",
-                            "col_name_target": "190px",
-                            "dtype_target": "190px",
-                            "index_exp": "40px",
-                            "col_name_exp": "190px",
-                            "col_name_exp_correct": "30px",
-                            "dtype_exp": "190px",
-                            "dtype_exp_correct": "30px",
-                        }
-                    )
-                    .tab_style(
-                        style=style.text(
-                            color="black", font=google_font(name="IBM Plex Mono"), size="13px"
-                        ),
-                        locations=loc.body(
-                            columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
-                        ),
-                    )
-                    .tab_style(
-                        style=style.text(size="13px"),
-                        locations=loc.body(columns=["index_target", "index_exp"]),
-                    )
-                    .tab_style(
-                        style=style.borders(
-                            sides="left", color="#E5E5E5", style="double", weight="3px"
-                        ),
-                        locations=loc.body(columns="index_exp"),
-                    )
-                    .tab_style(
-                        style=style.css(
-                            "white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"
-                        ),
-                        locations=loc.body(
-                            columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
-                        ),
-                    )
-                    .tab_spanner(
-                        label="TARGET",
-                        columns=["index_target", "col_name_target", "dtype_target"],
-                    )
-                    .tab_spanner(
-                        label="EXPECTED",
-                        columns=[
-                            "index_exp",
-                            "col_name_exp",
-                            "col_name_exp_correct",
-                            "dtype_exp",
-                            "dtype_exp_correct",
-                        ],
-                    )
-                    .tab_header(
-                        title=html(f"Report for Validation Step {i} {passing_symbol}"),
-                        subtitle=html("COLUMN SCHEMA MATCH"),
-                    )
-                    .sub_missing(
-                        columns=[
-                            "index_target",
-                            "col_name_target",
-                            "dtype_target",
-                            "index_exp",
-                            "col_name_exp",
-                            "col_name_exp_correct",
-                            "dtype_exp",
-                            "dtype_exp_correct",
-                        ],
-                        missing_text="",
-                    )
-                    .tab_source_note(
-                        source_note=html(
-                            "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
-                            f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
-                        )
-                    )
-                    .tab_options(source_notes_font_size="12px")
+                step_report = _step_report_schema_complete_any_order(
+                    step=i, schema=schema, schema_target=schema_target, all_passed=all_passed
                 )
 
         else:
@@ -7257,3 +6928,637 @@ def _create_thresholds_html(thresholds: Thresholds) -> str:
         "</span>"
         "</span>"
     )
+
+
+def _step_report_row_based(
+    assertion_type: str,
+    i: int,
+    column: str,
+    column_position: int,
+    values: any,
+    inclusive: tuple[bool, bool] | None,
+    n: int,
+    n_failed: int,
+    all_passed: bool,
+    extract: any,
+    tbl_preview: GT,
+):
+
+    # Get the length of the extracted data for the step
+    extract_length = get_row_count(extract)
+
+    # Generate explantory text for the validation step
+    if assertion_type == "col_vals_gt":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {values}</code>"
+    elif assertion_type == "col_vals_lt":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} < {values}</code>"
+    elif assertion_type == "col_vals_eq":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} = {values}</code>"
+    elif assertion_type == "col_vals_ne":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ne; {values}</code>"
+    elif assertion_type == "col_vals_ge":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ge; {values}</code>"
+    elif assertion_type == "col_vals_le":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &le; {values}</code>"
+    elif assertion_type == "col_vals_between":
+        symbol_left = "&le;" if inclusive[0] else "&lt;"
+        symbol_right = "&le;" if inclusive[1] else "&lt;"
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{values[0]} {symbol_left} {column} {symbol_right} {values[1]}</code>"
+    elif assertion_type == "col_vals_outside":
+        symbol_left = "&lt;" if inclusive[0] else "&le;"
+        symbol_right = "&gt;" if inclusive[1] else "&ge;"
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}</code>"
+    elif assertion_type == "col_vals_in_set":
+        elements = ", ".join(values)
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
+    elif assertion_type == "col_vals_not_in_set":
+        elements = ", ".join(values)
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &NotElement; {{{elements}}}</code>"
+    elif assertion_type == "col_vals_regex":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> matches regex <code style='color: #303030; font-family: monospace; font-size: smaller;'>{values}</code>"
+    elif assertion_type == "col_vals_null":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+    elif assertion_type == "col_vals_not_null":
+        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+
+    if all_passed:
+
+        check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
+
+        step_report = (
+            tbl_preview.tab_header(
+                title=html(f"Report for Validation Step {i} {check_mark_html}"),
+                subtitle=html(
+                    "<div>"
+                    "ASSERTION <span style='border-style: solid; border-width: thin; "
+                    "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+                    f"{text}</span><br><div style='padding-top: 3px;'>"
+                    f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
+                    f"IN COLUMN <strong>{column_position}</strong></div>"
+                    "<div style='padding-top: 10px;'>PREVIEW OF TARGET TABLE:"
+                    "</div></div>"
+                ),
+            )
+            .tab_style(
+                style=[
+                    style.text(color="#006400"),
+                    style.fill(color="#4CA64C33"),
+                    style.borders(
+                        sides=["left", "right"],
+                        color="#1B4D3E80",
+                        style="solid",
+                        weight="2px",
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            )
+            .tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
+                ),
+                locations=loc.column_labels(columns=column),
+            )
+        )
+
+    else:
+        # Create a preview of the extracted data
+        extract_preview = preview(
+            data=extract, n_head=1000, n_tail=1000, limit=2000, incl_header=False
+        )
+
+        step_report = (
+            extract_preview.tab_header(
+                title=f"Report for Validation Step {i}",
+                subtitle=html(
+                    "<div>"
+                    "ASSERTION <span style='border-style: solid; border-width: thin; "
+                    "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+                    f"<code style='color: #303030;'>{text}</code></span><br>"
+                    f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
+                    f"<strong>{n}</strong> TEST UNIT FAILURES "
+                    f"IN COLUMN <strong>{column_position}</strong></div>"
+                    "<div style='padding-top: 10px;'>EXTRACT OF "
+                    f"<strong>{extract_length}</strong> ROWS WITH "
+                    "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
+                    "</div></div>"
+                ),
+            )
+            .tab_style(
+                style=[
+                    style.text(color="#B22222"),
+                    style.fill(color="#FFC1C159"),
+                    style.borders(
+                        sides=["left", "right"], color="black", style="solid", weight="2px"
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            )
+            .tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="black", style="solid", weight="2px"
+                ),
+                locations=loc.column_labels(columns=column),
+            )
+        )
+
+    return step_report
+
+
+def _step_report_schema_complete_in_order(
+    step: int,
+    schema: Schema,
+    schema_target: Schema,
+    colnames_tgt: list,
+    dtypes_tgt: list,
+    all_passed: bool,
+):
+    """
+    This is the default case for schema validation where the schema is complete and in order.
+    - `complete=True`
+    - `in_order=True`
+    """
+
+    # Create a Polars DF with the target table columns and dtypes
+    import polars as pl
+
+    schema_tbl = pl.DataFrame(
+        {
+            "index_target": range(1, len(colnames_tgt) + 1),
+            "col_name_target": colnames_tgt,
+            "dtype_target": dtypes_tgt,
+        }
+    )
+
+    # Check and cross marks for the schema validation report
+    check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
+    cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
+
+    passing_symbol = check_mark_html if all_passed else cross_mark_html
+
+    # Is the number of column names supplied equal to the number of columns in the
+    # target table?
+    if len(schema.columns) > len(schema_target.columns):
+        schema_length = "longer"
+        difference = len(schema.columns) - len(schema_target.columns)
+    elif len(schema.columns) < len(schema_target.columns):
+        schema_length = "shorter"
+        difference = len(schema_target.columns) - len(schema.columns)
+    else:
+        schema_length = "equal"
+        difference = 0
+
+    # Get the expected column names and dtypes
+    colnames_exp = [x[0] for x in schema.columns]
+
+    # The dtype is optional and might be None, so we need to convert it to a string;
+    # however, if there is a list object, keep it a list
+    dtypes_exp = [
+        (
+            x[1]
+            if len(x) > 1 and isinstance(x[1], list)
+            else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
+        )
+        for x in schema.columns
+    ]
+
+    # Get indices of column name differences between `colnames_tgt` and `colnames_exp`
+    colname_diffs = [
+        i
+        for i, (col_tgt, col_exp) in enumerate(zip(colnames_tgt, colnames_exp))
+        if col_tgt != col_exp
+    ]
+
+    # For dtypes, get the indices of differences between `dtypes_tgt` and `dtypes_exp`
+    # and note that `dtypes_exp` could be a list of strings and any of those strings
+    # could match `dtypes_tgt` and return a valid result (i.e., allow multiple attempts)
+    dtypes_diffs = [
+        i
+        for i, dtype_exp in enumerate(dtypes_exp)
+        if dtype_exp != "None"
+        and (
+            (isinstance(dtype_exp, list) and not any(item in dtypes_tgt for item in dtype_exp))
+            or (
+                not isinstance(dtype_exp, list)
+                and not any(dtype_tgt == dtype_exp for dtype_tgt in dtypes_tgt)
+            )
+        )
+    ]
+
+    # Create a list of column names with check marks or cross marks based on the
+    # presence of the column name in the expected schema (all check marks for length
+    # of `colnames_tgt` and cross marks for the differences found in colname_diffs)
+    colnames_tgt_eval = [
+        check_mark_html if i not in colname_diffs else cross_mark_html
+        for i in range(len(colnames_tgt))
+    ]
+
+    # Create a list of dtypes with check marks or cross marks based on the presence of
+    # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
+    # cross marks for the differences found in `dtypes_diffs`)
+    dtypes_tgt_eval = [
+        check_mark_html if i not in dtypes_diffs else cross_mark_html
+        for i in range(len(dtypes_tgt))
+    ]
+
+    # If the a `col_name_exp_correct` value is a cross mark, then the corresponding
+    # `dtype_exp_correct` entry should be an empty string (since the column name is not
+    # correct, the dtype is not relevant)
+    dtypes_tgt_eval = [
+        ("" if colnames_tgt_eval[i] == cross_mark_html else dtypes_tgt_eval[i])
+        for i in range(len(colnames_tgt_eval))
+    ]
+
+    # `dtypes_exp` could be a list of strings, we need ensure those entries are strings
+    # with the data types being pipe separated
+    dtypes_exp_flat = [
+        " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
+        for dtype_exp in dtypes_exp
+    ]
+
+    # Replace instances of "None" with an empty string in `dtypes_exp_flat`
+    dtypes_exp_flat = ["" if dtype == "None" else dtype for dtype in dtypes_exp_flat]
+
+    # Create a Polars DF with the expected columns and dtypes, fill in the missing
+    # columns (ending with `_correct`) with empty strings (if schema_length is "longer")
+    if schema_length == "longer":
+        colnames_tgt_eval += [cross_mark_html] * difference
+        dtypes_tgt_eval += [""] * difference
+
+    if schema_length == "shorter":
+
+        max_length = len(colnames_exp)
+
+        # Truncate `colnames_exp` and `dtypes_exp_flat` to the `max_length` value
+        colnames_tgt_eval = colnames_tgt_eval[:max_length]
+        dtypes_tgt_eval = dtypes_tgt_eval[:max_length]
+
+    # If dtypes_exp_flat is `""` then `dtypes_tgt_eval` should also be `""`
+    dtypes_tgt_eval = [
+        ("" if dtypes_exp_flat[i] == "" else dtypes_tgt_eval[i])
+        for i in range(len(dtypes_tgt_eval))
+    ]
+
+    schema_exp = pl.DataFrame(
+        {
+            "index_exp": range(1, len(colnames_exp) + 1),
+            "col_name_exp": colnames_exp,
+            "col_name_exp_correct": colnames_tgt_eval,
+            "dtype_exp": dtypes_exp_flat,
+            "dtype_exp_correct": dtypes_tgt_eval,
+        }
+    )
+
+    # Concatenate the tables horizontally
+    schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+
+    step_report = (
+        GT(schema_combined, id="pb_step_tbl")
+        .fmt_markdown(columns=None)
+        .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
+        .cols_label(
+            cases={
+                "index_target": "",
+                "col_name_target": "COLUMN",
+                "dtype_target": "DTYPE",
+                "index_exp": "",
+                "col_name_exp": "COLUMN",
+                "col_name_exp_correct": "",
+                "dtype_exp": "DTYPE",
+                "dtype_exp_correct": "",
+            }
+        )
+        .cols_width(
+            cases={
+                "index_target": "40px",
+                "col_name_target": "190px",
+                "dtype_target": "190px",
+                "index_exp": "40px",
+                "col_name_exp": "190px",
+                "col_name_exp_correct": "30px",
+                "dtype_exp": "190px",
+                "dtype_exp_correct": "30px",
+            }
+        )
+        .tab_style(
+            style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="13px"),
+            locations=loc.body(
+                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+            ),
+        )
+        .tab_style(
+            style=style.text(size="13px"),
+            locations=loc.body(columns=["index_target", "index_exp"]),
+        )
+        .tab_style(
+            style=style.borders(sides="left", color="#E5E5E5", style="double", weight="3px"),
+            locations=loc.body(columns="index_exp"),
+        )
+        .tab_style(
+            style=style.css("white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"),
+            locations=loc.body(
+                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+            ),
+        )
+        .tab_spanner(
+            label="TARGET",
+            columns=["index_target", "col_name_target", "dtype_target"],
+        )
+        .tab_spanner(
+            label="EXPECTED",
+            columns=[
+                "index_exp",
+                "col_name_exp",
+                "col_name_exp_correct",
+                "dtype_exp",
+                "dtype_exp_correct",
+            ],
+        )
+        .tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html("COLUMN SCHEMA MATCH"),
+        )
+        .sub_missing(
+            columns=[
+                "index_target",
+                "col_name_target",
+                "dtype_target",
+                "index_exp",
+                "col_name_exp",
+                "col_name_exp_correct",
+                "dtype_exp",
+                "dtype_exp_correct",
+            ],
+            missing_text="",
+        )
+        .tab_source_note(
+            source_note=html(
+                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
+            )
+        )
+        .tab_options(source_notes_font_size="12px")
+    )
+
+    return step_report
+
+
+def _step_report_schema_complete_any_order(
+    step: int, schema: Schema, schema_target: Schema, all_passed: bool
+):
+    """
+    This is the case for schema validation where the schema is complete and order is disregarded.
+    - `complete=True`
+    - `in_order=False`
+    """
+
+    # Check and cross marks for the schema validation report
+    check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
+    cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
+
+    colnames_tgt = [x[0] for x in schema_target.columns]
+    dtypes_tgt = [str(x[1]) for x in schema_target.columns]
+
+    passing_symbol = check_mark_html if all_passed else cross_mark_html
+
+    # Create a Polars DF with the target table columns and dtypes
+    import polars as pl
+
+    schema_tbl = pl.DataFrame(
+        {
+            "index_target": range(1, len(colnames_tgt) + 1),
+            "col_name_target": colnames_tgt,
+            "dtype_target": dtypes_tgt,
+        }
+    )
+
+    colnames_exp = [x[0] for x in schema.columns]
+
+    # The dtype is optional and might be None, so we need to convert it to a string;
+    # however, if there is a list object, keep it a list
+    dtypes_exp = [
+        (
+            x[1]
+            if len(x) > 1 and isinstance(x[1], list)
+            else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
+        )
+        for x in schema.columns
+    ]
+
+    # Get which colnames in `colnames_exp` that matched with `colnames_tgt`
+    colnames_exp_matched = [
+        col_exp for col_exp in colnames_exp if any(col_exp == col_tgt for col_tgt in colnames_tgt)
+    ]
+
+    # Get the dtypes for the matched column names
+    dtypes_exp_matched = [
+        dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_matched
+    ]
+
+    # For any 'None' strings in `dtypes_exp_matched`, replace them with an empty string
+    dtypes_exp_matched = ["" if dtype == "None" else dtype for dtype in dtypes_exp_matched]
+
+    # Create a dictionary for expected column data types
+    dtypes_exp_dict = {
+        col[0]: col[1] if len(col) > 1 else "None"
+        for col in schema.columns
+        if col[0] in [col[0] for col in schema_target.columns]
+    }
+
+    # Initialize a list to store indices of columns with dtype differences
+    dtypes_diffs = []
+
+    # Iterate over target columns and compare data types
+    for i, (colname_tgt, dtype_tgt) in enumerate(schema_target.columns):
+        dtype_exp = dtypes_exp_dict.get(colname_tgt)
+        if dtype_exp is not None and dtype_exp != "None":
+            if isinstance(dtype_exp, list):
+                if not any(item == dtype_tgt for item in dtype_exp):
+                    dtypes_diffs.append(colname_tgt)
+            elif dtype_exp != dtype_tgt:
+                dtypes_diffs.append(colname_tgt)
+
+    # Map the column names back to the col_exp sequence
+    dtypes_diffs_exp_indices = [
+        schema.columns.index((colname, dtypes_exp_dict[colname])) for colname in dtypes_diffs
+    ]
+
+    # Sort the list of indices
+    dtypes_diffs_exp_indices.sort()
+
+    # Create a list of dtypes with check marks or cross marks based on the presence of
+    # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
+    # cross marks for the differences found in `dtypes_diffs`); this has to be in the
+    # order of `colnames_exp_matched`
+    dtypes_exp_matched_eval = [
+        check_mark_html if i not in dtypes_diffs_exp_indices else cross_mark_html
+        for i in range(len(colnames_exp_matched))
+    ]
+
+    # If there is an empty string in `dtypes_exp_matched`, then the corresponding
+    # `dtypes_exp_matched_eval` entry should also be an empty string
+    dtypes_exp_matched_eval = [
+        ("" if dtypes_exp_matched[i] == "" else dtypes_exp_matched_eval[i])
+        for i in range(len(colnames_exp_matched))
+    ]
+
+    # The unmatched column names are the ones that are not in `colnames_exp_matched`
+    colnames_exp_unmatched = [
+        col_exp for col_exp in colnames_exp if col_exp not in colnames_exp_matched
+    ]
+
+    # Get the indices of the unmatched columns by comparing the `colnames_exp` list
+    # against the schema order
+    index_exp = [i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_matched]
+
+    # Add 1 to the indices of `index_exp`
+    index_exp = [i + 1 for i in index_exp]
+
+    # Create a DataFrame with the expected column names and dtypes
+    schema_exp = pl.DataFrame(
+        {
+            "index_exp": index_exp,
+            "col_name_exp": colnames_exp_matched,
+            "col_name_exp_correct": [check_mark_html] * len(colnames_exp_matched),
+            "dtype_exp": dtypes_exp_matched,
+            "dtype_exp_correct": dtypes_exp_matched_eval,
+        }
+    )
+
+    # TODO: In the case where there are no matched columns, there shouldn't be a
+    # join operation; rather, the schema_exp DataFrame should be the only DataFrame
+
+    # Join the tables (`schema_tbl` and `schema_exp`) by the `col_name_exp` and
+    # `col_name_target` columnss
+    schema_combined = schema_tbl.join(
+        schema_exp,
+        how="left",
+        left_on="col_name_target",
+        right_on="col_name_exp",
+        coalesce=False,
+    )
+
+    # If there are unmatched column names, then create a seprate DataFrame for those
+    # entries and concatenate it with the `schema_combined` DataFrame
+    if len(colnames_exp_unmatched) > 0:
+
+        # Get the indices of the unmatched columns by comparing the
+        # `colnames_exp_unmatched` against the schema order
+        index_exp_unmatched = [
+            i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_unmatched
+        ]
+
+        # Add 1 to the indices of `index_exp_unmatched`
+        index_exp_unmatched = [i + 1 for i in index_exp_unmatched]
+
+        # Get the dtypes of the unmatched columns
+        dtypes_exp_unmatched = [
+            dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_unmatched
+        ]
+
+        schema_exp_unmatched = pl.DataFrame(
+            {
+                "index_target": [None] * len(colnames_exp_unmatched),
+                "col_name_target": [""] * len(colnames_exp_unmatched),
+                "dtype_target": [""] * len(colnames_exp_unmatched),
+                "index_exp": index_exp_unmatched,
+                "col_name_exp": colnames_exp_unmatched,
+                "col_name_exp_correct": [cross_mark_html] * len(colnames_exp_unmatched),
+                "dtype_exp": dtypes_exp_unmatched,
+                "dtype_exp_correct": [""] * len(colnames_exp_unmatched),
+            }
+        )
+
+        # Concatenate the tables vertically
+        schema_combined = pl.concat([schema_combined, schema_exp_unmatched], how="vertical")
+
+    step_report = (
+        GT(schema_combined, id="pb_step_tbl")
+        .fmt_markdown(columns=None)
+        .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
+        .cols_label(
+            cases={
+                "index_target": "",
+                "col_name_target": "COLUMN",
+                "dtype_target": "DTYPE",
+                "index_exp": "",
+                "col_name_exp": "COLUMN",
+                "col_name_exp_correct": "",
+                "dtype_exp": "DTYPE",
+                "dtype_exp_correct": "",
+            }
+        )
+        .cols_width(
+            cases={
+                "index_target": "40px",
+                "col_name_target": "190px",
+                "dtype_target": "190px",
+                "index_exp": "40px",
+                "col_name_exp": "190px",
+                "col_name_exp_correct": "30px",
+                "dtype_exp": "190px",
+                "dtype_exp_correct": "30px",
+            }
+        )
+        .tab_style(
+            style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="13px"),
+            locations=loc.body(
+                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+            ),
+        )
+        .tab_style(
+            style=style.text(size="13px"),
+            locations=loc.body(columns=["index_target", "index_exp"]),
+        )
+        .tab_style(
+            style=style.borders(sides="left", color="#E5E5E5", style="double", weight="3px"),
+            locations=loc.body(columns="index_exp"),
+        )
+        .tab_style(
+            style=style.css("white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"),
+            locations=loc.body(
+                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
+            ),
+        )
+        .tab_spanner(
+            label="TARGET",
+            columns=["index_target", "col_name_target", "dtype_target"],
+        )
+        .tab_spanner(
+            label="EXPECTED",
+            columns=[
+                "index_exp",
+                "col_name_exp",
+                "col_name_exp_correct",
+                "dtype_exp",
+                "dtype_exp_correct",
+            ],
+        )
+        .tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html("COLUMN SCHEMA MATCH"),
+        )
+        .sub_missing(
+            columns=[
+                "index_target",
+                "col_name_target",
+                "dtype_target",
+                "index_exp",
+                "col_name_exp",
+                "col_name_exp_correct",
+                "dtype_exp",
+                "dtype_exp_correct",
+            ],
+            missing_text="",
+        )
+        .tab_source_note(
+            source_note=html(
+                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
+            )
+        )
+        .tab_options(source_notes_font_size="12px")
+    )
+
+    return step_report
