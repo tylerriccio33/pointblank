@@ -7407,6 +7407,13 @@ def _step_report_schema_complete_any_order(
         col_exp for col_exp in colnames_exp if col_exp not in colnames_exp_matched
     ]
 
+    # `dtypes_exp_matched` could be a list of strings, we need ensure those entries are strings
+    # with the data types being pipe separated
+    dtypes_exp_matched = [
+        " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
+        for dtype_exp in dtypes_exp_matched
+    ]
+
     # Get the indices of the unmatched columns by comparing the `colnames_exp` list
     # against the schema order
     index_exp = [i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_matched]
@@ -7454,6 +7461,13 @@ def _step_report_schema_complete_any_order(
         # Get the dtypes of the unmatched columns
         dtypes_exp_unmatched = [
             dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_unmatched
+        ]
+
+        # `dtypes_exp_unmatched` could be a list of strings, we need ensure those entries are strings
+        # with the data types being pipe separated
+        dtypes_exp_unmatched = [
+            " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
+            for dtype_exp in dtypes_exp_unmatched
         ]
 
         schema_exp_unmatched = pl.DataFrame(
