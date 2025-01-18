@@ -6266,6 +6266,82 @@ class Validate:
     def get_step_report(self, i: int) -> GT:
         """
         Get a detailed report for a single validation step.
+
+        The `get_step_report()` method returns a report of what went well, or what failed
+        spectacularly, for a given validation step. The report includes a summary of the validation
+        step and a detailed breakdown of the interrogation results. The report is presented as a GT
+        table object, which can be displayed in a notebook or exported to an HTML file.
+
+        :::{.callout-warning}
+        The `get_step_report()` is still experimental. Please report any issues you encounter at the
+        [Pointblank issue tracker](https://github.com/rich-iannone/pointblank/issues).
+        :::
+
+        Parameters
+        ----------
+        i
+            The step number for which to get a detailed report.
+
+        Returns
+        -------
+        GT
+            A GT table object that represents the detailed report for the validation step.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        Let's create a validation plan with a few validation steps and interrogate the data. With
+        that, we'll have a look at the validation reporting table for the entire collection of
+        steps and what went well or what failed.
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(
+                data=pb.load_dataset(dataset="small_table", tbl_type="pandas"),
+                tbl_name="small_table",
+                label="Example for the get_step_report() method",
+                thresholds=(1, 0.20, 0.40)
+            )
+            .col_vals_lt(columns="d", value=3500)
+            .col_vals_between(columns="c", left=1, right=8)
+            .col_vals_gt(columns="a", value=3)
+            .col_vals_regex(columns="b", pattern=r"\d-[a-z]{3}-\d{3}")
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        There were four validation steps performed, where the first three steps had failing test
+        units and the last step had no failures. Let's get a detailed report for the first step by
+        using the `get_step_report()` method.
+
+        ```{python}
+        validation.get_step_report(i=1)
+        ```
+
+        The report for the first step is displayed. The report includes a summary of the validation
+        step and a detailed breakdown of the interrogation results. The report provides details on
+        what the validation step was checking, the extent to which the test units failed, and a
+        table that shows the failing rows of the data with the column of interest highlighted.
+
+        The second and third steps also had failing test units. Reports for those steps can be
+        viewed by using `get_step_report(i=2)` and `get_step_report(i=3)` respectively.
+
+        The final step did not have any failing test units. A report for the final step can still be
+        viewed by using `get_step_report(i=4)`. The report will indicate that every test unit passed
+        and a prview of the target table will be provided.
+
+        ```{python}
+        validation.get_step_report(i=4)
+        ```
         """
 
         # If the step number is not valid, raise an error
