@@ -7552,18 +7552,34 @@ def _step_report_schema_complete_any_order(
         }
     )
 
-    # TODO: In the case where there are no matched columns, there shouldn't be a
-    # join operation; rather, the schema_exp DataFrame should be the only DataFrame
+    if len(colnames_exp_matched) > 0:
 
-    # Join the tables (`schema_tbl` and `schema_exp`) by the `col_name_exp` and
-    # `col_name_target` columnss
-    schema_combined = schema_tbl.join(
-        schema_exp,
-        how="left",
-        left_on="col_name_target",
-        right_on="col_name_exp",
-        coalesce=False,
-    )
+        # Join the tables (`schema_tbl` and `schema_exp`) by the `col_name_exp` and
+        # `col_name_target` columnss
+        schema_combined = schema_tbl.join(
+            schema_exp,
+            how="left",
+            left_on="col_name_target",
+            right_on="col_name_exp",
+            coalesce=False,
+        )
+
+    else:
+        schema_combined = pl.DataFrame(
+            {
+                "index_target": range(1, len(colnames_tgt) + 1),
+                "col_name_target": colnames_tgt,
+                "dtype_target": dtypes_tgt,
+                "index_exp": [None] * len(colnames_tgt),
+                "col_name_exp": [""] * len(colnames_tgt),
+                "col_name_exp_correct": [""] * len(colnames_tgt),
+                "dtype_exp": [""] * len(colnames_tgt),
+                "dtype_exp_correct": [""] * len(colnames_tgt),
+            }
+        )
+
+        # Cast the index_exp column to an integer type
+        schema_combined = schema_combined.with_columns(pl.col("index_exp").cast(pl.Int64))
 
     # If there are unmatched column names, then create a seprate DataFrame for those
     # entries and concatenate it with the `schema_combined` DataFrame
