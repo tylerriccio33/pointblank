@@ -7420,6 +7420,12 @@ def _step_report_schema_complete_in_order(
             ),
         )
 
+        # Add a border below the row that terminates the target table schema
+        step_report = step_report.tab_style(
+            style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="1px"),
+            locations=loc.body(rows=len(colnames_tgt) - 1),
+        )
+
     return step_report
 
 
@@ -7710,5 +7716,36 @@ def _step_report_schema_complete_any_order(
         )
         .tab_options(source_notes_font_size="12px")
     )
+
+    # Add background color to the missing column on the exp side
+    if len(colnames_exp_unmatched) > 0:
+
+        # Get the indices of the unmatched columns by comparing the `colnames_exp_unmatched`
+        # against the schema order
+        index_exp_unmatched = [
+            i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_unmatched
+        ]
+
+        # Add 1 to the indices of `index_exp_unmatched`
+        index_exp_unmatched = [i + 1 for i in index_exp_unmatched]
+
+        # Add background color to the missing column on the tgt side
+        step_report = step_report.tab_style(
+            style=style.fill(color="#F3F3F3"),
+            locations=loc.body(
+                columns=[
+                    "index_target",
+                    "col_name_target",
+                    "dtype_target",
+                ],
+                rows=index_exp_unmatched,
+            ),
+        )
+
+        # Add a border below the row that terminates the target table schema
+        step_report = step_report.tab_style(
+            style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="1px"),
+            locations=loc.body(rows=len(colnames_tgt) - 1),
+        )
 
     return step_report
