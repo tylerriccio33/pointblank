@@ -7299,8 +7299,17 @@ def _step_report_schema_complete_in_order(
     # Concatenate the tables horizontally
     schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
 
+    # Generate text for the `col_schema_match()` parameters
+    col_schema_match_params_html = _create_col_schema_match_params_html(
+        complete=True, in_order=True
+    )
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
+        .tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html(col_schema_match_params_html),
+        )
         .fmt_markdown(columns=None)
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
         .opt_align_table_header(align="left")
@@ -7361,10 +7370,6 @@ def _step_report_schema_complete_in_order(
                 "dtype_exp",
                 "dtype_exp_correct",
             ],
-        )
-        .tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html("COLUMN SCHEMA MATCH"),
         )
         .sub_missing(
             columns=[
@@ -7628,8 +7633,17 @@ def _step_report_schema_complete_any_order(
         # Concatenate the tables vertically
         schema_combined = pl.concat([schema_combined, schema_exp_unmatched], how="vertical")
 
+    # Generate text for the `col_schema_match()` parameters
+    col_schema_match_params_html = _create_col_schema_match_params_html(
+        complete=True, in_order=False
+    )
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
+        .tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html(col_schema_match_params_html),
+        )
         .fmt_markdown(columns=None)
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
         .opt_align_table_header(align="left")
@@ -7691,10 +7705,6 @@ def _step_report_schema_complete_any_order(
                 "dtype_exp_correct",
             ],
         )
-        .tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html("COLUMN SCHEMA MATCH"),
-        )
         .sub_missing(
             columns=[
                 "index_target",
@@ -7749,3 +7759,49 @@ def _step_report_schema_complete_any_order(
         )
 
     return step_report
+
+
+def _create_label_text_html(
+    text: str,
+    strikethrough: bool = False,
+    strikethrough_color: str = "#DC143C",
+    border_width: str = "1px",
+    border_color: str = "#87CEFA",
+    border_radius: str = "5px",
+    background_color: str = "#F0F8FF",
+    font_size: str = "x-small",
+    padding_left: str = "4px",
+    padding_right: str = "4px",
+    margin_left: str = "5px",
+    margin_right: str = "5px",
+    margin_top: str = "2px",
+) -> str:
+
+    if strikethrough:
+        strikethrough_rules = (
+            f" text-decoration: line-through; text-decoration-color: {strikethrough_color};"
+        )
+    else:
+        strikethrough_rules = ""
+
+    return f'<div style="border-style: solid; border-width: {border_width}; border-color: {border_color}; border-radius: {border_radius}; background-color: {background_color}; font-size: {font_size}; padding-left: {padding_left}; padding-right: {padding_right}; margin-left: {margin_left}; margin-right: {margin_right};  margin-top: {margin_top}; {strikethrough_rules}">{text}</div>'
+
+
+def _create_col_schema_match_params_html(
+    complete: bool = True,
+    in_order: bool = True,
+) -> str:
+
+    complete_text = _create_label_text_html(
+        text="COMPLETE",
+        strikethrough=not complete,
+        strikethrough_color="steelblue",
+    )
+
+    in_order_text = _create_label_text_html(
+        text="IN ORDER",
+        strikethrough=not in_order,
+        strikethrough_color="steelblue",
+    )
+
+    return f'<div style="display: flex;"><div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>{complete_text}{in_order_text}</div>'
