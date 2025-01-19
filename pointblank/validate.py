@@ -7174,14 +7174,26 @@ def _step_report_schema_complete_in_order(
     # Is the number of column names supplied equal to the number of columns in the
     # target table?
     if len(schema.columns) > len(schema_target.columns):
+
         schema_length = "longer"
         difference = len(schema.columns) - len(schema_target.columns)
+
+        # Get indices of the extra rows in the schema table
+        extra_rows_i = list(range(len(schema_target.columns), len(schema.columns)))
+
     elif len(schema.columns) < len(schema_target.columns):
+
         schema_length = "shorter"
         difference = len(schema_target.columns) - len(schema.columns)
+
+        # Get indices of the extra rows (on the target side) in the schema table
+        extra_rows_i = list(range(len(schema.columns), len(schema_target.columns)))
+
     else:
+
         schema_length = "equal"
         difference = 0
+        extra_rows_i = []
 
     # Get the expected column names and dtypes
     colnames_exp = [x[0] for x in schema.columns]
@@ -7375,6 +7387,38 @@ def _step_report_schema_complete_in_order(
         )
         .tab_options(source_notes_font_size="12px")
     )
+
+    if schema_length == "shorter":
+
+        # Add background color to the missing column on the exp side
+        step_report = step_report.tab_style(
+            style=style.fill(color="#F3F3F3"),
+            locations=loc.body(
+                columns=[
+                    "index_exp",
+                    "col_name_exp",
+                    "col_name_exp_correct",
+                    "dtype_exp",
+                    "dtype_exp_correct",
+                ],
+                rows=extra_rows_i,
+            ),
+        )
+
+    if schema_length == "longer":
+
+        # Add background color to the missing column on the target side
+        step_report = step_report.tab_style(
+            style=style.fill(color="#F3F3F3"),
+            locations=loc.body(
+                columns=[
+                    "index_target",
+                    "col_name_target",
+                    "dtype_target",
+                ],
+                rows=extra_rows_i,
+            ),
+        )
 
     return step_report
 
