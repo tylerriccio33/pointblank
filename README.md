@@ -82,7 +82,7 @@ Here's a short list of what we think makes Pointblank a great tool for data vali
 - **Easy to Use**: Get started quickly with a simple API and super clear documentation
 - **Powerful**: You can develop complex data validation rules with flexible options for customization
 
-There's a lot of [interesting examples](https://rich-iannone.github.io/pointblank/examples/) you can
+There's a lot of [interesting examples](https://rich-iannone.github.io/pointblank/demos/) you can
 check out in the documentation website. If you have any questions or would like to request a
 feature, you are always welcome to [create an issue](https://github.com/rich-iannone/pointblank/issues)
 or [start a discussion](https://github.com/rich-iannone/pointblank/discussions)!
