@@ -995,6 +995,7 @@ class _ValidationInfo:
     notify: bool | None = None
     tbl_checked: FrameT | None = None
     extract: FrameT | None = None
+    val_info: dict[str, any] | None = None
     time_processed: str | None = None
     proc_duration_s: float | None = None
 
