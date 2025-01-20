@@ -4788,3 +4788,39 @@ def test_get_step_report_no_fail(tbl_type):
 
     for i in range(1, 17):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        Schema(columns=[("a", ["String", "Int64"])]),
+        Schema(columns=[("a", ["String", "Int64"]), ("b", "Int64")]),
+        Schema(columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64")]),
+        Schema(columns=[("a", ["Str", "Int64"])]),
+        Schema(columns=[("a", ["String", "Int64"]), ("b", "Int")]),
+        Schema(columns=[("a", ["String", "Int64"]), ("b", "Int"), ("c", "Float64")]),
+        Schema(columns=[("a", ["String", "Int64"]), ("d", "Float64")]),
+        Schema(columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("z", "Float64")]),
+        Schema(
+            columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("z", "Float64")]
+        ),
+    ],
+)
+def test_get_step_report_schema_checks(schema):
+
+    tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    for in_order in [True, False]:
+        validation = (
+            Validate(data=tbl)
+            .col_schema_match(schema=schema, complete=True, in_order=in_order)
+            .interrogate()
+        )
+
+        assert isinstance(validation.get_step_report(i=1), GT.GT)
