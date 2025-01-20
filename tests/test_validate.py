@@ -4758,3 +4758,33 @@ def test_get_row_count_no_polars_duckdb_table():
     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
         with pytest.raises(ImportError):
             assert get_row_count(small_table) == 13
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
+def test_get_step_report_no_fail(tbl_type):
+
+    small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
+
+    validation = (
+        Validate(small_table)
+        .col_vals_gt(columns="a", value=0)
+        .col_vals_lt(columns="a", value=10)
+        .col_vals_eq(columns="c", value=8)
+        .col_vals_ne(columns="d", value=100)
+        .col_vals_le(columns="a", value=6)
+        .col_vals_ge(columns="d", value=500)
+        .col_vals_between(columns="a", left=2, right=10)
+        .col_vals_outside(columns="a", left=7, right=20)
+        .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_not_in_set(columns="f", set=["l", "mid", "m"])
+        .col_vals_null(columns="b")
+        .col_vals_not_null(columns="date_time")
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=True)
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=False)
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=True)
+        .interrogate()
+    )
+
+    for i in range(1, 17):
+        assert isinstance(validation.get_step_report(i=i), GT.GT)
