@@ -352,6 +352,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "notify",
         "tbl_checked",
         "extract",
+        "val_info",
         "time_processed",
         "proc_duration_s",
     ]
@@ -379,6 +380,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.notify is None
     assert val_info.tbl_checked is None
     assert val_info.extract is None
+    assert val_info.val_info is None
     assert val_info.time_processed is None
     assert val_info.proc_duration_s is None
 
@@ -423,6 +425,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "notify",
         "tbl_checked",
         "extract",
+        "val_info",
         "time_processed",
         "proc_duration_s",
     ]
@@ -447,6 +450,8 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.warn is None
     assert val_info.stop is None
     assert val_info.notify is None
+    assert val_info.tbl_checked is not None
+    assert val_info.val_info is None
     assert isinstance(val_info.time_processed, str)
     assert val_info.proc_duration_s > 0.0
 
