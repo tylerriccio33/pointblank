@@ -28,7 +28,7 @@ from pointblank.validate import (
     _create_table_type_html,
 )
 from pointblank.thresholds import Thresholds
-from pointblank.schema import Schema
+from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.column import (
     col,
     starts_with,
@@ -4829,3 +4829,116 @@ def test_get_step_report_schema_checks(schema):
         )
 
         assert isinstance(validation.get_step_report(i=1), GT.GT)
+
+
+def test_get_schema_validation_info():
+
+    data_tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    def assert_schema_info(schema_info, expectations):
+        expected_columns_matched, expected_columns_unmatched, expected_columns_not_found = (
+            expectations
+        )
+
+        assert (
+            schema_info["columns_matched"] == expected_columns_matched
+        ), f"Expected {expected_columns_matched}, but got {schema_info['columns_matched']}"
+        assert (
+            schema_info["columns_unmatched"] == expected_columns_unmatched
+        ), f"Expected {expected_columns_unmatched}, but got {schema_info['columns_unmatched']}"
+        assert (
+            schema_info["columns_not_found"] == expected_columns_not_found
+        ), f"Expected {expected_columns_not_found}, but got {schema_info['columns_not_found']}"
+
+    def get_schema_info(
+        data_tbl,
+        schema,
+        passed=True,
+        complete=True,
+        in_order=True,
+        case_sensitive_colnames=True,
+        case_sensitive_dtypes=True,
+        full_match_dtypes=True,
+    ):
+        return _get_schema_validation_info(
+            data_tbl=data_tbl,
+            schema=schema,
+            passed=passed,
+            complete=complete,
+            in_order=in_order,
+            case_sensitive_colnames=case_sensitive_colnames,
+            case_sensitive_dtypes=case_sensitive_dtypes,
+            full_match_dtypes=full_match_dtypes,
+        )
+
+    schema = Schema(
+        columns=[
+            ("a", ["String", "Int64"]),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "b", "c"], [], []))
+
+    schema = Schema(
+        columns=[
+            ("b", "Int64"),
+            ("a", ["String", "Int64"]),
+            ("c", "Float64"),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["b", "a", "c"], [], []))
+
+    schema = Schema(
+        columns=[
+            ("a",),
+            ("b",),
+            ("c",),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "b", "c"], [], []))
+
+    schema = Schema(
+        columns=[
+            ("a", ["invalid", "invalid"]),
+            ("b", "invalid"),
+            ("c", "invalid"),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "b", "c"], [], []))
+
+    schema = Schema(
+        columns=[
+            ("a", ["invalid", "invalid"]),
+            ("c", "invalid"),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "c"], [], ["b"]))
+
+    schema = Schema(
+        columns=[
+            ("c", "invalid"),
+        ]
+    )
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), (["c"], [], ["a", "b"]))
+
+    schema = Schema(columns=[])
+    assert_schema_info(get_schema_info(data_tbl=data_tbl, schema=schema), ([], [], ["a", "b", "c"]))
+
+    schema = Schema(
+        columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
+    )
+    assert_schema_info(
+        get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "b", "c"], ["d"], [])
+    )
+
+    schema = Schema(columns=[("a", ["String", "Int64"]), ("c", "Float64"), ("d", "String")])
+    assert_schema_info(
+        get_schema_info(data_tbl=data_tbl, schema=schema), (["a", "c"], ["d"], ["b"])
+    )
