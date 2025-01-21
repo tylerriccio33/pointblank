@@ -100,7 +100,7 @@ please feel free to file an [issue](https://github.com/rich-iannone/pointblank/i
 
 ## Code of Conduct
 
-Please note that the pointblank project is released with a
+Please note that the Pointblank project is released with a
 [contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
 <br>By participating in this project you agree to abide by its terms.
 

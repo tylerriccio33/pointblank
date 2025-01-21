@@ -30,7 +30,7 @@ To set up your development environment, you can follow these steps:
 - Clone the rich-iannone/pointblank repository
 - Create a virtual environment for the folder
 - Install the package in editable mode with `pip install -e .` from the root of the project folder
-- Install the development dependencies with `pip install .[dev]` (have a look at the `pyproject.toml` file for the list of development dependencies)
+- Install the development dependencies with `pip install '.[dev]'` (have a look at the `pyproject.toml` file for the list of development dependencies)
 
 Our documentation uses `quartodoc` which in turn requires a local install of the Quarto CLI. To install Quarto, go to <https://quarto.org/docs/get-started/> to get the latest build for your platform.
 

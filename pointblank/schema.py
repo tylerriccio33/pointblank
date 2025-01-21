@@ -209,22 +209,23 @@ class Schema:
         # Determine if this table can be converted to a Narwhals DataFrame
         table_type = _get_tbl_type(self.tbl)
 
-        if table_type == "pandas" or table_type == "polars":
+        # Collect column names and dtypes from the DataFrame and store as a list of tuples
+        if table_type == "pandas":
 
-            tbl_nw = nw.from_native(self.tbl)
-
-            schema_dict = dict(tbl_nw.schema.items())
-
+            schema_dict = dict(self.tbl.dtypes)
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
+            self.columns = list(schema_dict.items())
 
+        elif table_type == "polars":
+
+            schema_dict = dict(self.tbl.schema.items())
+            schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 
         elif table_type in IBIS_BACKENDS:
 
             schema_dict = dict(self.tbl.schema().items())
-
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
-
             self.columns = list(schema_dict.items())
 
         else:
