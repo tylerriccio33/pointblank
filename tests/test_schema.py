@@ -91,14 +91,14 @@ def test_schema_single_column_equivalent_inputs():
 def test_schema_from_pd_table():
     schema = Schema(tbl=load_dataset(dataset="small_table", tbl_type="pandas"))
     assert schema.columns == [
-        ("date_time", "Datetime(time_unit='ns', time_zone=None)"),
-        ("date", "Datetime(time_unit='ns', time_zone=None)"),
-        ("a", "Int64"),
-        ("b", "String"),
-        ("c", "Float64"),
-        ("d", "Float64"),
-        ("e", "Boolean"),
-        ("f", "String"),
+        ("date_time", "datetime64[ns]"),
+        ("date", "datetime64[ns]"),
+        ("a", "int64"),
+        ("b", "object"),
+        ("c", "float64"),
+        ("d", "float64"),
+        ("e", "bool"),
+        ("f", "object"),
     ]
 
     assert str(type(schema.tbl)) == "<class 'pandas.core.frame.DataFrame'>"
@@ -196,14 +196,14 @@ def test_get_dtype_list_small_table_pd():
     schema = Schema(tbl=load_dataset(dataset="small_table", tbl_type="pandas"))
 
     assert schema.get_dtype_list() == [
-        "Datetime(time_unit='ns', time_zone=None)",
-        "Datetime(time_unit='ns', time_zone=None)",
-        "Int64",
-        "String",
-        "Float64",
-        "Float64",
-        "Boolean",
-        "String",
+        "datetime64[ns]",
+        "datetime64[ns]",
+        "int64",
+        "object",
+        "float64",
+        "float64",
+        "bool",
+        "object",
     ]
 
 
@@ -241,17 +241,17 @@ def test_get_dtype_list_game_revenue_pd():
     schema = Schema(tbl=load_dataset(dataset="game_revenue", tbl_type="pandas"))
 
     assert schema.get_dtype_list() == [
-        "String",
-        "String",
-        "Datetime(time_unit='ns', time_zone='UTC')",
-        "Datetime(time_unit='ns', time_zone='UTC')",
-        "String",
-        "String",
-        "Float64",
-        "Float64",
-        "Datetime(time_unit='ns', time_zone=None)",
-        "String",
-        "String",
+        "object",
+        "object",
+        "datetime64[ns, UTC]",
+        "datetime64[ns, UTC]",
+        "object",
+        "object",
+        "float64",
+        "float64",
+        "datetime64[ns]",
+        "object",
+        "object",
     ]
 
 
@@ -296,14 +296,14 @@ def test_schema_coercion_pd_to_pl():
     schema_pl = schema_pd.get_schema_coerced(to="polars")
 
     assert schema_pd.columns == [
-        ("date_time", "Datetime(time_unit='ns', time_zone=None)"),
-        ("date", "Datetime(time_unit='ns', time_zone=None)"),
-        ("a", "Int64"),
-        ("b", "String"),
-        ("c", "Float64"),
-        ("d", "Float64"),
-        ("e", "Boolean"),
-        ("f", "String"),
+        ("date_time", "datetime64[ns]"),
+        ("date", "datetime64[ns]"),
+        ("a", "int64"),
+        ("b", "object"),
+        ("c", "float64"),
+        ("d", "float64"),
+        ("e", "bool"),
+        ("f", "object"),
     ]
 
     assert schema_pl.columns == [
@@ -336,14 +336,14 @@ def test_schema_coercion_pl_to_pd():
     ]
 
     assert schema_pd.columns == [
-        ("date_time", "Datetime(time_unit='us', time_zone=None)"),
-        ("date", "Datetime(time_unit='ms', time_zone=None)"),
-        ("a", "Int64"),
-        ("b", "String"),
-        ("c", "Float64"),
-        ("d", "Float64"),
-        ("e", "Boolean"),
-        ("f", "String"),
+        ("date_time", "datetime64[us]"),
+        ("date", "datetime64[ms]"),
+        ("a", "int64"),
+        ("b", "object"),
+        ("c", "float64"),
+        ("d", "float64"),
+        ("e", "bool"),
+        ("f", "object"),
     ]
 
     assert str(type(schema_pd.tbl)) == "<class 'pandas.core.frame.DataFrame'>"
