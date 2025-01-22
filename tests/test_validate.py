@@ -4929,10 +4929,15 @@ def test_get_schema_validation_info():
         }
     )
 
-    # Note for `assert_schema_cols()` testing function:
-    # - The first list is the target columns matched to expected columns
-    # - The second list is the expected columns with no match to the target columns
-    # - The third list is the target columns not matched by the expected columns
+    # Note regarding the input in the `assert_schema_cols()` testing function
+    #
+    # The main input is a tuple of three lists:
+    # - the first list contains the target columns matched to expected columns
+    # - the second list holds the expected columns having no match to the target columns
+    # - the third list contains the target columns not matched by the expected columns
+    #
+    # target columns = columns in the data table
+    # expected columns = columns in the supplied schema
 
     # 1. Schema matches completely and in order; dtypes all correct
     schema = Schema(
