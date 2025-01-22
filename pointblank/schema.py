@@ -838,11 +838,11 @@ def _get_schema_validation_info(
       - case_sensitive_colnames: bool       # Whether column names are case-sensitive
       - case_sensitive_dtypes: bool         # Whether data types are case-sensitive
       - full_match_dtypes: bool             # Whether data types must match exactly or partially
-    - columns_matched: list[str]            # Columns matched in the target table
-    - columns_unmatched: list[str]          # Columns unmatched in the target table
+    - columns_found: list[str]              # Columns in the target table found in the schema
     - columns_not_found: list[str]          # Columns not found in the target table (from schema)
-    - columns_full_set: bool                 # Full set of columns is matched (w/ no extra columns)
-    - columns_subset: bool                   # Subset of columns is matched (w/ no extra columns)
+    - columns_unmatched: list[str]          # Columns in the schema unmatched in the target table
+    - columns_full_set: bool                # Full set of columns is matched (w/ no extra columns)
+    - columns_subset: bool                  # Subset of columns is matched (w/ no extra columns)
     - columns_matched_in_order: bool        # Whether columns are matched in order
     - columns_matched_any_order: bool       # Whether columns are matched in any order
     - columns: dict[str, dict[str, any]]    # Column information dictionary
@@ -863,9 +863,9 @@ def _get_schema_validation_info(
     schema_info = {
         "passed": passed,
         "params": {},
-        "columns_matched": [],
-        "columns_unmatched": [],
+        "columns_found": [],
         "columns_not_found": [],
+        "columns_unmatched": [],
         "columns_full_set": False,
         "columns_subset": False,
         "columns_matched_in_order": False,
