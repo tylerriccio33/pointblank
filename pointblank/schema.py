@@ -893,7 +893,7 @@ def _get_schema_validation_info(
     if case_sensitive_colnames:
 
         # Which columns are in both the target table and the expected schema?
-        columns_matched = [col for col in exp_colnames if col in tgt_colnames]
+        columns_found = [col for col in exp_colnames if col in tgt_colnames]
 
         # Which columns from the expected schema aren't in the target table?
         columns_unmatched = [col for col in exp_colnames if col not in tgt_colnames]
@@ -907,7 +907,7 @@ def _get_schema_validation_info(
         exp_colnames_lower = [col.lower() for col in exp_colnames]
 
         # Which columns are in both the target table and the expected schema?
-        columns_matched = [
+        columns_found = [
             tgt_colname_mapping[col.lower()] for col in exp_colnames if col.lower() in tgt_colnames
         ]
 
@@ -917,52 +917,66 @@ def _get_schema_validation_info(
         # Which columns are in the target table but not in the expected schema?
         columns_not_found = [col for col in tgt_colnames if col.lower() not in exp_colnames_lower]
 
+    # Sort `columns_found` based on the order of tgt_colnames
+    columns_found_sorted = sorted(columns_found, key=lambda col: tgt_colnames.index(col))
+
     # Update the schema information dictionary
-    schema_info["columns_matched"] = columns_matched
-    schema_info["columns_unmatched"] = columns_unmatched
+    schema_info["columns_found"] = columns_found_sorted
     schema_info["columns_not_found"] = columns_not_found
+    schema_info["columns_unmatched"] = columns_unmatched
 
     # If the number of columns matched is the same as the number of columns in the expected schema,
     # test if:
     # - all columns are matched in the target table in the same order
     # - all columns are matched in the target table in any order
     if (
-        len(columns_matched) == len(exp_colnames)
+        len(columns_found) == len(exp_colnames)
         and len(columns_unmatched) == 0
         and len(columns_not_found) == 0
     ):
         # CASE I: Expected columns are the same as the target columns
         schema_info["columns_full_set"] = True
 
-        if columns_matched == tgt_colnames:
+        if columns_found == tgt_colnames:
             # Check if the columns are matched in order
             schema_info["columns_matched_in_order"] = True
 
-        elif set(columns_matched) == set(tgt_colnames):
+        elif set(columns_found) == set(tgt_colnames):
             # Check if the columns are matched in any order
             schema_info["columns_matched_any_order"] = True
 
     elif (
-        len(columns_matched) == len(exp_colnames)
-        and len(columns_matched) > 0
+        len(columns_found) == len(exp_colnames)
+        and len(columns_found) > 0
         and len(columns_unmatched) == 0
     ):
         # CASE II: Expected columns are a subset of the target columns
         schema_info["columns_subset"] = True
 
         # Filter the columns in the target table that are matched
-        tgt_colnames_matched = [col for col in tgt_colnames if col in columns_matched]
+        tgt_colnames_matched = [col for col in tgt_colnames if col in columns_found]
 
         # If the columns are matched in order, set `columns_matched_in_order` to True; do this
         # for case-sensitive and case-insensitive comparisons
         if case_sensitive_colnames:
-            if columns_matched == tgt_colnames_matched:
+
+            if columns_found == tgt_colnames_matched:
                 schema_info["columns_matched_in_order"] = True
+
+            elif set(columns_found) == set(tgt_colnames_matched):
+                schema_info["columns_matched_any_order"] = True
+
         else:
-            if [col.lower() for col in columns_matched] == [
+
+            if [col.lower() for col in columns_found] == [
                 col.lower() for col in tgt_colnames_matched
             ]:
                 schema_info["columns_matched_in_order"] = True
+
+            elif set([col.lower() for col in columns_found]) == set(
+                [col.lower() for col in tgt_colnames_matched]
+            ):
+                schema_info["columns_matched_any_order"] = True
 
     # For each column in the expected schema, determine if the column name is matched
     # and if the dtype is matched
@@ -977,7 +991,7 @@ def _get_schema_validation_info(
         if case_sensitive_colnames:
 
             # Does the column name have a match in the expected schema?
-            colname_matched = col in columns_matched
+            colname_matched = col in columns_found
 
             # If the column name is matched, get the column name in the target table
             if colname_matched:
@@ -988,13 +1002,13 @@ def _get_schema_validation_info(
 
             # Does the column name have a match in the expected schema? A lowercase comparison
             # is used here to determine if the column name is matched
-            colname_matched = col.lower() in columns_matched
+            colname_matched = col.lower() in columns_found
 
             # If the column name is matched, get the column name in the target table; this involves
             # mapping the lowercase column name to the original column name in the target table
             if colname_matched:
                 matched_to = tgt_colname_mapping[
-                    columns_matched[[col.lower() for col in columns_matched].index(col.lower())]
+                    columns_found[[col.lower() for col in columns_found].index(col.lower())]
                 ]
             else:
                 matched_to = None
