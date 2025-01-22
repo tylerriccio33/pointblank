@@ -4,8 +4,6 @@ import copy
 
 from dataclasses import dataclass
 
-import narwhals as nw
-
 from pointblank._utils import _get_tbl_type, _is_lib_present
 from pointblank._constants import IBIS_BACKENDS
 
@@ -843,7 +841,8 @@ def _get_schema_validation_info(
     - columns_matched: list[str]            # Columns matched in the target table
     - columns_unmatched: list[str]          # Columns unmatched in the target table
     - columns_not_found: list[str]          # Columns not found in the target table (from schema)
-    - all_columns_matched: bool             # Whether all columns are matched
+    - columns_full_set: bool                 # Full set of columns is matched (w/ no extra columns)
+    - columns_subset: bool                   # Subset of columns is matched (w/ no extra columns)
     - columns_matched_in_order: bool        # Whether columns are matched in order
     - columns_matched_any_order: bool       # Whether columns are matched in any order
     - columns: dict[str, dict[str, any]]    # Column information dictionary
@@ -867,7 +866,8 @@ def _get_schema_validation_info(
         "columns_matched": [],
         "columns_unmatched": [],
         "columns_not_found": [],
-        "all_columns_matched": False,
+        "columns_full_set": False,
+        "columns_subset": False,
         "columns_matched_in_order": False,
         "columns_matched_any_order": False,
     }
@@ -887,6 +887,9 @@ def _get_schema_validation_info(
     # Get the columns of the expected schema
     exp_colnames = schema_exp.get_column_list()
 
+    # Create a mapping of lowercased column names to original names in the target table schema
+    tgt_colname_mapping = {col.lower(): col for col in tgt_colnames}
+
     if case_sensitive_colnames:
 
         # Which columns are in both the target table and the expected schema?
@@ -900,38 +903,58 @@ def _get_schema_validation_info(
 
     else:
 
+        # Convert expected column names to lowercase for case-insensitive comparison
+        exp_colnames_lower = [col.lower() for col in exp_colnames]
+
         # Which columns are in both the target table and the expected schema?
-        columns_matched = [col for col in exp_colnames if col.lower() in tgt_colnames]
+        columns_matched = [
+            tgt_colname_mapping[col.lower()] for col in exp_colnames if col.lower() in tgt_colnames
+        ]
 
         # Which columns from the expected schema aren't in the target table?
         columns_unmatched = [col for col in exp_colnames if col.lower() not in tgt_colnames]
 
         # Which columns are in the target table but not in the expected schema?
-        columns_not_found = [col for col in tgt_colnames if col.lower() not in exp_colnames]
+        columns_not_found = [col for col in tgt_colnames if col.lower() not in exp_colnames_lower]
 
     # Update the schema information dictionary
     schema_info["columns_matched"] = columns_matched
     schema_info["columns_unmatched"] = columns_unmatched
     schema_info["columns_not_found"] = columns_not_found
 
-    # If all columns are matched, set `all_columns_matched` to True
-    if len(columns_matched) == len(exp_colnames):
-        schema_info["all_columns_matched"] = True
+    # If the number of columns matched is the same as the number of columns in the expected schema,
+    # test if:
+    # - all columns are matched in the target table in the same order
+    # - all columns are matched in the target table in any order
+    if (
+        len(columns_matched) == len(exp_colnames)
+        and len(columns_unmatched) == 0
+        and len(columns_not_found) == 0
+    ):
+        # CASE I: Expected columns are the same as the target columns
+        schema_info["columns_full_set"] = True
 
-        # Check if the columns are matched in order
         if columns_matched == tgt_colnames:
+            # Check if the columns are matched in order
             schema_info["columns_matched_in_order"] = True
 
-        # Check if the columns are matched in any order
-        if set(columns_matched) == set(tgt_colnames):
+        elif set(columns_matched) == set(tgt_colnames):
+            # Check if the columns are matched in any order
             schema_info["columns_matched_any_order"] = True
 
-    # If at least one column is matched, is the set of matched columns in the same order?
-    if len(columns_matched) > 0:
+    elif (
+        len(columns_matched) == len(exp_colnames)
+        and len(columns_matched) > 0
+        and len(columns_unmatched) == 0
+    ):
+        # CASE II: Expected columns are a subset of the target columns
+        schema_info["columns_subset"] = True
+
         # Filter the columns in the target table that are matched
         tgt_colnames_matched = [col for col in tgt_colnames if col in columns_matched]
 
-        # If the columns are matched in order, set `columns_matched_in_order` to True
+        # If the columns are matched in order, set `columns_matched_in_order` to True; do this
+        # for case-sensitive and case-insensitive comparisons
         if case_sensitive_colnames:
             if columns_matched == tgt_colnames_matched:
                 schema_info["columns_matched_in_order"] = True
@@ -940,22 +963,6 @@ def _get_schema_validation_info(
                 col.lower() for col in tgt_colnames_matched
             ]:
                 schema_info["columns_matched_in_order"] = True
-
-    # Create a mapping of lowercased column names to original names in the target table schema
-    tgt_colname_mapping = {col.lower(): col for col in tgt_colnames}
-
-    # Convert column names to lowercase for case-insensitive comparison
-    exp_colnames_lower = [col.lower() for col in exp_colnames]
-    tgt_colnames_lower = [col.lower() for col in tgt_colnames]
-
-    # Which columns are in both the target table and the expected schema?
-    columns_matched = [col.lower() for col in exp_colnames if col.lower() in tgt_colnames_lower]
-
-    # Which columns from the expected schema aren't in the target table?
-    columns_unmatched = [col for col in exp_colnames if col.lower() not in tgt_colnames_lower]
-
-    # Which columns are in the target table but not in the expected schema?
-    columns_not_found = [col for col in tgt_colnames if col.lower() not in exp_colnames_lower]
 
     # For each column in the expected schema, determine if the column name is matched
     # and if the dtype is matched
