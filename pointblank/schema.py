@@ -710,6 +710,8 @@ def _schema_info_generate_columns_dict(
 
     Parameters
     ----------
+    colnames
+        A list of column names. The columns included are those of the user-supplied schema.
     colname_dict
         A list of dictionaries containing column name information. The columns included are
         those of the user-supplied schema.
@@ -719,14 +721,6 @@ def _schema_info_generate_columns_dict(
     dict[str, dict[str, any]]
         The columns dictionary.
     """
-
-    if colname_dict is None:
-        return {}
-
-    # Ensure the length of `colnames` and `colname_dict` are the same
-    if len(colnames) != len(colname_dict):
-        raise ValueError("The length of `colnames` and `colname_dict` must be the same.")
-
     return {colnames[i]: colname_dict[i] for i in range(len(colnames))}
 
 
