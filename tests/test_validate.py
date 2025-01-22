@@ -5588,3 +5588,33 @@ def test_get_schema_validation_info(snapshot):
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-3.txt")
+
+
+def test_get_val_info():
+
+    data_tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # 1. Schema matches completely and in order; dtypes all correct
+    schema = Schema(
+        columns=[
+            ("a", "String"),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Create a validation object
+    validation = Validate(data=data_tbl).col_schema_match(schema=schema).interrogate()
+
+    # Get the validation info from the first (and only) element of `validation_info` using
+    # the `get_val_info()` method
+    val_info = validation.validation_info[0].get_val_info()
+
+    # Check that the `val_info` is a dictionary
+    assert isinstance(val_info, dict)
