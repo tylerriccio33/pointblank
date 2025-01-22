@@ -768,39 +768,6 @@ def _schema_info_generate_params_dict(
     }
 
 
-def _add_to_schema_info(self, schema_info: dict[str, any]) -> dict[str, any]:
-    """
-    Add schema information to the `schema_info` dictionary.
-
-    Parameters
-    ----------
-    schema_info
-        The schema information dictionary.
-
-    Returns
-    -------
-    dict[str, any]
-        The updated schema information dictionary.
-    """
-
-    schema_info["columns"] = {}
-
-    for col in self.columns:
-        colname = col[0]
-        dtype = col[1]
-
-        schema_info["columns"][colname] = {
-            "colname_matched": False,
-            "dtype_present": False,
-            "dtype_input": dtype,
-            "dtype_matched": False,
-            "dtype_multiple": False,
-            "dtype_matched_pos": None,
-        }
-
-    return schema_info
-
-
 def _get_schema_validation_info(
     data_tbl: any,
     schema: Schema,
