@@ -799,6 +799,8 @@ def _get_schema_validation_info(
       - case_sensitive_colnames: bool       # Whether column names are case-sensitive
       - case_sensitive_dtypes: bool         # Whether data types are case-sensitive
       - full_match_dtypes: bool             # Whether data types must match exactly or partially
+    - target_schema: list(tuple[str, str])  # Target schema (column names and dtypes)
+    - expect_schema: list(tuple[str, str])  # Expected schema (column names and optional dtypes)
     - columns_found: list[str]              # Columns in the target table found in the schema
     - columns_not_found: list[str]          # Columns not found in the target table (from schema)
     - columns_unmatched: list[str]          # Columns in the schema unmatched in the target table
@@ -824,6 +826,8 @@ def _get_schema_validation_info(
     schema_info = {
         "passed": passed,
         "params": {},
+        "target_schema": schema_tgt.columns,
+        "expect_schema": schema_exp.columns,
         "columns_found": [],
         "columns_not_found": [],
         "columns_unmatched": [],
