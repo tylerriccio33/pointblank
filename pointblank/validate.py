@@ -6441,16 +6441,10 @@ class Validate:
             # Get the parameters for column-schema matching
             values_dict = validation_step["values"]
 
-            all_passed = validation_step["all_passed"]
-
-            schema = values_dict["schema"]
             complete = values_dict["complete"]
             in_order = values_dict["in_order"]
 
-            # Get the target table's schema
-            schema_target = Schema(tbl=self.data)
-
-            # CASE I: The default case
+            # CASE I: The default case where `complete=True` and `in_order=True```
             if complete and in_order:
 
                 step_report = _step_report_schema_complete_in_order(
@@ -6458,27 +6452,28 @@ class Validate:
                     schema_info=val_info,
                 )
 
-            # CASE II: the case where `complete=True` and `in_order=False`
-            if complete and not in_order:
+            # CASE II: the case where `in_order=False`
+            if not in_order:
 
-                step_report = _step_report_schema_complete_any_order(
-                    step=i, schema=schema, schema_target=schema_target, all_passed=all_passed
+                step_report = _step_report_schema_any_order(
+                    step=i,
+                    schema_info=val_info,
                 )
 
             # Case III: the case where `complete=False` and `in_order=True`
-            if not complete and in_order:
+            # if not complete and in_order:
 
-                colnames_tgt = [x[0] for x in schema_target.columns]
-                dtypes_tgt = [str(x[1]) for x in schema_target.columns]
+            #     colnames_tgt = [x[0] for x in schema_target.columns]
+            #     dtypes_tgt = [str(x[1]) for x in schema_target.columns]
 
-                step_report = _step_report_schema_not_complete_in_order(
-                    step=i,
-                    schema=schema,
-                    schema_target=schema_target,
-                    colnames_tgt=colnames_tgt,
-                    dtypes_tgt=dtypes_tgt,
-                    all_passed=all_passed,
-                )
+            #     step_report = _step_report_schema_not_complete_in_order(
+            #         step=i,
+            #         schema=schema,
+            #         schema_target=schema_target,
+            #         colnames_tgt=colnames_tgt,
+            #         dtypes_tgt=dtypes_tgt,
+            #         all_passed=all_passed,
+            #     )
 
         else:
             step_report = None
@@ -7199,9 +7194,6 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
         }
     )
 
-    # Get the passing symbol for the step
-    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
-
     # Is the number of column names supplied equal to the number of columns in the
     # target table?
     if len(expect_schema) > len(target_schema):
@@ -7321,6 +7313,9 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
         case_sensitive_dtypes=case_sensitive_dtypes,
         full_match_dtypes=full_match_dtypes,
     )
+
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
@@ -7455,206 +7450,290 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
     return step_report
 
 
-def _step_report_schema_complete_any_order(
-    step: int, schema: Schema, schema_target: Schema, all_passed: bool
-):
+def _step_report_schema_any_order(step: int, schema_info: dict):
     """
     This is the case for schema validation where the schema is complete and order is disregarded.
-    - `complete=True`
     - `in_order=False`
     """
 
-    colnames_tgt = [x[0] for x in schema_target.columns]
-    dtypes_tgt = [str(x[1]) for x in schema_target.columns]
+    all_passed = schema_info["passed"]
 
-    # Get the passing symbol for the step
-    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
+    expect_schema = schema_info["expect_schema"]
+    target_schema = schema_info["target_schema"]
+
+    columns_found = schema_info["columns_found"]
+    colnames_exp_unmatched = schema_info["columns_unmatched"]
+
+    # Get the expected column names from the expected and target schemas
+    colnames_exp = [x[0] for x in expect_schema]
+    colnames_tgt = [x[0] for x in target_schema]
+    dtypes_tgt = [str(x[1]) for x in target_schema]
+
+    # Extract the dictionary of expected columns, their data types, whether the column matched
+    # a target column, and whether the data type matched the target data type
+    exp_columns_dict = schema_info["columns"]
+
+    index_target = range(1, len(colnames_tgt) + 1)
 
     # Create a Polars DF with the target table columns and dtypes
     import polars as pl
 
+    # Create a DataFrame for the LHS of the table
     schema_tbl = pl.DataFrame(
         {
-            "index_target": range(1, len(colnames_tgt) + 1),
+            "index_target": index_target,
             "col_name_target": colnames_tgt,
             "dtype_target": dtypes_tgt,
         }
     )
 
-    colnames_exp = [x[0] for x in schema.columns]
+    # For the right-hand side of the table, we need to find out if the expected column names matched
+    # in any order, this involves iterating over the target colnames first, seeing if there is a
+    # match in the expected colnames, and then checking if the dtype matches
+    index_exp = []
+    col_name_exp = []
+    col_exp_correct = []
+    dtype_exp = []
+    dtype_exp_correct = []
 
-    # The dtype is optional and might be None, so we need to convert it to a string;
-    # however, if there is a list object, keep it a list
-    dtypes_exp = [
-        (
-            x[1]
-            if len(x) > 1 and isinstance(x[1], list)
-            else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
-        )
-        for x in schema.columns
-    ]
+    # Get keys of the `exp_columns_dict` dictionary (remove the unmatched columns
+    # of `colnames_exp_unmatched`)
+    exp_columns_dict_keys = list(exp_columns_dict.keys())
 
-    # Get which colnames in `colnames_exp` that matched with `colnames_tgt`
-    colnames_exp_matched = [
-        col_exp for col_exp in colnames_exp if any(col_exp == col_tgt for col_tgt in colnames_tgt)
-    ]
+    for colname_unmatched in colnames_exp_unmatched:
+        exp_columns_dict_keys.remove(colname_unmatched)
 
-    # Get the dtypes for the matched column names
-    dtypes_exp_matched = [
-        dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_matched
-    ]
+    for i in range(len(colnames_tgt)):
 
-    # For any 'None' strings in `dtypes_exp_matched`, replace them with an empty string
-    dtypes_exp_matched = ["" if dtype == "None" else dtype for dtype in dtypes_exp_matched]
+        # If there is no match in the expected column names, then the column name is not present
+        # and we need to fill in the values with empty strings
 
-    # Create a dictionary for expected column data types
-    dtypes_exp_dict = {
-        col[0]: col[1] if len(col) > 1 else "None"
-        for col in schema.columns
-        if col[0] in [col[0] for col in schema_target.columns]
-    }
+        match_index = None
 
-    # Initialize a list to store indices of columns with dtype differences
-    dtypes_diffs = []
+        for key in exp_columns_dict_keys:
 
-    # Iterate over target columns and compare data types
-    for i, (colname_tgt, dtype_tgt) in enumerate(schema_target.columns):
-        dtype_exp = dtypes_exp_dict.get(colname_tgt)
-        if dtype_exp is not None and dtype_exp != "None":
-            if isinstance(dtype_exp, list):
-                if not any(item == dtype_tgt for item in dtype_exp):
-                    dtypes_diffs.append(colname_tgt)
-            elif dtype_exp != dtype_tgt:
-                dtypes_diffs.append(colname_tgt)
+            if colnames_tgt[i] in exp_columns_dict[key]["matched_to"]:
 
-    # Map the column names back to the col_exp sequence
-    dtypes_diffs_exp_indices = [
-        schema.columns.index((colname, dtypes_exp_dict[colname])) for colname in dtypes_diffs
-    ]
+                # Get the index of the key in the dictionary
+                match_index = exp_columns_dict_keys.index(key)
+                break
 
-    # Sort the list of indices
-    dtypes_diffs_exp_indices.sort()
+        if match_index is not None:
+            # Get the column name which is the key of the dictionary at match_index
+            column_name_exp_i = list(exp_columns_dict.keys())[match_index]
+            col_name_exp.append(column_name_exp_i)
 
-    # Create a list of dtypes with check marks or cross marks based on the presence of
-    # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
-    # cross marks for the differences found in `dtypes_diffs`); this has to be in the
-    # order of `colnames_exp_matched`
-    dtypes_exp_matched_eval = [
-        CHECK_MARK_SPAN if i not in dtypes_diffs_exp_indices else CROSS_MARK_SPAN
-        for i in range(len(colnames_exp_matched))
-    ]
+            # Get the index number of the column name in the expected schema (1-indexed)
+            index_exp_i = colnames_exp.index(column_name_exp_i) + 1
+            index_exp.append(str(index_exp_i))
 
-    # If there is an empty string in `dtypes_exp_matched`, then the corresponding
-    # `dtypes_exp_matched_eval` entry should also be an empty string
-    dtypes_exp_matched_eval = [
-        ("" if dtypes_exp_matched[i] == "" else dtypes_exp_matched_eval[i])
-        for i in range(len(colnames_exp_matched))
-    ]
+        else:
+            index_exp.append("")
+            col_name_exp.append("")
+            col_exp_correct.append("")
+            dtype_exp.append("")
+            dtype_exp_correct.append("")
+            continue
 
-    # The unmatched column names are the ones that are not in `colnames_exp_matched`
-    colnames_exp_unmatched = [
-        col_exp for col_exp in colnames_exp if col_exp not in colnames_exp_matched
-    ]
+        #
+        # `col_exp_correct` values
+        #
 
-    # `dtypes_exp_matched` could be a list of strings, we need ensure those entries are strings
-    # with the data types being pipe separated
-    dtypes_exp_matched = [
-        " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
-        for dtype_exp in dtypes_exp_matched
-    ]
+        if exp_columns_dict[column_name_exp_i]["colname_matched"]:
+            col_exp_correct.append(CHECK_MARK_SPAN)
+        else:
+            col_exp_correct.append(CROSS_MARK_SPAN)
 
-    # Get the indices of the unmatched columns by comparing the `colnames_exp` list
-    # against the schema order
-    index_exp = [i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_matched]
+        #
+        # `dtype_exp` values
+        #
 
-    # Add 1 to the indices of `index_exp`
-    index_exp = [i + 1 for i in index_exp]
+        if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
+
+            dtype_exp.append("")
+
+        elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
+
+            dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
+
+            if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
+
+                pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
+
+                # Combine the dtypes together with pipes but underline the matched dtype in
+                # green with an HTML span tag and style attribute
+                dtype = [
+                    (
+                        '<span style="text-decoration: underline; text-decoration-color: #4CA64C; '
+                        f'text-underline-offset: 3px;">{dtype[i]}</span>'
+                        if i == pos
+                        else dtype[i]
+                    )
+                    for i in range(len(dtype))
+                ]
+                dtype = " | ".join(dtype)
+                dtype_exp.append(dtype)
+
+            else:
+
+                dtype = " | ".join(dtype)
+                dtype_exp.append(dtype)
+
+        else:
+            dtype = exp_columns_dict[column_name_exp_i]["dtype_input"][0]
+            dtype_exp.append(dtype)
+
+        #
+        # `dtype_exp_correct` values
+        #
+
+        if not exp_columns_dict[column_name_exp_i]["colname_matched"]:
+            dtype_exp_correct.append("&mdash;")
+        elif not exp_columns_dict[column_name_exp_i]["dtype_present"]:
+            dtype_exp_correct.append("")
+        elif exp_columns_dict[column_name_exp_i]["dtype_matched"]:
+            dtype_exp_correct.append(CHECK_MARK_SPAN)
+        else:
+            dtype_exp_correct.append(CROSS_MARK_SPAN)
 
     # Create a DataFrame with the expected column names and dtypes
     schema_exp = pl.DataFrame(
         {
             "index_exp": index_exp,
-            "col_name_exp": colnames_exp_matched,
-            "col_name_exp_correct": [CHECK_MARK_SPAN] * len(colnames_exp_matched),
-            "dtype_exp": dtypes_exp_matched,
-            "dtype_exp_correct": dtypes_exp_matched_eval,
+            "col_name_exp": col_name_exp,
+            "col_name_exp_correct": col_exp_correct,
+            "dtype_exp": dtype_exp,
+            "dtype_exp_correct": dtype_exp_correct,
         }
     )
 
-    if len(colnames_exp_matched) > 0:
-
-        # Join the tables (`schema_tbl` and `schema_exp`) by the `col_name_exp` and
-        # `col_name_target` columnss
-        schema_combined = schema_tbl.join(
-            schema_exp,
-            how="left",
-            left_on="col_name_target",
-            right_on="col_name_exp",
-            coalesce=False,
-        )
-
-    else:
-        schema_combined = pl.DataFrame(
-            {
-                "index_target": range(1, len(colnames_tgt) + 1),
-                "col_name_target": colnames_tgt,
-                "dtype_target": dtypes_tgt,
-                "index_exp": [None] * len(colnames_tgt),
-                "col_name_exp": [""] * len(colnames_tgt),
-                "col_name_exp_correct": [""] * len(colnames_tgt),
-                "dtype_exp": [""] * len(colnames_tgt),
-                "dtype_exp_correct": [""] * len(colnames_tgt),
-            }
-        )
-
-        # Cast the index_exp column to an integer type
-        schema_combined = schema_combined.with_columns(pl.col("index_exp").cast(pl.Int64))
-
-    # If there are unmatched column names, then create a seprate DataFrame for those
-    # entries and concatenate it with the `schema_combined` DataFrame
+    # If there are unmatched columns in the expected schema, then create a separate DataFrame
+    # for those entries and concatenate it with the `schema_combined` DataFrame
     if len(colnames_exp_unmatched) > 0:
 
-        # Get the indices of the unmatched columns by comparing the
-        # `colnames_exp_unmatched` against the schema order
-        index_exp_unmatched = [
-            i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_unmatched
-        ]
+        # Get the indices of the unmatched columns by comparing the `colnames_exp_unmatched`
+        # against the schema order
+        col_name_exp = []
+        col_exp_correct = []
+        dtype_exp = []
+        dtype_exp_correct = []
 
-        # Add 1 to the indices of `index_exp_unmatched`
-        index_exp_unmatched = [i + 1 for i in index_exp_unmatched]
+        for i in range(len(colnames_exp_unmatched)):
 
-        # Get the dtypes of the unmatched columns
-        dtypes_exp_unmatched = [
-            dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_unmatched
-        ]
+            #
+            # `col_name_exp` values
+            #
 
-        # `dtypes_exp_unmatched` could be a list of strings, we need ensure those entries are strings
-        # with the data types being pipe separated
-        dtypes_exp_unmatched = [
-            " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
-            for dtype_exp in dtypes_exp_unmatched
-        ]
+            column_name_exp_i = colnames_exp_unmatched[i]
+            col_name_exp.append(column_name_exp_i)
+
+            #
+            # `col_exp_correct` values
+            #
+
+            col_exp_correct.append(CROSS_MARK_SPAN)
+
+            #
+            # `dtype_exp` values
+            #
+
+            if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
+
+                dtype_exp.append("")
+
+            elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
+
+                dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
+
+                if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
+
+                    pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
+
+                    # Combine the dtypes together with pipes but underline the matched dtype in
+                    # green with an HTML span tag and style attribute
+                    dtype = [
+                        (
+                            '<span style="text-decoration: underline; text-decoration-color: #4CA64C; '
+                            f'text-underline-offset: 3px;">{dtype[i]}</span>'
+                            if i == pos
+                            else dtype[i]
+                        )
+                        for i in range(len(dtype))
+                    ]
+                    dtype = " | ".join(dtype)
+                    dtype_exp.append(dtype)
+
+                else:
+
+                    dtype = " | ".join(dtype)
+                    dtype_exp.append(dtype)
+
+            else:
+                dtype = exp_columns_dict[column_name_exp_i]["dtype_input"][0]
+                dtype_exp.append(dtype)
+
+            #
+            # `dtype_exp_correct` values
+            #
+
+            if not exp_columns_dict[column_name_exp_i]["colname_matched"]:
+                dtype_exp_correct.append("&mdash;")
+            elif not exp_columns_dict[column_name_exp_i]["dtype_present"]:
+                dtype_exp_correct.append("")
+            elif exp_columns_dict[column_name_exp_i]["dtype_matched"]:
+                dtype_exp_correct.append(CHECK_MARK_SPAN)
+            else:
+                dtype_exp_correct.append(CROSS_MARK_SPAN)
+
+        if len(columns_found) > 0:
+
+            # Get the last index of the columns found
+            last_index = columns_found[-1]
+
+            # Get the integer index of the last column found in the target schema
+            last_index_int = colnames_tgt.index(last_index)
+
+            # Generate the range and convert to strings
+            index_exp = [
+                str(i + len(columns_found) - 1)
+                for i in range(last_index_int, last_index_int + len(colnames_exp_unmatched))
+            ]
+
+        else:
+            index_exp = [str(i) for i in range(1, len(colnames_exp_unmatched) + 1)]
 
         schema_exp_unmatched = pl.DataFrame(
             {
-                "index_target": [None] * len(colnames_exp_unmatched),
-                "col_name_target": [""] * len(colnames_exp_unmatched),
-                "dtype_target": [""] * len(colnames_exp_unmatched),
-                "index_exp": index_exp_unmatched,
-                "col_name_exp": colnames_exp_unmatched,
-                "col_name_exp_correct": [CROSS_MARK_SPAN] * len(colnames_exp_unmatched),
-                "dtype_exp": dtypes_exp_unmatched,
-                "dtype_exp_correct": [""] * len(colnames_exp_unmatched),
+                "index_exp": index_exp,
+                "col_name_exp": col_name_exp,
+                "col_name_exp_correct": col_exp_correct,
+                "dtype_exp": dtype_exp,
+                "dtype_exp_correct": dtype_exp_correct,
             }
         )
 
-        # Concatenate the tables vertically
-        schema_combined = pl.concat([schema_combined, schema_exp_unmatched], how="vertical")
+        # Combine this DataFrame to the `schema_exp` DataFrame
+        schema_exp = pl.concat([schema_exp, schema_exp_unmatched], how="vertical")
+
+    # Concatenate the tables horizontally
+    schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+
+    # Get the other parameters for the `col_schema_match()` function
+    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
+    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
+    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
 
     # Generate text for the `col_schema_match()` parameters
     col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=True, in_order=False
+        complete=True,
+        in_order=True,
+        case_sensitive_colnames=case_sensitive_colnames,
+        case_sensitive_dtypes=case_sensitive_dtypes,
+        full_match_dtypes=full_match_dtypes,
     )
+
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
@@ -7739,7 +7818,7 @@ def _step_report_schema_complete_any_order(
         .tab_source_note(
             source_note=html(
                 "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
-                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
+                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{expect_schema}</code></div>"
             )
         )
         .tab_options(source_notes_font_size="12px")
@@ -7755,7 +7834,7 @@ def _step_report_schema_complete_any_order(
         ]
 
         # Add 1 to the indices of `index_exp_unmatched`
-        index_exp_unmatched = [i + 1 for i in index_exp_unmatched]
+        index_exp_unmatched = [i for i in index_exp_unmatched]
 
         # Add background color to the missing column on the tgt side
         step_report = step_report.tab_style(
