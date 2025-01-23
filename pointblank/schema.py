@@ -682,6 +682,7 @@ def _process_columns(
 
 def _schema_info_generate_colname_dict(
     colname_matched: bool,
+    index_matched: bool,
     matched_to: str | None,
     dtype_present: bool,
     dtype_input: str | list[str],
@@ -692,6 +693,7 @@ def _schema_info_generate_colname_dict(
 
     return {
         "colname_matched": colname_matched,
+        "index_matched": index_matched,
         "matched_to": matched_to,
         "dtype_present": dtype_present,
         "dtype_input": dtype_input,
@@ -811,6 +813,7 @@ def _get_schema_validation_info(
     - columns: dict[str, dict[str, any]]    # Column information dictionary
         - {colname}: str                    # Column name in the expected schema
             - colname_matched: bool         # Whether the column name is matched to the target table
+            - index_matched: bool           # If the column index is matched in the target table
             - matched_to: str               # Column name in the target table
             - dtype_present: bool           # Whether a dtype is present in the expected schema
             - dtype_input: [dtype]          # dtypes provided in the expected schema
@@ -978,6 +981,12 @@ def _get_schema_validation_info(
             else:
                 matched_to = None
 
+        # Does the index match that of the target table?
+        if matched_to is not None:
+            index_matched = exp_colnames.index(col) == tgt_colnames.index(matched_to)
+        else:
+            index_matched = False
+
         # Get the dtype of the column in the expected schema
         # If there is a dtype for the column in the expected schema, get it
         if len(schema_exp.columns[exp_colnames.index(col)]) == 1:
@@ -1042,6 +1051,7 @@ def _get_schema_validation_info(
         colname_dict.append(
             _schema_info_generate_colname_dict(
                 colname_matched=colname_matched,
+                index_matched=index_matched,
                 matched_to=matched_to,
                 dtype_present=dtype_present,
                 dtype_input=dtype_input,
