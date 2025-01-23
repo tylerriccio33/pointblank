@@ -27,6 +27,8 @@ from pointblank._constants import (
     VALIDATION_REPORT_FIELDS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
+    CHECK_MARK_SPAN,
+    CROSS_MARK_SPAN,
 )
 from pointblank.column import Column, col, ColumnSelector
 from pointblank.schema import Schema, _get_schema_validation_info
@@ -7085,11 +7087,9 @@ def _step_report_row_based(
 
     if all_passed:
 
-        check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
-
         step_report = (
             tbl_preview.tab_header(
-                title=html(f"Report for Validation Step {i} {check_mark_html}"),
+                title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
                 subtitle=html(
                     "<div>"
                     "ASSERTION <span style='border-style: solid; border-width: thin; "
@@ -7199,11 +7199,8 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
         }
     )
 
-    # Check and cross marks for the schema validation report
-    check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
-    cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
-
-    passing_symbol = check_mark_html if all_passed else cross_mark_html
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Is the number of column names supplied equal to the number of columns in the
     # target table?
@@ -7242,9 +7239,9 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
         #
 
         if exp_columns_dict[column_name_exp_i]["colname_matched"]:
-            col_exp_correct.append(check_mark_html)
+            col_exp_correct.append(CHECK_MARK_SPAN)
         else:
-            col_exp_correct.append(cross_mark_html)
+            col_exp_correct.append(CROSS_MARK_SPAN)
 
         #
         # `dtype_exp` values
@@ -7294,9 +7291,9 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
         elif not exp_columns_dict[column_name_exp_i]["dtype_present"]:
             dtype_exp_correct.append("")
         elif exp_columns_dict[column_name_exp_i]["dtype_matched"]:
-            dtype_exp_correct.append(check_mark_html)
+            dtype_exp_correct.append(CHECK_MARK_SPAN)
         else:
-            dtype_exp_correct.append(cross_mark_html)
+            dtype_exp_correct.append(CROSS_MARK_SPAN)
 
     schema_exp = pl.DataFrame(
         {
@@ -7467,14 +7464,11 @@ def _step_report_schema_complete_any_order(
     - `in_order=False`
     """
 
-    # Check and cross marks for the schema validation report
-    check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
-    cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
-
     colnames_tgt = [x[0] for x in schema_target.columns]
     dtypes_tgt = [str(x[1]) for x in schema_target.columns]
 
-    passing_symbol = check_mark_html if all_passed else cross_mark_html
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Create a Polars DF with the target table columns and dtypes
     import polars as pl
@@ -7546,7 +7540,7 @@ def _step_report_schema_complete_any_order(
     # cross marks for the differences found in `dtypes_diffs`); this has to be in the
     # order of `colnames_exp_matched`
     dtypes_exp_matched_eval = [
-        check_mark_html if i not in dtypes_diffs_exp_indices else cross_mark_html
+        CHECK_MARK_SPAN if i not in dtypes_diffs_exp_indices else CROSS_MARK_SPAN
         for i in range(len(colnames_exp_matched))
     ]
 
@@ -7581,7 +7575,7 @@ def _step_report_schema_complete_any_order(
         {
             "index_exp": index_exp,
             "col_name_exp": colnames_exp_matched,
-            "col_name_exp_correct": [check_mark_html] * len(colnames_exp_matched),
+            "col_name_exp_correct": [CHECK_MARK_SPAN] * len(colnames_exp_matched),
             "dtype_exp": dtypes_exp_matched,
             "dtype_exp_correct": dtypes_exp_matched_eval,
         }
@@ -7648,7 +7642,7 @@ def _step_report_schema_complete_any_order(
                 "dtype_target": [""] * len(colnames_exp_unmatched),
                 "index_exp": index_exp_unmatched,
                 "col_name_exp": colnames_exp_unmatched,
-                "col_name_exp_correct": [cross_mark_html] * len(colnames_exp_unmatched),
+                "col_name_exp_correct": [CROSS_MARK_SPAN] * len(colnames_exp_unmatched),
                 "dtype_exp": dtypes_exp_unmatched,
                 "dtype_exp_correct": [""] * len(colnames_exp_unmatched),
             }
@@ -7810,11 +7804,8 @@ def _step_report_schema_not_complete_in_order(
         }
     )
 
-    # Check and cross marks for the schema validation report
-    check_mark_html = "<span style='color: #4CA64C;'>&check;</span>"
-    cross_mark_html = "<span style='color: #CF142B;'>&cross;</span>"
-
-    passing_symbol = check_mark_html if all_passed else cross_mark_html
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Get the expected column names and dtypes
     colnames_exp = [x[0] for x in schema.columns]
@@ -7904,7 +7895,7 @@ def _step_report_schema_not_complete_in_order(
         # cross marks for the differences found in `dtypes_diffs`); this has to be in the
         # order of `colnames_exp_matched`
         dtypes_exp_matched_eval = [
-            check_mark_html if i not in dtypes_diffs else cross_mark_html
+            CHECK_MARK_SPAN if i not in dtypes_diffs else CROSS_MARK_SPAN
             for i in range(len(colnames_exp_matched))
         ]
 
@@ -7919,7 +7910,7 @@ def _step_report_schema_not_complete_in_order(
             {
                 "index_exp": range(1, len(colnames_exp) + 1),
                 "col_name_exp": colnames_exp,
-                "col_name_exp_correct": [check_mark_html] * len(colnames_exp),
+                "col_name_exp_correct": [CHECK_MARK_SPAN] * len(colnames_exp),
                 "dtype_exp": dtypes_exp_matched,
                 "dtype_exp_correct": dtypes_exp_matched_eval,
             }
