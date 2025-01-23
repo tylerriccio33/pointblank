@@ -1035,7 +1035,6 @@ def _get_schema_validation_info(
 
         else:
 
-            dtype_tgt = None
             dtype_matched = False
             dtype_multiple = False
             dtype_matched_pos = None
