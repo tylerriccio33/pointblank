@@ -29,7 +29,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
 )
 from pointblank.column import Column, col, ColumnSelector
-from pointblank.schema import Schema
+from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
     _normalize_thresholds_creation,
@@ -995,8 +995,12 @@ class _ValidationInfo:
     notify: bool | None = None
     tbl_checked: FrameT | None = None
     extract: FrameT | None = None
+    val_info: dict[str, any] | None = None
     time_processed: str | None = None
     proc_duration_s: float | None = None
+
+    def get_val_info(self) -> dict[str, any]:
+        return self.val_info
 
 
 @dataclass
@@ -4173,6 +4177,20 @@ class Validate:
                     full_match_dtypes=value["full_match_dtypes"],
                     threshold=threshold,
                 ).get_test_results()
+
+                schema_validation_info = _get_schema_validation_info(
+                    data_tbl=data_tbl,
+                    schema=value["schema"],
+                    passed=result_bool,
+                    complete=value["complete"],
+                    in_order=value["in_order"],
+                    case_sensitive_colnames=value["case_sensitive_colnames"],
+                    case_sensitive_dtypes=value["case_sensitive_dtypes"],
+                    full_match_dtypes=value["full_match_dtypes"],
+                )
+
+                # Add the schema validation info to the validation object
+                validation.val_info = schema_validation_info
 
                 validation.all_passed = result_bool
                 validation.n = 1
