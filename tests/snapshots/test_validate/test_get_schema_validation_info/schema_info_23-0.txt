@@ -4,6 +4,8 @@
             'case_sensitive_colnames': True,
             'case_sensitive_dtypes': True,
             'full_match_dtypes': True},
+ 'target_schema': [('a', 'String'), ('b', 'Int64'), ('c', 'Float64')],
+ 'expect_schema': [('a', 'Str'), ('c', 'Float')],
  'columns_found': ['a', 'c'],
  'columns_not_found': ['b'],
  'columns_unmatched': [],
