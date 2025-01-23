@@ -7311,9 +7311,18 @@ def _step_report_schema_complete_in_order(step: int, schema_info: dict):
     # Concatenate the tables horizontally
     schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
 
+    # Get the other parameters for the `col_schema_match()` function
+    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
+    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
+    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
+
     # Generate text for the `col_schema_match()` parameters
     col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=True, in_order=True
+        complete=True,
+        in_order=True,
+        case_sensitive_colnames=case_sensitive_colnames,
+        case_sensitive_dtypes=case_sensitive_dtypes,
+        full_match_dtypes=full_match_dtypes,
     )
 
     step_report = (
@@ -8051,6 +8060,9 @@ def _create_label_text_html(
 def _create_col_schema_match_params_html(
     complete: bool = True,
     in_order: bool = True,
+    case_sensitive_colnames: bool = True,
+    case_sensitive_dtypes: bool = True,
+    full_match_dtypes: bool = True,
 ) -> str:
 
     complete_text = _create_label_text_html(
@@ -8065,4 +8077,35 @@ def _create_col_schema_match_params_html(
         strikethrough_color="steelblue",
     )
 
-    return f'<div style="display: flex;"><div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>{complete_text}{in_order_text}</div>'
+    symbol_case_sensitive_colnames = "&ne;" if case_sensitive_colnames else "="
+
+    case_sensitive_colnames_text = _create_label_text_html(
+        text=f"COLUMN {symbol_case_sensitive_colnames} column",
+        strikethrough=False,
+        border_color="#A9A9A9",
+        background_color="#F5F5F5",
+    )
+
+    symbol_case_sensitive_dtypes = "&ne;" if case_sensitive_dtypes else "="
+
+    case_sensitive_dtypes_text = _create_label_text_html(
+        text=f"DTYPE {symbol_case_sensitive_dtypes} dtype",
+        strikethrough=False,
+        border_color="#A9A9A9",
+        background_color="#F5F5F5",
+    )
+
+    symbol_full_match_dtypes = "&ne;" if full_match_dtypes else "="
+
+    full_match_dtypes_text = _create_label_text_html(
+        text=f"float {symbol_full_match_dtypes} float64",
+        strikethrough=False,
+        border_color="#A9A9A9",
+        background_color="#F5F5F5",
+    )
+
+    return (
+        '<div style="display: flex;"><div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>'
+        f"{complete_text}{in_order_text}{case_sensitive_colnames_text}{case_sensitive_dtypes_text}"
+        f"{full_match_dtypes_text}</div>"
+    )
