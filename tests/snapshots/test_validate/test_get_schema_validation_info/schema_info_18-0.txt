@@ -14,6 +14,7 @@
  'columns_matched_in_order': False,
  'columns_matched_any_order': False,
  'columns': {'C': {'colname_matched': False,
+                   'index_matched': False,
                    'matched_to': None,
                    'dtype_present': True,
                    'dtype_input': ['Float64'],
