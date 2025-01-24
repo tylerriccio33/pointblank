@@ -4789,10 +4789,11 @@ def test_get_step_report_no_fail(tbl_type):
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=True)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=False)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=True)
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
         .interrogate()
     )
 
-    for i in range(1, 17):
+    for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
 
@@ -4873,26 +4874,32 @@ def assert_schema_cols(schema_info, expectations):
 
 
 def assert_col_dtype_match(schema_info, column):
-
     if column not in schema_info["columns"]:
         assert False
-
     assert schema_info["columns"][column]["dtype_matched"]
 
 
 def assert_col_dtype_mismatch(schema_info, column):
-
     if column not in schema_info["columns"]:
         assert False
-
     assert not schema_info["columns"][column]["dtype_matched"]
 
 
-def assert_col_dtype_absent(schema_info, column):
-
+def assert_col_index_match(schema_info, column):
     if column not in schema_info["columns"]:
         assert False
+    assert schema_info["columns"][column]["index_matched"]
 
+
+def assert_col_index_mismatch(schema_info, column):
+    if column not in schema_info["columns"]:
+        assert False
+    assert not schema_info["columns"][column]["index_matched"]
+
+
+def assert_col_dtype_absent(schema_info, column):
+    if column not in schema_info["columns"]:
+        assert False
     assert not schema_info["columns"][column]["dtype_present"]
 
 
@@ -4925,8 +4932,6 @@ def assert_columns_matched_any_order(schema_info, reverse=False):
 
 
 def schema_info_str(schema_info):
-
-    # Use pretty print to format the schema_info string
     return pprint.pformat(schema_info, sort_dicts=False, width=100)
 
 
@@ -4966,6 +4971,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_01-0.txt")
@@ -4987,6 +4995,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_02-0.txt")
@@ -5007,6 +5018,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_03-0.txt")
@@ -5028,6 +5042,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_04-0.txt")
@@ -5048,6 +5065,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_absent(schema_info, "a")
     assert_col_dtype_absent(schema_info, "b")
     assert_col_dtype_absent(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_05-0.txt")
@@ -5068,6 +5088,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_06-0.txt")
@@ -5086,6 +5109,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_07-0.txt")
@@ -5104,6 +5129,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_08-0.txt")
@@ -5120,6 +5147,7 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_09-0.txt")
@@ -5148,6 +5176,10 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
     assert_col_dtype_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_11-0.txt")
@@ -5162,6 +5194,12 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
     assert_col_dtype_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_12-0.txt")
@@ -5179,6 +5217,9 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
+    assert_col_index_mismatch(schema_info, "x")
+    assert_col_index_mismatch(schema_info, "y")
+    assert_col_index_mismatch(schema_info, "z")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_13-0.txt")
@@ -5200,6 +5241,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "B")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_14-0.txt")
@@ -5213,6 +5257,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "B")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_match(schema_info, "B")
+    assert_col_index_match(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_14-1.txt")
@@ -5234,6 +5281,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "B")
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_15-0.txt")
@@ -5247,6 +5297,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "B")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_match(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_15-1.txt")
@@ -5266,6 +5319,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_16-0.txt")
@@ -5278,6 +5333,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_16-1.txt")
@@ -5297,6 +5354,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_17-0.txt")
@@ -5309,6 +5368,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info)
     assert_col_dtype_match(schema_info, "C")
     assert_col_dtype_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_17-1.txt")
@@ -5325,6 +5386,7 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_18-0.txt")
@@ -5336,6 +5398,7 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_18-1.txt")
@@ -5357,6 +5420,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_19-0.txt")
@@ -5370,6 +5436,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_19-1.txt")
@@ -5391,6 +5460,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_20-0.txt")
@@ -5404,6 +5476,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_20-1.txt")
@@ -5425,6 +5500,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-0.txt")
@@ -5438,6 +5516,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-1.txt")
@@ -5451,6 +5532,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-2.txt")
@@ -5466,6 +5550,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-3.txt")
@@ -5485,6 +5572,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_22-0.txt")
@@ -5497,6 +5586,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_22-1.txt")
@@ -5516,6 +5607,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_23-0.txt")
@@ -5528,6 +5621,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_23-1.txt")
@@ -5547,6 +5642,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-0.txt")
@@ -5559,6 +5656,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-1.txt")
@@ -5571,6 +5670,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-2.txt")
@@ -5585,6 +5686,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-3.txt")
@@ -5606,6 +5709,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-0.txt")
@@ -5619,6 +5725,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-1.txt")
@@ -5632,6 +5741,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-2.txt")
@@ -5645,6 +5757,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-3.txt")
@@ -5660,6 +5775,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-4.txt")
@@ -5680,6 +5798,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-5.txt")
