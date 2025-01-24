@@ -6441,39 +6441,24 @@ class Validate:
             # Get the parameters for column-schema matching
             values_dict = validation_step["values"]
 
-            complete = values_dict["complete"]
+            # complete = values_dict["complete"]
             in_order = values_dict["in_order"]
 
-            # CASE I: The default case where `complete=True` and `in_order=True```
-            if complete and in_order:
+            # CASE I: where ordering of columns is required (`in_order=True`)
+            if in_order:
 
-                step_report = _step_report_schema_complete_in_order(
+                step_report = _step_report_schema_in_order(
                     step=i,
                     schema_info=val_info,
                 )
 
-            # CASE II: the case where `in_order=False`
+            # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
 
                 step_report = _step_report_schema_any_order(
                     step=i,
                     schema_info=val_info,
                 )
-
-            # Case III: the case where `complete=False` and `in_order=True`
-            # if not complete and in_order:
-
-            #     colnames_tgt = [x[0] for x in schema_target.columns]
-            #     dtypes_tgt = [str(x[1]) for x in schema_target.columns]
-
-            #     step_report = _step_report_schema_not_complete_in_order(
-            #         step=i,
-            #         schema=schema,
-            #         schema_target=schema_target,
-            #         colnames_tgt=colnames_tgt,
-            #         dtypes_tgt=dtypes_tgt,
-            #         all_passed=all_passed,
-            #     )
 
         else:
             step_report = None
@@ -7161,7 +7146,7 @@ def _step_report_row_based(
     return step_report
 
 
-def _step_report_schema_complete_in_order(step: int, schema_info: dict):
+def _step_report_schema_in_order(step: int, schema_info: dict):
     """
     This is the default case for schema validation where the schema is complete and in order.
     - `complete=True`
@@ -7768,6 +7753,7 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
                 "dtype_exp_correct": "30px",
             }
         )
+        .cols_align(align="right", columns="index_exp")
         .tab_style(
             style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="13px"),
             locations=loc.body(
@@ -7854,249 +7840,6 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
             style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="1px"),
             locations=loc.body(rows=len(colnames_tgt) - 1),
         )
-
-    return step_report
-
-
-def _step_report_schema_not_complete_in_order(
-    step: int,
-    schema: Schema,
-    schema_target: Schema,
-    colnames_tgt: list,
-    dtypes_tgt: list,
-    all_passed: bool,
-):
-    """
-    This is the default case for schema validation where the schema is complete and in order.
-    - `complete=False`
-    - `in_order=True`
-    """
-
-    # Create a Polars DF with the target table columns and dtypes
-    import polars as pl
-
-    schema_tbl = pl.DataFrame(
-        {
-            "index_target": range(1, len(colnames_tgt) + 1),
-            "col_name_target": colnames_tgt,
-            "dtype_target": dtypes_tgt,
-        }
-    )
-
-    # Get the passing symbol for the step
-    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
-
-    # Get the expected column names and dtypes
-    colnames_exp = [x[0] for x in schema.columns]
-
-    # The dtype is optional and might be None, so we need to convert it to a string;
-    # however, if there is a list object, keep it a list
-    dtypes_exp = [
-        (
-            x[1]
-            if len(x) > 1 and isinstance(x[1], list)
-            else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
-        )
-        for x in schema.columns
-    ]
-
-    # Do the column names in `colnames_exp` comprise a subset of names in `colnames_tgt`?
-    is_subset_of_colnames = all(col_exp in colnames_tgt for col_exp in colnames_exp)
-
-    # If there is a subset of columns, then we need to know if there are in the same order
-    # as the target table
-    if is_subset_of_colnames:
-
-        # Filter the target column names to only include the ones that are in the expected
-        # column names
-        colnames_tgt_filtered = [col_tgt for col_tgt in colnames_tgt if col_tgt in colnames_exp]
-
-        # Check if the column names in `colnames_exp` are in the same order as `colnames_tgt`
-        subset_in_order = all(
-            col_exp == col_tgt for col_exp, col_tgt in zip(colnames_exp, colnames_tgt_filtered)
-        )
-    else:
-        subset_in_order = False
-
-    # Are there columns in `colnames_exp` that are not in `colnames_tgt`?
-    colnames_exp_unmatched = [col_exp for col_exp in colnames_exp if col_exp not in colnames_tgt]
-
-    if is_subset_of_colnames and subset_in_order and len(colnames_exp_unmatched) == 0:
-
-        # The dtype is optional and might be None, so we need to convert it to a string;
-        # however, if there is a list object, keep it a list
-        dtypes_exp = [
-            (
-                x[1]
-                if len(x) > 1 and isinstance(x[1], list)
-                else (str(x[1]) if len(x) > 1 and x[1] is not None else "None")
-            )
-            for x in schema.columns
-        ]
-
-        # Get which colnames in `colnames_exp` that matched with `colnames_tgt`
-        colnames_exp_matched = [
-            col_exp
-            for col_exp in colnames_exp
-            if any(col_exp == col_tgt for col_tgt in colnames_tgt)
-        ]
-
-        # Get the dtypes for the matched column names
-        dtypes_exp_matched = [
-            dtypes_exp[colnames_exp.index(col_exp)] for col_exp in colnames_exp_matched
-        ]
-
-        # For any 'None' strings in `dtypes_exp_matched`, replace them with an empty string
-        dtypes_exp_matched = ["" if dtype == "None" else dtype for dtype in dtypes_exp_matched]
-
-        # Create a dictionary for expected column data types
-        dtypes_exp_dict = {
-            col[0]: col[1] if len(col) > 1 else "None"
-            for col in schema.columns
-            if col[0] in [col[0] for col in schema_target.columns]
-        }
-
-        # Initialize a list to store indices of columns with dtype differences
-        dtypes_diffs = []
-
-        # Iterate over target columns and compare data types
-        for i, (colname_tgt, dtype_tgt) in enumerate(schema_target.columns):
-            dtype_exp = dtypes_exp_dict.get(colname_tgt)
-            if dtype_exp is not None and dtype_exp != "None":
-                if isinstance(dtype_exp, list):
-                    if not any(item == dtype_tgt for item in dtype_exp):
-                        dtypes_diffs.append(colname_tgt)
-                elif dtype_exp != dtype_tgt:
-                    dtypes_diffs.append(colname_tgt)
-
-        # Create a list of dtypes with check marks or cross marks based on the presence of
-        # the dtype in the expected schema (all check marks for length of `dtypes_tgt` and
-        # cross marks for the differences found in `dtypes_diffs`); this has to be in the
-        # order of `colnames_exp_matched`
-        dtypes_exp_matched_eval = [
-            CHECK_MARK_SPAN if i not in dtypes_diffs else CROSS_MARK_SPAN
-            for i in range(len(colnames_exp_matched))
-        ]
-
-        # `dtypes_exp_matched` could be a list of strings, we need ensure those entries are strings
-        # with the data types being pipe separated
-        dtypes_exp_matched = [
-            " | ".join(dtype_exp) if isinstance(dtype_exp, list) else dtype_exp
-            for dtype_exp in dtypes_exp_matched
-        ]
-
-        schema_exp = pl.DataFrame(
-            {
-                "index_exp": range(1, len(colnames_exp) + 1),
-                "col_name_exp": colnames_exp,
-                "col_name_exp_correct": [CHECK_MARK_SPAN] * len(colnames_exp),
-                "dtype_exp": dtypes_exp_matched,
-                "dtype_exp_correct": dtypes_exp_matched_eval,
-            }
-        )
-
-        # Perform a left join on the `col_name_exp` and `col_name_target` columns
-        schema_combined = schema_tbl.join(
-            schema_exp,
-            how="left",
-            left_on="col_name_target",
-            right_on="col_name_exp",
-            coalesce=False,
-        )
-
-    # Generate text for the `col_schema_match()` parameters
-    col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=False, in_order=True
-    )
-
-    step_report = (
-        GT(schema_combined, id="pb_step_tbl")
-        .tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html(col_schema_match_params_html),
-        )
-        .fmt_markdown(columns=None)
-        .opt_table_font(font=google_font(name="IBM Plex Sans"))
-        .opt_align_table_header(align="left")
-        .cols_label(
-            cases={
-                "index_target": "",
-                "col_name_target": "COLUMN",
-                "dtype_target": "DTYPE",
-                "index_exp": "",
-                "col_name_exp": "COLUMN",
-                "col_name_exp_correct": "",
-                "dtype_exp": "DTYPE",
-                "dtype_exp_correct": "",
-            }
-        )
-        .cols_width(
-            cases={
-                "index_target": "40px",
-                "col_name_target": "190px",
-                "dtype_target": "190px",
-                "index_exp": "40px",
-                "col_name_exp": "190px",
-                "col_name_exp_correct": "30px",
-                "dtype_exp": "190px",
-                "dtype_exp_correct": "30px",
-            }
-        )
-        .tab_style(
-            style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="13px"),
-            locations=loc.body(
-                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
-            ),
-        )
-        .tab_style(
-            style=style.text(size="13px"),
-            locations=loc.body(columns=["index_target", "index_exp"]),
-        )
-        .tab_style(
-            style=style.borders(sides="left", color="#E5E5E5", style="double", weight="3px"),
-            locations=loc.body(columns="index_exp"),
-        )
-        .tab_style(
-            style=style.css("white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"),
-            locations=loc.body(
-                columns=["col_name_target", "dtype_target", "col_name_exp", "dtype_exp"]
-            ),
-        )
-        .tab_spanner(
-            label="TARGET",
-            columns=["index_target", "col_name_target", "dtype_target"],
-        )
-        .tab_spanner(
-            label="EXPECTED",
-            columns=[
-                "index_exp",
-                "col_name_exp",
-                "col_name_exp_correct",
-                "dtype_exp",
-                "dtype_exp_correct",
-            ],
-        )
-        .sub_missing(
-            columns=[
-                "index_target",
-                "col_name_target",
-                "dtype_target",
-                "index_exp",
-                "col_name_exp",
-                "col_name_exp_correct",
-                "dtype_exp",
-                "dtype_exp_correct",
-            ],
-            missing_text="",
-        )
-        .tab_source_note(
-            source_note=html(
-                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
-                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{schema.columns}</code></div>"
-            )
-        )
-        .tab_options(source_notes_font_size="12px")
-    )
 
     return step_report
 
