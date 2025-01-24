@@ -7148,9 +7148,8 @@ def _step_report_row_based(
 
 def _step_report_schema_in_order(step: int, schema_info: dict):
     """
-    This is the default case for schema validation where the schema is complete and in order.
-    - `complete=True`
-    - `in_order=True`
+    This is the case for schema validation where the schema is supposed to have the same column
+    order as the target table.
     """
 
     all_passed = schema_info["passed"]
@@ -7215,7 +7214,10 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
         # `col_exp_correct` values
         #
 
-        if exp_columns_dict[column_name_exp_i]["colname_matched"]:
+        if (
+            exp_columns_dict[column_name_exp_i]["colname_matched"]
+            and exp_columns_dict[column_name_exp_i]["index_matched"]
+        ):
             col_exp_correct.append(CHECK_MARK_SPAN)
         else:
             col_exp_correct.append(CROSS_MARK_SPAN)
@@ -7437,16 +7439,18 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
 
 def _step_report_schema_any_order(step: int, schema_info: dict):
     """
-    This is the case for schema validation where the schema is complete and order is disregarded.
-    - `in_order=False`
+    This is the case for schema validation where the schema is permitted to not have to be in the
+    same column order as the target table.
     """
 
     all_passed = schema_info["passed"]
+    complete = schema_info["params"]["complete"]
 
     expect_schema = schema_info["expect_schema"]
     target_schema = schema_info["target_schema"]
 
     columns_found = schema_info["columns_found"]
+    columns_not_found = schema_info["columns_not_found"]
     colnames_exp_unmatched = schema_info["columns_unmatched"]
 
     # Get the expected column names from the expected and target schemas
@@ -7804,25 +7808,18 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
         .tab_source_note(
             source_note=html(
                 "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
-                f"<div style='border-style: solid; border-width: thin; border-color: lightblue; padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code style='color: #303030; font-family: monospace; font-size: 8px;'>{expect_schema}</code></div>"
+                "<div style='border-style: solid; border-width: thin; border-color: lightblue; "
+                "padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code "
+                "style='color: #303030; font-family: monospace; font-size: 8px;'>"
+                f"{expect_schema}</code></div>"
             )
         )
         .tab_options(source_notes_font_size="12px")
     )
 
-    # Add background color to the missing column on the exp side
+    # Add background color to signify limits of target table schema (on LHS side)
     if len(colnames_exp_unmatched) > 0:
 
-        # Get the indices of the unmatched columns by comparing the `colnames_exp_unmatched`
-        # against the schema order
-        index_exp_unmatched = [
-            i for i, col_exp in enumerate(colnames_exp) if col_exp in colnames_exp_unmatched
-        ]
-
-        # Add 1 to the indices of `index_exp_unmatched`
-        index_exp_unmatched = [i for i in index_exp_unmatched]
-
-        # Add background color to the missing column on the tgt side
         step_report = step_report.tab_style(
             style=style.fill(color="#F3F3F3"),
             locations=loc.body(
@@ -7831,14 +7828,8 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
                     "col_name_target",
                     "dtype_target",
                 ],
-                rows=index_exp_unmatched,
+                rows=pl.col("index_target").is_null(),
             ),
-        )
-
-        # Add a border below the row that terminates the target table schema
-        step_report = step_report.tab_style(
-            style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="1px"),
-            locations=loc.body(rows=len(colnames_tgt) - 1),
         )
 
     return step_report
