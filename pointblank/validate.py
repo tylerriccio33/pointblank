@@ -7153,6 +7153,7 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
     """
 
     all_passed = schema_info["passed"]
+    complete = schema_info["params"]["complete"]
 
     expect_schema = schema_info["expect_schema"]
     target_schema = schema_info["target_schema"]
@@ -7294,7 +7295,7 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
 
     # Generate text for the `col_schema_match()` parameters
     col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=True,
+        complete=complete,
         in_order=True,
         case_sensitive_colnames=case_sensitive_colnames,
         case_sensitive_dtypes=case_sensitive_dtypes,
@@ -7714,8 +7715,8 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
 
     # Generate text for the `col_schema_match()` parameters
     col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=True,
-        in_order=True,
+        complete=complete,
+        in_order=False,
         case_sensitive_colnames=case_sensitive_colnames,
         case_sensitive_dtypes=case_sensitive_dtypes,
         full_match_dtypes=full_match_dtypes,
