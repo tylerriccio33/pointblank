@@ -5834,3 +5834,82 @@ def test_get_val_info():
 
     # Check that the `val_info` is a dictionary
     assert isinstance(val_info, dict)
+
+
+def test_get_schema_step_report_01(snapshot):
+
+    data_tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # 1. Schema matches completely and in order; dtypes all correct
+    schema = Schema(
+        columns=[
+            ("a", "String"),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=data_tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_01-0.txt")
+
+
+def test_get_schema_step_report_02(snapshot):
+
+    data_tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # 2. Schema matches completely; option taken to match any of two different dtypes for column
+    # "a", but all dtypes correct.
+    schema = Schema(
+        columns=[
+            ("a", ["String", "Int64"]),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=data_tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_02-0.txt")
