@@ -7270,7 +7270,10 @@ def _step_report_schema_in_order(
         # `dtype_exp_correct` values
         #
 
-        if not exp_columns_dict[column_name_exp_i]["colname_matched"]:
+        if (
+            not exp_columns_dict[column_name_exp_i]["colname_matched"]
+            or not exp_columns_dict[column_name_exp_i]["index_matched"]
+        ):
             dtype_exp_correct.append("&mdash;")
         elif not exp_columns_dict[column_name_exp_i]["dtype_present"]:
             dtype_exp_correct.append("")
