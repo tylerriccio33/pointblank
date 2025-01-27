@@ -5886,7 +5886,7 @@ def test_get_schema_step_report_02(snapshot):
     )
 
     # 2. Schema matches completely; option taken to match any of two different dtypes for column
-    # "a", but all dtypes correct.
+    # "a", but all dtypes correct
     schema = Schema(
         columns=[
             ("a", ["String", "Int64"]),
@@ -5913,3 +5913,42 @@ def test_get_schema_step_report_02(snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_02-0.txt")
+
+
+def test_get_schema_step_report_03(snapshot):
+
+    data_tbl = pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+    # 3. Schema has all three columns accounted for but in an incorrect order; dtypes correct
+    schema = Schema(
+        columns=[
+            ("b", "Int64"),
+            ("a", "String"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=data_tbl)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_03-0.txt")
