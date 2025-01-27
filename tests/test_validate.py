@@ -6951,3 +6951,243 @@ def test_get_schema_step_report_24_1(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_24-1.txt")
+
+
+def test_get_schema_step_report_24_2(tbl_schema_tests, snapshot):
+
+    # 24-2. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-2.txt")
+
+
+def test_get_schema_step_report_24_3(tbl_schema_tests, snapshot):
+
+    # 24-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-3.txt")
+
+
+def test_get_schema_step_report_25(tbl_schema_tests, snapshot):
+
+    # 25. Schema has all 2/3 columns matching, missing one, an unmatched column, correct
+    # order for the matching set; dtypes are substrings of actual dtypes where case doesn't match
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-0.txt")
+
+
+def test_get_schema_step_report_25_1(tbl_schema_tests, snapshot):
+
+    # 25-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-1.txt")
+
+
+def test_get_schema_step_report_25_2(tbl_schema_tests, snapshot):
+
+    # 25-2. Using `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-2.txt")
+
+
+def test_get_schema_step_report_25_3(tbl_schema_tests, snapshot):
+
+    # 25-3. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-3.txt")
+
+
+def test_get_schema_step_report_25_4(tbl_schema_tests, snapshot):
+
+    # 25-4. Using `case_sensitive_colnames=False` and `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-4.txt")
+
+
+def test_get_schema_step_report_25_5(tbl_schema_tests, snapshot):
+
+    # 25-5. Using `case_sensitive_colnames=False`, `case_sensitive_dtypes=False`, and
+    # `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-5.txt")
