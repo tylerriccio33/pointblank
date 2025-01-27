@@ -218,6 +218,17 @@ def tbl_memtable_variable_names():
     )
 
 
+@pytest.fixture
+def tbl_schema_tests():
+    return pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -5952,3 +5963,34 @@ def test_get_schema_step_report_03(snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_03-0.txt")
+
+
+def test_get_schema_step_report_04(tbl_schema_tests, snapshot):
+
+    # 4. Schema has all three columns accounted for but in an incorrect order; option taken to match
+    # any of two different dtypes for column "a", but all dtypes correct.
+    schema = Schema(
+        columns=[
+            ("b", "Int64"),
+            ("a", ["Int64", "String"]),
+            ("c", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_04-0.txt")
