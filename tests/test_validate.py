@@ -6155,3 +6155,29 @@ def test_get_schema_step_report_10(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_10-0.txt")
+
+
+def test_get_schema_step_report_11(tbl_schema_tests, snapshot):
+
+    # 11. Schema has complete match of columns plus an additional, unmatched column
+    schema = Schema(
+        columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_11-0.txt")
