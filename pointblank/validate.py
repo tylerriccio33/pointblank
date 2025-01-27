@@ -7236,10 +7236,19 @@ def _step_report_schema_in_order(
             dtype_exp.append("")
 
         elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
+            # Case where there are multiple dtypes provided for the column in the schema (i.e.,
+            # there are multiple attempts to match the dtype)
 
+            # Get the dtypes for the column, this is a list of at least two dtypes
             dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
 
-            if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
+            if (
+                exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None
+                and exp_columns_dict[column_name_exp_i]["colname_matched"]
+                and exp_columns_dict[column_name_exp_i]["index_matched"]
+            ):
+                # Only underline the matched dtype under the conditions that the column name is
+                # matched correctly (name and index)
 
                 pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
 
@@ -7258,6 +7267,9 @@ def _step_report_schema_in_order(
                 dtype_exp.append(dtype)
 
             else:
+
+                # If the column name or index did not match (or if it did and none of the dtypes
+                # matched), then join the dtypes together with pipes with further decoration
 
                 dtype = " | ".join(dtype)
                 dtype_exp.append(dtype)
