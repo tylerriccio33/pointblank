@@ -6045,3 +6045,32 @@ def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_06-0.txt")
+
+
+def test_get_schema_step_report_07(tbl_schema_tests, snapshot):
+
+    # 7. Schema has 2/3 columns matching, correct order; incorrect dtypes
+    schema = Schema(
+        columns=[
+            ("a", ["invalid", "invalid"]),
+            ("c", "invalid"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_07-0.txt")
