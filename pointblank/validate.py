@@ -7233,7 +7233,7 @@ def _step_report_schema_in_order(
 
         if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
 
-            dtype_exp.append("")
+            dtype_exp.append("&mdash;")
 
         elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
             # Case where there are multiple dtypes provided for the column in the schema (i.e.,
