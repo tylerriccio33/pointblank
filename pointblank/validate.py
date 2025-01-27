@@ -6364,12 +6364,16 @@ class Validate:
         ```
         """
 
+        # If the step number is `-99` then enter the debug mode
+        debug_return_df = True if i == -99 else False
+        i = 1 if debug_return_df else i
+
         # If the step number is not valid, raise an error
-        if i <= 0:
+        if i <= 0 and not debug_return_df:
             raise ValueError("Step number must be an integer value greater than 0.")
 
         # If the step number is not valid, raise an error
-        if i not in self._get_validation_dict(i=None, attr="i"):
+        if i not in self._get_validation_dict(i=None, attr="i") and not debug_return_df:
             raise ValueError(f"Step {i} does not exist in the validation plan.")
 
         # Convert the `validation_info` object to a dictionary
@@ -6448,16 +6452,14 @@ class Validate:
             if in_order:
 
                 step_report = _step_report_schema_in_order(
-                    step=i,
-                    schema_info=val_info,
+                    step=i, schema_info=val_info, debug_return_df=debug_return_df
                 )
 
             # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
 
                 step_report = _step_report_schema_any_order(
-                    step=i,
-                    schema_info=val_info,
+                    step=i, schema_info=val_info, debug_return_df=debug_return_df
                 )
 
         else:
@@ -7146,7 +7148,9 @@ def _step_report_row_based(
     return step_report
 
 
-def _step_report_schema_in_order(step: int, schema_info: dict):
+def _step_report_schema_in_order(
+    step: int, schema_info: dict, debug_return_df: bool = False
+) -> GT | any:
     """
     This is the case for schema validation where the schema is supposed to have the same column
     order as the target table.
@@ -7229,13 +7233,22 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
 
         if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
 
-            dtype_exp.append("")
+            dtype_exp.append("&mdash;")
 
         elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
+            # Case where there are multiple dtypes provided for the column in the schema (i.e.,
+            # there are multiple attempts to match the dtype)
 
+            # Get the dtypes for the column, this is a list of at least two dtypes
             dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
 
-            if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
+            if (
+                exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None
+                and exp_columns_dict[column_name_exp_i]["colname_matched"]
+                and exp_columns_dict[column_name_exp_i]["index_matched"]
+            ):
+                # Only underline the matched dtype under the conditions that the column name is
+                # matched correctly (name and index)
 
                 pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
 
@@ -7255,6 +7268,9 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
 
             else:
 
+                # If the column name or index did not match (or if it did and none of the dtypes
+                # matched), then join the dtypes together with pipes with further decoration
+
                 dtype = " | ".join(dtype)
                 dtype_exp.append(dtype)
 
@@ -7266,7 +7282,10 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
         # `dtype_exp_correct` values
         #
 
-        if not exp_columns_dict[column_name_exp_i]["colname_matched"]:
+        if (
+            not exp_columns_dict[column_name_exp_i]["colname_matched"]
+            or not exp_columns_dict[column_name_exp_i]["index_matched"]
+        ):
             dtype_exp_correct.append("&mdash;")
         elif not exp_columns_dict[column_name_exp_i]["dtype_present"]:
             dtype_exp_correct.append("")
@@ -7287,6 +7306,10 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
 
     # Concatenate the tables horizontally
     schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+
+    # Return the DataFrame if the `debug_return_df` parameter is set to True
+    if debug_return_df:
+        return schema_combined
 
     # Get the other parameters for the `col_schema_match()` function
     case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
@@ -7438,7 +7461,9 @@ def _step_report_schema_in_order(step: int, schema_info: dict):
     return step_report
 
 
-def _step_report_schema_any_order(step: int, schema_info: dict):
+def _step_report_schema_any_order(
+    step: int, schema_info: dict, debug_return_df: bool = False
+) -> GT | any:
     """
     This is the case for schema validation where the schema is permitted to not have to be in the
     same column order as the target table.
@@ -7707,6 +7732,10 @@ def _step_report_schema_any_order(step: int, schema_info: dict):
 
     # Concatenate the tables horizontally
     schema_combined = pl.concat([schema_tbl, schema_exp], how="horizontal")
+
+    # Return the DataFrame if the `debug_return_df` parameter is set to True
+    if debug_return_df:
+        return schema_combined
 
     # Get the other parameters for the `col_schema_match()` function
     case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
