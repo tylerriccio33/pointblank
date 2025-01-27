@@ -6003,7 +6003,7 @@ def test_get_schema_step_report_05(tbl_schema_tests, snapshot):
         .col_schema_match(
             schema=schema,
             complete=True,  # default
-            in_order=False,
+            in_order=True,  # default
             case_sensitive_colnames=True,  # default
             case_sensitive_dtypes=True,  # default
             full_match_dtypes=True,  # default
@@ -6019,7 +6019,7 @@ def test_get_schema_step_report_05(tbl_schema_tests, snapshot):
 
 def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
 
-    # 5. Schema has all three columns matching, correct order; incorrect dtypes
+    # 6. Schema has all three columns matching, correct order; incorrect dtypes
     schema = Schema(
         columns=[
             ("a", ["invalid", "invalid"]),
@@ -6033,7 +6033,7 @@ def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
         .col_schema_match(
             schema=schema,
             complete=True,  # default
-            in_order=False,
+            in_order=True,  # default
             case_sensitive_colnames=True,  # default
             case_sensitive_dtypes=True,  # default
             full_match_dtypes=True,  # default
