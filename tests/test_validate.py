@@ -6475,3 +6475,31 @@ def test_get_schema_step_report_17_1(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_17-1.txt")
+
+
+def test_get_schema_step_report_18(tbl_schema_tests, snapshot):
+
+    # 18. Schema has one column matching in case-insensitive manner; dtype is correct
+    schema = Schema(
+        columns=[
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_18-0.txt")

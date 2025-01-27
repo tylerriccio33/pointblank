@@ -626,7 +626,7 @@ df_17_1 = validation.get_step_report(i=-99)
 validation.get_step_report(i=1)
 ```
 
-18. Schema has one column matching in case-insensitive manner; dtypes is correct.
+18. Schema has one column matching in case-insensitive manner; dtype is correct.
 
 ```{python}
 import pointblank as pb
