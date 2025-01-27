@@ -6235,3 +6235,34 @@ def test_get_schema_step_report_13(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_13-0.txt")
+
+
+def test_get_schema_step_report_14(tbl_schema_tests, snapshot):
+
+    # 14. Schema has all columns matching in case-insensitive manner, correct order; dtypes
+    # all correct
+    schema = Schema(
+        columns=[
+            ("A", "String"),
+            ("B", "Int64"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_14-0.txt")
