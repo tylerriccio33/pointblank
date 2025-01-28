@@ -172,7 +172,7 @@ class Column:
         if isinstance(self.exprs, nw.selectors.Selector):
             return ColumnSelectorNarwhals(self.exprs).resolve(table)
 
-        raise TypeError(f"Unsupported type: {type(self.exprs)}")
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
 
 
 @dataclass
@@ -186,7 +186,7 @@ class ColumnLiteral(Column):
     def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
         if isinstance(self.exprs, str):
             return [self.exprs]
-        raise TypeError(f"Unsupported type: {type(self.exprs)}")
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
 
     @property
     def name(self) -> str:
@@ -473,7 +473,7 @@ def col(
     elif isinstance(exprs, nw.selectors.Selector):
         return ColumnSelectorNarwhals(exprs=exprs)
 
-    raise TypeError(f"Unsupported type: {type(exprs)}")
+    raise TypeError(f"Unsupported type: {type(exprs)}")  # pragma: no cover
 
 
 def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
