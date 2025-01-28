@@ -27,6 +27,7 @@ from pointblank.column import (
 import pandas as pd
 import polars as pl
 import ibis
+import narwhals.selectors as ncs
 
 
 @pytest.fixture
@@ -1415,3 +1416,26 @@ def test_selector_set_ops_functions_complex(request, tbl_fixture):
         "high_floats",
         "superhigh_floats",
     ]
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names"])
+def test_nw_selectors(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Test with single Narwhals column selector
+    validation = Validate(data=tbl).col_exists(columns=ncs.numeric()).interrogate()
+
+    assert len(validation.n()) == 5
+
+    # Test with single Narwhals column selector within `col()`
+    validation = Validate(data=tbl).col_exists(columns=col(ncs.numeric())).interrogate()
+
+    assert len(validation.n()) == 5
+
+    # Test that multiple Narwhals column selectors work within `col()`
+    validation = (
+        Validate(data=tbl).col_exists(columns=col(ncs.numeric() | ncs.boolean())).interrogate()
+    )
+
+    assert len(validation.n()) == 6
