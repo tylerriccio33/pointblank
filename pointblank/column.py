@@ -172,6 +172,16 @@ class ColumnSelectorNarwhals:
 
     selector: any
 
+    def __init__(self, selector: any):
+        self.selector = selector
+
+    def resolve(self, table) -> list[str]:
+        # Convert the native table to a Narwhals DataFrame
+        dfn = nw.from_native(table)
+        # Use the selector to select columns and return their names
+        columns = dfn.select(self.selector).columns
+        return columns
+
 
 @dataclass
 class Column:
@@ -197,9 +207,7 @@ class Column:
         if isinstance(self.exprs, str):
             return [self.exprs] if self.exprs in columns else []
         if isinstance(self.exprs, nw.selectors.Selector):
-            dfn = nw.from_native(table)
-            columns = dfn.select(self.exprs).columns
-            return columns
+            return ColumnSelectorNarwhals(self.exprs).resolve(table)
         resolved_columns = self.exprs.resolve(columns)
         return [col for col in columns if col in resolved_columns]
 

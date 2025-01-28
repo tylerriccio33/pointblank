@@ -30,7 +30,7 @@ from pointblank._constants import (
     CHECK_MARK_SPAN,
     CROSS_MARK_SPAN,
 )
-from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
+from pointblank.column import Column, col, ColumnSelector
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
@@ -1290,8 +1290,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -1442,8 +1443,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -1593,8 +1595,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -1742,8 +1745,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -1895,8 +1899,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2048,8 +2053,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2223,8 +2229,9 @@ class Validate:
         # Place the `left` and `right` values in a tuple for inclusion in the validation info
         value = (left, right)
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2402,8 +2409,9 @@ class Validate:
         # Place the `left` and `right` values in a tuple for inclusion in the validation info
         value = (left, right)
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2542,8 +2550,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2679,8 +2688,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2810,8 +2820,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -2940,8 +2951,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -3081,8 +3093,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -3323,7 +3336,7 @@ class Validate:
 
         # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
         # resolve the columns
-        if isinstance(columns, (ColumnSelector, ColumnSelectorNarwhals)):
+        if isinstance(columns, (ColumnSelector, nw.selectors.Selector)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
