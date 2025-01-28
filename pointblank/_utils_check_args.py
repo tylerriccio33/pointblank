@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import narwhals as nw
 from narwhals.typing import IntoDataFrameT
 
 from typing import Callable
 from pointblank.thresholds import Thresholds
-from pointblank.column import Column, ColumnSelector
+from pointblank.column import Column, ColumnSelector, ColumnSelectorNarwhals
 
 
 def _check_boolean_input(param: bool, param_name: str):
@@ -48,6 +49,9 @@ def _check_column(column: str | list[str]):
         return
 
     if isinstance(column, (Column, ColumnSelector)):
+        return
+
+    if isinstance(column, nw.selectors.Selector):
         return
 
     if not isinstance(column, str):

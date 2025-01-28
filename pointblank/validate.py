@@ -28,7 +28,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
 )
-from pointblank.column import Column, col, ColumnSelector
+from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
@@ -3319,8 +3319,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # If `columns` is a ColumnSelector, call `col()` on it to later resolve the columns
-        if isinstance(columns, ColumnSelector):
+        # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
+        # resolve the columns
+        if isinstance(columns, (ColumnSelector, ColumnSelectorNarwhals)):
             columns = col(columns)
 
         # If `columns` is Column value or a string, place it in a list for iteration
@@ -6553,7 +6554,7 @@ class Validate:
                 columns = list(table.columns)
 
                 # Evaluate the column expression
-                columns_resolved = column_expr.resolve(columns=columns)
+                columns_resolved = column_expr.resolve(columns=columns, table=table)
 
             except Exception:  # pragma: no cover
                 validation.eval_error = True

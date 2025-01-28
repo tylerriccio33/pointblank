@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import re
 
+import narwhals as nw
+from narwhals.typing import IntoDataFrame
+
+from typing import Any
 from dataclasses import dataclass, field
 
 __all__ = [
@@ -150,12 +154,32 @@ class NotSelector(ColumnSelector):
 
 
 @dataclass
+class ColumnSelectorNarwhals:
+    """
+    A class for using Narwhals selectors
+
+    The Narwhals selectors are available in `narwhals.selectors` and they include:
+    - `boolean()`
+    - `by_dtype()`
+    - `categorical()`
+    - `numeric()`
+    - `string()`
+
+    The `ColumnNarwhals` class is used to access these selectors for column selection. The selectors
+    can be used in the `columns=` argument of a wide range of validation methods to select columns
+    based on their data type or other properties.
+    """
+
+    selector: any
+
+
+@dataclass
 class Column:
     """
     A class to represent a column in a table.
     """
 
-    exprs: str | ColumnSelector
+    exprs: str | ColumnSelector | ColumnSelectorNarwhals
     name: str = field(init=False)
 
     def __post_init__(self):
@@ -167,11 +191,15 @@ class Column:
     def __repr__(self):
         return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
 
-    def resolve(self, columns: list[str]) -> list[str]:
+    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
         if self.name:
             return [self.name]
         if isinstance(self.exprs, str):
             return [self.exprs] if self.exprs in columns else []
+        if isinstance(self.exprs, nw.selectors.Selector):
+            dfn = nw.from_native(table)
+            columns = dfn.select(self.exprs).columns
+            return columns
         resolved_columns = self.exprs.resolve(columns)
         return [col for col in columns if col in resolved_columns]
 
