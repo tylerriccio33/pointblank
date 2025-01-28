@@ -30,7 +30,7 @@ from pointblank._constants import (
     CHECK_MARK_SPAN,
     CROSS_MARK_SPAN,
 )
-from pointblank.column import Column, col, ColumnSelector
+from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
@@ -1164,7 +1164,7 @@ class Validate:
 
     def col_vals_gt(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1318,7 +1318,7 @@ class Validate:
 
     def col_vals_lt(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1471,7 +1471,7 @@ class Validate:
 
     def col_vals_eq(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1623,8 +1623,8 @@ class Validate:
 
     def col_vals_ne(
         self,
-        columns: str | list[str] | Column,
-        value: float | int,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
+        value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -1773,7 +1773,7 @@ class Validate:
 
     def col_vals_ge(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -1927,7 +1927,7 @@ class Validate:
 
     def col_vals_le(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -2081,7 +2081,7 @@ class Validate:
 
     def col_vals_between(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -2258,7 +2258,7 @@ class Validate:
 
     def col_vals_outside(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         left: float | int | Column,
         right: float | int | Column,
         inclusive: tuple[bool, bool] = (True, True),
@@ -2438,7 +2438,7 @@ class Validate:
 
     def col_vals_in_set(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -2577,7 +2577,7 @@ class Validate:
 
     def col_vals_not_in_set(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -2715,7 +2715,7 @@ class Validate:
 
     def col_vals_null(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2846,7 +2846,7 @@ class Validate:
 
     def col_vals_not_null(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
@@ -2977,7 +2977,7 @@ class Validate:
 
     def col_vals_regex(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
@@ -3231,7 +3231,7 @@ class Validate:
 
     def col_exists(
         self,
-        columns: str | list[str] | Column,
+        columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         active: bool = True,
     ) -> Validate:

@@ -212,7 +212,7 @@ class Column:
         return [col for col in columns if col in resolved_columns]
 
 
-def col(exprs: str | ColumnSelector) -> Column:
+def col(exprs: str | ColumnSelector | ColumnSelectorNarwhals) -> Column:
     """
     Helper function for referencing a column in the input table.
 
