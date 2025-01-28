@@ -5,8 +5,7 @@ import re
 import narwhals as nw
 from narwhals.typing import IntoDataFrame
 
-from typing import Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 __all__ = [
     "col",
@@ -154,7 +153,51 @@ class NotSelector(ColumnSelector):
 
 
 @dataclass
-class ColumnSelectorNarwhals:
+class Column:
+    """
+    A class to represent a column in a table.
+    """
+
+    exprs: ColumnSelector | ColumnSelectorNarwhals
+
+    def __repr__(self):
+        return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
+
+    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
+
+        if isinstance(self.exprs, ColumnSelector):
+            resolved_columns = self.exprs.resolve(columns)
+            return [col for col in columns if col in resolved_columns]
+
+        if isinstance(self.exprs, nw.selectors.Selector):
+            return ColumnSelectorNarwhals(self.exprs).resolve(table)
+
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")
+
+
+@dataclass
+class ColumnLiteral(Column):
+    """
+    A class to represent a literal value for a column parameter (the column name).
+    """
+
+    exprs: str
+
+    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
+        if isinstance(self.exprs, str):
+            return [self.exprs]
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")
+
+    @property
+    def name(self) -> str:
+        return self.exprs
+
+    def __repr__(self):
+        return self.exprs
+
+
+@dataclass
+class ColumnSelectorNarwhals(Column):
     """
     A class for using Narwhals selectors
 
@@ -170,49 +213,19 @@ class ColumnSelectorNarwhals:
     based on their data type or other properties.
     """
 
-    selector: any
-
-    def __init__(self, selector: any):
-        self.selector = selector
+    exprs: nw.selectors.Selector
 
     def resolve(self, table) -> list[str]:
         # Convert the native table to a Narwhals DataFrame
         dfn = nw.from_native(table)
         # Use the selector to select columns and return their names
-        columns = dfn.select(self.selector).columns
+        columns = dfn.select(self.exprs.exprs).columns
         return columns
 
 
-@dataclass
-class Column:
-    """
-    A class to represent a column in a table.
-    """
-
-    exprs: str | ColumnSelector | ColumnSelectorNarwhals
-    name: str = field(init=False)
-
-    def __post_init__(self):
-        if isinstance(self.exprs, str):
-            self.name = self.exprs
-        else:
-            self.name = ""
-
-    def __repr__(self):
-        return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
-
-    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
-        if self.name:
-            return [self.name]
-        if isinstance(self.exprs, str):
-            return [self.exprs] if self.exprs in columns else []
-        if isinstance(self.exprs, nw.selectors.Selector):
-            return ColumnSelectorNarwhals(self.exprs).resolve(table)
-        resolved_columns = self.exprs.resolve(columns)
-        return [col for col in columns if col in resolved_columns]
-
-
-def col(exprs: str | ColumnSelector | ColumnSelectorNarwhals) -> Column:
+def col(
+    exprs: str | ColumnSelector | ColumnSelectorNarwhals,
+) -> Column | ColumnLiteral | ColumnSelectorNarwhals:
     """
     Helper function for referencing a column in the input table.
 
@@ -336,7 +349,14 @@ def col(exprs: str | ColumnSelector | ColumnSelectorNarwhals) -> Column:
     in `b` for every row (or test unit). Using `value=pb.col("b")` specified that the greater-than
     comparison is across columns, not with a fixed literal value.
     """
-    return Column(exprs=exprs)
+    if isinstance(exprs, str):
+        return ColumnLiteral(exprs=exprs)
+    elif isinstance(exprs, ColumnSelector):
+        return Column(exprs=exprs)
+    elif isinstance(exprs, nw.selectors.Selector):
+        return ColumnSelectorNarwhals(exprs=exprs)
+
+    raise TypeError(f"Unsupported type: {type(exprs)}")
 
 
 def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:

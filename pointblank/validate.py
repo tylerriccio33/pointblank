@@ -6544,7 +6544,10 @@ class Validate:
                 columns = list(table.columns)
 
                 # Evaluate the column expression
-                columns_resolved = column_expr.resolve(columns=columns, table=table)
+                if isinstance(column_expr, ColumnSelectorNarwhals):
+                    columns_resolved = ColumnSelectorNarwhals(column_expr).resolve(table=table)
+                else:
+                    columns_resolved = column_expr.resolve(columns=columns, table=table)
 
             except Exception:  # pragma: no cover
                 validation.eval_error = True

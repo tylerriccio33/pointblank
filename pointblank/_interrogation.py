@@ -15,7 +15,7 @@ from pointblank._utils import (
 )
 from pointblank.thresholds import _threshold_check
 from pointblank._constants import IBIS_BACKENDS
-from pointblank.column import Column
+from pointblank.column import Column, ColumnLiteral
 from pointblank.schema import Schema
 
 
@@ -93,7 +93,7 @@ class Interrogator:
 
             import ibis
 
-            if isinstance(self.compare, Column):
+            if isinstance(self.compare, ColumnLiteral):
 
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
@@ -1895,7 +1895,10 @@ class NumberOfTestUnits:
 
 def _get_compare_expr_nw(compare: Any) -> Any:
     if isinstance(compare, Column):
-        return nw.col(compare.name)
+
+        if not isinstance(compare.exprs, str):
+            raise ValueError("The column expression must be a string.")
+        return nw.col(compare.exprs)
     return compare
 
 
