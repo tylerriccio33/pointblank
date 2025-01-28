@@ -312,6 +312,31 @@ def col(
     resolved from the target table with this approach. The `col()` function is used to signal that
     the value being compared is a column value and not a literal value.
 
+    Available Selectors
+    -------------------
+    There is a collection of selectors available in pointblank, allowing you to select columns based
+    on attributes of column names and positions. The selectors are:
+
+    - `starts_with()`
+    - `ends_with()`
+    - `contains()`
+    - `matches()`
+    - `everything()`
+    - `first_n()`
+    - `last_n()`
+
+    Alternatively, we support selectors availble in Narwhals. Those selectors additionally can take
+    advantage of the data types of the columns. The selectors include:
+
+    - `boolean()`
+    - `by_dtype()`
+    - `categorical()`
+    - `matches()`
+    - `numeric()`
+    - `string()`
+
+    Ensure that your installation of Narwhals is updated to use these selectors in pointblank.
+
     Examples
     --------
     ```{python}
@@ -348,6 +373,98 @@ def col(
     From results of the validation table it can be seen that values in `a` were greater than values
     in `b` for every row (or test unit). Using `value=pb.col("b")` specified that the greater-than
     comparison is across columns, not with a fixed literal value.
+
+    If you want to select an arbitrary set of columns upon which to base a validation, you can use
+    column selector functions (e.g., `starts_with()`, `ends_with()`, etc.) to specify columns in the
+    `columns=` argument of a validation method. Let's use the `starts_with()` column selector
+    function to select columns that start with `"paid"` and validate that the values in those
+    columns are greater than `10`.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "paid_2021": [16.32, 16.25, 15.75],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "person_id": ["A123", "B456", "C789"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.col(pb.starts_with("paid")), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `starts_with()` column
+    selector function. This is not strictly necessary when using a single column selector function,
+    so `columns=pb.starts_with("paid")` would be equivalent usage here. However, the use of `col()`
+    is required when using multiple column selector functions with logical operators. Here is an
+    example of that more complex usage:
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "hours_2022": [160, 180, 160],
+            "hours_2023": [182, 168, 175],
+            "hours_2024": [200, 165, 190],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.starts_with("paid") & pb.matches("2023|2024")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `starts_with()` and
+    `matches()` column selector functions, combined with the `&` operator. This is necessary to
+    specify the set of columns that start with `"paid"` *and* match the text `"2023"` or `"2024"`.
+
+    If you'd like to take advantage of Narwhals selectors, that's also possible. Here is an example
+    of using the `numeric()` column selector function to select all numeric columns for validation,
+    checking that their values are greater than `0`.
+
+    ```{python}
+    import narwhals.selectors as ncs
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "hours_2022": [160, 180, 160],
+            "hours_2023": [182, 168, 175],
+            "hours_2024": [200, 165, 190],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_ge(columns=pb.col(ncs.numeric()), value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `numeric()` column
+    selector function from Narwhals. As with the other selectors, this is not strictly necessary
+    when using a single column selector, so `columns=ncs.numeric()` would also be fine here.
     """
     if isinstance(exprs, str):
         return ColumnLiteral(exprs=exprs)
