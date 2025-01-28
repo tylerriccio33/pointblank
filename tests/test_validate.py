@@ -218,6 +218,17 @@ def tbl_memtable_variable_names():
     )
 
 
+@pytest.fixture
+def tbl_schema_tests():
+    return pl.DataFrame(
+        {
+            "a": ["apple", "banana", "cherry", "date"],
+            "b": [1, 6, 3, 5],
+            "c": [1.1, 2.2, 3.3, 4.4],
+        }
+    )
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -4789,10 +4800,11 @@ def test_get_step_report_no_fail(tbl_type):
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=True)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=False)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=True)
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
         .interrogate()
     )
 
-    for i in range(1, 17):
+    for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
 
@@ -4873,26 +4885,32 @@ def assert_schema_cols(schema_info, expectations):
 
 
 def assert_col_dtype_match(schema_info, column):
-
     if column not in schema_info["columns"]:
         assert False
-
     assert schema_info["columns"][column]["dtype_matched"]
 
 
 def assert_col_dtype_mismatch(schema_info, column):
-
     if column not in schema_info["columns"]:
         assert False
-
     assert not schema_info["columns"][column]["dtype_matched"]
 
 
-def assert_col_dtype_absent(schema_info, column):
-
+def assert_col_index_match(schema_info, column):
     if column not in schema_info["columns"]:
         assert False
+    assert schema_info["columns"][column]["index_matched"]
 
+
+def assert_col_index_mismatch(schema_info, column):
+    if column not in schema_info["columns"]:
+        assert False
+    assert not schema_info["columns"][column]["index_matched"]
+
+
+def assert_col_dtype_absent(schema_info, column):
+    if column not in schema_info["columns"]:
+        assert False
     assert not schema_info["columns"][column]["dtype_present"]
 
 
@@ -4925,20 +4943,10 @@ def assert_columns_matched_any_order(schema_info, reverse=False):
 
 
 def schema_info_str(schema_info):
-
-    # Use pretty print to format the schema_info string
     return pprint.pformat(schema_info, sort_dicts=False, width=100)
 
 
-def test_get_schema_validation_info(snapshot):
-
-    data_tbl = pl.DataFrame(
-        {
-            "a": ["apple", "banana", "cherry", "date"],
-            "b": [1, 6, 3, 5],
-            "c": [1.1, 2.2, 3.3, 4.4],
-        }
-    )
+def test_get_schema_validation_info(tbl_schema_tests, snapshot):
 
     # Note regarding the input in the `assert_schema_cols()` testing function
     #
@@ -4958,7 +4966,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -4966,6 +4974,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_01-0.txt")
@@ -4979,7 +4990,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -4987,6 +4998,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_02-0.txt")
@@ -4999,7 +5013,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5007,6 +5021,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_03-0.txt")
@@ -5020,7 +5037,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5028,6 +5045,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_04-0.txt")
@@ -5040,7 +5060,7 @@ def test_get_schema_validation_info(snapshot):
             ("c",),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5048,6 +5068,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_absent(schema_info, "a")
     assert_col_dtype_absent(schema_info, "b")
     assert_col_dtype_absent(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_05-0.txt")
@@ -5060,7 +5083,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "invalid"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5068,6 +5091,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_06-0.txt")
@@ -5079,13 +5105,15 @@ def test_get_schema_validation_info(snapshot):
             ("c", "invalid"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_07-0.txt")
@@ -5097,13 +5125,15 @@ def test_get_schema_validation_info(snapshot):
             ("a", ["invalid", "invalid"]),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_08-0.txt")
@@ -5114,19 +5144,20 @@ def test_get_schema_validation_info(snapshot):
             ("c", "invalid"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["c"], ["a", "b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_09-0.txt")
 
     # 10. Schema is empty
     schema = Schema(columns=[])
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], []))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5139,7 +5170,7 @@ def test_get_schema_validation_info(snapshot):
     schema = Schema(
         columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], ["d"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5148,13 +5179,17 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
     assert_col_dtype_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_11-0.txt")
 
     # 12. Schema has partial match of columns (in right order) plus an additional, unmatched column
     schema = Schema(columns=[("a", ["String", "Int64"]), ("c", "Float64"), ("d", "String")])
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], ["d"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5162,6 +5197,12 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
     assert_col_dtype_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
+    assert_col_index_mismatch(schema_info, "d")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_12-0.txt")
@@ -5174,11 +5215,14 @@ def test_get_schema_validation_info(snapshot):
             ("z", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["x", "y", "z"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
+    assert_col_index_mismatch(schema_info, "x")
+    assert_col_index_mismatch(schema_info, "y")
+    assert_col_index_mismatch(schema_info, "z")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_13-0.txt")
@@ -5192,7 +5236,7 @@ def test_get_schema_validation_info(snapshot):
             ("C", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "B", "C"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5200,12 +5244,17 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "B")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_14-0.txt")
 
     # 14-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
+    )
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5213,6 +5262,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "B")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_match(schema_info, "B")
+    assert_col_index_match(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_14-1.txt")
@@ -5226,7 +5278,7 @@ def test_get_schema_validation_info(snapshot):
             ("C", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["B", "A", "C"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5234,12 +5286,17 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "B")
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_15-0.txt")
 
     # 15-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
+    )
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5247,6 +5304,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "B")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "B")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_match(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_15-1.txt")
@@ -5259,25 +5319,31 @@ def test_get_schema_validation_info(snapshot):
             ("C", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_16-0.txt")
 
     # 16-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
+    )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_16-1.txt")
@@ -5290,25 +5356,31 @@ def test_get_schema_validation_info(snapshot):
             ("A", "String"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["C", "A"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_17-0.txt")
 
     # 17-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
+    )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info)
     assert_col_dtype_match(schema_info, "C")
     assert_col_dtype_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "A")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_17-1.txt")
@@ -5319,23 +5391,27 @@ def test_get_schema_validation_info(snapshot):
             ("C", "Float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["C"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_18-0.txt")
 
     # 18-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
+    )
     assert_schema_cols(schema_info, (["c"], ["a", "b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "C")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_18-1.txt")
@@ -5349,7 +5425,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5357,12 +5433,17 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_19-0.txt")
 
     # 19-1. Using `case_sensitive_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_dtypes=False
+    )
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5370,6 +5451,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_19-1.txt")
@@ -5383,7 +5467,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5391,12 +5475,15 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_20-0.txt")
 
     # 20-1. Using `full_match_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, full_match_dtypes=False)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema, full_match_dtypes=False)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5404,6 +5491,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_20-1.txt")
@@ -5417,7 +5507,7 @@ def test_get_schema_validation_info(snapshot):
             ("c", "float"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5425,12 +5515,17 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-0.txt")
 
     # 21-1. Using `case_sensitive_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_dtypes=False
+    )
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5438,12 +5533,15 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-1.txt")
 
     # 21-2. Using `full_match_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, full_match_dtypes=False)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema, full_match_dtypes=False)
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
     assert_columns_matched_in_order(schema_info)
@@ -5451,13 +5549,19 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "b")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-2.txt")
 
     # 21-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
     schema_info = get_schema_info(
-        data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False, full_match_dtypes=False
+        data_tbl=tbl_schema_tests,
+        schema=schema,
+        case_sensitive_dtypes=False,
+        full_match_dtypes=False,
     )
     assert_schema_cols(schema_info, (["a", "b", "c"], [], []))
     assert_columns_full_set(schema_info)
@@ -5466,6 +5570,9 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "b")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_match(schema_info, "b")
+    assert_col_index_match(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_21-3.txt")
@@ -5478,25 +5585,31 @@ def test_get_schema_validation_info(snapshot):
             ("c", "float64"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_22-0.txt")
 
     # 22-1. Using `case_sensitive_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_dtypes=False
+    )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_22-1.txt")
@@ -5509,25 +5622,29 @@ def test_get_schema_validation_info(snapshot):
             ("c", "Float"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_23-0.txt")
 
     # 23-1. Using `full_match_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, full_match_dtypes=False)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema, full_match_dtypes=False)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_23-1.txt")
@@ -5540,44 +5657,55 @@ def test_get_schema_validation_info(snapshot):
             ("c", "float"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-0.txt")
 
     # 24-1. Using `case_sensitive_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False)
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_dtypes=False
+    )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-1.txt")
 
     # 24-2. Using `full_match_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, full_match_dtypes=False)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema, full_match_dtypes=False)
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
     assert_columns_matched_in_order(schema_info)
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_mismatch(schema_info, "a")
     assert_col_dtype_mismatch(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-2.txt")
 
     # 24-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
     schema_info = get_schema_info(
-        data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False, full_match_dtypes=False
+        data_tbl=tbl_schema_tests,
+        schema=schema,
+        case_sensitive_dtypes=False,
+        full_match_dtypes=False,
     )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], []))
     assert_columns_subset(schema_info)
@@ -5585,6 +5713,8 @@ def test_get_schema_validation_info(snapshot):
     assert_columns_matched_any_order(schema_info, reverse=True)
     assert_col_dtype_match(schema_info, "a")
     assert_col_dtype_match(schema_info, "c")
+    assert_col_index_match(schema_info, "a")
+    assert_col_index_mismatch(schema_info, "c")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_24-3.txt")
@@ -5598,7 +5728,7 @@ def test_get_schema_validation_info(snapshot):
             ("X", "int"),
         ]
     )
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema)
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema)
     assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C", "X"]))
     assert_columns_not_a_set(schema_info)
     assert_columns_matched_in_order(schema_info, reverse=True)
@@ -5606,52 +5736,16 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-0.txt")
 
     # 25-1. Using `case_sensitive_colnames=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False)
-    assert_schema_cols(schema_info, (["a", "c"], ["b"], ["X"]))
-    assert_columns_not_a_set(schema_info)
-    assert_columns_matched_in_order(schema_info, reverse=True)
-    assert_columns_matched_any_order(schema_info, reverse=True)
-    assert_col_dtype_mismatch(schema_info, "A")
-    assert_col_dtype_mismatch(schema_info, "C")
-    assert_col_dtype_mismatch(schema_info, "X")
-
-    # Take snapshot of schema info object
-    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-1.txt")
-
-    # 25-2. Using `case_sensitive_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, case_sensitive_dtypes=False)
-    assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C", "X"]))
-    assert_columns_not_a_set(schema_info)
-    assert_columns_matched_in_order(schema_info, reverse=True)
-    assert_columns_matched_any_order(schema_info, reverse=True)
-    assert_col_dtype_mismatch(schema_info, "A")
-    assert_col_dtype_mismatch(schema_info, "C")
-    assert_col_dtype_mismatch(schema_info, "X")
-
-    # Take snapshot of schema info object
-    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-2.txt")
-
-    # 25-3. Using `full_match_dtypes=False`
-    schema_info = get_schema_info(data_tbl=data_tbl, schema=schema, full_match_dtypes=False)
-    assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C", "X"]))
-    assert_columns_not_a_set(schema_info)
-    assert_columns_matched_in_order(schema_info, reverse=True)
-    assert_columns_matched_any_order(schema_info, reverse=True)
-    assert_col_dtype_mismatch(schema_info, "A")
-    assert_col_dtype_mismatch(schema_info, "C")
-    assert_col_dtype_mismatch(schema_info, "X")
-
-    # Take snapshot of schema info object
-    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-3.txt")
-
-    # 25-4. Using `case_sensitive_colnames=False` and `case_sensitive_dtypes=False`
     schema_info = get_schema_info(
-        data_tbl=data_tbl, schema=schema, case_sensitive_colnames=False, case_sensitive_dtypes=False
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_colnames=False
     )
     assert_schema_cols(schema_info, (["a", "c"], ["b"], ["X"]))
     assert_columns_not_a_set(schema_info)
@@ -5660,6 +5754,64 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_mismatch(schema_info, "A")
     assert_col_dtype_mismatch(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
+
+    # Take snapshot of schema info object
+    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-1.txt")
+
+    # 25-2. Using `case_sensitive_dtypes=False`
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests, schema=schema, case_sensitive_dtypes=False
+    )
+    assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C", "X"]))
+    assert_columns_not_a_set(schema_info)
+    assert_columns_matched_in_order(schema_info, reverse=True)
+    assert_columns_matched_any_order(schema_info, reverse=True)
+    assert_col_dtype_mismatch(schema_info, "A")
+    assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
+
+    # Take snapshot of schema info object
+    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-2.txt")
+
+    # 25-3. Using `full_match_dtypes=False`
+    schema_info = get_schema_info(data_tbl=tbl_schema_tests, schema=schema, full_match_dtypes=False)
+    assert_schema_cols(schema_info, ([], ["a", "b", "c"], ["A", "C", "X"]))
+    assert_columns_not_a_set(schema_info)
+    assert_columns_matched_in_order(schema_info, reverse=True)
+    assert_columns_matched_any_order(schema_info, reverse=True)
+    assert_col_dtype_mismatch(schema_info, "A")
+    assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_mismatch(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
+
+    # Take snapshot of schema info object
+    snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-3.txt")
+
+    # 25-4. Using `case_sensitive_colnames=False` and `case_sensitive_dtypes=False`
+    schema_info = get_schema_info(
+        data_tbl=tbl_schema_tests,
+        schema=schema,
+        case_sensitive_colnames=False,
+        case_sensitive_dtypes=False,
+    )
+    assert_schema_cols(schema_info, (["a", "c"], ["b"], ["X"]))
+    assert_columns_not_a_set(schema_info)
+    assert_columns_matched_in_order(schema_info, reverse=True)
+    assert_columns_matched_any_order(schema_info, reverse=True)
+    assert_col_dtype_mismatch(schema_info, "A")
+    assert_col_dtype_mismatch(schema_info, "C")
+    assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-4.txt")
@@ -5667,7 +5819,7 @@ def test_get_schema_validation_info(snapshot):
     # 25-5. Using `case_sensitive_colnames=False`, `case_sensitive_dtypes=False`, and
     # `full_match_dtypes=False`
     schema_info = get_schema_info(
-        data_tbl=data_tbl,
+        data_tbl=tbl_schema_tests,
         schema=schema,
         case_sensitive_colnames=False,
         case_sensitive_dtypes=False,
@@ -5680,20 +5832,15 @@ def test_get_schema_validation_info(snapshot):
     assert_col_dtype_match(schema_info, "A")
     assert_col_dtype_match(schema_info, "C")
     assert_col_dtype_mismatch(schema_info, "X")
+    assert_col_index_match(schema_info, "A")
+    assert_col_index_mismatch(schema_info, "C")
+    assert_col_index_mismatch(schema_info, "X")
 
     # Take snapshot of schema info object
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_25-5.txt")
 
 
-def test_get_val_info():
-
-    data_tbl = pl.DataFrame(
-        {
-            "a": ["apple", "banana", "cherry", "date"],
-            "b": [1, 6, 3, 5],
-            "c": [1.1, 2.2, 3.3, 4.4],
-        }
-    )
+def test_get_val_info(tbl_schema_tests):
 
     # 1. Schema matches completely and in order; dtypes all correct
     schema = Schema(
@@ -5705,7 +5852,7 @@ def test_get_val_info():
     )
 
     # Create a validation object
-    validation = Validate(data=data_tbl).col_schema_match(schema=schema).interrogate()
+    validation = Validate(data=tbl_schema_tests).col_schema_match(schema=schema).interrogate()
 
     # Get the validation info from the first (and only) element of `validation_info` using
     # the `get_val_info()` method
@@ -5713,3 +5860,1334 @@ def test_get_val_info():
 
     # Check that the `val_info` is a dictionary
     assert isinstance(val_info, dict)
+
+
+def test_get_schema_step_report_01(tbl_schema_tests, snapshot):
+
+    # 1. Schema matches completely and in order; dtypes all correct
+    schema = Schema(
+        columns=[
+            ("a", "String"),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_01-0.txt")
+
+
+def test_get_schema_step_report_02(tbl_schema_tests, snapshot):
+
+    # 2. Schema matches completely; option taken to match any of two different dtypes for column
+    # "a", but all dtypes correct
+    schema = Schema(
+        columns=[
+            ("a", ["String", "Int64"]),
+            ("b", "Int64"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_02-0.txt")
+
+
+def test_get_schema_step_report_03(tbl_schema_tests, snapshot):
+
+    # 3. Schema has all three columns accounted for but in an incorrect order; dtypes correct
+    schema = Schema(
+        columns=[
+            ("b", "Int64"),
+            ("a", "String"),
+            ("c", "Float64"),
+        ]
+    )
+
+    # Use `col_schema_match()` validation method to perform schema check
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_03-0.txt")
+
+
+def test_get_schema_step_report_04(tbl_schema_tests, snapshot):
+
+    # 4. Schema has all three columns accounted for but in an incorrect order; option taken to match
+    # any of two different dtypes for column "a", but all dtypes correct
+    schema = Schema(
+        columns=[
+            ("b", "Int64"),
+            ("a", ["Int64", "String"]),
+            ("c", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_04-0.txt")
+
+
+def test_get_schema_step_report_05(tbl_schema_tests, snapshot):
+
+    # 5. Schema has all three columns matching, correct order; no dtypes provided
+    schema = Schema(
+        columns=[
+            ("a",),
+            ("b",),
+            ("c",),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_05-0.txt")
+
+
+def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
+
+    # 6. Schema has all three columns matching, correct order; incorrect dtypes
+    schema = Schema(
+        columns=[
+            ("a", ["invalid", "invalid"]),
+            ("b", "invalid"),
+            ("c", "invalid"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_06-0.txt")
+
+
+def test_get_schema_step_report_07(tbl_schema_tests, snapshot):
+
+    # 7. Schema has 2/3 columns matching, correct order; incorrect dtypes
+    schema = Schema(
+        columns=[
+            ("a", ["invalid", "invalid"]),
+            ("c", "invalid"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_07-0.txt")
+
+
+def test_get_schema_step_report_08(tbl_schema_tests, snapshot):
+
+    # 8. Schema has 2/3 columns matching, incorrect order; incorrect dtypes
+    schema = Schema(
+        columns=[
+            ("c", "invalid"),
+            ("a", ["invalid", "invalid"]),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_08-0.txt")
+
+
+def test_get_schema_step_report_09(tbl_schema_tests, snapshot):
+
+    # 9. Schema has single column match; incorrect dtype
+    schema = Schema(
+        columns=[
+            ("c", "invalid"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_09-0.txt")
+
+
+def test_get_schema_step_report_10(tbl_schema_tests, snapshot):
+
+    # 10. Schema is empty
+    schema = Schema(columns=[])
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_10-0.txt")
+
+
+def test_get_schema_step_report_11(tbl_schema_tests, snapshot):
+
+    # 11. Schema has complete match of columns plus an additional, unmatched column
+    schema = Schema(
+        columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_11-0.txt")
+
+
+def test_get_schema_step_report_12(tbl_schema_tests, snapshot):
+
+    # 12. Schema has partial match of columns (in right order) plus an additional, unmatched column
+    schema = Schema(columns=[("a", ["String", "Int64"]), ("c", "Float64"), ("d", "String")])
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_12-0.txt")
+
+
+def test_get_schema_step_report_13(tbl_schema_tests, snapshot):
+
+    # 13. Schema has no matches to any column names
+    schema = Schema(
+        columns=[
+            ("x", "String"),
+            ("y", "Int64"),
+            ("z", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_13-0.txt")
+
+
+def test_get_schema_step_report_14(tbl_schema_tests, snapshot):
+
+    # 14. Schema has all columns matching in case-insensitive manner, correct order; dtypes
+    # all correct
+    schema = Schema(
+        columns=[
+            ("A", "String"),
+            ("B", "Int64"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_14-0.txt")
+
+
+def test_get_schema_step_report_14_1(tbl_schema_tests, snapshot):
+
+    # 14-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("A", "String"),
+            ("B", "Int64"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_14-1.txt")
+
+
+def test_get_schema_step_report_15(tbl_schema_tests, snapshot):
+
+    # 15. Schema has all columns matching in case-insensitive manner, correct order; dtypes
+    # all correct
+    schema = Schema(
+        columns=[
+            ("B", "Int64"),
+            ("A", "String"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_15-0.txt")
+
+
+def test_get_schema_step_report_15_1(tbl_schema_tests, snapshot):
+
+    # 15-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("B", "Int64"),
+            ("A", "String"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_15-1.txt")
+
+
+def test_get_schema_step_report_16(tbl_schema_tests, snapshot):
+
+    # 16. Schema has 2/3 columns matching in case-insensitive manner, correct order; dtypes
+    # all correct
+    schema = Schema(
+        columns=[
+            ("A", "String"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_16-0.txt")
+
+
+def test_get_schema_step_report_16_1(tbl_schema_tests, snapshot):
+
+    # 16-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("A", "String"),
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_16-1.txt")
+
+
+def test_get_schema_step_report_17(tbl_schema_tests, snapshot):
+
+    # 17. Schema has 2/3 columns matching in case-insensitive manner, incorrect order; dtypes
+    # all correct
+    schema = Schema(
+        columns=[
+            ("C", "Float64"),
+            ("A", "String"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_17-0.txt")
+
+
+def test_get_schema_step_report_17_1(tbl_schema_tests, snapshot):
+
+    # 17-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("C", "Float64"),
+            ("A", "String"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_17-1.txt")
+
+
+def test_get_schema_step_report_18(tbl_schema_tests, snapshot):
+
+    # 18. Schema has one column matching in case-insensitive manner; dtype is correct
+    schema = Schema(
+        columns=[
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_18-0.txt")
+
+
+def test_get_schema_step_report_18_1(tbl_schema_tests, snapshot):
+
+    # 18-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("C", "Float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_18-1.txt")
+
+
+def test_get_schema_step_report_19(tbl_schema_tests, snapshot):
+
+    # 19. Schema has all three columns matching, correct order; dtypes don't match case of
+    # actual dtypes
+    schema = Schema(
+        columns=[
+            ("a", "string"),
+            ("b", "int64"),
+            ("c", "float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_19-0.txt")
+
+
+def test_get_schema_step_report_19_1(tbl_schema_tests, snapshot):
+
+    # 19-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("a", "string"),
+            ("b", "int64"),
+            ("c", "float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_19-1.txt")
+
+
+def test_get_schema_step_report_20(tbl_schema_tests, snapshot):
+
+    # 20. Schema has all three columns matching, correct order; dtypes are substrings of
+    # actual dtypes
+    schema = Schema(
+        columns=[
+            ("a", "Str"),
+            ("b", "Int"),
+            ("c", "Float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_20-0.txt")
+
+
+def test_get_schema_step_report_20_1(tbl_schema_tests, snapshot):
+
+    # 20-1. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "Str"),
+            ("b", "Int"),
+            ("c", "Float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_20-1.txt")
+
+
+def test_get_schema_step_report_21(tbl_schema_tests, snapshot):
+
+    # 21. Schema has all three columns matching, correct order; dtypes are substrings of actual
+    # dtypes where case doesn't match
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("b", "int"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_21-0.txt")
+
+
+def test_get_schema_step_report_21_1(tbl_schema_tests, snapshot):
+
+    # 21-1. Using `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("b", "int"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_21-1.txt")
+
+
+def test_get_schema_step_report_21_2(tbl_schema_tests, snapshot):
+
+    # 21-2. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("b", "int"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_21-2.txt")
+
+
+def test_get_schema_step_report_21_3(tbl_schema_tests, snapshot):
+
+    # 21-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("b", "int"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_21-3.txt")
+
+
+def test_get_schema_step_report_22(tbl_schema_tests, snapshot):
+
+    # 22. Schema has all 2/3 columns matching, missing one, correct order; dtypes don't match
+    # case of actual dtypes
+    schema = Schema(
+        columns=[
+            ("a", "string"),
+            ("c", "float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_22-0.txt")
+
+
+def test_get_schema_step_report_22_1(tbl_schema_tests, snapshot):
+
+    # 22-1. Using `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "string"),
+            ("c", "float64"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_22-1.txt")
+
+
+def test_get_schema_step_report_23(tbl_schema_tests, snapshot):
+
+    # 23. Schema has all 2/3 columns matching, missing one, correct order; dtypes are substrings
+    # of actual dtypes
+    schema = Schema(
+        columns=[
+            ("a", "Str"),
+            ("c", "Float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_23-0.txt")
+
+
+def test_get_schema_step_report_23_1(tbl_schema_tests, snapshot):
+
+    # 23-1. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "Str"),
+            ("c", "Float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_23-1.txt")
+
+
+def test_get_schema_step_report_24(tbl_schema_tests, snapshot):
+
+    # 24. Schema has all 2/3 columns matching, missing one, correct order; dtypes are substrings
+    # of actual dtypes where case doesn't match
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-0.txt")
+
+
+def test_get_schema_step_report_24_1(tbl_schema_tests, snapshot):
+
+    # 24-1. Using `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-1.txt")
+
+
+def test_get_schema_step_report_24_2(tbl_schema_tests, snapshot):
+
+    # 24-2. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-2.txt")
+
+
+def test_get_schema_step_report_24_3(tbl_schema_tests, snapshot):
+
+    # 24-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("a", "str"),
+            ("c", "float"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_24-3.txt")
+
+
+def test_get_schema_step_report_25(tbl_schema_tests, snapshot):
+
+    # 25. Schema has all 2/3 columns matching, missing one, an unmatched column, correct
+    # order for the matching set; dtypes are substrings of actual dtypes where case doesn't match
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-0.txt")
+
+
+def test_get_schema_step_report_25_1(tbl_schema_tests, snapshot):
+
+    # 25-1. Using `case_sensitive_colnames=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-1.txt")
+
+
+def test_get_schema_step_report_25_2(tbl_schema_tests, snapshot):
+
+    # 25-2. Using `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-2.txt")
+
+
+def test_get_schema_step_report_25_3(tbl_schema_tests, snapshot):
+
+    # 25-3. Using `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=True,  # default
+            case_sensitive_dtypes=True,  # default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-3.txt")
+
+
+def test_get_schema_step_report_25_4(tbl_schema_tests, snapshot):
+
+    # 25-4. Using `case_sensitive_colnames=False` and `case_sensitive_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=True,  # default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-4.txt")
+
+
+def test_get_schema_step_report_25_5(tbl_schema_tests, snapshot):
+
+    # 25-5. Using `case_sensitive_colnames=False`, `case_sensitive_dtypes=False`, and
+    # `full_match_dtypes=False`
+    schema = Schema(
+        columns=[
+            ("A", "str"),
+            ("C", "float"),
+            ("X", "int"),
+        ]
+    )
+
+    validation = (
+        Validate(data=tbl_schema_tests)
+        .col_schema_match(
+            schema=schema,
+            complete=True,  # default
+            in_order=True,  # default
+            case_sensitive_colnames=False,  # non-default
+            case_sensitive_dtypes=False,  # non-default
+            full_match_dtypes=False,  # non-default
+        )
+        .interrogate()
+    )
+
+    report_df = validation.get_step_report(i=-99)
+
+    # Take snapshot of the report DataFrame
+    snapshot.assert_match(str(report_df), "schema_step_report_25-5.txt")
