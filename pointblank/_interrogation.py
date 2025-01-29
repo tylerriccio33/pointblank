@@ -1895,9 +1895,8 @@ class NumberOfTestUnits:
 
 def _get_compare_expr_nw(compare: Any) -> Any:
     if isinstance(compare, Column):
-
         if not isinstance(compare.exprs, str):
-            raise ValueError("The column expression must be a string.")
+            raise ValueError("The column expression must be a string.")  # pragma: no cover
         return nw.col(compare.exprs)
     return compare
 
