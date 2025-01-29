@@ -1246,76 +1246,85 @@ def test_col_vals_outside(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=5, right=8)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
+    validation_1 = Validate(tbl).col_vals_outside(columns="x", left=5, right=8).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = (
+        Validate(tbl).col_vals_outside(columns="x", left=5, right=8, na_pass=True).interrogate()
     )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=5, right=8, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
+
+    validation_3 = (
+        Validate(tbl).col_vals_outside(columns="x", left=4, right=8, na_pass=False).interrogate()
     )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=4, right=8)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 2
+
+    assert validation_3.n_passed(i=1, scalar=True) == 2
+    assert validation_3.n_failed(i=1, scalar=True) == 2
+
+    validation_4 = (
+        Validate(tbl).col_vals_outside(columns="x", left=-4, right=1, na_pass=False).interrogate()
     )
-    assert (
+
+    assert validation_4.n_passed(i=1, scalar=True) == 2
+    assert validation_4.n_failed(i=1, scalar=True) == 2
+
+    validation_5 = (
         Validate(tbl)
-        .col_vals_outside(columns="x", left=-4, right=1)
+        .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True), na_pass=False)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 2
     )
-    assert (
-        Validate(tbl)
-        .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True))
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 0
-    )
-    assert (
+
+    assert validation_5.n_passed(i=1, scalar=True) == 0
+    assert validation_5.n_failed(i=1, scalar=True) == 4
+
+    validation_6 = (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(True, True), na_pass=True)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 1
     )
-    assert (
+
+    assert validation_6.n_passed(i=1, scalar=True) == 1
+    assert validation_6.n_failed(i=1, scalar=True) == 3
+
+    validation_7 = (
         Validate(tbl)
-        .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True))
+        .col_vals_outside(columns="x", left=4, right=8, inclusive=(False, True), na_pass=False)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
     )
-    assert (
+
+    assert validation_7.n_passed(i=1, scalar=True) == 3
+    assert validation_7.n_failed(i=1, scalar=True) == 1
+
+    validation_8 = (
         Validate(tbl)
-        .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False))
+        .col_vals_outside(columns="x", left=-4, right=1, inclusive=(True, False), na_pass=False)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
     )
-    assert (
+
+    assert validation_8.n_passed(i=1, scalar=True) == 3
+    assert validation_8.n_failed(i=1, scalar=True) == 1
+
+    validation_9 = (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
     )
-    assert (
+
+    assert validation_9.n_passed(i=1, scalar=True) == 3
+    assert validation_9.n_failed(i=1, scalar=True) == 1
+
+    validation_10 = (
         Validate(tbl)
         .col_vals_outside(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 2
     )
+
+    assert validation_10.n_passed(i=1, scalar=True) == 2
+    assert validation_10.n_failed(i=1, scalar=True) == 2
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
