@@ -961,10 +961,18 @@ class Interrogator:
             else:
                 tbl = tbl.mutate(pb_is_good_2=tbl[self.column] <= low_val)
 
+            tbl = tbl.mutate(
+                pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+            )
+
             if self.inclusive[1]:
                 tbl = tbl.mutate(pb_is_good_3=tbl[self.column] > high_val)
             else:
                 tbl = tbl.mutate(pb_is_good_3=tbl[self.column] >= high_val)
+
+            tbl = tbl.mutate(
+                pb_is_good_3=ibis.ifelse(tbl.pb_is_good_3.notnull(), tbl.pb_is_good_3, False)
+            )
 
             return tbl.mutate(
                 pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2 | tbl.pb_is_good_3
