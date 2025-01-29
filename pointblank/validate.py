@@ -144,6 +144,24 @@ def load_dataset(
         The dataset for the `Validate` object. This could be a Polars DataFrame, a Pandas DataFrame,
         or a DuckDB table as an Ibis table.
 
+    Included Datasets
+    -----------------
+    There are two included datasets that can be loaded using the `load_dataset()` function:
+
+    - `small_table`: A small dataset with 13 rows and 8 columns. This dataset is useful for testing
+    and demonstration purposes.
+    - `game_revenue`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
+    development company. For the particular game, there are records of player sessions, the items
+    they purchased, ads viewed, and the revenue generated.
+
+    Supported DataFrame Types
+    -------------------------
+    The `tbl_type=` parameter can be set to one of the following:
+
+    - `"polars"`: A Polars DataFrame.
+    - `"pandas"`: A Pandas DataFrame.
+    - `"duckdb"`: An Ibis table for a DuckDB database.
+
     Examples
     --------
     Load the `small_table` dataset as a Polars DataFrame by calling `load_dataset()` with its
@@ -171,7 +189,8 @@ def load_dataset(
     pb.preview(game_revenue)
     ```
 
-    The `game_revenue` dataset is a more real-world dataset with a mix of data types.
+    The `game_revenue` dataset is a more real-world dataset with a mix of data types, and it's
+    significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
