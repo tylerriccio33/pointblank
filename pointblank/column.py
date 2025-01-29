@@ -169,9 +169,6 @@ class Column:
             resolved_columns = self.exprs.resolve(columns)
             return [col for col in columns if col in resolved_columns]
 
-        if isinstance(self.exprs, nw.selectors.Selector):
-            return ColumnSelectorNarwhals(self.exprs).resolve(table)
-
         raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
 
 
