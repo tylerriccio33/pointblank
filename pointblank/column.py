@@ -462,6 +462,37 @@ def col(
     In the above example the `col()` function contains the invocation of the `numeric()` column
     selector function from Narwhals. As with the other selectors, this is not strictly necessary
     when using a single column selector, so `columns=ncs.numeric()` would also be fine here.
+
+    Narwhals selectors can also use operators to combine multiple selectors. Here is an example of
+    using the `numeric()` and `matches()` selectors together to select all numeric columns that fit
+    a specific pattern.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2022_status": ["ft", "ft", "pt"],
+            "2023_status": ["ft", "pt", "ft"],
+            "2024_status": ["ft", "pt", "ft"],
+            "2022_pay_total": [18.62, 16.95, 18.25],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_lt(columns=pb.col(ncs.numeric() & ncs.matches("2023|2024")), value=30)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `numeric()` and
+    `matches()` column selector functions from Narwhals, combined with the `&` operator. This is
+    necessary to specify the set of columns that are numeric *and* match the text `"2023"` or
+    `"2024"`.
     """
     if isinstance(exprs, str):
         return ColumnLiteral(exprs=exprs)
