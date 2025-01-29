@@ -116,6 +116,10 @@ class Interrogator:
                     pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
                 )
 
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
                 return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                     "pb_is_good_1", "pb_is_good_2"
                 )
@@ -133,6 +137,13 @@ class Interrogator:
                     else nw.lit(False)
                 ),
                 pb_is_good_3=nw.col(self.column) > compare_expr,
+            )
+            .with_columns(
+                pb_is_good_3=(
+                    nw.when(nw.col("pb_is_good_3").is_null())
+                    .then(nw.lit(False))
+                    .otherwise(nw.col("pb_is_good_3"))
+                )
             )
             .with_columns(
                 pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
@@ -172,6 +183,10 @@ class Interrogator:
                     pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
                 )
 
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
                 return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                     "pb_is_good_1", "pb_is_good_2"
                 )
@@ -189,6 +204,13 @@ class Interrogator:
                     else nw.lit(False)
                 ),
                 pb_is_good_3=nw.col(self.column) < compare_expr,
+            )
+            .with_columns(
+                pb_is_good_3=(
+                    nw.when(nw.col("pb_is_good_3").is_null())
+                    .then(nw.lit(False))
+                    .otherwise(nw.col("pb_is_good_3"))
+                )
             )
             .with_columns(
                 pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
@@ -226,6 +248,10 @@ class Interrogator:
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
+                )
+
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
                 )
 
                 return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
@@ -292,6 +318,14 @@ class Interrogator:
             )
 
             tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) == compare_expr)
+
+            tbl = tbl.with_columns(
+                pb_is_good_3=(
+                    nw.when(nw.col("pb_is_good_3").is_null())
+                    .then(nw.lit(False))
+                    .otherwise(nw.col("pb_is_good_3"))
+                )
+            )
 
             tbl = tbl.with_columns(
                 pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
@@ -564,6 +598,10 @@ class Interrogator:
                 pb_is_good_2=self.x[self.column] >= ibis.literal(self.compare),
             )
 
+            tbl = tbl.mutate(
+                pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+            )
+
             return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                 "pb_is_good_1", "pb_is_good_2"
             )
@@ -572,16 +610,26 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        tbl = self.x.with_columns(
-            pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
-            pb_is_good_2=(
-                nw.col(self.compare.name).is_null() & self.na_pass
-                if isinstance(self.compare, Column)
-                else nw.lit(False)
-            ),
-            pb_is_good_3=nw.col(self.column) >= compare_expr,
-        ).with_columns(
-            pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+        tbl = (
+            self.x.with_columns(
+                pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
+                pb_is_good_2=(
+                    nw.col(self.compare.name).is_null() & self.na_pass
+                    if isinstance(self.compare, Column)
+                    else nw.lit(False)
+                ),
+                pb_is_good_3=nw.col(self.column) >= compare_expr,
+            )
+            .with_columns(
+                pb_is_good_3=(
+                    nw.when(nw.col("pb_is_good_3").is_null())
+                    .then(nw.lit(False))
+                    .otherwise(nw.col("pb_is_good_3"))
+                )
+            )
+            .with_columns(
+                pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
+            )
         )
 
         return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
@@ -615,6 +663,10 @@ class Interrogator:
                 pb_is_good_2=self.x[self.column] <= ibis.literal(self.compare),
             )
 
+            tbl = tbl.mutate(
+                pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+            )
+
             return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
                 "pb_is_good_1", "pb_is_good_2"
             )
@@ -632,6 +684,13 @@ class Interrogator:
                     else nw.lit(False)
                 ),
                 pb_is_good_3=nw.col(self.column) <= compare_expr,
+            )
+            .with_columns(
+                pb_is_good_3=(
+                    nw.when(nw.col("pb_is_good_3").is_null())
+                    .then(nw.lit(False))
+                    .otherwise(nw.col("pb_is_good_3"))
+                )
             )
             .with_columns(
                 pb_is_good_=nw.col("pb_is_good_1") | nw.col("pb_is_good_2") | nw.col("pb_is_good_3")
@@ -718,10 +777,18 @@ class Interrogator:
                 else:
                     tbl = tbl.mutate(pb_is_good_2=tbl[self.column] > low_val)
 
+                tbl = tbl.mutate(
+                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+                )
+
                 if self.inclusive[1]:
                     tbl = tbl.mutate(pb_is_good_3=tbl[self.column] <= high_val)
                 else:
                     tbl = tbl.mutate(pb_is_good_3=tbl[self.column] < high_val)
+
+                tbl = tbl.mutate(
+                    pb_is_good_3=ibis.ifelse(tbl.pb_is_good_3.notnull(), tbl.pb_is_good_3, False)
+                )
 
                 return tbl.mutate(
                     pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 & tbl.pb_is_good_3)
@@ -752,6 +819,22 @@ class Interrogator:
             tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) <= high_val)
         else:
             tbl = tbl.with_columns(pb_is_good_6=nw.col(self.column) < high_val)
+
+        tbl = tbl.with_columns(
+            pb_is_good_5=(
+                nw.when(nw.col("pb_is_good_5").is_null())
+                .then(nw.lit(False))
+                .otherwise(nw.col("pb_is_good_5"))
+            )
+        )
+
+        tbl = tbl.with_columns(
+            pb_is_good_6=(
+                nw.when(nw.col("pb_is_good_6").is_null())
+                .then(nw.lit(False))
+                .otherwise(nw.col("pb_is_good_6"))
+            )
+        )
 
         tbl = (
             tbl.with_columns(
@@ -878,10 +961,18 @@ class Interrogator:
             else:
                 tbl = tbl.mutate(pb_is_good_2=tbl[self.column] <= low_val)
 
+            tbl = tbl.mutate(
+                pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
+            )
+
             if self.inclusive[1]:
                 tbl = tbl.mutate(pb_is_good_3=tbl[self.column] > high_val)
             else:
                 tbl = tbl.mutate(pb_is_good_3=tbl[self.column] >= high_val)
+
+            tbl = tbl.mutate(
+                pb_is_good_3=ibis.ifelse(tbl.pb_is_good_3.notnull(), tbl.pb_is_good_3, False)
+            )
 
             return tbl.mutate(
                 pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2 | tbl.pb_is_good_3
