@@ -1078,19 +1078,19 @@ def test_validation_with_preprocessing_with_fn_pl(tbl_pl):
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_gt(request, tbl_fixture):
 
+    pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
+
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_gt(columns="x", value=0).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_gt(columns="x", value=0, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_gt(columns="x", value=0, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1098,17 +1098,15 @@ def test_col_vals_lt(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_lt(columns="x", value=10).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_lt(columns="x", value=10, na_pass=True)
-        .interrogate()
-        .n_passed(i=1)[1]
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_lt(columns="x", value=10).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_lt(columns="x", value=10, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1116,17 +1114,15 @@ def test_col_vals_eq(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_eq(columns="z", value=8).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_eq(columns="z", value=8, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_eq(columns="z", value=8).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_eq(columns="z", value=8, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1134,17 +1130,15 @@ def test_col_vals_ne(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_ne(columns="z", value=7).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_ne(columns="z", value=7, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_ne(columns="z", value=7).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_ne(columns="z", value=7, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1152,17 +1146,15 @@ def test_col_vals_ge(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_ge(columns="x", value=1).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_ge(columns="x", value=1, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_ge(columns="x", value=1).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_ge(columns="x", value=1, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    # assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1170,17 +1162,15 @@ def test_col_vals_le(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl).col_vals_le(columns="x", value=4).interrogate().n_passed(i=1, scalar=True)
-        == 3
-    )
-    assert (
-        Validate(tbl)
-        .col_vals_le(columns="x", value=4, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
-    )
+    validation_1 = Validate(tbl).col_vals_le(columns="x", value=4).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = Validate(tbl).col_vals_le(columns="x", value=4, na_pass=True).interrogate()
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
@@ -1188,62 +1178,67 @@ def test_col_vals_between(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
+    validation_1 = Validate(tbl).col_vals_between(columns="x", left=1, right=4).interrogate()
+
+    assert validation_1.n_passed(i=1, scalar=True) == 3
+    assert validation_1.n_failed(i=1, scalar=True) == 1
+
+    validation_2 = (
+        Validate(tbl).col_vals_between(columns="x", left=1, right=4, na_pass=True).interrogate()
     )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=1, right=4, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 4
+
+    assert validation_2.n_passed(i=1, scalar=True) == 4
+    assert validation_2.n_failed(i=1, scalar=True) == 0
+
+    validation_3 = (
+        Validate(tbl).col_vals_between(columns="x", left=11, right=14, na_pass=False).interrogate()
     )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=11, right=14, na_pass=False)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 0
+
+    assert validation_3.n_passed(i=1, scalar=True) == 0
+    assert validation_3.n_failed(i=1, scalar=True) == 4
+
+    validation_4 = (
+        Validate(tbl).col_vals_between(columns="x", left=11, right=14, na_pass=True).interrogate()
     )
-    assert (
-        Validate(tbl)
-        .col_vals_between(columns="x", left=11, right=14, na_pass=True)
-        .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 1
-    )
-    assert (
+
+    assert validation_4.n_passed(i=1, scalar=True) == 1
+    assert validation_4.n_failed(i=1, scalar=True) == 3
+
+    validtion_5 = (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, True), na_pass=True)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
     )
-    assert (
+
+    assert validtion_5.n_passed(i=1, scalar=True) == 3
+    assert validtion_5.n_failed(i=1, scalar=True) == 1
+
+    validation_6 = (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(True, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 3
     )
-    assert (
+
+    assert validation_6.n_passed(i=1, scalar=True) == 3
+    assert validation_6.n_failed(i=1, scalar=True) == 1
+
+    validation_7 = (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=True)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 2
     )
-    assert (
+
+    assert validation_7.n_passed(i=1, scalar=True) == 2
+    assert validation_7.n_failed(i=1, scalar=True) == 2
+
+    validation_8 = (
         Validate(tbl)
         .col_vals_between(columns="x", left=1, right=4, inclusive=(False, False), na_pass=False)
         .interrogate()
-        .n_passed(i=1, scalar=True)
-        == 1
     )
+
+    assert validation_8.n_passed(i=1, scalar=True) == 1
+    assert validation_8.n_failed(i=1, scalar=True) == 3
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
