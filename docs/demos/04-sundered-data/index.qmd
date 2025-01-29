@@ -11,14 +11,12 @@ html-table-processing: none
 Splitting your data into 'pass' and 'fail' subsets.
 
 ```{python}
-#| echo: false
+# | echo: false
 
 import pointblank as pb
 
 validation = (
-    pb.Validate( # Use pb.Validate to start
-        data=pb.load_dataset(dataset="small_table", tbl_type="pandas")
-    )
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="pandas"))
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
     .interrogate()
@@ -37,9 +35,7 @@ import pointblank as pb
 import polars as pl
 
 validation = (
-    pb.Validate( # Use pb.Validate to start
-        data=pb.load_dataset(dataset="small_table", tbl_type="pandas")
-    )
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="pandas"))
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
     .interrogate()
