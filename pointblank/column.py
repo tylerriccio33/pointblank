@@ -322,8 +322,8 @@ def col(
     - `first_n()`
     - `last_n()`
 
-    Alternatively, we support selectors availble in Narwhals. Those selectors additionally can take
-    advantage of the data types of the columns. The selectors include:
+    Alternatively, we support selectors from the Narwhals library! Those selectors can additionally
+    take advantage of the data types of the columns. The selectors are:
 
     - `boolean()`
     - `by_dtype()`
@@ -332,7 +332,8 @@ def col(
     - `numeric()`
     - `string()`
 
-    Ensure that your installation of Narwhals is updated to use these selectors in pointblank.
+    Have a look at the [Narwhals API documentation on selectors](https://narwhals-dev.github.io/narwhals/api-reference/selectors/)
+    for more information.
 
     Examples
     --------
