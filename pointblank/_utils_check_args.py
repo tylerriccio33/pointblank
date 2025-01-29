@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import narwhals as nw
-from narwhals.typing import IntoDataFrameT
 
 from typing import Callable
 from pointblank.thresholds import Thresholds
-from pointblank.column import Column, ColumnSelector, ColumnSelectorNarwhals
+from pointblank.column import Column, ColumnSelector
 
 
 def _check_boolean_input(param: bool, param_name: str):
