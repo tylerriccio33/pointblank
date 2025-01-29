@@ -28,6 +28,64 @@ class Thresholds:
         A Thresholds object. This can be used when using the `Validate` class (to set thresholds
         globally) or when defining validation steps through `Validate`'s methods (so that threshold
         values are scoped to individual validation steps, overriding any global thresholds).
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_footer=False)
+    ```
+    In a data validation workflow, you can set thresholds for the number of failing test units at
+    different levels. For example, you can set a threshold to warn when the number of failing test
+    units exceeds 10% of the total number of test units:
+
+    ```{python}
+    thresholds = pb.Thresholds(warn_at=0.1)
+
+    thresholds
+    ```
+
+    You can also set thresholds for the 'stop' and 'notify' levels:
+
+    ```{python}
+    thresholds = pb.Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.05)
+
+    thresholds
+    ```
+
+    Thresholds can also be set as absolute counts. Here's an example where the 'warn' level is set
+    to `5` failing test units:
+
+    ```{python}
+    thresholds = pb.Thresholds(warn_at=5)
+
+    thresholds
+    ```
+
+    The `Thresholds` object can be used to set global thresholds for all validation steps. Or, you
+    can set thresholds for individual validation steps, which will override the global thresholds.
+    Here's a data validation workflow example where we set global thresholds and then override with
+    different thresholds at the `col_vals_gt()` step:
+
+    ```{python}
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="small_table"),
+            label="Example Validation",
+            thresholds=pb.Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+        )
+        .col_vals_not_null(columns=["c", "d"])
+        .col_vals_gt(columns="a", value=3, thresholds=pb.Thresholds(warn_at=5))
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    As can be seen, the last step (`col_vals_gt()`) has its own thresholds, which override the
+    global thresholds set at the beginning of the validation workflow (in the `Validate` class).
     """
 
     warn_at: int | float | bool | None = None
