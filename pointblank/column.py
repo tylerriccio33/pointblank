@@ -160,9 +160,6 @@ class Column:
 
     exprs: ColumnSelector | ColumnSelectorNarwhals
 
-    def __repr__(self):
-        return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
-
     def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
 
         if isinstance(self.exprs, ColumnSelector):
@@ -170,6 +167,9 @@ class Column:
             return [col for col in columns if col in resolved_columns]
 
         raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
+
+    def __repr__(self):
+        return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
 
 
 @dataclass
