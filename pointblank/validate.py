@@ -1153,6 +1153,13 @@ class Validate:
     ```{python}
     validation
     ```
+
+    The report could be further customized by using the `get_tabular_report()` method, which
+    contains options for modifying the display of the table.
+
+    Furthermore, post-interrogation methods such as `get_step_report()`, `get_data_extracts()`, and
+    `get_sundered_data()` allow you to generate additional reporting or extract useful data for
+    downstream analysis from a `Validate` object.
     """
 
     data: FrameT | Any
