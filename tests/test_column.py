@@ -27,6 +27,7 @@ from pointblank.column import (
 import pandas as pd
 import polars as pl
 import ibis
+import narwhals.selectors as ncs
 
 
 @pytest.fixture
@@ -949,9 +950,6 @@ def test_selector_classes(request, tbl_fixture):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    assert Column(exprs="not_present").resolve(columns=tbl.columns) == ["not_present"]
-    assert Column(exprs="not_present").name == "not_present"
-
     # StartsWith tests
 
     assert Column(exprs=StartsWith("low")).resolve(columns=tbl.columns) == [
@@ -964,7 +962,6 @@ def test_selector_classes(request, tbl_fixture):
     ]
     assert Column(exprs=StartsWith("LOW", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert Column(exprs=StartsWith("not_present")).resolve(columns=tbl.columns) == []
-    assert Column(exprs=StartsWith("low")).name == ""
     assert Column(exprs=StartsWith("low")).exprs == StartsWith(text="low")
 
     # EndsWith tests
@@ -981,7 +978,6 @@ def test_selector_classes(request, tbl_fixture):
     ]
     assert Column(exprs=EndsWith("FLOATS", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert Column(exprs=EndsWith("not_present")).resolve(columns=tbl.columns) == []
-    assert Column(exprs=EndsWith("floats")).name == ""
     assert Column(exprs=EndsWith("floats")).exprs == EndsWith(text="floats")
 
     # Contains tests
@@ -996,7 +992,6 @@ def test_selector_classes(request, tbl_fixture):
     ]
     assert Column(exprs=Contains("NUMBERS", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert Column(exprs=Contains("not_present")).resolve(columns=tbl.columns) == []
-    assert Column(exprs=Contains("numbers")).name == ""
     assert Column(exprs=Contains("numbers")).exprs == Contains(text="numbers")
 
     # Matches tests
@@ -1019,13 +1014,11 @@ def test_selector_classes(request, tbl_fixture):
     assert Column(exprs=Matches("NUMB", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert Column(exprs=Matches(r"^..._numbers$")).resolve(columns=tbl.columns) == ["low_numbers"]
     assert Column(exprs=Matches("not_present")).resolve(columns=tbl.columns) == []
-    assert Column(exprs=Matches("at")).name == ""
     assert Column(exprs=Matches("at")).exprs == Matches(pattern="at")
 
     # Everything tests
 
     assert Column(exprs=Everything()).resolve(columns=tbl.columns) == list(tbl.columns)
-    assert Column(exprs=Everything()).name == ""
     assert Column(exprs=Everything()).exprs == Everything()
 
     # FirstN tests
@@ -1048,7 +1041,6 @@ def test_selector_classes(request, tbl_fixture):
     assert Column(exprs=FirstN(0, offset=10)).resolve(columns=tbl.columns) == []
     assert Column(exprs=FirstN(5, offset=-1)).resolve(columns=tbl.columns) == []
 
-    assert Column(exprs=FirstN(3)).name == ""
     assert Column(exprs=FirstN(3)).exprs == FirstN(n=3)
 
     # LastN tests
@@ -1071,7 +1063,6 @@ def test_selector_classes(request, tbl_fixture):
     assert Column(exprs=LastN(0, offset=10)).resolve(columns=tbl.columns) == []
     assert Column(exprs=LastN(5, offset=-1)).resolve(columns=tbl.columns) == []
 
-    assert Column(exprs=LastN(3)).name == ""
     assert Column(exprs=LastN(3)).exprs == LastN(n=3)
 
 
@@ -1083,7 +1074,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert col("not_present").resolve(columns=tbl.columns) == ["not_present"]
-    assert col("not_present").name == "not_present"
 
     # starts_with() tests
 
@@ -1101,7 +1091,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     ]
     assert col(starts_with("LOW", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert col(starts_with("not_present")).resolve(columns=tbl.columns) == []
-    assert col(starts_with("low")).name == ""
     assert col(starts_with("low")).exprs == StartsWith(text="low")
 
     # ends_with() tests
@@ -1123,7 +1112,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     ]
     assert col(ends_with("FLOATS", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert col(ends_with("not_present")).resolve(columns=tbl.columns) == []
-    assert col(ends_with("floats")).name == ""
     assert col(ends_with("floats")).exprs == EndsWith(text="floats")
 
     # contains() tests
@@ -1142,7 +1130,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     ]
     assert col(contains("NUMBERS", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert col(contains("not_present")).resolve(columns=tbl.columns) == []
-    assert col(contains("numbers")).name == ""
     assert col(contains("numbers")).exprs == Contains(text="numbers")
 
     # matches() tests
@@ -1172,13 +1159,11 @@ def test_selector_helper_functions(request, tbl_fixture):
     assert col(matches("NUMB", case_sensitive=True)).resolve(columns=tbl.columns) == []
     assert col(matches(r"^..._numbers$")).resolve(columns=tbl.columns) == ["low_numbers"]
     assert col(matches("not_present")).resolve(columns=tbl.columns) == []
-    assert col(matches("at")).name == ""
     assert col(matches("at")).exprs == Matches(pattern="at")
 
     # everything() tests
 
     assert col(everything()).resolve(columns=tbl.columns) == list(tbl.columns)
-    assert col(everything()).name == ""
     assert col(everything()).exprs == Everything()
 
     # first_n() tests
@@ -1201,7 +1186,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     assert col(first_n(0, offset=10)).resolve(columns=tbl.columns) == []
     assert col(first_n(5, offset=-1)).resolve(columns=tbl.columns) == []
 
-    assert col(first_n(3)).name == ""
     assert col(first_n(3)).exprs == FirstN(n=3)
 
     # last_n() tests
@@ -1224,7 +1208,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     assert col(last_n(0, offset=10)).resolve(columns=tbl.columns) == []
     assert col(last_n(5, offset=-1)).resolve(columns=tbl.columns) == []
 
-    assert col(last_n(3)).name == ""
     assert col(last_n(3)).exprs == LastN(n=3)
 
 
@@ -1238,17 +1221,14 @@ def test_selector_set_ops_classes(request, tbl_fixture):
     assert Column(exprs=AndSelector(StartsWith("low"), EndsWith("floats"))).resolve(
         columns=tbl.columns
     ) == ["low_floats"]
-    assert Column(exprs=AndSelector(StartsWith("low"), EndsWith("floats"))).name == ""
 
     assert Column(exprs=OrSelector(StartsWith("low"), EndsWith("floats"))).resolve(
         columns=tbl.columns
     ) == ["low_numbers", "low_floats", "high_floats", "superhigh_floats"]
-    assert Column(exprs=OrSelector(StartsWith("low"), EndsWith("floats"))).name == ""
 
     assert Column(exprs=SubSelector(StartsWith("low"), EndsWith("floats"))).resolve(
         columns=tbl.columns
     ) == ["low_numbers"]
-    assert Column(exprs=SubSelector(StartsWith("low"), EndsWith("floats"))).name == ""
 
     assert Column(exprs=NotSelector(StartsWith("low"))).resolve(columns=tbl.columns) == [
         "word",
@@ -1259,7 +1239,6 @@ def test_selector_set_ops_classes(request, tbl_fixture):
         "datetime",
         "bools",
     ]
-    assert Column(exprs=NotSelector(StartsWith("low"))).name == ""
 
     assert Column(exprs=NotSelector(EndsWith("floats"))).resolve(columns=tbl.columns) == [
         "word",
@@ -1269,7 +1248,6 @@ def test_selector_set_ops_classes(request, tbl_fixture):
         "datetime",
         "bools",
     ]
-    assert Column(exprs=NotSelector(EndsWith("floats"))).name == ""
 
 
 @pytest.mark.parametrize(
@@ -1282,7 +1260,6 @@ def test_selector_set_ops_functions(request, tbl_fixture):
     assert col(starts_with("low") & ends_with("floats")).resolve(columns=tbl.columns) == [
         "low_floats"
     ]
-    assert col(starts_with("low") & ends_with("floats")).name == ""
 
     assert col(starts_with("low") | ends_with("floats")).resolve(columns=tbl.columns) == [
         "low_numbers",
@@ -1290,12 +1267,10 @@ def test_selector_set_ops_functions(request, tbl_fixture):
         "high_floats",
         "superhigh_floats",
     ]
-    assert col(starts_with("low") | ends_with("floats")).name == ""
 
     assert col(starts_with("low") - ends_with("floats")).resolve(columns=tbl.columns) == [
         "low_numbers"
     ]
-    assert col(starts_with("low") - ends_with("floats")).name == ""
 
     assert col(~starts_with("low")).resolve(columns=tbl.columns) == [
         "word",
@@ -1306,7 +1281,6 @@ def test_selector_set_ops_functions(request, tbl_fixture):
         "datetime",
         "bools",
     ]
-    assert col(~starts_with("low")).name == ""
 
     assert col(~ends_with("floats")).resolve(columns=tbl.columns) == [
         "word",
@@ -1415,3 +1389,26 @@ def test_selector_set_ops_functions_complex(request, tbl_fixture):
         "high_floats",
         "superhigh_floats",
     ]
+
+
+@pytest.mark.parametrize("tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names"])
+def test_nw_selectors(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Test with single Narwhals column selector
+    validation = Validate(data=tbl).col_exists(columns=ncs.numeric()).interrogate()
+
+    assert len(validation.n()) == 5
+
+    # Test with single Narwhals column selector within `col()`
+    validation = Validate(data=tbl).col_exists(columns=col(ncs.numeric())).interrogate()
+
+    assert len(validation.n()) == 5
+
+    # Test that multiple Narwhals column selectors work within `col()`
+    validation = (
+        Validate(data=tbl).col_exists(columns=col(ncs.numeric() | ncs.boolean())).interrogate()
+    )
+
+    assert len(validation.n()) == 6

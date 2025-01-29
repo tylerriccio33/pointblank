@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import re
 
-from dataclasses import dataclass, field
+import narwhals as nw
+from narwhals.typing import IntoDataFrame
+
+from dataclasses import dataclass
 
 __all__ = [
     "col",
@@ -155,28 +158,71 @@ class Column:
     A class to represent a column in a table.
     """
 
-    exprs: str | ColumnSelector
-    name: str = field(init=False)
+    exprs: ColumnSelector | ColumnSelectorNarwhals
 
-    def __post_init__(self):
-        if isinstance(self.exprs, str):
-            self.name = self.exprs
-        else:
-            self.name = ""
+    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
+
+        if isinstance(self.exprs, ColumnSelector):
+            resolved_columns = self.exprs.resolve(columns)
+            return [col for col in columns if col in resolved_columns]
+
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
 
     def __repr__(self):
         return self.exprs if isinstance(self.exprs, str) else repr(self.exprs)
 
-    def resolve(self, columns: list[str]) -> list[str]:
-        if self.name:
-            return [self.name]
+
+@dataclass
+class ColumnLiteral(Column):
+    """
+    A class to represent a literal value for a column parameter (the column name).
+    """
+
+    exprs: str
+
+    def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
         if isinstance(self.exprs, str):
-            return [self.exprs] if self.exprs in columns else []
-        resolved_columns = self.exprs.resolve(columns)
-        return [col for col in columns if col in resolved_columns]
+            return [self.exprs]
+        raise TypeError(f"Unsupported type: {type(self.exprs)}")  # pragma: no cover
+
+    @property
+    def name(self) -> str:
+        return self.exprs
+
+    def __repr__(self):
+        return self.exprs
 
 
-def col(exprs: str | ColumnSelector) -> Column:
+@dataclass
+class ColumnSelectorNarwhals(Column):
+    """
+    A class for using Narwhals selectors
+
+    The Narwhals selectors are available in `narwhals.selectors` and they include:
+    - `boolean()`
+    - `by_dtype()`
+    - `categorical()`
+    - `numeric()`
+    - `string()`
+
+    The `ColumnNarwhals` class is used to access these selectors for column selection. The selectors
+    can be used in the `columns=` argument of a wide range of validation methods to select columns
+    based on their data type or other properties.
+    """
+
+    exprs: nw.selectors.Selector
+
+    def resolve(self, table) -> list[str]:
+        # Convert the native table to a Narwhals DataFrame
+        dfn = nw.from_native(table)
+        # Use the selector to select columns and return their names
+        columns = dfn.select(self.exprs.exprs).columns
+        return columns
+
+
+def col(
+    exprs: str | ColumnSelector | ColumnSelectorNarwhals,
+) -> Column | ColumnLiteral | ColumnSelectorNarwhals:
     """
     Helper function for referencing a column in the input table.
 
@@ -263,6 +309,31 @@ def col(exprs: str | ColumnSelector) -> Column:
     resolved from the target table with this approach. The `col()` function is used to signal that
     the value being compared is a column value and not a literal value.
 
+    Available Selectors
+    -------------------
+    There is a collection of selectors available in pointblank, allowing you to select columns based
+    on attributes of column names and positions. The selectors are:
+
+    - `starts_with()`
+    - `ends_with()`
+    - `contains()`
+    - `matches()`
+    - `everything()`
+    - `first_n()`
+    - `last_n()`
+
+    Alternatively, we support selectors availble in Narwhals. Those selectors additionally can take
+    advantage of the data types of the columns. The selectors include:
+
+    - `boolean()`
+    - `by_dtype()`
+    - `categorical()`
+    - `matches()`
+    - `numeric()`
+    - `string()`
+
+    Ensure that your installation of Narwhals is updated to use these selectors in pointblank.
+
     Examples
     --------
     ```{python}
@@ -299,8 +370,138 @@ def col(exprs: str | ColumnSelector) -> Column:
     From results of the validation table it can be seen that values in `a` were greater than values
     in `b` for every row (or test unit). Using `value=pb.col("b")` specified that the greater-than
     comparison is across columns, not with a fixed literal value.
+
+    If you want to select an arbitrary set of columns upon which to base a validation, you can use
+    column selector functions (e.g., `starts_with()`, `ends_with()`, etc.) to specify columns in the
+    `columns=` argument of a validation method. Let's use the `starts_with()` column selector
+    function to select columns that start with `"paid"` and validate that the values in those
+    columns are greater than `10`.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "paid_2021": [16.32, 16.25, 15.75],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "person_id": ["A123", "B456", "C789"],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(columns=pb.col(pb.starts_with("paid")), value=10)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `starts_with()` column
+    selector function. This is not strictly necessary when using a single column selector function,
+    so `columns=pb.starts_with("paid")` would be equivalent usage here. However, the use of `col()`
+    is required when using multiple column selector functions with logical operators. Here is an
+    example of that more complex usage:
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "hours_2022": [160, 180, 160],
+            "hours_2023": [182, 168, 175],
+            "hours_2024": [200, 165, 190],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns=pb.col(pb.starts_with("paid") & pb.matches("2023|2024")),
+            value=10
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `starts_with()` and
+    `matches()` column selector functions, combined with the `&` operator. This is necessary to
+    specify the set of columns that start with `"paid"` *and* match the text `"2023"` or `"2024"`.
+
+    If you'd like to take advantage of Narwhals selectors, that's also possible. Here is an example
+    of using the `numeric()` column selector function to select all numeric columns for validation,
+    checking that their values are greater than `0`.
+
+    ```{python}
+    import narwhals.selectors as ncs
+
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "hours_2022": [160, 180, 160],
+            "hours_2023": [182, 168, 175],
+            "hours_2024": [200, 165, 190],
+            "paid_2022": [18.62, 16.95, 18.25],
+            "paid_2023": [19.29, 17.75, 18.35],
+            "paid_2024": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_ge(columns=pb.col(ncs.numeric()), value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `numeric()` column
+    selector function from Narwhals. As with the other selectors, this is not strictly necessary
+    when using a single column selector, so `columns=ncs.numeric()` would also be fine here.
+
+    Narwhals selectors can also use operators to combine multiple selectors. Here is an example of
+    using the `numeric()` and `matches()` selectors together to select all numeric columns that fit
+    a specific pattern.
+
+    ```{python}
+    tbl = pl.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "2022_status": ["ft", "ft", "pt"],
+            "2023_status": ["ft", "pt", "ft"],
+            "2024_status": ["ft", "pt", "ft"],
+            "2022_pay_total": [18.62, 16.95, 18.25],
+            "2023_pay_total": [19.29, 17.75, 18.35],
+            "2024_pay_total": [20.73, 18.35, 20.10],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_lt(columns=pb.col(ncs.numeric() & ncs.matches("2023|2024")), value=30)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In the above example the `col()` function contains the invocation of the `numeric()` and
+    `matches()` column selector functions from Narwhals, combined with the `&` operator. This is
+    necessary to specify the set of columns that are numeric *and* match the text `"2023"` or
+    `"2024"`.
     """
-    return Column(exprs=exprs)
+    if isinstance(exprs, str):
+        return ColumnLiteral(exprs=exprs)
+    elif isinstance(exprs, ColumnSelector):
+        return Column(exprs=exprs)
+    elif isinstance(exprs, nw.selectors.Selector):
+        return ColumnSelectorNarwhals(exprs=exprs)
+
+    raise TypeError(f"Unsupported type: {type(exprs)}")  # pragma: no cover
 
 
 def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
