@@ -22,7 +22,7 @@ __all__ = [
 @dataclass
 class ColumnSelector:
     def resolve(self, columns: list[str]) -> list[str]:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def __and__(self, other: ColumnSelector) -> ColumnSelector:
         return AndSelector(self, other)
