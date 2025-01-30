@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-There are many ways to contribute to the ongoing development of the pointblank package. Some contributions can be rather easy to do (e.g., fixing typos, improving documentation, filing issues for feature requests or problems, etc.) whereas other contributions can require more time and patience (like answering questions and submitting pull requests with code changes). Just know that that help provided in any capacity is very much appreciated.
+There are many ways to contribute to the ongoing development of the pointblank package. Some contributions can be rather easy to do (e.g., fixing typos, improving documentation, filing issues for feature requests or problems, etc.) whereas other contributions can require more time and patience (like answering questions and submitting pull requests with code changes). Just know that help provided in any capacity is very much appreciated.
 
 ## Filing Issues
 
