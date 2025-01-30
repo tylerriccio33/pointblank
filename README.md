@@ -42,7 +42,9 @@ validation = (
 validation
 ```
 
-<img src="images/pointblank-tabular-report.png" alt="Validation Report">
+<div align="center">
+<img src="https://rich-iannone.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
+</div>
 
 The rows in the validation table correspond to each of the validation steps. One of the key concepts
 is that validation steps can be broken down into atomic test cases (test units) and each of these
