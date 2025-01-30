@@ -1,12 +1,12 @@
 ---
-pagetitle: "Examples: Step Reports for Column Checks"
+pagetitle: "Examples: Step Reports for Column Data Checks"
 notebook-links: false
 page-navigation: false
 toc: false
 html-table-processing: none
 ---
 
-### Step Report: Column Checks
+### Step Report: Column Data Checks
 
 A step report for column checks shows what went wrong.
 

@@ -75,7 +75,7 @@ h3 a {
 :::{.g-col-lg-6 .g-col-12 .example}
 <div style='text-align: center;'>
 <div style='padding-top: 20px; padding-bottom: 10px;'>
-[Step Report - Column Data Checks](./05-step-report-column-check/index.qmd)
+[Step Reports for Column Data Checks](./05-step-report-column-check/index.qmd)
 </div>
 <img style='padding-bottom: 10px;' src="img/step_report_column_values.png" width="100%"></img>
 <p style='text-align: center;'>A step report for column checks shows what went wrong.</p>
@@ -85,7 +85,7 @@ h3 a {
 :::{.g-col-lg-6 .g-col-12 .example}
 <div style='text-align: center;'>
 <div style='padding-top: 20px; padding-bottom: 10px;'>
-[Step Report - Column Data Checks](./06-step-report-schema-check/index.qmd)
+[Step Report for a Schema Check](./06-step-report-schema-check/index.qmd)
 </div>
 <img style='padding-bottom: 10px;' src="img/step_report_column_schema.png" width="100%"></img>
 <p style='text-align: center;'>When a schema doesn't match, a step report gives you the details.</p>
