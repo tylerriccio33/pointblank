@@ -4,6 +4,7 @@ html-table-processing: none
 ---
 
 ```{python}
+import pointblank as pb
 import polars as pl
 
 tbl_xyz = pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7], "z": [8, 8, 8, 8]})
@@ -17,6 +18,7 @@ tbl_dates_times_text = pl.DataFrame(
         "text": [None, "5-egh-163", "8-kdg-938"],
     }
 )
+tbl_game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="polars")
 ```
 
 
@@ -31,4 +33,8 @@ tbl_xyz_missing.write_parquet("tbl_xyz_missing.parquet")
 
 ```{python}
 tbl_dates_times_text.write_parquet("tbl_dates_times_text.parquet")
+```
+
+```{python}
+tbl_game_revenue.write_parquet("game_revenue.parquet")
 ```

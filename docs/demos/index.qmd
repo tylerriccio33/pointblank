@@ -142,4 +142,7 @@ Use column selector functions in the `columns=` argument to conveniently choose 
 [Check the Schema of a Table](./schema-check/index.qmd)<br>
 The schema of a table can be flexibly defined with `Schema` and verified with `col_schema_match()`.
 
+[Using Parquet Data](./using-parquet-data/index.qmd)<br>
+A Parquet dataset can be used for data validation, thanks to Ibis.
+
 </div>
