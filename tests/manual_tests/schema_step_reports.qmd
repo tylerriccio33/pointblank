@@ -47,6 +47,95 @@ df_01 = validation.get_step_report(i=-99)
 validation.get_step_report(i=1)
 ```
 
+1-1. Use `complete=False` / `in_order=True`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", "String"),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # non-default
+        in_order=True,  # default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_01_1 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+1-2. Use `complete=True` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", "String"),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=True,  # default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_01_2 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+1-3. Use `complete=False` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", "String"),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # non-default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_01_3 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
 
 2. Schema matches completely; option taken to match any of two different dtypes for column "a", but
 all dtypes correct.
@@ -79,6 +168,97 @@ df_02 = validation.get_step_report(i=-99)
 validation.get_step_report(i=1)
 ```
 
+2-1. Use `complete=False` / `in_order=True`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", ["String", "Int64"]),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # non-default
+        in_order=True,  # default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_02_1 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+
+2-2. Use `complete=True` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", ["String", "Int64"]),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=True,  # default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_02_2 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+2-3. Use `complete=False` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("a", ["String", "Int64"]),
+        ("b", "Int64"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # non-default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_02_3 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
 3. Schema has all three columns accounted for but in an incorrect order; dtypes correct.
 
 ```{python}
@@ -108,6 +288,97 @@ validation = (
 df_03 = validation.get_step_report(i=-99)
 validation.get_step_report(i=1)
 ```
+
+3-1. Use `complete=False` / `in_order=True`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("b", "Int64"),
+        ("a", "String"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # non-default
+        in_order=True,  # default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_03_1 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+3-2. Use `complete=True` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("b", "Int64"),
+        ("a", "String"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=True,  # default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_03_2 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
+3-3. Use `complete=False` / `in_order=False`
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[
+        ("b", "Int64"),
+        ("a", "String"),
+        ("c", "Float64"),
+    ]
+)
+
+validation = (
+    pb.Validate(data=tbl)
+    .col_schema_match(
+        schema=schema,
+        complete=False,  # default
+        in_order=False,  # non-default
+        case_sensitive_colnames=True,  # default
+        case_sensitive_dtypes=True,  # default
+        full_match_dtypes=True,  # default
+    )
+    .interrogate()
+)
+
+df_03_3 = validation.get_step_report(i=-99)
+validation.get_step_report(i=1)
+```
+
 
 4. Schema has all three columns accounted for but in an incorrect order; option taken to match any
 of two different dtypes for column "a", but all dtypes correct.
@@ -316,7 +587,12 @@ validation.get_step_report(i=1)
 import pointblank as pb
 
 schema = pb.Schema(
-    columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
+    columns=[
+        ("a", ["String", "Int64"]),
+        ("b", "Int64"),
+        ("c", "Float64"),
+        ("d", "String"),
+    ]
 )
 
 validation = (
@@ -341,7 +617,12 @@ validation.get_step_report(i=1)
 ```{python}
 import pointblank as pb
 
-schema = pb.Schema(columns=[("a", ["String", "Int64"]), ("c", "Float64"), ("d", "String")])
+schema = pb.Schema(columns=[
+    ("a", ["String", "Int64"]),
+    ("c", "Float64"),
+    ("d", "String"),
+    ]
+)
 
 validation = (
     pb.Validate(data=tbl)
