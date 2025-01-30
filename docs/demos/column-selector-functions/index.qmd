@@ -14,6 +14,7 @@ Use column selector functions in the `columns=` argument to conveniently choose 
 #| echo: false
 
 import pointblank as pb
+import narwhals.selectors as ncs
 
 validation = (
     pb.Validate(
@@ -29,6 +30,10 @@ validation = (
     )
     .col_vals_not_null(
         columns=pb.last_n(2)            # check that the last two columns don't have Null values
+    )
+    .col_vals_regex(
+        columns=ncs.string(),           # check that all string columns are non-empty strings
+        pattern=r"(.|\s)*\S(.|\s)*"
     )
     .interrogate()
 )
@@ -38,6 +43,7 @@ validation
 
 ```python
 import pointblank as pb
+import narwhals.selectors as ncs
 
 validation = (
     pb.Validate(
@@ -53,6 +59,10 @@ validation = (
     )
     .col_vals_not_null(
         columns=pb.last_n(2)            # check that the last two columns don't have Null values
+    )
+    .col_vals_regex(
+        columns=ncs.string(),           # check that all string columns are non-empty strings
+        pattern=r"(.|\s)*\S(.|\s)*"
     )
     .interrogate()
 )
