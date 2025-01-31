@@ -7,8 +7,8 @@ labels: "Type: ★ Enhancement"
 
 ## Prework
 
-- [ ] Read and abide by the pointblank [code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) and [contributing guidelines](https://github.com/rich-iannone/pointblank/blob/main/.github/CONTRIBUTING.md).
-- [ ] Search for duplicates among the [existing issues](https://github.com/rich-iannone/pointblank/issues) (both open and closed).
+- [ ] Read and abide by the pointblank [code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) and [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/.github/CONTRIBUTING.md).
+- [ ] Search for duplicates among the [existing issues](https://github.com/posit-dev/pointblank/issues) (both open and closed).
 
 ## Proposal
 

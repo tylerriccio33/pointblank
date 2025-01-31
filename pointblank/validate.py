@@ -6334,7 +6334,7 @@ class Validate:
 
         :::{.callout-warning}
         The `get_step_report()` is still experimental. Please report any issues you encounter at the
-        [Pointblank issue tracker](https://github.com/rich-iannone/pointblank/issues).
+        [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
         :::
 
         Parameters

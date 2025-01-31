@@ -22,10 +22,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering",
 ]
@@ -87,7 +83,7 @@ dev = [
 ]
 
 [project.urls]
-homepage = "https://github.com/rich-iannone/pointblank"
+homepage = "https://github.com/posit-dev/pointblank"
 
 [tool.flake8]
 exclude = ["docs", ".venv", "tests/*"]

@@ -7,14 +7,14 @@ _Find out if your data is what you think it is._
 [![Python Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
 [![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pointblank)](https://pypistats.org/packages/pointblank)
-[![License](https://img.shields.io/github/license/rich-iannone/pointblank)](https://img.shields.io/github/license/rich-iannone/pointblank)
+[![License](https://img.shields.io/github/license/posit-dev/pointblank)](https://img.shields.io/github/license/posit-dev/pointblank)
 
-[![CI Build](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/rich-iannone/pointblank/actions/workflows/ci-tests.yaml)
-[![Codecov branch](https://img.shields.io/codecov/c/github/rich-iannone/pointblank/main.svg)](https://codecov.io/gh/rich-iannone/pointblank)
+[![CI Build](https://github.com/posit-dev/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/posit-dev/pointblank/actions/workflows/ci-tests.yaml)
+[![Codecov branch](https://img.shields.io/codecov/c/github/posit-dev/pointblank/main.svg)](https://codecov.io/gh/posit-dev/pointblank)
 [![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://rich-iannone.github.io/pointblank/)
+[![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://posit-dev.github.io/pointblank/)
 
-[![Contributors](https://img.shields.io/github/contributors/rich-iannone/pointblank)](https://github.com/rich-iannone/pointblank/graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/posit-dev/pointblank)](https://github.com/posit-dev/pointblank/graphs/contributors)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
 
 </div>
@@ -43,7 +43,7 @@ validation
 ```
 
 <div align="center">
-<img src="https://rich-iannone.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
 </div>
 
 The rows in the validation report table correspond to each of the validation steps. One of the key
@@ -82,10 +82,10 @@ Here's a short list of what we think makes Pointblank a great tool for data vali
 - **Easy to Use**: Get started quickly with a straightforward API and clear documentation examples
 - **Powerful**: You can make complex data validation rules with flexible options for composition
 
-There's a lot of [interesting examples](https://rich-iannone.github.io/pointblank/demos/) you can
+There's a lot of [interesting examples](https://posit-dev.github.io/pointblank/demos/) you can
 check out in the documentation website. If you have any questions or would like to request a
-feature, you are always welcome to [create an issue](https://github.com/rich-iannone/pointblank/issues)
-or [start a discussion](https://github.com/rich-iannone/pointblank/discussions)!
+feature, you are always welcome to [create an issue](https://github.com/posit-dev/pointblank/issues)
+or [start a discussion](https://github.com/posit-dev/pointblank/discussions)!
 
 ## Installation
 
@@ -96,7 +96,7 @@ pip install pointblank
 ```
 
 If you encounter a bug, have usage questions, or want to share ideas to make this package better,
-please feel free to file an [issue](https://github.com/rich-iannone/pointblank/issues).
+please feel free to file an [issue](https://github.com/posit-dev/pointblank/issues).
 
 ## Code of Conduct
 
@@ -112,12 +112,14 @@ problems, etc.) and others might take more time and care (like answering questio
 PRs with code changes). Just know that anything you can do to help would be very much appreciated!
 
 Please read over the
-[contributing guidelines](https://github.com/rich-iannone/pointblank/blob/main/CONTRIBUTING.md) for
+[contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) for
 information on how to get started.
 
 ## 📄 License
 
 Pointblank is licensed under the MIT license.
+
+© Posit Software, PBC.
 
 ## 🏛️ Governance
 

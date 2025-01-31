@@ -4,7 +4,7 @@ There are many ways to contribute to the ongoing development of the pointblank p
 
 ## Filing Issues
 
-If you believe you found a bug, minimal reproducible example (MRE) for your posting to the [pointblank issue tracker](https://github.com/rich-iannone/pointblank/issues). Try not to include anything unnecessary, just the minimal amount of code that constitutes the reproducible bug. For useful guidelines on how to create an MRE, take a look at [this guide on Stack Overflow](https://stackoverflow.com/help/minimal-reproducible-example). We will try to verify the bug by running the code in the provided MRE. The quality of the MRE will reduce the amount of back-and-forth communication in trying to understand how to execute the code on our systems.
+If you believe you found a bug, minimal reproducible example (MRE) for your posting to the [pointblank issue tracker](https://github.com/posit-dev/pointblank/issues). Try not to include anything unnecessary, just the minimal amount of code that constitutes the reproducible bug. For useful guidelines on how to create an MRE, take a look at [this guide on Stack Overflow](https://stackoverflow.com/help/minimal-reproducible-example). We will try to verify the bug by running the code in the provided MRE. The quality of the MRE will reduce the amount of back-and-forth communication in trying to understand how to execute the code on our systems.
 
 ## Answering questions
 
@@ -27,7 +27,7 @@ Once there is consensus that a PR based on the issue would be helpful, adhering 
 
 To set up your development environment, you can follow these steps:
 
-- Clone the rich-iannone/pointblank repository
+- Clone the posit-dev/pointblank repository
 - Create a virtual environment for the folder
 - Install the package in editable mode with `pip install -e .` from the root of the project folder
 - Install the development dependencies with `pip install '.[dev]'` (have a look at the `pyproject.toml` file for the list of development dependencies)
