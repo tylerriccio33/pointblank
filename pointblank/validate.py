@@ -410,6 +410,29 @@ def preview(
     if incl_header is None:
         incl_header = global_config.preview_incl_header
 
+    return _generate_display_table(
+        data=data,
+        columns_subset=columns_subset,
+        n_head=n_head,
+        n_tail=n_tail,
+        limit=limit,
+        show_row_numbers=show_row_numbers,
+        max_col_width=max_col_width,
+        incl_header=incl_header,
+    )
+
+
+def _generate_display_table(
+    data: FrameT | Any,
+    columns_subset: str | list[str] | Column | None = None,
+    n_head: int = 5,
+    n_tail: int = 5,
+    limit: int | None = 50,
+    show_row_numbers: bool = True,
+    max_col_width: int | None = 250,
+    incl_header: bool = None,
+) -> GT:
+
     # Make a copy of the data to avoid modifying the original
     data = copy.deepcopy(data)
 
