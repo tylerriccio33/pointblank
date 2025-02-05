@@ -4020,7 +4020,7 @@ def test_interrogate_first_n(request, tbl_fixture):
         # Expect that the extracts table has 2 entries out of 3 failures
         assert validation.n_failed(i=1, scalar=True) == 3
         assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 2
-        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
@@ -4043,7 +4043,7 @@ def test_interrogate_sample_n(request, tbl_fixture):
         # Expect that the extracts table has 2 entries out of 3 failures
         assert validation.n_failed(i=1, scalar=True) == 3
         assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 2
-        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
+        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 
 @pytest.mark.parametrize(
@@ -4076,7 +4076,7 @@ def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
     # Expect that the extracts table has 2 entries out of 3 failures
     assert validation.n_failed(i=1, scalar=True) == 3
     assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == expected
-    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_dates_times_text_pd", "tbl_dates_times_text_pl"])
@@ -4093,7 +4093,7 @@ def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
     # Expect that the extracts table has 2 entries out of 3 failures
     assert validation.n_failed(i=1, scalar=True) == 3
     assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 1
-    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 3
+    assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
