@@ -626,3 +626,11 @@ def _get_examples_text() -> str:
             examples_text += f"### {title} ({link})\n\n{desc}\n\n{code_text}\n\n"
 
     return examples_text
+
+
+def _get_api_and_examples_text() -> str:
+
+    api_text = _get_api_text()
+    examples_text = _get_examples_text()
+
+    return f"{api_text}\n\n{examples_text}"
