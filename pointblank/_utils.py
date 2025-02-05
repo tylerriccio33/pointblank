@@ -562,7 +562,11 @@ global configuration parameters with `config()`."""
 
 def _get_examples_text() -> str:
 
-    examples_text = ""
+    sep_line = "-" * 70
+
+    examples_text = (
+        f"{sep_line}\nThis is a set of examples for the Pointblank library.\n{sep_line}\n\n"
+    )
 
     # A large set of examples is available in the docs/demos directory, and each of the
     # subdirectories contains a different example (in the form of a Quarto document)
@@ -612,10 +616,13 @@ def _get_examples_text() -> str:
             # these can be identified as starting with ```python and ending with ```
             code_blocks = re.findall(r"```python\n(.*?)```", example_text, re.DOTALL)
 
+            # Wrap each code block with a leading ```python and trailing ```
+            code_blocks = [f"```python\n{code}```" for code in code_blocks]
+
             # Collapse all code blocks into a single string
             code_text = "\n\n".join(code_blocks)
 
             # Add the example title, description, and code to the examples text
-            examples_text += f"### {title} ({link})\n\n{desc}\n\n```python\n{code_text}\n```\n\n"
+            examples_text += f"### {title} ({link})\n\n{desc}\n\n{code_text}\n\n"
 
     return examples_text
