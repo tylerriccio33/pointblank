@@ -10,7 +10,7 @@ html-table-processing: none
 
 Pulling out data extracts that highlight rows with validation failures.
 
-Validation with failures at *Step 2*:
+<p style="text-transform: uppercase;">Validation with failures at *Step 2*:</p>
 
 ```{python}
 #| echo: false
@@ -23,8 +23,8 @@ validation = (
         tbl_name="game_revenue",
         label="Validation with test unit failures available as an extract"
     )
-    .col_vals_gt(columns="item_revenue", value=0)      # STEP 1: no test unit failures
-    .col_vals_ge(columns="session_duration", value=5)  # STEP 2: 14 test unit failures -> extract
+    .col_vals_gt(columns="item_revenue", value=0)
+    .col_vals_ge(columns="session_duration", value=5)
     .interrogate()
 )
 
@@ -32,11 +32,11 @@ validation
 ```
 
 <br>
-Extract from *Step 2* (`.col_vals_ge(columns="session_duration", value=5)`):
+<p style="text-transform: uppercase;">Extract from *Step 2* (which has 14 failing test units):</p>
 
 ```{python}
 #| echo: false
-pb.preview(validation.get_data_extracts(i=2, frame=True))
+pb.preview(validation.get_data_extracts(i=2, frame=True), n_head=20, n_tail=20)
 ```
 
 ```python
@@ -50,7 +50,6 @@ validation = (
     )
     .col_vals_gt(columns="item_revenue", value=0)      # STEP 1: no test unit failures
     .col_vals_ge(columns="session_duration", value=5)  # STEP 2: 14 test unit failures -> extract
-    .interrogate()
     .interrogate()
 )
 ```
