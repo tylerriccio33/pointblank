@@ -558,3 +558,64 @@ global configuration parameters with `config()`."""
     api_text = re.sub(r"```python\n\s*.*\n\s*.*\n.*\n.*\n.*```\n\s*", "", api_text)
 
     return api_text
+
+
+def _get_examples_text() -> str:
+
+    examples_text = ""
+
+    # A large set of examples is available in the docs/demos directory, and each of the
+    # subdirectories contains a different example (in the form of a Quarto document)
+
+    example_dirs = [
+        "01-starter",
+        "02-advanced",
+        "03-data-extracts",
+        "04-sundered-data",
+        "05-step-report-column-check",
+        "06-step-report-schema-check",
+        "apply-checks-to-several-columns",
+        "check-row-column-counts",
+        "checks-for-missing",
+        "col-vals-custom-expr",
+        "column-selector-functions",
+        "comparisons-across-columns",
+        "expect-no-duplicate-rows",
+        "expect-no-duplicate-values",
+        "expect-text-pattern",
+        "failure-thresholds",
+        "mutate-table-in-step",
+        "numeric-comparisons",
+        "schema-check",
+        "set-membership",
+        "using-parquet-data",
+    ]
+
+    for example_dir in example_dirs:
+
+        link = f"https://posit-dev.github.io/pointblank/demos/{example_dir}/"
+
+        # Read in the index.qmd file for each example
+        with open(f"docs/demos/{example_dir}/index.qmd", "r") as f:
+            example_text = f.read()
+
+            # Remove the first eight lines of the example text (contains the YAML front matter)
+            example_text = "\n".join(example_text.split("\n")[8:])
+
+            # Extract the title of the example (the line beginning with `###`)
+            title = re.search(r"### (.*)", example_text).group(1)
+
+            # The next line with text is the short description of the example
+            desc = re.search(r"(.*)\.", example_text).group(1)
+
+            # Get all of the Python code blocks in the example
+            # these can be identified as starting with ```python and ending with ```
+            code_blocks = re.findall(r"```python\n(.*?)```", example_text, re.DOTALL)
+
+            # Collapse all code blocks into a single string
+            code_text = "\n\n".join(code_blocks)
+
+            # Add the example title, description, and code to the examples text
+            examples_text += f"### {title} ({link})\n\n{desc}\n\n```python\n{code_text}\n```\n\n"
+
+    return examples_text
