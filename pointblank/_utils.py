@@ -427,6 +427,14 @@ def get_api_details(module, exported_list):
 
 
 def _get_api_text() -> str:
+    """
+    Get the API documentation for the Pointblank library.
+
+    Returns
+    -------
+    str
+        The API documentation for the Pointblank library.
+    """
 
     import pointblank
 
@@ -561,6 +569,15 @@ global configuration parameters with `config()`."""
 
 
 def _get_examples_text() -> str:
+    """
+    Get the examples for the Pointblank library. These examples are extracted from the Quarto
+    documents in the `docs/demos` directory.
+
+    Returns
+    -------
+    str
+        The examples for the Pointblank library.
+    """
 
     sep_line = "-" * 70
 
@@ -629,6 +646,14 @@ def _get_examples_text() -> str:
 
 
 def _get_api_and_examples_text() -> str:
+    """
+    Get the combined API and examples text for the Pointblank library.
+
+    Returns
+    -------
+    str
+        The combined API and examples text for the Pointblank library.
+    """
 
     api_text = _get_api_text()
     examples_text = _get_examples_text()
