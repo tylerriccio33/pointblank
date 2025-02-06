@@ -21,6 +21,9 @@ from pointblank._utils import (
     _check_invalid_fields,
     _select_df_lib,
     _get_tbl_type,
+    _get_api_text,
+    _get_examples_text,
+    _get_api_and_examples_text,
 )
 
 
@@ -426,3 +429,18 @@ def test_get_tbl_type():
 
     assert _get_tbl_type(pd.DataFrame()) == "pandas"
     assert _get_tbl_type(pl.DataFrame()) == "polars"
+
+
+def test_get_api_text():
+
+    assert isinstance(_get_api_text(), str)
+
+
+def test_get_examples_text():
+
+    assert isinstance(_get_examples_text(), str)
+
+
+def test_get_api_and_examples_text():
+
+    assert isinstance(_get_api_and_examples_text(), str)

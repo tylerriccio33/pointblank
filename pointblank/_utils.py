@@ -383,3 +383,279 @@ def _check_invalid_fields(fields: list[str], valid_fields: list[str]):
     for field in fields:
         if field not in valid_fields:
             raise ValueError(f"Invalid field: {field}")
+
+
+def get_api_details(module, exported_list):
+    """
+    Retrieve the signatures and docstrings of the functions/classes in the exported list.
+
+    Parameters
+    ----------
+    module : module
+        The module from which to retrieve the functions/classes.
+    exported_list : list
+        A list of function/class names as strings.
+
+    Returns
+    -------
+    str
+        A string containing the combined class name, signature, and docstring.
+    """
+    api_text = ""
+
+    for fn in exported_list:
+
+        # Split the attribute path to handle nested attributes
+        parts = fn.split(".")
+        obj = module
+        for part in parts:
+            obj = getattr(obj, part)
+
+        # Get the name of the object
+        obj_name = obj.__name__
+
+        # Get the function signature
+        sig = inspect.signature(obj)
+
+        # Get the docstring
+        doc = obj.__doc__
+
+        # Combine the class name, signature, and docstring
+        api_text += f"{obj_name}{sig}\n{doc}\n\n"
+
+    return api_text
+
+
+def _get_api_text() -> str:
+    """
+    Get the API documentation for the Pointblank library.
+
+    Returns
+    -------
+    str
+        The API documentation for the Pointblank library.
+    """
+
+    import pointblank
+
+    sep_line = "-" * 70
+
+    api_text = (
+        f"{sep_line}\nThis is the API documentation for the Pointblank library.\n{sep_line}\n\n"
+    )
+
+    #
+    # Lists of exported functions and methods in different families
+    #
+
+    validate_exported = [
+        "Validate",
+        "Thresholds",
+        "Schema",
+    ]
+
+    val_steps_exported = [
+        "Validate.col_vals_gt",
+        "Validate.col_vals_lt",
+        "Validate.col_vals_ge",
+        "Validate.col_vals_le",
+        "Validate.col_vals_eq",
+        "Validate.col_vals_ne",
+        "Validate.col_vals_between",
+        "Validate.col_vals_outside",
+        "Validate.col_vals_in_set",
+        "Validate.col_vals_not_in_set",
+        "Validate.col_vals_null",
+        "Validate.col_vals_not_null",
+        "Validate.col_vals_regex",
+        "Validate.col_vals_expr",
+        "Validate.col_exists",
+        "Validate.rows_distinct",
+        "Validate.col_schema_match",
+        "Validate.row_count_match",
+        "Validate.col_count_match",
+    ]
+
+    column_selection_exported = [
+        "col",
+        "starts_with",
+        "ends_with",
+        "contains",
+        "matches",
+        "everything",
+        "first_n",
+        "last_n",
+    ]
+
+    interrogation_exported = [
+        "Validate.interrogate",
+        "Validate.get_tabular_report",
+        "Validate.get_step_report",
+        "Validate.get_json_report",
+        "Validate.get_sundered_data",
+        "Validate.get_data_extracts",
+        "Validate.all_passed",
+        "Validate.n",
+        "Validate.n_passed",
+        "Validate.n_failed",
+        "Validate.f_passed",
+        "Validate.f_failed",
+        "Validate.warn",
+        "Validate.stop",
+        "Validate.notify",
+    ]
+
+    utilities_exported = [
+        "load_dataset",
+        "preview",
+        "get_column_count",
+        "get_row_count",
+        "config",
+    ]
+
+    validate_desc = """When peforming data validation, you'll need the `Validate` class to get the
+process started. It's given the target table and you can optionally provide some metadata and/or
+failure thresholds (using the `Thresholds` class or through shorthands for this task). The
+`Validate` class has numerous methods for defining validation steps and for obtaining
+post-interrogation metrics and data."""
+
+    val_steps_desc = """Validation steps can be thought of as sequential validations on the target
+data. We call `Validate`'s validation methods to build up a validation plan: a collection of steps
+that, in the aggregate, provides good validation coverage."""
+
+    column_selection_desc = """A flexible way to select columns for validation is to use the `col()`
+function along with column selection helper functions. A combination of `col()` + `starts_with()`,
+`matches()`, etc., allows for the selection of multiple target columns (mapping a validation across
+many steps). Furthermore, the `col()` function can be used to declare a comparison column (e.g.,
+for the `value=` argument in many `col_vals_*()` methods) when you can't use a fixed value
+for comparison."""
+
+    interrogation_desc = """The validation plan is put into action when `interrogate()` is called.
+The workflow for performing a comprehensive validation is then: (1) `Validate()`, (2) adding
+validation steps, (3) `interrogate()`. After interrogation of the data, we can view a validation
+report table (by printing the object or using `get_tabular_report()`), extract key metrics, or we
+can split the data based on the validation results (with `get_sundered_data()`)."""
+
+    utilities_desc = """The utilities group contains functions that are helpful for the validation
+process. We can load datasets with `load_dataset()`, preview a table with `preview()`, and set
+global configuration parameters with `config()`."""
+
+    #
+    # Add headings (`*_desc` text) and API details for each family of functions/methods
+    #
+
+    api_text += f"""\n## The Validate family\n\n{validate_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=validate_exported)
+
+    api_text += f"""\n## The Validation Steps family\n\n{val_steps_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=val_steps_exported)
+
+    api_text += f"""\n## The Column Selection family\n\n{column_selection_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=column_selection_exported)
+
+    api_text += f"""\n## The Interrogation and Reporting family\n\n{interrogation_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=interrogation_exported)
+
+    api_text += f"""\n## The Utilities family\n\n{utilities_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=utilities_exported)
+
+    # Modify language syntax in all code cells
+    api_text = api_text.replace("{python}", "python")
+
+    # Remove code cells that contain `#| echo: false` (i.e., don't display the code)
+    api_text = re.sub(r"```python\n\s*.*\n\s*.*\n.*\n.*\n.*```\n\s*", "", api_text)
+
+    return api_text
+
+
+def _get_examples_text() -> str:
+    """
+    Get the examples for the Pointblank library. These examples are extracted from the Quarto
+    documents in the `docs/demos` directory.
+
+    Returns
+    -------
+    str
+        The examples for the Pointblank library.
+    """
+
+    sep_line = "-" * 70
+
+    examples_text = (
+        f"{sep_line}\nThis is a set of examples for the Pointblank library.\n{sep_line}\n\n"
+    )
+
+    # A large set of examples is available in the docs/demos directory, and each of the
+    # subdirectories contains a different example (in the form of a Quarto document)
+
+    example_dirs = [
+        "01-starter",
+        "02-advanced",
+        "03-data-extracts",
+        "04-sundered-data",
+        "05-step-report-column-check",
+        "06-step-report-schema-check",
+        "apply-checks-to-several-columns",
+        "check-row-column-counts",
+        "checks-for-missing",
+        "col-vals-custom-expr",
+        "column-selector-functions",
+        "comparisons-across-columns",
+        "expect-no-duplicate-rows",
+        "expect-no-duplicate-values",
+        "expect-text-pattern",
+        "failure-thresholds",
+        "mutate-table-in-step",
+        "numeric-comparisons",
+        "schema-check",
+        "set-membership",
+        "using-parquet-data",
+    ]
+
+    for example_dir in example_dirs:
+
+        link = f"https://posit-dev.github.io/pointblank/demos/{example_dir}/"
+
+        # Read in the index.qmd file for each example
+        with open(f"docs/demos/{example_dir}/index.qmd", "r") as f:
+            example_text = f.read()
+
+            # Remove the first eight lines of the example text (contains the YAML front matter)
+            example_text = "\n".join(example_text.split("\n")[8:])
+
+            # Extract the title of the example (the line beginning with `###`)
+            title = re.search(r"### (.*)", example_text).group(1)
+
+            # The next line with text is the short description of the example
+            desc = re.search(r"(.*)\.", example_text).group(1)
+
+            # Get all of the Python code blocks in the example
+            # these can be identified as starting with ```python and ending with ```
+            code_blocks = re.findall(r"```python\n(.*?)```", example_text, re.DOTALL)
+
+            # Wrap each code block with a leading ```python and trailing ```
+            code_blocks = [f"```python\n{code}```" for code in code_blocks]
+
+            # Collapse all code blocks into a single string
+            code_text = "\n\n".join(code_blocks)
+
+            # Add the example title, description, and code to the examples text
+            examples_text += f"### {title} ({link})\n\n{desc}\n\n{code_text}\n\n"
+
+    return examples_text
+
+
+def _get_api_and_examples_text() -> str:
+    """
+    Get the combined API and examples text for the Pointblank library.
+
+    Returns
+    -------
+    str
+        The combined API and examples text for the Pointblank library.
+    """
+
+    api_text = _get_api_text()
+    examples_text = _get_examples_text()
+
+    return f"{api_text}\n\n{examples_text}"
