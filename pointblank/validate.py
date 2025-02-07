@@ -824,6 +824,12 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     # Get the number of rows in the table
     n_rows = get_row_count(data)
 
+    # Define the number of cut points for the missing values table
+    n_cut_points = 11
+
+    # Get the cut points for the table preview
+    cut_points = _get_cut_points(n_rows=n_rows, n_cuts=n_cut_points)
+
     # Determine if the table is a DataFrame or an Ibis table
     tbl_type = _get_tbl_type(data=data)
     ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
@@ -850,17 +856,8 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     #   the proportion of missing values in each 'sector' in each column
     if ibis_tbl:
 
-        # Get the row count for the table
-        ibis_rows = data.count()
-        n_rows = ibis_rows.to_polars() if df_lib_name_gt == "polars" else int(ibis_rows.to_pandas())
-
         # Get the column names from the table
         col_names = list(data.columns)
-
-        n_cut_points = 11
-
-        # Get the cut points for the table preview
-        cut_points = _get_cut_points(n_rows=n_rows, n_cuts=n_cut_points)
 
         # Iterate over the cut points and get the proportion of missing values in each 'sector'
         # for each column
@@ -877,9 +874,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             for col in data.columns
         }
 
-        # Get a dictionary of counts of missing values in each column
-        missing_val_counts = {col: data[col].isnull().sum().to_polars() for col in data.columns}
-
+        # Pivot the `missing_vals` dictionary to create a table with the missing value proportions
         missing_vals = {
             "columns": list(missing_vals.keys()),
             **{
@@ -887,13 +882,88 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             },
         }
 
-    # From `missing_vals`, create a DataFrame with the missing value proportions
+        # Get a dictionary of counts of missing values in each column
+        missing_val_counts = {col: data[col].isnull().sum().to_polars() for col in data.columns}
+
+    if pl_pb_tbl:
+
+        # Get the column names from the table
+        col_names = list(data.columns)
+
+        # Iterate over the cut points and get the proportion of missing values in each 'sector'
+        # for each column
+        if "polars" in tbl_type:
+
+            # Polars case
+            missing_vals = {
+                col: [
+                    (
+                        data[(cut_points[i] - 1) : cut_points[i]][col].is_null().sum()
+                        / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
+                        else 0
+                    )
+                    for i in range(len(cut_points))
+                ]
+                for col in data.columns
+            }
+
+            # Pivot the `missing_vals` dictionary to create a table with the missing
+            # value proportions
+            missing_vals = {
+                "columns": list(missing_vals.keys()),
+                **{
+                    str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
+                    for i in range(10)
+                },
+            }
+
+            # Get a dictionary of counts of missing values in each column
+            missing_val_counts = {col: data[col].is_null().sum() for col in data.columns}
+
+        if "pandas" in tbl_type:
+
+            # Pandas case (for this case, if final values are zero then use pd.NA)
+            missing_vals = {
+                col: [
+                    (
+                        data[(cut_points[i] - 1) : cut_points[i]][col].isnull().sum()
+                        / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
+                        else 0
+                    )
+                    for i in range(len(cut_points))
+                ]
+                for col in data.columns
+            }
+
+            # Pivot the `missing_vals` dictionary to create a table with the missing
+            # value proportions
+            missing_vals = {
+                "columns": list(missing_vals.keys()),
+                **{
+                    str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
+                    for i in range(10)
+                },
+            }
+
+            # Get a dictionary of counts of missing values in each column
+            missing_val_counts = {col: data[col].isnull().sum() for col in data.columns}
+
+    # From `missing_vals`, create da DataFrame with the missing value proportions
     if df_lib_name_gt == "polars":
 
         import polars as pl
 
         # Create a Polars DataFrame from the `missing_vals` dictionary
         missing_vals_df = pl.DataFrame(missing_vals)
+
+    else:
+
+        import pandas as pd
+
+        # Create a Pandas DataFrame from the `missing_vals` dictionary
+        missing_vals_df = pd.DataFrame(missing_vals)
 
     # Get a count of total missing values
     n_missing_total = sum(missing_val_counts.values())
@@ -923,8 +993,6 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         "</div>"
         "</div>"
     )
-
-    import polars.selectors as cs
 
     missing_vals_tbl = (
         GT(missing_vals_df)
@@ -975,8 +1043,32 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             locations=loc.column_labels(),
         )
         .fmt(fns=lambda x: "", columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
-        .tab_style(style=style.fill(color="lightblue"), locations=loc.body(mask=cs.numeric().eq(0)))
     )
+
+    #
+    # Highlight sectors of the table where there are no missing values
+    #
+
+    if df_lib_name_gt == "polars":
+
+        import polars.selectors as cs
+
+        missing_vals_tbl = missing_vals_tbl.tab_style(
+            style=style.fill(color="lightblue"), locations=loc.body(mask=cs.numeric().eq(0))
+        )
+
+    if df_lib_name_gt == "pandas":
+
+        # For every column in the DataFrame, determine the indices of the rows where the value is 0
+        # and use tab_style to fill the cell with a light blue color
+        for col in missing_vals_df.columns:
+
+            row_indices = list(missing_vals_df[missing_vals_df[col] == 0].index)
+
+            missing_vals_tbl = missing_vals_tbl.tab_style(
+                style=style.fill(color="lightblue"),
+                locations=loc.body(columns=col, rows=row_indices),
+            )
 
     return missing_vals_tbl
 
