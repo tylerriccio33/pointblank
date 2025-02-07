@@ -18,6 +18,7 @@ from pointblank.validate import (
     Validate,
     load_dataset,
     preview,
+    missing_vals_tbl,
     get_column_count,
     get_row_count,
     PointblankConfig,
@@ -4719,6 +4720,24 @@ def test_preview_with_columns_subset_failing(tbl_type):
         preview(tbl, columns_subset=["fake_id", "item_name", "item_revenue"])
     with pytest.raises(ValueError):
         preview(tbl, columns_subset=col(matches("fake_id")))
+
+
+def test_missing_vals_tbl_no_fail_pd_table():
+
+    small_table = load_dataset(dataset="small_table", tbl_type="pandas")
+    missing_vals_tbl(small_table)
+
+
+def test_missing_vals_tbl_no_fail_pl_table():
+
+    small_table = load_dataset(dataset="small_table", tbl_type="polars")
+    missing_vals_tbl(small_table)
+
+
+def test_missing_vals_tbl_no_fail_duckdb_table():
+
+    small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+    missing_vals_tbl(small_table)
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
