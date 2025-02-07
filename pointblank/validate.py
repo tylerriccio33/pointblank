@@ -69,7 +69,15 @@ from pointblank._utils_check_args import (
 )
 from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
 
-__all__ = ["Validate", "load_dataset", "config", "preview", "get_column_count", "get_row_count"]
+__all__ = [
+    "Validate",
+    "load_dataset",
+    "config",
+    "preview",
+    "missing_vals_tbl",
+    "get_column_count",
+    "get_row_count",
+]
 
 
 @dataclass
@@ -770,6 +778,225 @@ def _generate_display_table(
         )
 
     return gt_tbl
+
+
+def missing_vals_tbl(data: FrameT | Any) -> GT:
+    """
+    Display a table that shows the missing values in the input table.
+
+    The `missing_vals_tbl()` function generates a table that shows the missing values in the input
+    table. The table is displayed using the Great Tables (`GT`) API, which allows for further
+    customization of the table's appearance if so desired.
+
+    Parameters
+    ----------
+    data
+        The table for which to display the missing values. This could be a DataFrame object or an
+        Ibis table object. Read the *Supported Input Table Types* section for details on the
+        supported table types.
+
+    Returns
+    -------
+    GT
+        A GT object that displays the table of missing values in the input table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `missing_vals_tbl()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+    """
+
+    # Make a copy of the data to avoid modifying the original
+    data = copy.deepcopy(data)
+
+    # Get the number of rows in the table
+    n_rows = get_row_count(data)
+
+    # Determine if the table is a DataFrame or an Ibis table
+    tbl_type = _get_tbl_type(data=data)
+    ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
+    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type
+
+    # Select the DataFrame library to use for displaying the Ibis table
+    df_lib_gt = _select_df_lib(preference="polars")
+    df_lib_name_gt = df_lib_gt.__name__
+
+    # If the table is a DataFrame (Pandas or Polars), set `df_lib_name_gt` to the name of the
+    # library (e.g., "polars" or "pandas")
+    if pl_pb_tbl:
+        df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
+
+        # Handle imports of Polars or Pandas here
+        if df_lib_name_gt == "polars":
+            import polars as pl
+        else:
+            import pandas as pd
+
+    # From an Ibis table:
+    # - get the row count
+    # - get 10 cut points for table preview, these are row numbers used as buckets for determining
+    #   the proportion of missing values in each 'sector' in each column
+    if ibis_tbl:
+
+        # Get the row count for the table
+        ibis_rows = data.count()
+        n_rows = ibis_rows.to_polars() if df_lib_name_gt == "polars" else int(ibis_rows.to_pandas())
+
+        # Get the column names from the table
+        col_names = list(data.columns)
+
+        n_cut_points = 11
+
+        # Get the cut points for the table preview
+        cut_points = _get_cut_points(n_rows=n_rows, n_cuts=n_cut_points)
+
+        # Iterate over the cut points and get the proportion of missing values in each 'sector'
+        # for each column
+        missing_vals = {
+            col: [
+                (
+                    data[(cut_points[i] - 1) : cut_points[i]][col].isnull().sum().to_polars()
+                    / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                    if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
+                    else 0
+                )
+                for i in range(len(cut_points))
+            ]
+            for col in data.columns
+        }
+
+        # Get a dictionary of counts of missing values in each column
+        missing_val_counts = {col: data[col].isnull().sum().to_polars() for col in data.columns}
+
+        missing_vals = {
+            "columns": list(missing_vals.keys()),
+            **{
+                str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()] for i in range(10)
+            },
+        }
+
+    # From `missing_vals`, create a DataFrame with the missing value proportions
+    if df_lib_name_gt == "polars":
+
+        import polars as pl
+
+        # Create a Polars DataFrame from the `missing_vals` dictionary
+        missing_vals_df = pl.DataFrame(missing_vals)
+
+    # Get a count of total missing values
+    n_missing_total = sum(missing_val_counts.values())
+
+    # Create the label, table type, and thresholds HTML fragments
+    table_type_html = _create_table_type_html(tbl_type=tbl_type, tbl_name=None, font_size="10px")
+
+    tbl_dims_html = _create_table_dims_html(columns=len(col_names), rows=n_rows, font_size="10px")
+
+    check_mark = '<span style="color:#4CA64C;">&check;</span>'
+
+    # Compose the title HTML fragment
+    if n_missing_total == 0:
+        combined_title = f"Missing Values {check_mark}"
+    else:
+        combined_title = (
+            "Missing Values&nbsp;&nbsp;&nbsp;<span style='font-size: 14px; "
+            f"text-transform: uppercase; color: #333333'>{n_missing_total} in total</span>"
+        )
+
+    # Compose the subtitle HTML fragment
+    combined_subtitle = (
+        "<div>"
+        '<div style="padding-top: 0; padding-bottom: 7px;">'
+        f"{table_type_html}"
+        f"{tbl_dims_html}"
+        "</div>"
+        "</div>"
+    )
+
+    import polars.selectors as cs
+
+    missing_vals_tbl = (
+        GT(missing_vals_df)
+        .tab_header(title=html(combined_title), subtitle=html(combined_subtitle))
+        .opt_table_font(font=google_font(name="IBM Plex Sans"))
+        .opt_align_table_header(align="left")
+        .cols_label(columns="Column")
+        .cols_width(
+            cases={
+                "columns": "200px",
+                "1": "30px",
+                "2": "30px",
+                "3": "30px",
+                "4": "30px",
+                "5": "30px",
+                "6": "30px",
+                "7": "30px",
+                "8": "30px",
+                "9": "30px",
+                "10": "30px",
+            }
+        )
+        .cols_align(align="center", columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+        .data_color(
+            columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            palette=["#F5F5F5", "#000000"],
+            domain=[0, 1],
+        )
+        .tab_style(
+            style=style.borders(
+                sides=["left", "right"], color="#F0F0F0", style="solid", weight="1px"
+            ),
+            locations=loc.body(columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]),
+        )
+        .tab_style(
+            style=style.css(
+                "height: 20px; padding: 4px; white-space: nowrap; text-overflow: "
+                "ellipsis; overflow: hidden;"
+            ),
+            locations=loc.body(),
+        )
+        .tab_style(
+            style=style.text(color="black", font=google_font(name="IBM Plex Mono"), size="12px"),
+            locations=loc.body(),
+        )
+        .tab_style(
+            style=style.text(color="black", size="16px"),
+            locations=loc.column_labels(),
+        )
+        .fmt(fns=lambda x: "", columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+        .tab_style(style=style.fill(color="lightblue"), locations=loc.body(mask=cs.numeric().eq(0)))
+    )
+
+    return missing_vals_tbl
+
+
+def _get_cut_points(n_rows: int, n_cuts: int) -> list[int]:
+    """
+    Get the cut points for a table preview.
+
+    For a certain number of rows and a certain number of cuts, get the cut points, which are integer
+    values that divide the rows into equal parts (all parts don't have to be equal, but the cut
+    points should be as close to equal as possible and add to the total number of rows).
+    """
+
+    # Get the number of rows in each cut
+    cut_size = n_rows // n_cuts
+
+    # Get the cut points
+    cut_points = [cut_size * i for i in range(1, n_cuts)]
+
+    return cut_points
 
 
 def _get_column_names(data: FrameT | Any, ibis_tbl: bool, df_lib_name_gt: str) -> list[str]:
