@@ -522,7 +522,7 @@ def _generate_display_table(
                 row_number_list = range(1, n_rows + 1)
         else:
             # Get the first and last n rows of the table
-            data_head = data.head(n=n_head)
+            data_head = data.head(n_head)
             row_numbers_head = range(1, n_head + 1)
             data_tail = data[(n_rows - n_tail) : n_rows]
             row_numbers_tail = range(n_rows - n_tail + 1, n_rows + 1)
