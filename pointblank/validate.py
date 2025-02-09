@@ -825,10 +825,13 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     n_rows = get_row_count(data)
 
     # Define the number of cut points for the missing values table
-    n_cut_points = 11
+    n_cut_points = 9
 
     # Get the cut points for the table preview
     cut_points = _get_cut_points(n_rows=n_rows, n_cuts=n_cut_points)
+
+    # Get the row ranges for the table
+    row_ranges = _get_row_ranges(cut_points=cut_points, n_rows=n_rows)
 
     # Determine if the table is a DataFrame or an Ibis table
     tbl_type = _get_tbl_type(data=data)
@@ -859,17 +862,30 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         # Get the column names from the table
         col_names = list(data.columns)
 
-        # Iterate over the cut points and get the proportion of missing values in each 'sector'
-        # for each column
+        # Use the `row_ranges` list of lists to query, for each column, the proportion of missing
+        # values in each 'sector' of the table (a sector is a range of rows)
         missing_vals = {
             col: [
                 (
-                    data[(cut_points[i] - 1) : cut_points[i]][col].isnull().sum().to_polars()
+                    data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
+                    .isnull()
+                    .sum()
+                    .to_polars()
                     / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                    * 100
                     if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
                     else 0
                 )
                 for i in range(len(cut_points))
+            ]
+            + [
+                (
+                    data[cut_points[-1] : n_rows][col].isnull().sum().to_polars()
+                    / (n_rows - cut_points[-1])
+                    * 100
+                    if n_rows > cut_points[-1]
+                    else 0
+                )
             ]
             for col in data.columns
         }
@@ -878,7 +894,8 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         missing_vals = {
             "columns": list(missing_vals.keys()),
             **{
-                str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()] for i in range(10)
+                str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
+                for i in range(len(cut_points) + 1)
             },
         }
 
@@ -898,23 +915,33 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             missing_vals = {
                 col: [
                     (
-                        data[(cut_points[i] - 1) : cut_points[i]][col].is_null().sum()
+                        data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
+                        .is_null()
+                        .sum()
                         / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        * 100
                         if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
                         else 0
                     )
                     for i in range(len(cut_points))
                 ]
+                + [
+                    (
+                        data[cut_points[-1] : n_rows][col].is_null().sum()
+                        / (n_rows - cut_points[-1])
+                        * 100
+                        if n_rows > cut_points[-1]
+                        else 0
+                    )
+                ]
                 for col in data.columns
             }
 
-            # Pivot the `missing_vals` dictionary to create a table with the missing
-            # value proportions
             missing_vals = {
                 "columns": list(missing_vals.keys()),
                 **{
                     str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
-                    for i in range(10)
+                    for i in range(len(cut_points) + 1)
                 },
             }
 
@@ -923,16 +950,27 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
         if "pandas" in tbl_type:
 
-            # Pandas case (for this case, if final values are zero then use pd.NA)
             missing_vals = {
                 col: [
                     (
-                        data[(cut_points[i] - 1) : cut_points[i]][col].isnull().sum()
+                        data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
+                        .isnull()
+                        .sum()
                         / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        * 100
                         if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
                         else 0
                     )
                     for i in range(len(cut_points))
+                ]
+                + [
+                    (
+                        data[cut_points[-1] : n_rows][col].isnull().sum()
+                        / (n_rows - cut_points[-1])
+                        * 100
+                        if n_rows > cut_points[-1]
+                        else 0
+                    )
                 ]
                 for col in data.columns
             }
@@ -943,7 +981,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
                 "columns": list(missing_vals.keys()),
                 **{
                     str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
-                    for i in range(10)
+                    for i in range(len(cut_points) + 1)
                 },
             }
 
@@ -994,6 +1032,38 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         "</div>"
     )
 
+    # Get the row ranges for the table
+    row_ranges = _get_row_ranges(cut_points=cut_points, n_rows=n_rows)
+
+    row_ranges_html = (
+        "<div style='font-size: 8px;'><ol style='margin-top: 2px; margin-left: -15px;'>"
+        + "".join(
+            [f"<li>{row_range[0]} &ndash; {row_range[1]}</li>" for row_range in zip(*row_ranges)]
+        )
+        + "</ol></div>"
+    )
+
+    details_html = (
+        "<details style='cursor: pointer; font-size: 12px;'><summary style='font-size: 10px; color: #333333;'>ROW SECTORS</summary>"
+        f"{row_ranges_html}"
+        "</details>"
+    )
+
+    # Compose the footer HTML fragment
+    combined_footer = (
+        "<div style='display: flex; align-items: center; padding-bottom: 10px;'><div style='width: 20px; height: 20px; "
+        "background-color: lightblue; border: 1px solid #E0E0E0; margin-right: 3px;'></div>"
+        "<span style='font-size: 10px;'>NO MISSING VALUES</span><span style='font-size: 10px;'>"
+        "&nbsp;&nbsp;&nbsp;&nbsp; PROPORTION MISSING:&nbsp;&nbsp;</span>"
+        "<div style='font-size: 10px; color: #333333;'>0%</div><div style='width: 80px; "
+        "height: 20px; background: linear-gradient(to right, #F5F5F5, #000000); "
+        "border: 1px solid #E0E0E0; margin-right: 2px; margin-left: 2px'></div>"
+        "<div style='font-size: 10px; color: #333333;'>100%</div></div>"
+        f"{details_html}"
+    )
+
+    sector_list = [str(i) for i in range(1, n_cut_points + 2)]
+
     missing_vals_tbl = (
         GT(missing_vals_df)
         .tab_header(title=html(combined_title), subtitle=html(combined_subtitle))
@@ -1015,9 +1085,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
                 "10": "30px",
             }
         )
-        .cols_align(align="center", columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+        .tab_spanner(label="Row Sector", columns=sector_list)
+        .cols_align(align="center", columns=sector_list)
         .data_color(
-            columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            columns=sector_list,
             palette=["#F5F5F5", "#000000"],
             domain=[0, 1],
         )
@@ -1025,7 +1096,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             style=style.borders(
                 sides=["left", "right"], color="#F0F0F0", style="solid", weight="1px"
             ),
-            locations=loc.body(columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]),
+            locations=loc.body(columns=sector_list),
         )
         .tab_style(
             style=style.css(
@@ -1042,7 +1113,8 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             style=style.text(color="black", size="16px"),
             locations=loc.column_labels(),
         )
-        .fmt(fns=lambda x: "", columns=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+        .fmt(fns=lambda x: "", columns=sector_list)
+        .tab_source_note(source_note=html(combined_footer))
     )
 
     #
@@ -1075,20 +1147,67 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
 def _get_cut_points(n_rows: int, n_cuts: int) -> list[int]:
     """
-    Get the cut points for a table preview.
+    Get the cut points for a table.
 
-    For a certain number of rows and a certain number of cuts, get the cut points, which are integer
-    values that divide the rows into equal parts (all parts don't have to be equal, but the cut
-    points should be as close to equal as possible and add to the total number of rows).
+    For a given number of rows and cuts, get the cut points for the table. The cut points are
+    evenly spaced in the range from 1 to n_rows, excluding the first and last points.
+
+    Parameters
+    ----------
+    n_rows
+        The total number of rows in the table.
+    n_cuts
+        The number of cuts to divide the table into.
+
+    Returns
+    -------
+    list[int]
+        A list of integer values that represent the cut points for the table.
     """
 
-    # Get the number of rows in each cut
-    cut_size = n_rows // n_cuts
+    # Calculate the step size
+    step_size = n_rows // (n_cuts + 1)
 
     # Get the cut points
-    cut_points = [cut_size * i for i in range(1, n_cuts)]
+    cut_points = [step_size * i for i in range(1, n_cuts + 1)]
 
     return cut_points
+
+
+def _get_row_ranges(cut_points: list[int], n_rows: int) -> list[list[int]]:
+    """
+    Get the row ranges for a missing values table.
+
+    For a list of cut points, get the row ranges for a missing values table. The row ranges are
+    formatted as lists of integers like [1, 10], [11, 20], etc.
+
+    Parameters
+    ----------
+    cut_points
+        A list of integer values that represent the cut points for the table.
+
+    Returns
+    -------
+    list[list[int]]
+        A list of lists that represent the row ranges for the table.
+    """
+    row_ranges = []
+
+    for i in range(len(cut_points)):
+        if i == 0:
+            row_ranges.append([1, cut_points[i]])
+        else:
+            row_ranges.append([cut_points[i - 1] + 1, cut_points[i]])
+
+    # Add the final range to incorporate n_rows
+    if cut_points[-1] < n_rows:
+        row_ranges.append([cut_points[-1] + 1, n_rows])
+
+    # Split the row ranges into two lists: LHS and RHS
+    lhs_values = [pair[0] for pair in row_ranges]
+    rhs_values = [pair[1] for pair in row_ranges]
+
+    return [lhs_values, rhs_values]
 
 
 def _get_column_names(data: FrameT | Any, ibis_tbl: bool, df_lib_name_gt: str) -> list[str]:
