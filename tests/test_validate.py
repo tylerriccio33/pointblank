@@ -4727,17 +4727,26 @@ def test_missing_vals_tbl_no_fail_pd_table():
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
     missing_vals_tbl(small_table)
 
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type="pandas")
+    missing_vals_tbl(game_revenue)
+
 
 def test_missing_vals_tbl_no_fail_pl_table():
 
     small_table = load_dataset(dataset="small_table", tbl_type="polars")
     missing_vals_tbl(small_table)
 
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type="polars")
+    missing_vals_tbl(game_revenue)
+
 
 def test_missing_vals_tbl_no_fail_duckdb_table():
 
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
     missing_vals_tbl(small_table)
+
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type="duckdb")
+    missing_vals_tbl(game_revenue)
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
