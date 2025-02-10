@@ -816,6 +816,21 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     `ibis.expr.types.relations.Table`). Furthermore, using `missing_vals_tbl()` with these types of
     tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
     Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    The Missing Values Table
+    ------------------------
+    The missing values table shows the proportion of missing values in each column of the input
+    table. The table is divided into sectors, with each sector representing a range of rows in the
+    table. The proportion of missing values in each sector is calculated for each column. The table
+    is displayed using the Great Tables API, which allows for further customization of the table's
+    appearance.
+
+    To ensure that the table can scale to tables with many columns, each row in the reporting table
+    represents a column in the input table. There are 10 sectors shown in the table, where the first
+    sector represents the first 10% of the rows, the second sector represents the next 10% of the
+    rows, and so on. Any sectors that are light blue indicate that there are no missing values in
+    that sector. If there are missing values, the proportion of missing values is shown by a gray
+    color (light gray for low proportions, dark gray to black for very high proportions).
     """
 
     # Make a copy of the data to avoid modifying the original
