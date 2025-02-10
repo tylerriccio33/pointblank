@@ -25,6 +25,7 @@ from pointblank.validate import (
     load_dataset,
     config,
     preview,
+    missing_vals_tbl,
     get_column_count,
     get_row_count,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "load_dataset",
     "config",
     "preview",
+    "missing_vals_tbl",
     "get_column_count",
     "get_row_count",
 ]
