@@ -879,31 +879,61 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
         # Use the `row_ranges` list of lists to query, for each column, the proportion of missing
         # values in each 'sector' of the table (a sector is a range of rows)
-        missing_vals = {
-            col: [
-                (
-                    data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
-                    .isnull()
-                    .sum()
-                    .to_polars()
-                    / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
-                    * 100
-                    if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
-                    else 0
-                )
-                for i in range(len(cut_points))
-            ]
-            + [
-                (
-                    data[cut_points[-1] : n_rows][col].isnull().sum().to_polars()
-                    / (n_rows - cut_points[-1])
-                    * 100
-                    if n_rows > cut_points[-1]
-                    else 0
-                )
-            ]
-            for col in data.columns
-        }
+        if df_lib_name_gt == "polars":
+
+            missing_vals = {
+                col: [
+                    (
+                        data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
+                        .isnull()
+                        .sum()
+                        .to_polars()
+                        / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        * 100
+                        if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
+                        else 0
+                    )
+                    for i in range(len(cut_points))
+                ]
+                + [
+                    (
+                        data[cut_points[-1] : n_rows][col].isnull().sum().to_polars()
+                        / (n_rows - cut_points[-1])
+                        * 100
+                        if n_rows > cut_points[-1]
+                        else 0
+                    )
+                ]
+                for col in data.columns
+            }
+
+        else:
+
+            missing_vals = {
+                col: [
+                    (
+                        data[(cut_points[i - 1] if i > 0 else 0) : cut_points[i]][col]
+                        .isnull()
+                        .sum()
+                        .to_pandas()
+                        / (cut_points[i] - (cut_points[i - 1] if i > 0 else 0))
+                        * 100
+                        if cut_points[i] > (cut_points[i - 1] if i > 0 else 0)
+                        else 0
+                    )
+                    for i in range(len(cut_points))
+                ]
+                + [
+                    (
+                        data[cut_points[-1] : n_rows][col].isnull().sum().to_pandas()
+                        / (n_rows - cut_points[-1])
+                        * 100
+                        if n_rows > cut_points[-1]
+                        else 0
+                    )
+                ]
+                for col in data.columns
+            }
 
         # Pivot the `missing_vals` dictionary to create a table with the missing value proportions
         missing_vals = {
@@ -915,7 +945,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         }
 
         # Get a dictionary of counts of missing values in each column
-        missing_val_counts = {col: data[col].isnull().sum().to_polars() for col in data.columns}
+        if df_lib_name_gt == "polars":
+            missing_val_counts = {col: data[col].isnull().sum().to_polars() for col in data.columns}
+        else:
+            missing_val_counts = {col: data[col].isnull().sum().to_pandas() for col in data.columns}
 
     if pl_pb_tbl:
 
@@ -1003,7 +1036,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             # Get a dictionary of counts of missing values in each column
             missing_val_counts = {col: data[col].isnull().sum() for col in data.columns}
 
-    # From `missing_vals`, create da DataFrame with the missing value proportions
+    # From `missing_vals`, create the DataFrame with the missing value proportions
     if df_lib_name_gt == "polars":
 
         import polars as pl
