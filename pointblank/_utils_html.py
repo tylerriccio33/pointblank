@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pointblank._utils import _format_to_integer_value
+
 from pointblank._constants import TABLE_TYPE_STYLES
 
 
@@ -34,6 +36,9 @@ def _create_table_type_html(
 
 def _create_table_dims_html(columns: int, rows: int, font_size: str = "10px") -> str:
 
+    rows_fmt = _format_to_integer_value(int(rows))
+    columns_fmt = _format_to_integer_value(int(columns))
+
     return (
         f"<span style='background-color: #eecbff; color: #333333; padding: 0.5em 0.5em; "
         f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 5px; "
@@ -41,12 +46,12 @@ def _create_table_dims_html(columns: int, rows: int, font_size: str = "10px") ->
         f"font-size: {font_size};'>Rows</span>"
         f"<span style='background-color: none; color: #333333; padding: 0.5em 0.5em; "
         f"position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
-        f"border: solid 1px #eecbff; padding: 2px 15px 2px 15px; font-size: {font_size};'>{rows}</span>"
+        f"border: solid 1px #eecbff; padding: 2px 15px 2px 15px; font-size: {font_size};'>{rows_fmt}</span>"
         f"<span style='background-color: #BDE7B4; color: #333333; padding: 0.5em 0.5em; "
         f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 3px; "
         f"font-weight: bold; border: solid 1px #BDE7B4; padding: 2px 15px 2px 15px; "
         f"font-size: {font_size};'>Columns</span>"
         f"<span style='background-color: none; color: #333333; padding: 0.5em 0.5em; "
         f"position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
-        f"border: solid 1px #BDE7B4; padding: 2px 15px 2px 15px; font-size: {font_size};'>{columns}</span>"
+        f"border: solid 1px #BDE7B4; padding: 2px 15px 2px 15px; font-size: {font_size};'>{columns_fmt}</span>"
     )
