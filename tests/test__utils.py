@@ -13,6 +13,7 @@ from pointblank._utils import (
     _check_column_type,
     _check_invalid_fields,
     _column_test_prep,
+    _format_to_float_value,
     _format_to_integer_value,
     _get_assertion_from_fname,
     _get_column_dtype,
@@ -361,6 +362,31 @@ def test_format_to_integer_value_error():
 
     with pytest.raises(ValueError):
         _format_to_integer_value(5, locale="invalid")
+
+
+def test_format_to_float_value():
+
+    assert _format_to_float_value(0) == "0.00"
+    assert _format_to_float_value(0, decimals=0) == "0"
+    assert _format_to_float_value(0.3343) == "0.33"
+    assert _format_to_float_value(0.7) == "0.70"
+    assert _format_to_float_value(1) == "1.00"
+    assert _format_to_float_value(1000) == "1,000.00"
+    assert _format_to_float_value(10000) == "10,000.00"
+    assert _format_to_float_value(-232323.11) == "\u2212" + "232,323.11"
+
+    assert _format_to_float_value(-232323.11, locale="de") == "\u2212" + "232.323,11"
+    assert _format_to_float_value(-232323.11, locale="fi") == "\u2212" + "232 323,11"
+    assert _format_to_float_value(-232323.11, locale="fr") == "\u2212" + "232" + "\u202f" + "323,11"
+
+
+def test_format_to_float_value_error():
+
+    with pytest.raises(TypeError):
+        _format_to_float_value([5])
+
+    with pytest.raises(ValueError):
+        _format_to_float_value(5, locale="invalid")
 
 
 def test_get_fn_name():
