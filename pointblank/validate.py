@@ -1091,7 +1091,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         missing_vals_df = pd.DataFrame(missing_vals)
 
     # Get a count of total missing values
-    n_missing_total = sum(missing_val_counts.values())
+    n_missing_total = int(sum(missing_val_counts.values()))
 
     # Format `n_missing_total` for HTML display
     n_missing_total_fmt = _format_to_integer_value(n_missing_total)
