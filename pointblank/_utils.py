@@ -665,7 +665,7 @@ def _get_api_and_examples_text() -> str:
 
 def _format_to_integer_value(x: int | float, locale: str = "en") -> str:
     """
-    Format a numeric value according to a locale's specifications.
+    Format a numeric value as an integer according to a locale's specifications.
 
     Parameters
     ----------
