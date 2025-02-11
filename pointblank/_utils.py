@@ -7,6 +7,8 @@ from typing import Any
 
 import narwhals as nw
 from narwhals.typing import FrameT
+from great_tables import GT
+from great_tables.gt import _get_column_of_values
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
@@ -659,3 +661,49 @@ def _get_api_and_examples_text() -> str:
     examples_text = _get_examples_text()
 
     return f"{api_text}\n\n{examples_text}"
+
+
+def _format_to_integer_value(x: int | float, locale: str = "en") -> str:
+    """
+    Format a numeric value according to a locale's specifications.
+
+    Parameters
+    ----------
+    value
+        The value to format.
+
+    Returns
+    -------
+    str
+        The formatted integer value.
+    """
+
+    if not isinstance(x, (int, float)):
+        raise TypeError("The `x=` value must be an integer or float.")
+
+    # Return the input as a integer with commas for the thousands separator if there is
+    # no DataFrame library present
+    if not _is_lib_present(lib_name="pandas") and not _is_lib_present(lib_name="polars"):
+        return f"{x:,d}"
+
+    # Select the DataFrame library to use for formatting
+    df_lib_gt = _select_df_lib(preference="polars")
+    df_lib_name_gt = df_lib_gt.__name__
+
+    if df_lib_name_gt == "polars":
+
+        import polars as pl
+
+        df = pl.DataFrame({"x": [x]})
+
+    else:
+
+        import pandas as pd
+
+        df = pd.DataFrame({"x": [x]})
+
+    # Format the value as an integer
+    gt = GT(df).fmt_integer(columns="x", locale=locale)
+    formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
+
+    return formatted_vals[0]
