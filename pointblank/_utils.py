@@ -7,6 +7,8 @@ from typing import Any
 
 import narwhals as nw
 from narwhals.typing import FrameT
+from great_tables import GT
+from great_tables.gt import _get_column_of_values
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
@@ -659,3 +661,73 @@ def _get_api_and_examples_text() -> str:
     examples_text = _get_examples_text()
 
     return f"{api_text}\n\n{examples_text}"
+
+
+def _format_to_integer_value(x: int | float, locale: str = "en") -> str:
+    """
+    Format a numeric value as an integer according to a locale's specifications.
+
+    Parameters
+    ----------
+    value
+        The value to format.
+
+    Returns
+    -------
+    str
+        The formatted integer value.
+    """
+
+    if not isinstance(x, (int, float)):
+        raise TypeError("The `x=` value must be an integer or float.")
+
+    # Use the built-in Python formatting if Polars isn't present
+    if not _is_lib_present(lib_name="polars"):
+        return f"{x:,d}"
+
+    import polars as pl
+
+    # Format the value as an integer value
+    gt = GT(pl.DataFrame({"x": [x]})).fmt_integer(columns="x", locale=locale)
+    formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
+
+    return formatted_vals[0]
+
+
+def _format_to_float_value(
+    x: int | float,
+    decimals: int = 2,
+    n_sigfig: int | None = None,
+    compact: bool = False,
+    locale: str = "en",
+) -> str:
+    """
+    Format a numeric value as a float value according to a locale's specifications.
+
+    Parameters
+    ----------
+    value
+        The value to format.
+
+    Returns
+    -------
+    str
+        The formatted float value.
+    """
+
+    if not isinstance(x, (int, float)):
+        raise TypeError("The `x=` value must be an integer or float.")
+
+    # Use the built-in Python formatting if Polars isn't present
+    if not _is_lib_present(lib_name="polars"):
+        return f"{x:,.{decimals}f}"
+
+    import polars as pl
+
+    # Format the value as a float value
+    gt = GT(pl.DataFrame({"x": [x]})).fmt_number(
+        columns="x", decimals=decimals, n_sigfig=n_sigfig, compact=compact, locale=locale
+    )
+    formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
+
+    return formatted_vals[0]

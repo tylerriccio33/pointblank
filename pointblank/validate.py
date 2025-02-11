@@ -51,13 +51,14 @@ from pointblank._interrogation import (
     RowsDistinct,
 )
 from pointblank._utils import (
+    _check_any_df_lib,
+    _check_invalid_fields,
+    _format_to_integer_value,
+    _get_fn_name,
     _get_tbl_type,
     _is_lib_present,
     _is_value_a_df,
-    _check_any_df_lib,
     _select_df_lib,
-    _get_fn_name,
-    _check_invalid_fields,
 )
 from pointblank._utils_check_args import (
     _check_column,
@@ -132,7 +133,7 @@ def config(
 
 
 def load_dataset(
-    dataset: Literal["small_table", "game_revenue"] = "small_table",
+    dataset: Literal["small_table", "game_revenue", "nycflights"] = "small_table",
     tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
 ) -> FrameT | Any:
     """
@@ -141,7 +142,8 @@ def load_dataset(
     Parameters
     ----------
     dataset
-        The name of the dataset to load. Current options are `"small_table"` and `"game_revenue"`.
+        The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
+        and `"nycflights"`.
     tbl_type
         The type of DataFrame to generate from the dataset. The named options are `"polars"`,
         `"pandas"`, and `"duckdb"`.
@@ -154,7 +156,7 @@ def load_dataset(
 
     Included Datasets
     -----------------
-    There are two included datasets that can be loaded using the `load_dataset()` function:
+    There are three included datasets that can be loaded using the `load_dataset()` function:
 
     - `small_table`: A small dataset with 13 rows and 8 columns. This dataset is useful for testing
     and demonstration purposes.
@@ -1090,7 +1092,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         missing_vals_df = pd.DataFrame(missing_vals)
 
     # Get a count of total missing values
-    n_missing_total = sum(missing_val_counts.values())
+    n_missing_total = int(sum(missing_val_counts.values()))
+
+    # Format `n_missing_total` for HTML display
+    n_missing_total_fmt = _format_to_integer_value(n_missing_total)
 
     # Create the label, table type, and thresholds HTML fragments
     table_type_html = _create_table_type_html(tbl_type=tbl_type, tbl_name=None, font_size="10px")
@@ -1105,7 +1110,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     else:
         combined_title = (
             "Missing Values&nbsp;&nbsp;&nbsp;<span style='font-size: 14px; "
-            f"text-transform: uppercase; color: #333333'>{n_missing_total} in total</span>"
+            f"text-transform: uppercase; color: #333333'>{n_missing_total_fmt} in total</span>"
         )
 
     # Compose the subtitle HTML fragment

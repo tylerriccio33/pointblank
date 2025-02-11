@@ -10,20 +10,22 @@ import narwhals as nw
 from pointblank._utils import (
     _convert_to_narwhals,
     _check_column_exists,
+    _check_column_type,
+    _check_invalid_fields,
+    _column_test_prep,
+    _format_to_float_value,
+    _format_to_integer_value,
+    _get_assertion_from_fname,
+    _get_column_dtype,
+    _get_api_and_examples_text,
+    _get_api_text,
+    _get_examples_text,
+    _get_fn_name,
+    _get_tbl_type,
     _is_numeric_dtype,
     _is_date_or_datetime_dtype,
     _is_duration_dtype,
-    _get_column_dtype,
-    _check_column_type,
-    _column_test_prep,
-    _get_fn_name,
-    _get_assertion_from_fname,
-    _check_invalid_fields,
     _select_df_lib,
-    _get_tbl_type,
-    _get_api_text,
-    _get_examples_text,
-    _get_api_and_examples_text,
 )
 
 
@@ -332,6 +334,86 @@ def test_check_column_test_prep_raises(request, tbl_fixture):
     # Column not present in DataFrame
     with pytest.raises(ValueError):
         _column_test_prep(df=tbl, column="invalid", allowed_types=["numeric"])
+
+
+def test_format_to_integer_value():
+
+    assert _format_to_integer_value(0) == "0"
+    assert _format_to_integer_value(0.3) == "0"
+    assert _format_to_integer_value(0.7) == "1"
+    assert _format_to_integer_value(1) == "1"
+    assert _format_to_integer_value(10) == "10"
+    assert _format_to_integer_value(100) == "100"
+    assert _format_to_integer_value(1000) == "1,000"
+    assert _format_to_integer_value(10000) == "10,000"
+    assert _format_to_integer_value(100000) == "100,000"
+    assert _format_to_integer_value(1000000) == "1,000,000"
+    assert _format_to_integer_value(-232323) == "\u2212" + "232,323"
+
+    assert _format_to_integer_value(-232323, locale="de") == "\u2212" + "232.323"
+    assert _format_to_integer_value(-232323, locale="fi") == "\u2212" + "232 323"
+    assert _format_to_integer_value(-232323, locale="fr") == "\u2212" + "232" + "\u202f" + "323"
+
+
+def test_format_to_integer_value_error():
+
+    with pytest.raises(TypeError):
+        _format_to_integer_value([5])
+
+    with pytest.raises(ValueError):
+        _format_to_integer_value(5, locale="invalid")
+
+
+def test_format_to_float_value():
+
+    assert _format_to_float_value(0) == "0.00"
+    assert _format_to_float_value(0, decimals=0) == "0"
+    assert _format_to_float_value(0.3343) == "0.33"
+    assert _format_to_float_value(0.7) == "0.70"
+    assert _format_to_float_value(1) == "1.00"
+    assert _format_to_float_value(1000) == "1,000.00"
+    assert _format_to_float_value(10000) == "10,000.00"
+    assert _format_to_float_value(-232323.11) == "\u2212" + "232,323.11"
+
+    assert _format_to_float_value(-232323.11, locale="de") == "\u2212" + "232.323,11"
+    assert _format_to_float_value(-232323.11, locale="fi") == "\u2212" + "232 323,11"
+    assert _format_to_float_value(-232323.11, locale="fr") == "\u2212" + "232" + "\u202f" + "323,11"
+
+
+def test_format_to_float_value_error():
+
+    with pytest.raises(TypeError):
+        _format_to_float_value([5])
+
+    with pytest.raises(ValueError):
+        _format_to_float_value(5, locale="invalid")
+
+
+def test_format_to_integer_float_no_df_lib():
+
+    # Mock the absence of the both the Pandas and Polars libraries
+    with patch.dict(sys.modules, {"pandas": None, "polars": None}):
+
+        assert _format_to_integer_value(1000) == "1,000"
+        assert _format_to_float_value(1000) == "1,000.00"
+
+
+def test_format_to_integer_float_only_polars():
+
+    # Mock the absence of the Pandas library
+    with patch.dict(sys.modules, {"pandas": None}):
+
+        assert _format_to_integer_value(1000) == "1,000"
+        assert _format_to_float_value(1000) == "1,000.00"
+
+
+def test_format_to_integer_float_only_pandas():
+
+    # Mock the absence of the Polars library
+    with patch.dict(sys.modules, {"polars": None}):
+
+        assert _format_to_integer_value(1000) == "1,000"
+        assert _format_to_float_value(1000) == "1,000.00"
 
 
 def test_get_fn_name():
