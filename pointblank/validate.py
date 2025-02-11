@@ -202,7 +202,7 @@ def load_dataset(
     """
 
     # Raise an error if the dataset is from the list of provided datasets
-    if dataset not in ["small_table", "game_revenue"]:
+    if dataset not in ["small_table", "game_revenue", "nycflights"]:
         raise ValueError(
             f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
             "- `small_table`\n"
@@ -245,6 +245,7 @@ def load_dataset(
         parse_date_columns = {
             "small_table": ["date_time", "date"],
             "game_revenue": ["session_start", "time", "start_day"],
+            "nycflights": [],
         }
 
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
