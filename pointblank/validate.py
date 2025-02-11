@@ -849,6 +849,26 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     rows, and so on. Any sectors that are light blue indicate that there are no missing values in
     that sector. If there are missing values, the proportion of missing values is shown by a gray
     color (light gray for low proportions, dark gray to black for very high proportions).
+
+    Examples
+    --------
+    The `missing_vals_tbl()` function is useful for quickly identifying columns with missing values
+    in a table. Here's an example using the `nycflights` dataset (loaded using the `load_dataset()`
+    function as a Polars DataFrame):
+
+    ```{python}
+    import pointblank as pb
+
+    nycflights = pb.load_dataset("nycflights", tbl_type="polars")
+
+    pb.missing_vals_tbl(nycflights)
+    ```
+
+    The table shows the proportion of missing values in each column of the `nycflights` dataset. The
+    table is divided into sectors, with each sector representing a range of rows in the table (with
+    around 34,000 rows per sector). The proportion of missing values in each sector is calculated
+    for each column. The various shades of gray indicate the proportion of missing values in each
+    sector. Many columns have no missing values at all, and those sectors are colored light blue.
     """
 
     # Make a copy of the data to avoid modifying the original
