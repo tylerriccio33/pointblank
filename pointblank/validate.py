@@ -161,6 +161,8 @@ def load_dataset(
     - `game_revenue`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
     development company. For the particular game, there are records of player sessions, the items
     they purchased, ads viewed, and the revenue generated.
+    - `nycflights`: A dataset with 336,776 rows and 18 columns. This dataset provides information
+    about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
 
     Supported DataFrame Types
     -------------------------
@@ -199,10 +201,25 @@ def load_dataset(
 
     The `game_revenue` dataset is a more real-world dataset with a mix of data types, and it's
     significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
+
+    The `nycflights` dataset can be loaded as a DuckDB table by specifying the dataset name and
+    setting `tbl_type="duckdb"`:
+
+    ```{python}
+    import pointblank as pb
+
+    nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
+
+    pb.preview(nycflights)
+    ```
+
+    The `nycflights` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
+    truly a real-world dataset and provides information about flights originating from New York
+    City airports in 2013.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
-    if dataset not in ["small_table", "game_revenue"]:
+    if dataset not in ["small_table", "game_revenue", "nycflights"]:
         raise ValueError(
             f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
             "- `small_table`\n"
@@ -245,6 +262,7 @@ def load_dataset(
         parse_date_columns = {
             "small_table": ["date_time", "date"],
             "game_revenue": ["session_start", "time", "start_day"],
+            "nycflights": [],
         }
 
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
@@ -831,6 +849,26 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     rows, and so on. Any sectors that are light blue indicate that there are no missing values in
     that sector. If there are missing values, the proportion of missing values is shown by a gray
     color (light gray for low proportions, dark gray to black for very high proportions).
+
+    Examples
+    --------
+    The `missing_vals_tbl()` function is useful for quickly identifying columns with missing values
+    in a table. Here's an example using the `nycflights` dataset (loaded using the `load_dataset()`
+    function as a Polars DataFrame):
+
+    ```{python}
+    import pointblank as pb
+
+    nycflights = pb.load_dataset("nycflights", tbl_type="polars")
+
+    pb.missing_vals_tbl(nycflights)
+    ```
+
+    The table shows the proportion of missing values in each column of the `nycflights` dataset. The
+    table is divided into sectors, with each sector representing a range of rows in the table (with
+    around 34,000 rows per sector). The proportion of missing values in each sector is calculated
+    for each column. The various shades of gray indicate the proportion of missing values in each
+    sector. Many columns have no missing values at all, and those sectors are colored light blue.
     """
 
     # Make a copy of the data to avoid modifying the original

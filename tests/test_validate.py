@@ -4481,23 +4481,26 @@ def test_load_dataset():
 
     # Load the default dataset (`small_table`) and verify it's a Polars DataFrame
     tbl = load_dataset()
-
     assert isinstance(tbl, pl.DataFrame)
 
     # Load the default dataset (`small_table`) and verify it's a Pandas DataFrame
     tbl = load_dataset(tbl_type="pandas")
-
     assert isinstance(tbl, pd.DataFrame)
 
     # Load the `game_revenue` dataset and verify it's a Polars DataFrame
     tbl = load_dataset(dataset="game_revenue")
-
     assert isinstance(tbl, pl.DataFrame)
 
     # Load the `game_revenue` dataset and verify it's a Pandas DataFrame
-
     tbl = load_dataset(dataset="game_revenue", tbl_type="pandas")
+    assert isinstance(tbl, pd.DataFrame)
 
+    # Load the `nycflights` dataset and verify it's a Polars DataFrame
+    tbl = load_dataset(dataset="nycflights")
+    assert isinstance(tbl, pl.DataFrame)
+
+    # Load the `nycflights` dataset and verify it's a Pandas DataFrame
+    tbl = load_dataset(dataset="nycflights", tbl_type="pandas")
     assert isinstance(tbl, pd.DataFrame)
 
 
@@ -4730,6 +4733,9 @@ def test_missing_vals_tbl_no_fail_pd_table():
     game_revenue = load_dataset(dataset="game_revenue", tbl_type="pandas")
     missing_vals_tbl(game_revenue)
 
+    nycflights = load_dataset(dataset="nycflights", tbl_type="pandas")
+    missing_vals_tbl(nycflights)
+
 
 def test_missing_vals_tbl_no_fail_pl_table():
 
@@ -4739,6 +4745,9 @@ def test_missing_vals_tbl_no_fail_pl_table():
     game_revenue = load_dataset(dataset="game_revenue", tbl_type="polars")
     missing_vals_tbl(game_revenue)
 
+    nycflights = load_dataset(dataset="nycflights", tbl_type="polars")
+    missing_vals_tbl(nycflights)
+
 
 def test_missing_vals_tbl_no_fail_duckdb_table():
 
@@ -4747,6 +4756,9 @@ def test_missing_vals_tbl_no_fail_duckdb_table():
 
     game_revenue = load_dataset(dataset="game_revenue", tbl_type="duckdb")
     missing_vals_tbl(game_revenue)
+
+    nycflights = load_dataset(dataset="nycflights", tbl_type="duckdb")
+    missing_vals_tbl(nycflights)
 
 
 def test_missing_vals_tbl_no_pandas():
@@ -4794,9 +4806,11 @@ def test_get_column_count(tbl_type):
 
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
     game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+    nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
 
     assert get_column_count(small_table) == 8
     assert get_column_count(game_revenue) == 11
+    assert get_column_count(nycflights) == 18
 
 
 def test_get_column_count_failing():
@@ -4812,9 +4826,11 @@ def test_get_row_count(tbl_type):
 
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
     game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+    nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
 
     assert get_row_count(small_table) == 13
     assert get_row_count(game_revenue) == 2000
+    assert get_row_count(nycflights) == 336776
 
 
 def test_get_row_count_failing():
