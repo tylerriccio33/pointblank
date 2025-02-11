@@ -707,3 +707,57 @@ def _format_to_integer_value(x: int | float, locale: str = "en") -> str:
     formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
 
     return formatted_vals[0]
+
+
+def _format_to_float_value(
+    x: int | float,
+    decimals: int = 2,
+    n_sigfig: int | None = None,
+    compact: bool = False,
+    locale: str = "en",
+) -> str:
+    """
+    Format a numeric value as a float value according to a locale's specifications.
+
+    Parameters
+    ----------
+    value
+        The value to format.
+
+    Returns
+    -------
+    str
+        The formatted float value.
+    """
+
+    if not isinstance(x, (int, float)):
+        raise TypeError("The `x=` value must be an integer or float.")
+
+    # Return the input as a floating point value with commas and decimal points if there is
+    # no DataFrame library present
+    if not _is_lib_present(lib_name="pandas") and not _is_lib_present(lib_name="polars"):
+        return f"{x:,.{decimals}f}"
+
+    # Select the DataFrame library to use for formatting
+    df_lib_gt = _select_df_lib(preference="polars")
+    df_lib_name_gt = df_lib_gt.__name__
+
+    if df_lib_name_gt == "polars":
+
+        import polars as pl
+
+        df = pl.DataFrame({"x": [x]})
+
+    else:
+
+        import pandas as pd
+
+        df = pd.DataFrame({"x": [x]})
+
+    # Format the value as a float value
+    gt = GT(df).fmt_number(
+        columns="x", decimals=decimals, n_sigfig=n_sigfig, compact=compact, locale=locale
+    )
+    formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
+
+    return formatted_vals[0]
