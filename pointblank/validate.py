@@ -133,7 +133,7 @@ def config(
 
 
 def load_dataset(
-    dataset: Literal["small_table", "game_revenue"] = "small_table",
+    dataset: Literal["small_table", "game_revenue", "nycflights"] = "small_table",
     tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
 ) -> FrameT | Any:
     """
@@ -142,7 +142,8 @@ def load_dataset(
     Parameters
     ----------
     dataset
-        The name of the dataset to load. Current options are `"small_table"` and `"game_revenue"`.
+        The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
+        and `"nycflights"`.
     tbl_type
         The type of DataFrame to generate from the dataset. The named options are `"polars"`,
         `"pandas"`, and `"duckdb"`.
@@ -155,7 +156,7 @@ def load_dataset(
 
     Included Datasets
     -----------------
-    There are two included datasets that can be loaded using the `load_dataset()` function:
+    There are three included datasets that can be loaded using the `load_dataset()` function:
 
     - `small_table`: A small dataset with 13 rows and 8 columns. This dataset is useful for testing
     and demonstration purposes.
