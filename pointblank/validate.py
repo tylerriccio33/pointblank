@@ -161,6 +161,8 @@ def load_dataset(
     - `game_revenue`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
     development company. For the particular game, there are records of player sessions, the items
     they purchased, ads viewed, and the revenue generated.
+    - `nycflights`: A dataset with 336,776 rows and 18 columns. This dataset provides information
+    about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
 
     Supported DataFrame Types
     -------------------------
@@ -199,6 +201,21 @@ def load_dataset(
 
     The `game_revenue` dataset is a more real-world dataset with a mix of data types, and it's
     significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
+
+    The `nycflights` dataset can be loaded as a DuckDB table by specifying the dataset name and
+    setting `tbl_type="duckdb"`:
+
+    ```{python}
+    import pointblank as pb
+
+    nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
+
+    pb.preview(nycflights)
+    ```
+
+    The `nycflights` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
+    truly a real-world dataset and provides information about flights originating from New York
+    City airports in 2013.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
