@@ -13,7 +13,7 @@ from great_tables.gt import _get_column_of_values
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
 
-def _get_tbl_type(data: FrameT) -> str:
+def _get_tbl_type(data: FrameT | Any) -> str:
 
     type_str = str(type(data))
 
