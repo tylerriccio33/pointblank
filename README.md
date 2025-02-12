@@ -76,7 +76,7 @@ validating tabular data from various sources.
 
 Here's a short list of what we think makes Pointblank a great tool for data validation:
 
-- **Flexible**: We support tables from Polars, Pandas, Duckdb, MySQL, PostgreSQL, SQLite, and Parquet
+- **Flexible**: We support tables from Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, and Parquet
 - **Beautiful Reports**: Generate beautiful HTML table reports of your data validation results
 - **Functional Output**: Easily pull the specific data validation outputs you need for further processing
 - **Easy to Use**: Get started quickly with a straightforward API and clear documentation examples
