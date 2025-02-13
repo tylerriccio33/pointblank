@@ -14,7 +14,7 @@ from pointblank._utils import _get_tbl_type
 class DataProfiler:
     data: FrameT | Any
     tbl_name: str | None = None
-    data_native: Any = field(init=False)
+    data_alt: Any = field(init=False)
     tbl_category: str = field(init=False)
     tbl_type: str = field(init=False)
     profile: dict = field(init=False)
@@ -27,9 +27,6 @@ class DataProfiler:
         ibis_tbl = "ibis.expr.types.relations.Table" in str(type(self.data))
         pl_pd_tbl = "polars" in self.tbl_type or "pandas" in self.tbl_type
 
-        # Store the data as is (before any conversion occurs for the DataFrame case)
-        self.data_native = self.data
-
         # If the data is not a DataFrame or an Ibis Table, raise an error
         if not ibis_tbl and not pl_pd_tbl:
             raise ValueError("The data input must be a DataFrame or an Ibis Table.")
@@ -40,7 +37,7 @@ class DataProfiler:
 
         # If the data is DataFrame, convert it to a Narwhals DataFrame
         if pl_pd_tbl:
-            self.data = nw.from_native(self.data)
+            self.data_alt = nw.from_native(self.data)
 
         # Generate the profile based on the `tbl_category` value
         if self.tbl_category == "dataframe":
@@ -135,15 +132,15 @@ class DataProfiler:
         profile.update(
             {
                 "tbl_type": self.tbl_type,
-                "dimensions": {"rows": self.data.shape[0], "columns": self.data.shape[1]},
+                "dimensions": {"rows": self.data_alt.shape[0], "columns": self.data_alt.shape[1]},
                 "columns": [],
             }
         )
 
-        for column in self.data.columns:
+        for column in self.data_alt.columns:
 
-            col_data = self.data[column]
-            native_dtype = str(self.data_native[column].dtype)
+            col_data = self.data_alt[column]
+            native_dtype = str(self.data[column].dtype)
 
             if "date" in str(col_data.dtype).lower():
                 sample_data = col_data.drop_nulls().head(5).cast(nw.String).to_list()
