@@ -11,7 +11,23 @@ from pointblank._utils import _get_tbl_type
 
 
 @dataclass
-class DataProfiler:
+class _DataProfiler:
+    """
+    Get a profile of a DataFrame or Ibis Table.
+
+    Parameters
+    ----------
+    data
+        The data to profile.
+    tbl_name
+        Optionally, the name of the table could be provided as `tbl_name`.
+
+    Returns
+    -------
+    DataProfiler
+        A DataProfiler object.
+    """
+
     data: FrameT | Any
     tbl_name: str | None = None
     data_alt: Any | None = field(init=False)
