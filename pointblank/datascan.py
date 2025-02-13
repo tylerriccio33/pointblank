@@ -48,13 +48,12 @@ class DataScan:
         ibis_tbl = "ibis.expr.types.relations.Table" in str(type(self.data))
         pl_pd_tbl = "polars" in self.tbl_type or "pandas" in self.tbl_type
 
-        # If the data is not a DataFrame or an Ibis Table, raise an error
-        if not ibis_tbl and not pl_pd_tbl:
-            raise ValueError("The data input must be a DataFrame or an Ibis Table.")
-
         # Set the table category based on the type of table (this will be used to determine
         # how to handle the data)
-        self.tbl_category = "dataframe" if pl_pd_tbl else "ibis"
+        if ibis_tbl:
+            self.tbl_category = "ibis"
+        else:
+            self.tbl_category = "dataframe"
 
         # If the data is DataFrame, convert it to a Narwhals DataFrame
         if pl_pd_tbl:
@@ -65,7 +64,8 @@ class DataScan:
         # Generate the profile based on the `tbl_category` value
         if self.tbl_category == "dataframe":
             self.profile = self._generate_profile()
-        else:
+
+        if self.tbl_category == "ibis":
             self.profile = self._generate_profile_ibis()
 
     def _generate_profile_ibis(self) -> dict:
