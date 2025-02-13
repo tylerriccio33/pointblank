@@ -1,14 +1,14 @@
 import pytest
 
 from pointblank.validate import load_dataset
-from pointblank._utils_profiling import DataProfiler
+from pointblank._utils_profiling import _DataProfiler
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_data_profiler_class(tbl_type):
 
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    profiler = DataProfiler(data=dataset)
+    profiler = _DataProfiler(data=dataset)
 
     assert profiler.data.equals(dataset)
     assert profiler.tbl_name is None
@@ -31,11 +31,32 @@ def test_data_profiler_class(tbl_type):
         assert profiler.data_alt is not None
 
 
+def test_data_profiler_class_use_tbl_name():
+
+    dataset = load_dataset(dataset="small_table")
+    profiler = _DataProfiler(data=dataset, tbl_name="my_small_table")
+
+    assert profiler.tbl_name == "my_small_table"
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_data_profiler_no_fail(tbl_type):
+
+    small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
+    _DataProfiler(data=small_table)
+
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+    _DataProfiler(data=game_revenue)
+
+    nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
+    _DataProfiler(data=nycflights)
+
+
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_data_profiler_dict_output(tbl_type):
 
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    profiler = DataProfiler(data=dataset)
+    profiler = _DataProfiler(data=dataset)
 
     assert isinstance(profiler.profile, dict)
 
@@ -49,7 +70,7 @@ def test_data_profiler_dict_output(tbl_type):
 def test_data_profiler_json_output():
 
     dataset = load_dataset(dataset="small_table")
-    profiler = DataProfiler(data=dataset)
+    profiler = _DataProfiler(data=dataset)
 
     profile_json = profiler.to_json()
 
@@ -59,7 +80,7 @@ def test_data_profiler_json_output():
 def test_data_profiler_json_file_output(tmp_path):
 
     dataset = load_dataset(dataset="small_table")
-    profiler = DataProfiler(data=dataset)
+    profiler = _DataProfiler(data=dataset)
 
     profile_json = profiler.to_json()
 
@@ -77,10 +98,10 @@ def test_data_profiler_json_file_output(tmp_path):
 
 def test_data_profiler_class_raises():
     with pytest.raises(TypeError):
-        DataProfiler(data="not a DataFrame or Ibis Table")
+        _DataProfiler(data="not a DataFrame or Ibis Table")
 
     with pytest.raises(TypeError):
-        DataProfiler(data=123)
+        _DataProfiler(data=123)
 
     with pytest.raises(TypeError):
-        DataProfiler(data=[1, 2, 3])
+        _DataProfiler(data=[1, 2, 3])
