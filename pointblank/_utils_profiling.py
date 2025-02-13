@@ -16,15 +16,16 @@ class DataProfiler:
     tbl_name: str | None = None
     data_native: Any = field(init=False)
     tbl_category: str = field(init=False)
+    tbl_type: str = field(init=False)
     profile: dict = field(init=False)
 
     def __post_init__(self):
 
         # Determine if the data is a DataFrame that could be handled by Narwhals,
         # or an Ibis Table
-        tbl_type = _get_tbl_type(data=self.data)
+        self.tbl_type = _get_tbl_type(data=self.data)
         ibis_tbl = "ibis.expr.types.relations.Table" in str(type(self.data))
-        pl_pd_tbl = "polars" in tbl_type or "pandas" in tbl_type
+        pl_pd_tbl = "polars" in self.tbl_type or "pandas" in self.tbl_type
 
         # Store the data as is (before any conversion occurs for the DataFrame case)
         self.data_native = self.data
@@ -42,7 +43,6 @@ class DataProfiler:
             self.data = nw.from_native(self.data)
 
         # Generate the profile based on the `tbl_category` value
-
         if self.tbl_category == "dataframe":
             self.profile = self._generate_profile()
         else:
@@ -59,6 +59,7 @@ class DataProfiler:
 
         profile.update(
             {
+                "tbl_type": self.tbl_type,
                 "dimensions": {"rows": get_row_count(self.data), "columns": len(self.data.columns)},
                 "columns": [],
             }
@@ -133,6 +134,7 @@ class DataProfiler:
 
         profile.update(
             {
+                "tbl_type": self.tbl_type,
                 "dimensions": {"rows": self.data.shape[0], "columns": self.data.shape[1]},
                 "columns": [],
             }
