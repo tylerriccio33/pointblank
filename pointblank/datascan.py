@@ -10,22 +10,27 @@ from typing import Any
 from pointblank._utils import _get_tbl_type, _select_df_lib
 
 
+__all__ = [
+    "DataScan",
+]
+
+
 @dataclass
-class _DataProfiler:
+class DataScan:
     """
-    Get a profile of a DataFrame or Ibis Table.
+    Get a summary of a DataFrame or Ibis Table through a scan.
 
     Parameters
     ----------
     data
-        The data to profile.
+        The data to scan and summarize.
     tbl_name
         Optionally, the name of the table could be provided as `tbl_name`.
 
     Returns
     -------
-    DataProfiler
-        A DataProfiler object.
+    DataScan
+        A DataScan object.
     """
 
     data: FrameT | Any
