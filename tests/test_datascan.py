@@ -34,9 +34,10 @@ def test_datascan_class(tbl_type):
         assert scanner.data_alt is not None
 
 
-def test_datascan_class_use_tbl_name():
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_datascan_class_use_tbl_name(tbl_type):
 
-    dataset = load_dataset(dataset="small_table")
+    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset, tbl_name="my_small_table")
 
     assert scanner.tbl_name == "my_small_table"
