@@ -137,7 +137,7 @@ def load_dataset(
     tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
 ) -> FrameT | Any:
     """
-    Load a dataset hosted in the library as specified DataFrame type.
+    Load a dataset hosted in the library as specified table type.
 
     Parameters
     ----------
@@ -145,7 +145,7 @@ def load_dataset(
         The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
         and `"nycflights"`.
     tbl_type
-        The type of DataFrame to generate from the dataset. The named options are `"polars"`,
+        The type of table to generate from the dataset. The named options are `"polars"`,
         `"pandas"`, and `"duckdb"`.
 
     Returns
