@@ -137,7 +137,13 @@ def load_dataset(
     tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
 ) -> FrameT | Any:
     """
-    Load a dataset hosted in the library as specified DataFrame type.
+    Load a dataset hosted in the library as specified table type.
+
+    The Pointblank library includes several datasets that can be loaded using the `load_dataset()`
+    function. The datasets can be loaded as a Polars DataFrame, a Pandas DataFrame, or as a DuckDB
+    table (which uses the Ibis library backend). These datasets are used throughout the
+    documentation's examples to demonstrate the functionality of the library. They're also useful
+    for experimenting with the library and trying out different validation scenarios.
 
     Parameters
     ----------
@@ -145,7 +151,7 @@ def load_dataset(
         The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
         and `"nycflights"`.
     tbl_type
-        The type of DataFrame to generate from the dataset. The named options are `"polars"`,
+        The type of table to generate from the dataset. The named options are `"polars"`,
         `"pandas"`, and `"duckdb"`.
 
     Returns
@@ -6916,7 +6922,7 @@ class Validate:
         table object, which can be displayed in a notebook or exported to an HTML file.
 
         :::{.callout-warning}
-        The `get_step_report()` is still experimental. Please report any issues you encounter at the
+        The `get_step_report()` is still experimental. Please report any issues you encounter in the
         [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
         :::
 
