@@ -87,12 +87,18 @@ class DataScan:
 
         # Determine which DataFrame library is available
         df_lib = _select_df_lib(preference="polars")
+        df_lib_str = str(df_lib)
+
+        if "polars" in df_lib_str:
+            df_lib_use = "polars"
+        else:
+            df_lib_use = "pandas"
 
         column_dtypes = list(self.data.schema().items())
 
         for idx, column in enumerate(self.data.columns):
 
-            if df_lib == "polars":
+            if df_lib_use == "polars":
                 import polars as pl
 
             dtype_str = str(column_dtypes[idx][1])
@@ -102,17 +108,17 @@ class DataScan:
 
             if "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
 
-                if df_lib == "polars":
+                if df_lib_use == "polars":
                     sample_data = col_data_no_null.to_polars().cast(pl.String).to_list()
                 else:
                     sample_data = col_data_no_null.to_pandas().astype(str).to_list()
             else:
-                if df_lib == "polars":
+                if df_lib_use == "polars":
                     sample_data = col_data_no_null.to_polars().to_list()
                 else:
                     sample_data = col_data_no_null.to_pandas().to_list()
 
-            if df_lib == "polars":
+            if df_lib_use == "polars":
                 col_profile = {
                     "column_name": column,
                     "column_type": dtype_str,
@@ -133,7 +139,7 @@ class DataScan:
 
             if "int" in dtype_str.lower() or "float" in dtype_str.lower():
 
-                if df_lib == "polars":
+                if df_lib_use == "polars":
                     col_profile["statistics"]["numerical"] = {
                         "mean": col_data.mean().to_polars(),
                         "median": col_data.median().to_polars(),
@@ -163,7 +169,7 @@ class DataScan:
 
             elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
 
-                if df_lib == "polars":
+                if df_lib_use == "polars":
 
                     col_profile["statistics"]["string"] = {
                         "mode": col_data.mode().to_polars(),
@@ -177,7 +183,7 @@ class DataScan:
 
             elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
 
-                if df_lib == "polars":
+                if df_lib_use == "polars":
                     min_date = col_data.min().to_polars()
                     max_date = col_data.max().to_polars()
                 else:

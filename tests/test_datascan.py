@@ -112,7 +112,7 @@ def test_datascan_class_raises():
 
 def test_datascan_ibis_table_no_polars():
 
-    # Mock the absence of the polars library
+    # Mock the absence of the Polars library
     with patch.dict(sys.modules, {"polars": None}):
 
         small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
