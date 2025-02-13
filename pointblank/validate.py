@@ -139,6 +139,12 @@ def load_dataset(
     """
     Load a dataset hosted in the library as specified table type.
 
+    The Pointblank library includes several datasets that can be loaded using the `load_dataset()`
+    function. The datasets can be loaded as a Polars DataFrame, a Pandas DataFrame, or as a DuckDB
+    table (which uses the Ibis library backend). These datasets are used throughout the
+    documentation's examples to demonstrate the functionality of the library. They're also useful
+    for experimenting with the library and trying out different validation scenarios.
+
     Parameters
     ----------
     dataset
