@@ -6922,7 +6922,7 @@ class Validate:
         table object, which can be displayed in a notebook or exported to an HTML file.
 
         :::{.callout-warning}
-        The `get_step_report()` is still experimental. Please report any issues you encounter at the
+        The `get_step_report()` is still experimental. Please report any issues you encounter in the
         [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
         :::
 

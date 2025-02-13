@@ -18,7 +18,30 @@ __all__ = [
 @dataclass
 class DataScan:
     """
-    Get a summary of a DataFrame or Ibis Table through a scan.
+    Get a summary of a dataset.
+
+    The `DataScan` class provides a way to get a summary of a dataset. The summary includes the
+    following information:
+
+    - the name of the table (if provided)
+    - the type of the table (e.g., `"polars"`, `"pandas"`, etc.)
+    - the number of rows and columns in the table
+    - column-level information, including:
+        - the column name
+        - the column type
+        - the number of missing values
+        - the number of unique values
+        - a sample of the data
+        - statistics (if the column contains numbers, strings, or datetimes)
+
+    To obtain a dictionary representation of the summary, you can use the `get_profile()` method. To
+    get a JSON representation of the summary, you can use the `to_json()` method. To save the JSON
+    text to a file, the `save_to_json()` method could be used.
+
+    :::{.callout-warning}
+    The `DataScan()` class (along with its methods) is still experimental. Please report any issues
+    you encounter in the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
+    :::
 
     Parameters
     ----------
