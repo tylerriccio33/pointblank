@@ -4,17 +4,31 @@ from pointblank.validate import load_dataset
 from pointblank._utils_profiling import DataProfiler
 
 
-def test_data_profiler_class():
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_data_profiler_class(tbl_type):
 
-    dataset = load_dataset(dataset="small_table")
+    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     profiler = DataProfiler(data=dataset)
 
     assert profiler.data.equals(dataset)
     assert profiler.tbl_name is None
-    assert profiler.data_alt is not None
-    assert profiler.tbl_category == "dataframe"
-    assert profiler.tbl_type == "polars"
     assert profiler.profile is not None
+    assert isinstance(profiler.profile, dict)
+
+    if tbl_type == "duckdb":
+        assert profiler.tbl_type == "duckdb"
+        assert profiler.tbl_category == "ibis"
+        assert profiler.data_alt is None
+
+    if tbl_type == "polars":
+        assert profiler.tbl_type == "polars"
+        assert profiler.tbl_category == "dataframe"
+        assert profiler.data_alt is not None
+
+    if tbl_type == "pandas":
+        assert profiler.tbl_type == "pandas"
+        assert profiler.tbl_category == "dataframe"
+        assert profiler.data_alt is not None
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
