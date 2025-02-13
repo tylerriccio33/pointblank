@@ -14,7 +14,7 @@ from pointblank._utils import _get_tbl_type
 class DataProfiler:
     data: FrameT | Any
     tbl_name: str | None = None
-    data_alt: Any = field(init=False)
+    data_alt: Any | None = field(init=False)
     tbl_category: str = field(init=False)
     tbl_type: str = field(init=False)
     profile: dict = field(init=False)
@@ -38,6 +38,8 @@ class DataProfiler:
         # If the data is DataFrame, convert it to a Narwhals DataFrame
         if pl_pd_tbl:
             self.data_alt = nw.from_native(self.data)
+        else:
+            self.data_alt = None
 
         # Generate the profile based on the `tbl_category` value
         if self.tbl_category == "dataframe":
