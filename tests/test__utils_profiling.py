@@ -1,4 +1,7 @@
 import pytest
+import sys
+
+from unittest.mock import patch
 
 from pointblank.validate import load_dataset
 from pointblank._utils_profiling import _DataProfiler
@@ -105,3 +108,12 @@ def test_data_profiler_class_raises():
 
     with pytest.raises(TypeError):
         _DataProfiler(data=[1, 2, 3])
+
+
+def test_profile_ibis_table_no_polars():
+
+    # Mock the absence of the polars library
+    with patch.dict(sys.modules, {"polars": None}):
+
+        small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+        _DataProfiler(data=small_table)

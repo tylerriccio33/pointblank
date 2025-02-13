@@ -7,7 +7,7 @@ import narwhals as nw
 from narwhals.typing import FrameT
 from typing import Any
 
-from pointblank._utils import _get_tbl_type
+from pointblank._utils import _get_tbl_type, _select_df_lib
 
 
 @dataclass
@@ -80,11 +80,15 @@ class _DataProfiler:
             }
         )
 
+        # Determine which DataFrame library is available
+        df_lib = _select_df_lib(preference="polars")
+
         column_dtypes = list(self.data.schema().items())
 
         for idx, column in enumerate(self.data.columns):
 
-            import polars as pl
+            if df_lib == "polars":
+                import polars as pl
 
             dtype_str = str(column_dtypes[idx][1])
 
@@ -92,44 +96,88 @@ class _DataProfiler:
             col_data_no_null = self.data.drop_null().head(5)[column]
 
             if "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
-                sample_data = col_data_no_null.to_polars().cast(pl.String).to_list()
-            else:
-                sample_data = col_data_no_null.to_polars().to_list()
 
-            col_profile = {
-                "column_name": column,
-                "column_type": dtype_str,
-                "missing_values": col_data.isnull().sum().to_polars(),
-                "unique_values": col_data.nunique().to_polars(),
-                "sample_data": sample_data,
-                "statistics": {},
-            }
+                if df_lib == "polars":
+                    sample_data = col_data_no_null.to_polars().cast(pl.String).to_list()
+                else:
+                    sample_data = col_data_no_null.to_pandas().astype(str).to_list()
+            else:
+                if df_lib == "polars":
+                    sample_data = col_data_no_null.to_polars().to_list()
+                else:
+                    sample_data = col_data_no_null.to_pandas().to_list()
+
+            if df_lib == "polars":
+                col_profile = {
+                    "column_name": column,
+                    "column_type": dtype_str,
+                    "missing_values": col_data.isnull().sum().to_polars(),
+                    "unique_values": col_data.nunique().to_polars(),
+                    "sample_data": sample_data,
+                    "statistics": {},
+                }
+            else:
+                col_profile = {
+                    "column_name": column,
+                    "column_type": dtype_str,
+                    "missing_values": col_data.isnull().sum().to_pandas(),
+                    "unique_values": col_data.nunique().to_pandas(),
+                    "sample_data": sample_data,
+                    "statistics": {},
+                }
 
             if "int" in dtype_str.lower() or "float" in dtype_str.lower():
 
-                col_profile["statistics"]["numerical"] = {
-                    "mean": col_data.mean().to_polars(),
-                    "median": col_data.median().to_polars(),
-                    "std_dev": col_data.std().to_polars(),
-                    "min": col_data.min().to_polars(),
-                    "max": col_data.max().to_polars(),
-                    "percentiles": {
-                        "25th": col_data.approx_quantile(0.25).to_polars(),
-                        "50th": col_data.approx_quantile(0.50).to_polars(),
-                        "75th": col_data.approx_quantile(0.75).to_polars(),
-                    },
-                }
+                if df_lib == "polars":
+                    col_profile["statistics"]["numerical"] = {
+                        "mean": col_data.mean().to_polars(),
+                        "median": col_data.median().to_polars(),
+                        "std_dev": col_data.std().to_polars(),
+                        "min": col_data.min().to_polars(),
+                        "max": col_data.max().to_polars(),
+                        "percentiles": {
+                            "25th": col_data.approx_quantile(0.25).to_polars(),
+                            "50th": col_data.approx_quantile(0.50).to_polars(),
+                            "75th": col_data.approx_quantile(0.75).to_polars(),
+                        },
+                    }
+
+                else:
+                    col_profile["statistics"]["numerical"] = {
+                        "mean": col_data.mean().to_pandas(),
+                        "median": col_data.median().to_pandas(),
+                        "std_dev": col_data.std().to_pandas(),
+                        "min": col_data.min().to_pandas(),
+                        "max": col_data.max().to_pandas(),
+                        "percentiles": {
+                            "25th": col_data.approx_quantile(0.25).to_pandas(),
+                            "50th": col_data.approx_quantile(0.50).to_pandas(),
+                            "75th": col_data.approx_quantile(0.75).to_pandas(),
+                        },
+                    }
 
             elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
 
-                col_profile["statistics"]["string"] = {
-                    "mode": col_data.mode().to_polars(),
-                }
+                if df_lib == "polars":
+
+                    col_profile["statistics"]["string"] = {
+                        "mode": col_data.mode().to_polars(),
+                    }
+
+                else:
+
+                    col_profile["statistics"]["string"] = {
+                        "mode": col_data.mode().to_pandas(),
+                    }
 
             elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
 
-                min_date = col_data.min().to_polars()
-                max_date = col_data.max().to_polars()
+                if df_lib == "polars":
+                    min_date = col_data.min().to_polars()
+                    max_date = col_data.max().to_polars()
+                else:
+                    min_date = col_data.min().to_pandas()
+                    max_date = col_data.max().to_pandas()
 
                 col_profile["statistics"]["datetime"] = {
                     "min_date": str(min_date),
