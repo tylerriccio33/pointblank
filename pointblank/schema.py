@@ -251,6 +251,11 @@ class Schema:
 
     For the `age` column, the schema will check for both `Float64` and `Int64` dtypes. If either of
     these dtypes is found in the column, the portion of the schema check will succeed.
+
+    See Also
+    --------
+    The [`col_schema_match()`](`pointblank.Validate.col_schema_match`) validation method, where a
+    `Schema` object is used in a validation workflow.
     """
 
     columns: str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None = (
