@@ -43,6 +43,11 @@ class DraftValidation:
     api_key
         The API key to be used for the model.
 
+    Returns
+    -------
+    str
+        The drafted validation plan.
+
     Constructing the `model` Argument
     ---------------------------------
     The `model=` argument should be constructed using the provider and model name separated by a
@@ -87,11 +92,6 @@ class DraftValidation:
     The JSON summary is used to provide the model with the necessary information to draft a
     validation plan. As such, even very large tables can be used with the `DraftValidation` class
     since the contents of the table are not sent to the model provider.
-
-    Returns
-    -------
-    str
-        The drafted validation plan.
 
     Examples
     --------
