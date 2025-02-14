@@ -11,6 +11,17 @@ format:
       margin-width: 300px
       gutter-width: 1.5rem
 
+filters:
+  - interlinks
+
+interlinks:
+  fast: true
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+    python:
+      url: https://docs.python.org/3/
+
 website:
   title: pointblank
   site-url: https://posit-dev.github.io/pointblank/
@@ -36,6 +47,7 @@ quartodoc:
   title: API Reference
   style: pkgdown
   dynamic: true
+  render_interlinks: true
   renderer:
     style: markdown
     table_style: description-list
