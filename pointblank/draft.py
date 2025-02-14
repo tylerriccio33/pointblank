@@ -208,12 +208,12 @@ class DraftValidation:
             )
 
         # Generate the API and examples text
-        api_and_examples_text = _get_api_and_examples_text()
+        api_and_examples_text = _get_api_and_examples_text()  # pragma: no cover
 
         # Get the model name from the `model` value
-        model_name = self.model.split(":")[1]
+        model_name = self.model.split(":")[1]  # pragma: no cover
 
-        prompt = (
+        prompt = (  # pragma: no cover
             f"{api_and_examples_text}"
             "--------------------------"
             "Knowing what you now know about the pointblank package in Python, can you write a "
@@ -267,13 +267,13 @@ class DraftValidation:
             "    per line)"
         )
 
-        if provider == "anthropic":
+        if provider == "anthropic":  # pragma: no cover
 
             # Check that the anthropic package is installed
             try:
                 import anthropic  # noqa
-            except ImportError:
-                raise ImportError(
+            except ImportError:  # pragma: no cover
+                raise ImportError(  # pragma: no cover
                     "The `anthropic` package is required to use the `DraftValidation` class with "
                     "the `anthropic` provider. Please install it using `pip install anthropic`."
                 )
@@ -286,26 +286,26 @@ class DraftValidation:
                 api_key=self.api_key,
             )
 
-        if provider == "openai":
+        if provider == "openai":  # pragma: no cover
 
             # Check that the openai package is installed
             try:
                 import openai  # noqa
-            except ImportError:
-                raise ImportError(
+            except ImportError:  # pragma: no cover
+                raise ImportError(  # pragma: no cover
                     "The `openai` package is required to use the `DraftValidation` class with the "
                     "`openai` provider. Please install it using `pip install openai`."
                 )
 
-            from chatlas import ChatOpenAI
+            from chatlas import ChatOpenAI  # pragma: no cover
 
-            chat = ChatOpenAI(
+            chat = ChatOpenAI(  # pragma: no cover
                 model=model_name,
                 system_prompt="You are a terse assistant and a Python expert.",
                 api_key=self.api_key,
             )
 
-        self.response = str(chat.chat(prompt, stream=False, echo="none"))
+        self.response = str(chat.chat(prompt, stream=False, echo="none"))  # pragma: no cover
 
     def __str__(self) -> str:
         return self.response
