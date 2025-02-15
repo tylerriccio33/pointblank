@@ -4,6 +4,9 @@ project:
 format:
   html:
     theme: flatly
+    css:
+      - styles.css
+      - reference/_styles-quartodoc.css
     toc: true
     grid:
       sidebar-width: 300px
