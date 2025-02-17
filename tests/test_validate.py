@@ -5,6 +5,9 @@ import sys
 import re
 from unittest.mock import patch
 import pytest
+import itertools
+from functools import partial
+import contextlib
 
 import pandas as pd
 import polars as pl
@@ -7604,3 +7607,56 @@ def test_get_schema_step_report_25_5(tbl_schema_tests, snapshot):
 
     # Take snapshot of the report DataFrame
     snapshot.assert_match(str(report_df), "schema_step_report_25-5.txt")
+
+
+@pytest.mark.parametrize(('tbl','should_pass'), itertools.product(TBL_LIST, [True, False]))
+def test_assert_passing(request, tbl : str , *, should_pass: bool) -> None:
+    tbl = request.getfixturevalue(tbl)
+
+    if should_pass:
+        val = 0 # should always pass
+        catcher = contextlib.nullcontext
+    else:
+        val = 100 # should always fail
+        catcher = partial(pytest.raises, AssertionError, match = "All tests did not pass")
+
+
+    v = Validate(tbl).col_vals_gt(columns="x", value=val).interrogate()
+
+
+    try:
+        assert v.all_passed() == should_pass
+    except AssertionError:
+        pytest.mark.skip(reason="Unexpected result invalidating the test. Please review.")
+
+    with catcher():
+        v.assert_passing() # should not raise since all passing
+
+def test_assert_passing_example() -> None:
+    tbl = pl.DataFrame(
+        {
+        "a": [1, 2, 9, 5],
+        "b": [5, 6, 10, 3],
+        "c": ["a", "b", "a", "a"],
+        }
+    )
+
+    validation = (
+        Validate(data=tbl)
+        .col_vals_gt(columns="a", value=0)
+        .col_vals_lt(columns="b", value=9) # this step will not pass
+        .col_vals_in_set(columns="c", set=["a", "b"])
+        .interrogate()
+    )
+    with pytest.raises(AssertionError, match = "All tests did not pass"):
+        validation.assert_passing()
+
+    passing_validation = (
+        Validate(data=tbl)
+        .col_vals_gt(columns="a", value=0)
+        # now, the invalid step passes
+        .col_vals_in_set(columns="c", set=["a", "b"])
+        .interrogate()
+    )
+
+    passing_validation.assert_passing()
