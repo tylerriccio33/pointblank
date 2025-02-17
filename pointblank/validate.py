@@ -117,8 +117,8 @@ def config(
         Should the footer of the validation table report be displayed? The footer contains the
         starting and ending times of the interrogation.
     preview_incl_header
-        Whether the header should be present in any preview table (generated via the `preview()`
-        function).
+        Whether the header should be present in any preview table (generated via the
+        [`preview()`](`pointblank.preview`) function).
 
     Returns
     -------
@@ -164,12 +164,12 @@ def load_dataset(
     -----------------
     There are three included datasets that can be loaded using the `load_dataset()` function:
 
-    - `small_table`: A small dataset with 13 rows and 8 columns. This dataset is useful for testing
-    and demonstration purposes.
-    - `game_revenue`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
+    - `"small_table"`: A small dataset with 13 rows and 8 columns. This dataset is useful for
+    testing and demonstration purposes.
+    - `"game_revenue"`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
     development company. For the particular game, there are records of player sessions, the items
     they purchased, ads viewed, and the revenue generated.
-    - `nycflights`: A dataset with 336,776 rows and 18 columns. This dataset provides information
+    - `"nycflights"`: A dataset with 336,776 rows and 18 columns. This dataset provides information
     about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
 
     Supported DataFrame Types
@@ -182,7 +182,7 @@ def load_dataset(
 
     Examples
     --------
-    Load the `small_table` dataset as a Polars DataFrame by calling `load_dataset()` with its
+    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with its
     defaults:
 
     ```{python}
@@ -193,37 +193,34 @@ def load_dataset(
     pb.preview(small_table)
     ```
 
-    Note that the `small_table` dataset is a simple Polars DataFrame and using the `preview()`
-    function will display the table in an HTML viewing environment.
+    Note that the `"small_table"` dataset is a simple Polars DataFrame and using the
+    [`preview()`](`pointblank.preview`) function will display the table in an HTML viewing
+    environment.
 
-    The `game_revenue` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
+    The `"game_revenue"` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
     and setting `tbl_type="pandas"`:
 
     ```{python}
-    import pointblank as pb
-
     game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
 
     pb.preview(game_revenue)
     ```
 
-    The `game_revenue` dataset is a more real-world dataset with a mix of data types, and it's
+    The `"game_revenue"` dataset is a more real-world dataset with a mix of data types, and it's
     significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
 
-    The `nycflights` dataset can be loaded as a DuckDB table by specifying the dataset name and
+    The `"nycflights"` dataset can be loaded as a DuckDB table by specifying the dataset name and
     setting `tbl_type="duckdb"`:
 
     ```{python}
-    import pointblank as pb
-
     nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
 
     pb.preview(nycflights)
     ```
 
-    The `nycflights` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
-    truly a real-world dataset and provides information about flights originating from New York
-    City airports in 2013.
+    The `"nycflights"` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
+    truly a real-world dataset and provides information about flights originating from New York City
+    airports in 2013.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
@@ -378,7 +375,8 @@ def preview(
     Examples
     --------
     It's easy to preview a table using the `preview()` function. Here's an example using the
-    `small_table` dataset (itself loaded using the `load_dataset()` function):
+    `small_table` dataset (itself loaded using the [`load_dataset()`](`pointblank.load_dataset`)
+    function):
 
     ```{python}
     import pointblank as pb
@@ -421,15 +419,16 @@ def preview(
     pb.preview(game_revenue_pandas, columns_subset=["player_id", "item_name", "item_revenue"])
     ```
 
-    Alternatively, we can use column selector functions like `starts_with()` and `matches()` to
-    select columns based on text or patterns:
+    Alternatively, we can use column selector functions like
+    [`starts_with()`](`pointblank.starts_with`) and [`matches()`](`pointblank.matches`)` to select
+    columns based on text or patterns:
 
     ```{python}
     pb.preview(game_revenue_pandas, n_head=2, n_tail=2, columns_subset=pb.starts_with("session"))
     ```
 
-    Multiple column selector functions can be combined within `col()` using operators like `|` and
-    `&`:
+    Multiple column selector functions can be combined within [`col()`](`pointblank.col`) using
+    operators like `|` and `&`:
 
     ```{python}
     pb.preview(
@@ -811,8 +810,8 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     Display a table that shows the missing values in the input table.
 
     The `missing_vals_tbl()` function generates a table that shows the missing values in the input
-    table. The table is displayed using the Great Tables (`GT`) API, which allows for further
-    customization of the table's appearance if so desired.
+    table. The table is displayed using the Great Tables API, which allows for further customization
+    of the table's appearance if so desired.
 
     Parameters
     ----------
@@ -861,8 +860,8 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     Examples
     --------
     The `missing_vals_tbl()` function is useful for quickly identifying columns with missing values
-    in a table. Here's an example using the `nycflights` dataset (loaded using the `load_dataset()`
-    function as a Polars DataFrame):
+    in a table. Here's an example using the `nycflights` dataset (loaded as a Polars DataFrame using
+    the [`load_dataset()`](`pointblank.load_dataset`) function):
 
     ```{python}
     import pointblank as pb
@@ -1382,7 +1381,8 @@ def get_column_count(data: FrameT | Any) -> int:
     Examples
     --------
     To get the number of columns in a table, we can use the `get_column_count()` function. Here's an
-    example using the `small_table` dataset (itself loaded using the `load_dataset()` function):
+    example using the `small_table` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
 
     ```{python}
     import pointblank as pb
@@ -1459,8 +1459,8 @@ def get_row_count(data: FrameT | Any) -> int:
     Examples
     --------
     Getting the number of rows in a table is easily done by using the `get_row_count()` function.
-    Here's an example using the `game_revenue` dataset (itself loaded using the `load_dataset()`
-    function):
+    Here's an example using the `game_revenue` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
 
     ```{python}
     import pointblank as pb
@@ -1620,18 +1620,22 @@ class Validate:
 
     We can supply as many validation steps as needed, and having a large number of them should
     increase the validation coverage for a given table. The validation methods (e.g.,
-    `col_vals_gt()`, `col_vals_between()`, etc.) translate to discrete validation steps, where each
-    step will be sequentially numbered (useful when viewing the reporting data). This process of
-    calling validation methods is known as developing a *validation plan*.
+    [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_between()`](`pointblank.Validate.col_vals_between`), etc.) translate to discrete
+    validation steps, where each step will be sequentially numbered (useful when viewing the
+    reporting data). This process of calling validation methods is known as developing a
+    *validation plan*.
 
     The validation methods, when called, are merely instructions up to the point the concluding
-    `interrogate()` method is called. That kicks off the process of acting on the *validation plan*
-    by querying the target table getting reporting results for each step. Once the interrogation
-    process is complete, we can say that the workflow now has reporting information. We can then
-    extract useful information from the reporting data to understand the quality of the table. For
-    instance `get_tabular_report()` method which will return a table with the results of the
-    interrogation and `get_sundered_data()` allows for the splitting of the table based on passing
-    and failing rows.
+    [`interrogate()`](`pointblank.Validate.interrogate`) method is called. That kicks off the
+    process of acting on the *validation plan* by querying the target table getting reporting
+    results for each step. Once the interrogation process is complete, we can say that the workflow
+    now has reporting information. We can then extract useful information from the reporting data
+    to understand the quality of the table. Printing the `Validate` object (or using the
+    [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) method) will return a table
+    with the results of the interrogation and
+    [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) allows for the splitting of the
+    table based on passing and failing rows.
 
     Parameters
     ----------
@@ -1641,17 +1645,17 @@ class Validate:
     tbl_name
         A optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
-        in the header area of the HTML report generated by using the `get_tabular_report()` method.
+        in the header area of the tabular report.
     label
         An optional label for the validation plan. If no value is provided, a label will be
         generated based on the current system date and time. Markdown can be used here to make the
-        label more visually appealing (it will appear in the header area of the HTML report).
+        label more visually appealing (it will appear in the header area of the tabular report).
     thresholds
         Generate threshold failure levels so that all validation steps can report and react
         accordingly when exceeding the set levels. This is to be created using one of several valid
         input schemes: (1) single integer/float denoting absolute number or fraction of failing test
         units for the 'warn' level, (2) a tuple of 1-3 values, (3) a dictionary of 1-3 entries, or a
-        `Thresholds` object.
+        [`Thresholds`](`pointblank.Thresholds`) object.
 
     Returns
     -------
@@ -1680,7 +1684,8 @@ class Validate:
     ## Creating a validation plan and interrogating
 
     Let's walk through a data quality analysis of an extremely small table. It's actually called
-    `small_table` and it's accessible through the `load_dataset()` function.
+    `"small_table"` and it's accessible through the [`load_dataset()`](`pointblank.load_dataset`)
+    function.
 
     ```{python}
     import pointblank as pb
@@ -1694,14 +1699,14 @@ class Validate:
 
     We ought to think about what's tolerable in terms of data quality so let's designate
     proportional failure thresholds to the **warn**, **stop**, and **notify** states. This can be
-    done by using the `Thresholds` class.
+    done by using the [`Thresholds`](`pointblank.Thresholds`) class.
 
     ```{python}
     thresholds = pb.Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35)
     ```
 
     Now, we use the `Validate` class and give it the `thresholds` object (which serves as a default
-    for all validation steps but can be overridden). The static thresholds provided in `thresholds`
+    for all validation steps but can be overridden). The static thresholds provided in `thresholds=`
     will make the reporting a bit more useful. We also need to provide a target table and we'll use
     `small_table` for this.
 
@@ -1718,7 +1723,7 @@ class Validate:
 
     Then, as with any `Validate` object, we can add steps to the validation plan by using as many
     validation methods as we want. To conclude the process (and actually query the data table), we
-    use the `interrogate()` method.
+    use the [`interrogate()`](`pointblank.Validate.interrogate`) method.
 
     ```{python}
     validation = (
@@ -1738,12 +1743,15 @@ class Validate:
     validation
     ```
 
-    The report could be further customized by using the `get_tabular_report()` method, which
-    contains options for modifying the display of the table.
+    The report could be further customized by using the
+    [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) method, which contains
+    options for modifying the display of the table.
 
-    Furthermore, post-interrogation methods such as `get_step_report()`, `get_data_extracts()`, and
-    `get_sundered_data()` allow you to generate additional reporting or extract useful data for
-    downstream analysis from a `Validate` object.
+    Furthermore, post-interrogation methods such as
+    [`get_step_report()`](`pointblank.Validate.get_step_report`),
+    [`get_data_extracts()`](`pointblank.Validate.get_data_extracts`), and
+    [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) allow you to generate
+    additional reporting or extract useful data for downstream analysis from a `Validate` object.
     """
 
     data: FrameT | Any
@@ -1787,19 +1795,21 @@ class Validate:
         The `col_vals_gt()` validation method checks whether column values in a table are
         *greater than* a specified `value=` (the exact comparison used in this function is
         `col_val > value`). The `value=` can be specified as a single, literal value or as a column
-        name given in `col()`. This validation will operate over the number of test units that is
-        equal to the number of rows in the table (determined after any `pre=` mutation has been
-        applied).
+        name given in [`col()`](`pointblank.col`). This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -1866,9 +1876,9 @@ class Validate:
         by using `col_vals_gt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_gt()` to check whether the values in column `c`
-        are greater than values in column `b`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_gt()` to check whether
+        the values in column `c` are greater than values in column `b`.
 
         ```{python}
         validation = (
@@ -1941,19 +1951,21 @@ class Validate:
         The `col_vals_lt()` validation method checks whether column values in a table are
         *less than* a specified `value=` (the exact comparison used in this function is
         `col_val < value`). The `value=` can be specified as a single, literal value or as a column
-        name given in `col()`. This validation will operate over the number of test units that is
-        equal to the number of rows in the table (determined after any `pre=` mutation has been
-        applied).
+        name given in [`col()`](`pointblank.col`). This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2020,9 +2032,9 @@ class Validate:
         by using `col_vals_lt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_lt()` to check whether the values in column `b`
-        are less than values in column `c`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_lt()` to check whether
+        the values in column `b` are less than values in column `c`.
 
         ```{python}
         validation = (
@@ -2094,19 +2106,21 @@ class Validate:
         The `col_vals_eq()` validation method checks whether column values in a table are
         *equal to* a specified `value=` (the exact comparison used in this function is
         `col_val == value`). The `value=` can be specified as a single, literal value or as a column
-        name given in `col()`. This validation will operate over the number of test units that is
-        equal to the number of rows in the table (determined after any `pre=` mutation has been
-        applied).
+        name given in [`col()`](`pointblank.col`). This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2171,9 +2185,9 @@ class Validate:
         by using `col_vals_eq()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_eq()` to check whether the values in column `a`
-        are equal to the values in column `b`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_eq()` to check whether
+        the values in column `a` are equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2246,19 +2260,21 @@ class Validate:
         The `col_vals_ne()` validation method checks whether column values in a table are
         *not equal to* a specified `value=` (the exact comparison used in this function is
         `col_val != value`). The `value=` can be specified as a single, literal value or as a column
-        name given in `col()`. This validation will operate over the number of test units that is
-        equal to the number of rows in the table (determined after any `pre=` mutation has been
-        applied).
+        name given in [`col()`](`pointblank.col`). This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2323,9 +2339,9 @@ class Validate:
         by using `col_vals_ne()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_ne()` to check whether the values in column `a`
-        aren't equal to the values in column `b`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_ne()` to check whether
+        the values in column `a` aren't equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2396,19 +2412,21 @@ class Validate:
         The `col_vals_ge()` validation method checks whether column values in a table are
         *greater than or equal to* a specified `value=` (the exact comparison used in this function
         is `col_val >= value`). The `value=` can be specified as a single, literal value or as a
-        column name given in `col()`. This validation will operate over the number of test units
-        that is equal to the number of rows in the table (determined after any `pre=` mutation has
-        been applied).
+        column name given in [`col()`](`pointblank.col`). This validation will operate over the
+        number of test units that is equal to the number of rows in the table (determined after any
+        `pre=` mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2475,9 +2493,9 @@ class Validate:
         by using `col_vals_ge()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_ge()` to check whether the values in column `b`
-        are greater than values in column `c`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_ge()` to check whether
+        the values in column `b` are greater than values in column `c`.
 
         ```{python}
         validation = (
@@ -2550,19 +2568,21 @@ class Validate:
         The `col_vals_le()` validation method checks whether column values in a table are
         *less than or equal to* a specified `value=` (the exact comparison used in this function is
         `col_val <= value`). The `value=` can be specified as a single, literal value or as a column
-        name given in `col()`. This validation will operate over the number of test units that is
-        equal to the number of rows in the table (determined after any `pre=` mutation has been
-        applied).
+        name given in [`col()`](`pointblank.col`). This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         value
             The value to compare against. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2629,9 +2649,9 @@ class Validate:
         by using `col_vals_le()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function `col()`) to perform a column-column comparison.
-        For the next example, we'll use `col_vals_le()` to check whether the values in column `c`
-        are less than values in column `b`.
+        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        column-column comparison. For the next example, we'll use `col_vals_le()` to check whether
+        the values in column `c` are less than values in column `b`.
 
         ```{python}
         validation = (
@@ -2706,24 +2726,26 @@ class Validate:
         The `col_vals_between()` validation method checks whether column values in a table fall
         within a range. The range is specified with three arguments: `left=`, `right=`, and
         `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. These
-        bounds can be specified as literal values or as column names provided within `col()`. The
-        validation will operate over the number of test units that is equal to the number of rows in
-        the table (determined after any `pre=` mutation has been applied).
+        bounds can be specified as literal values or as column names provided within
+        [`col()`](`pointblank.col`). The validation will operate over the number of test units that
+        is equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         left
             The lower bound of the range. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison for the lower
-            bound.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison for the lower bound.
         right
             The upper bound of the range. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison for the upper
-            bound.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -2795,7 +2817,8 @@ class Validate:
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
-        the helper function `col()`). In this way, we can perform three additional comparison types:
+        the helper function [`col()`](`pointblank.col`)). In this way, we can perform three
+        additional comparison types:
 
         1. `left=column`, `right=column`
         2. `left=literal`, `right=column`
@@ -2883,24 +2906,26 @@ class Validate:
         The `col_vals_between()` validation method checks whether column values in a table *do not*
         fall within a certain range. The range is specified with three arguments: `left=`, `right=`,
         and `inclusive=`. The `left=` and `right=` values specify the lower and upper bounds. These
-        bounds can be specified as literal values or as column names provided within `col()`. The
-        validation will operate over the number of test units that is equal to the number of rows in
-        the table (determined after any `pre=` mutation has been applied).
+        bounds can be specified as literal values or as column names provided within
+        [`col()`](`pointblank.col`). The validation will operate over the number of test units that
+        is equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         left
             The lower bound of the range. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison for the lower
-            bound.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison for the lower bound.
         right
             The upper bound of the range. This can be a single numeric value or a single column name
-            given in `col()`. The latter option allows for a column-column comparison for the upper
-            bound.
+            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            comparison for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -2972,7 +2997,8 @@ class Validate:
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
-        the helper function `col()`). In this way, we can perform three additional comparison types:
+        the helper function [`col()`](`pointblank.col`)). In this way, we can perform three
+        additional comparison types:
 
         1. `left=column`, `right=column`
         2. `left=literal`, `right=column`
@@ -3065,9 +3091,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         set
             A list of values to compare against.
         pre
@@ -3204,9 +3231,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         set
             A list of values to compare against.
         pre
@@ -3340,9 +3368,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
         thresholds
@@ -3471,9 +3500,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         pre
             A pre-processing function or lambda to apply to the data table for the validation step.
         thresholds
@@ -3605,9 +3635,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         pattern
             A regular expression pattern to compare against.
         na_pass
@@ -3855,9 +3886,10 @@ class Validate:
         Parameters
         ----------
         columns
-            A single column or a list of columns to validate. Can also use `col()` with column
-            selectors to specify one or more columns. If multiple columns are supplied or resolved,
-            there will be a separate validation step generated for each column.
+            A single column or a list of columns to validate. Can also use
+            [`col()`](`pointblank.col`) with column selectors to specify one or more columns. If
+            multiple columns are supplied or resolved, there will be a separate validation step
+            generated for each column.
         thresholds
             Failure threshold levels so that the validation step can react accordingly when
             exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
@@ -4113,16 +4145,16 @@ class Validate:
         Do columns in the table (and their types) match a predefined schema?
 
         The `col_schema_match()` method works in conjunction with an object generated by the
-        `Schema` class. That class object is the expectation for the actual schema of the target
-        table. The validation step operates over a single test unit, which is whether the schema
-        matches that of the table (within the constraints enforced by the `complete=`, and
-        `in_order=` options).
+        [`Schema`](`pointblank.Schema`) class. That class object is the expectation for the actual
+        schema of the target table. The validation step operates over a single test unit, which is
+        whether the schema matches that of the table (within the constraints enforced by the
+        `complete=`, and `in_order=` options).
 
         Parameters
         ----------
         schema
             A `Schema` object that represents the expected schema of the table. This object is
-            generated by the `Schema` class.
+            generated by the [`Schema`](`pointblank.Schema`) class.
         complete
             Should the schema match be complete? If `True`, then the target table must have all
             columns specified in the schema. If `False`, then the table can have additional columns
@@ -4190,7 +4222,7 @@ class Validate:
         ```
 
         Let's validate that the columns in the table match a predefined schema. A schema can be
-        defined using the `Schema` class.
+        defined using the [`Schema`](`pointblank.Schema`) class.
 
         ```{python}
         schema = pb.Schema(
@@ -4506,16 +4538,17 @@ class Validate:
         process through `interrogate()` should then be invoked. Interrogation will evaluate each
         validation step against the table and store the results.
 
-        The interrogation process will collect extracts of failing rows if the `collect_extracts`
+        The interrogation process will collect extracts of failing rows if the `collect_extracts=`
         option is set to `True` (the default). We can control the number of rows collected using the
         `get_first_n=`, `sample_n=`, and `sample_frac=` options. The `sample_limit=` option will
         enforce a hard limit on the number of rows collected when using the `sample_frac=` option.
 
         After interrogation is complete, the `Validate` object will have gathered information, and
-        we can use methods like `n_passed()`, `f_failed()`, etc., to understand how the table
-        performed against the validation plan. A visual representation of the validation results can
-        be viewed by printing the `Validate` object; this will display the validation table in an
-        HTML viewing environment.
+        we can use methods like [`n_passed()`](`pointblank.Validate.n_passed`),
+        [`f_failed()`](`pointblank.Validate.f_failed`)`, etc., to understand how the table performed
+        against the validation plan. A visual representation of the validation results can be viewed
+        by printing the `Validate` object; this will display the validation table in an HTML viewing
+        environment.
 
         Parameters
         ----------
@@ -4526,9 +4559,10 @@ class Validate:
         collect_tbl_checked
             The processed data frames produced by executing the validation steps is collected and
             stored in the `Validate` object if `collect_tbl_checked=True`. This information is
-            necessary for some methods (e.g., `get_sundered_data()`), but it potentially makes the
-            object grow to a large size. To opt out of attaching this data, set this argument to
-            `False`.
+            necessary for some methods (e.g.,
+            [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`)), but it potentially
+            makes the object grow to a large size. To opt out of attaching this data, set this
+            argument to `False`.
         get_first_n
             If the option to collect rows where test units is chosen, there is the option here to
             collect the first `n` rows. Supply an integer number of rows to extract from the top of
@@ -4580,16 +4614,17 @@ class Validate:
         The validation table shows that step 3 (checking for `session_duration` greater than `5`)
         has 18 failing test units. This means that 18 rows in the table are problematic. We'd like
         to see the rows that failed this validation step and we can do that with the
-        `get_data_extracts()` method.
+        [`get_data_extracts()`](`pointblank.Validate.get_data_extracts`) method.
 
         ```{python}
         pb.preview(validation.get_data_extracts(i=3, frame=True))
         ```
 
-        The `get_data_extracts()` method will return a Polars DataFrame with the first 10 rows that
-        failed the validation step (we passed that into the `preview()` function for a better
-        display). There are actually 18 rows that failed but we limited the collection of extracts
-        with `get_first_n=10`.
+        The [`get_data_extracts()`](`pointblank.Validate.get_data_extracts`) method will return a
+        Polars DataFrame here with the first 10 rows that failed the validation step (we passed that
+        into the [`preview()`](`pointblank.preview`) function for a better display). There are
+        actually 18 rows that failed but we limited the collection of extracts with
+        `get_first_n=10`.
         """
 
         # Raise if `get_first_n` and either or `sample_n` or `sample_frac` arguments are provided
@@ -5138,8 +5173,8 @@ class Validate:
         The method provides a dictionary of the number of passing test units for each validation
         step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
         as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
-        complement to the analogous value returned by the `n_failed()` method (i.e.,
-        `n - n_failed`).
+        complement to the analogous value returned by the
+        [`n_passed()`](`pointblank.Validate.n_passed`) method (i.e., `n - n_failed`).
 
         Parameters
         ----------
@@ -5222,8 +5257,8 @@ class Validate:
         The method provides a dictionary of the number of failing test units for each validation
         step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
         as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
-        complement to the analogous value returned by the `n_passed()` method (i.e.,
-        `n - n_passed`).
+        complement to the analogous value returned by the
+        [`n_passed()`](`pointblank.Validate.n_passed`) method (i.e., `n - n_passed`).
 
         Parameters
         ----------
@@ -5305,8 +5340,8 @@ class Validate:
         This method provides a dictionary of the fraction of passing test units for each validation
         step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
         as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
-        complement to the analogous value returned by the `f_failed()` method (i.e.,
-        `1 - f_failed()`).
+        complement to the analogous value returned by the
+        [`f_failed()`](`pointblank.Validate.f_failed`) method (i.e., `1 - f_failed()`).
 
         Parameters
         ----------
@@ -5390,8 +5425,8 @@ class Validate:
         This method provides a dictionary of the fraction of failing test units for each validation
         step. If the `scalar=True` argument is provided and `i=` is a scalar, the value is returned
         as a scalar instead of a dictionary. Furthermore, a value obtained here will be the
-        complement to the analogous value returned by the `f_passed()` method (i.e.,
-        `1 - f_passed()`).
+        complement to the analogous value returned by the
+        [`f_passed()`](`pointblank.Validate.f_passed`) method (i.e., `1 - f_passed()`).
 
         Parameters
         ----------
@@ -5472,8 +5507,10 @@ class Validate:
         Here's how it fits in with other status indicators:
 
         - `warn`: the status obtained by calling `warn()`, least severe
-        - `stop`: the status obtained by calling `stop()`, middle severity
-        - `notify`: the status obtained by calling `notify()`, most severe
+        - `stop`: the status obtained by calling [`stop()`](`pointblank.Validate.stop`), middle
+        severity
+        - `notify`: the status obtained by calling [`notify()`](`pointblank.Validate.notify`), most
+        severe
 
         This method provides a dictionary of the warning status for each validation step. If the
         `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
@@ -5575,9 +5612,11 @@ class Validate:
         is halted, it is simply a status indicator that could be used to trigger a stoppage of the
         validation process. Here's how it fits in with other status indicators:
 
-        - `warn`: the status obtained by calling `warn()`, least severe
+        - `warn`: the status obtained by calling [`warn()`](`pointblank.Validate.warn`), least
+        severe
         - `stop`: the status obtained by calling `stop()`, middle severity
-        - `notify`: the status obtained by calling `notify()`, most severe
+        - `notify`: the status obtained by calling [`notify()`](`pointblank.Validate.notify`), most
+        severe
 
         This method provides a dictionary of the stopping status for each validation step. If the
         `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
@@ -5680,8 +5719,10 @@ class Validate:
         is generated, it is simply a status indicator that could be used to trigger some sort of
         notification. Here's how it fits in with other status indicators:
 
-        - `warn`: the status obtained by calling `warn()`, least severe
-        - `stop`: the status obtained by calling `stop()`, middle severity
+        - `warn`: the status obtained by calling [`warn()`](`pointblank.Validate.warn`), least
+        severe
+        - `stop`: the status obtained by calling [`stop()`](`pointblank.Validate.stop`), middle
+        severity
         - `notify`: the status obtained by calling `notify()`, most severe
 
         This method provides a dictionary of the notification status for each validation step. If
@@ -5777,11 +5818,12 @@ class Validate:
         """
         Get the rows that failed for each validation step.
 
-        After the `interrogate()` method has been called, the `get_data_extracts()` method can be
-        used to extract the rows that failed in each row-based validation step (e.g.,
-        `col_vals_gt()`, etc.). The method returns a dictionary of tables containing the rows that
-        failed in every row-based validation function. If `frame=True` and `i=` is a scalar, the
-        value is conveniently returned as a table (forgoing the dictionary structure).
+        After the [`interrogate()`](`pointblank.Validate.interrogate`) method has been called, the
+        `get_data_extracts()` method can be used to extract the rows that failed in each row-based
+        validation step (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`), etc.). The
+        method returns a dictionary of tables containing the rows that failed in every row-based
+        validation function. If `frame=True` and `i=` is a scalar, the value is conveniently
+        returned as a table (forgoing the dictionary structure).
 
         Parameters
         ----------
@@ -5802,19 +5844,19 @@ class Validate:
         The following validation methods are row-based and will have rows extracted when there are
         failing test units.
 
-        - `col_vals_gt()`
-        - `col_vals_ge()`
-        - `col_vals_lt()`
-        - `col_vals_le()`
-        - `col_vals_eq()`
-        - `col_vals_ne()`
-        - `col_vals_between()`
-        - `col_vals_outside()`
-        - `col_vals_in_set()`
-        - `col_vals_not_in_set()`
-        - `col_vals_null()`
-        - `col_vals_not_null()`
-        - `col_vals_regex()`
+        - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+        - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+        - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+        - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+        - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+        - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+        - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+        - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+        - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+        - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+        - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+        - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+        - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
 
         An extracted row means that a test unit failed for that row in the validation step. The
         extracted rows are a subset of the original table and are useful for further analysis or for
@@ -5829,9 +5871,11 @@ class Validate:
         pb.config(preview_incl_header=False)
         ```
         Let's perform a series of validation steps on a Polars DataFrame. We'll use the
-        `col_vals_gt()` in the first step, `col_vals_lt()` in the second step, and `col_vals_ge()`
-        in the third step. The `interrogate()` method executes the validation; then, we can extract
-        the rows that failed for each validation step.
+        [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) in the first step,
+        [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`) in the second step, and
+        [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`) in the third step. The
+        [`interrogate()`](`pointblank.Validate.interrogate`) method executes the validation; then,
+        we can extract the rows that failed for each validation step.
 
         ```{python}
         import pointblank as pb
@@ -5859,17 +5903,17 @@ class Validate:
         The `get_data_extracts()` method returns a dictionary of tables, where each table contains
         a subset of rows from the table. These are the rows that failed for each validation step.
 
-        In the first step, the `col_vals_gt()` method was used to check if the values in column `a`
-        were greater than `4`. The extracted table shows the rows where this condition was not met;
-        look at the `a` column: all values are less than `4`.
+        In the first step, the[`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) method was used
+        to check if the values in column `a` were greater than `4`. The extracted table shows the
+        rows where this condition was not met; look at the `a` column: all values are less than `4`.
 
-        In the second step, the `col_vals_lt()` method was used to check if the values in column `c`
-        were less than `5`. In the extracted two-row table, we see that the values in column `c` are
-        greater than `5`.
+        In the second step, the [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`) method was
+        used to check if the values in column `c` were less than `5`. In the extracted two-row
+        table, we see that the values in column `c` are greater than `5`.
 
-        The third step (`col_vals_ge()`) checked if the values in column `b` were greater than or
-        equal to `1`. There were no failing test units, so the extracted table is empty (i.e., has
-        columns but no rows).
+        The third step ([`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)) checked if the values
+        in column `b` were greater than or equal to `1`. There were no failing test units, so the
+        extracted table is empty (i.e., has columns but no rows).
 
         The `i=` argument can be used to narrow down the extraction to one or more steps. For
         example, to extract the rows that failed in the first step only:
@@ -5890,8 +5934,8 @@ class Validate:
         ```
 
         The extracted table is now a DataFrame, which can serve as a more convenient format for
-        further analysis or visualization. We further used the `pb.preview()` function to show the
-        DataFrame in an HTML view.
+        further analysis or visualization. We further used the [`preview()`](`pointblank.preview`)
+        function to show the DataFrame in an HTML view.
         """
         result = self._get_validation_dict(i, "extract")
         if frame and isinstance(i, int):
@@ -5960,10 +6004,11 @@ class Validate:
 
         Validation of the data is one thing but, sometimes, you want to use the best part of the
         input dataset for something else. The `get_sundered_data()` method works with a Validate
-        object that has been interrogated (i.e., the `interrogate()` method was used). We can get
-        either the 'pass' data piece (rows with no failing test units across all row-based
-        validation functions), or, the 'fail' data piece (rows with at least one failing test unit
-        across the same series of validations).
+        object that has been interrogated (i.e., the
+        [`interrogate()`](`pointblank.Validate.interrogate`) method was used). We can get either the
+        'pass' data piece (rows with no failing test units across all row-based validation
+        functions), or, the 'fail' data piece (rows with at least one failing test unit across the
+        same series of validations).
 
         Details
         -------
@@ -6034,10 +6079,10 @@ class Validate:
         ```
 
         The returned DataFrame contains the rows that passed all validation steps (we passed this
-        object to `pb.preview()` to show it in an HTML view). From the six-row input DataFrame, the
-        first two rows and the last two rows had test units that failed validation. Thus the middle
-        two rows are the only ones that passed all validation steps and that's what we see in the
-        returned DataFrame.
+        object to [`preview()`](`pointblank.preview`) to show it in an HTML view). From the six-row
+        input DataFrame, the first two rows and the last two rows had test units that failed
+        validation. Thus the middle two rows are the only ones that passed all validation steps and
+        that's what we see in the returned DataFrame.
         """
 
         # Keep only the validation steps that:
