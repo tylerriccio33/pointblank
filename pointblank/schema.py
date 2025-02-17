@@ -17,7 +17,7 @@ class Schema:
     The schema object defines the structure of a table. Once it is defined, the object can be used
     in a validation workflow, using `Validate` and its methods, to ensure that the structure of a
     table matches the expected schema. The validation method that works with the schema object is
-    called `col_schema_match()`.
+    called [`col_schema_match()`](`pointblank.Validate.col_schema_match`).
 
     A schema for a table can be constructed with the `Schema` class in a number of ways:
 
@@ -77,13 +77,15 @@ class Schema:
     confusion. So let's go through each of the methods of constructing a schema in more detail and
     single out some important points.
 
-    When providing a list of column names to `columns=`, the `col_schema_match()` will only check
+    When providing a list of column names to `columns=`, a
+    [`col_schema_match()`](`pointblank.Validate.col_schema_match`) validation step will only check
     the column names. Any arguments pertaining to dtypes will be ignored.
 
     When using a list of tuples in `columns=`, the tuples could contain the column name and dtype
     or just the column name. This construction allows for more flexibility in constructing the
     schema as some columns will be checked for dtypes and others will not. This method is the only
-    way to have mixed checks of column names and dtypes in `col_schema_match()`.
+    way to have mixed checks of column names and dtypes in
+    [`col_schema_match()`](`pointblank.Validate.col_schema_match`).
 
     When providing a dictionary to `columns=`, the keys are the column names and the values are the
     dtypes. This method of input is useful in those cases where you might already have a dictionary
@@ -95,9 +97,10 @@ class Schema:
 
     Finally, multiple dtypes can be provided for a single column by providing a list or tuple of
     dtypes in place of a scalar string value. Having multiple dtypes for a column allows for the
-    dtype check via `col_schema_match()` to make multiple attempts at matching the column dtype.
-    Should any of the dtypes match the column dtype, that part of the schema check will pass. Here
-    are some examples of how you could provide single and multiple dtypes for a column:
+    dtype check via [`col_schema_match()`](`pointblank.Validate.col_schema_match`) to make multiple
+    attempts at matching the column dtype. Should any of the dtypes match the column dtype, that
+    part of the schema check will pass. Here are some examples of how you could provide single and
+    multiple dtypes for a column:
 
     ```python
     # list of tuples
@@ -167,11 +170,13 @@ class Schema:
     ```
 
     The `Schema` object can be used to validate the structure of a table against the schema. The
-    relevant `Validate` method for this is `col_schema_match()`. In a validation workflow, you'll
+    relevant `Validate` method for this is
+    [`col_schema_match()`](`pointblank.Validate.col_schema_match`). In a validation workflow, you'll
     have a target table (defined at the beginning of the workflow) and you might want to ensure that
-    your expectations of the table structure are met. The `col_schema_match()` method works with a
-    `Schema` object to validate the structure of the table. Here's an example of how you could use
-    the `col_schema_match()` method in a validation workflow:
+    your expectations of the table structure are met. The
+    [`col_schema_match()`](`pointblank.Validate.col_schema_match`) method works with a `Schema`
+    object to validate the structure of the table. Here's an example of how you could use
+    [`col_schema_match()`](`pointblank.Validate.col_schema_match`) in a validation workflow:
 
     ```{python}
     # Define the schema
@@ -188,10 +193,10 @@ class Schema:
     validation
     ```
 
-    The `col_schema_match()` validation method will validate the structure of the table against the
-    schema during interrogation. If the structure of the table does not match the schema, the single
-    test unit will fail. In this case, the defined schema matched the structure of the table, so the
-    validation passed.
+    The [`col_schema_match()`](`pointblank.Validate.col_schema_match`) validation method will
+    validate the structure of the table against the schema during interrogation. If the structure of
+    the table does not match the schema, the single test unit will fail. In this case, the defined
+    schema matched the structure of the table, so the validation passed.
 
     We can also choose to check only the column names of the target table. This can be done by
     providing a simplified `Schema` object, which is given a list of column names:

@@ -67,7 +67,7 @@ class Thresholds:
     The `Thresholds` object can be used to set global thresholds for all validation steps. Or, you
     can set thresholds for individual validation steps, which will override the global thresholds.
     Here's a data validation workflow example where we set global thresholds and then override with
-    different thresholds at the `col_vals_gt()` step:
+    different thresholds at the [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) step:
 
     ```{python}
     validation = (
@@ -84,8 +84,9 @@ class Thresholds:
     validation
     ```
 
-    As can be seen, the last step (`col_vals_gt()`) has its own thresholds, which override the
-    global thresholds set at the beginning of the validation workflow (in the `Validate` class).
+    As can be seen, the last step ([`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)) has its own
+    thresholds, which override the global thresholds set at the beginning of the validation workflow
+    (in the `Validate` class).
     """
 
     warn_at: int | float | bool | None = None

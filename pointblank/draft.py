@@ -96,9 +96,10 @@ class DraftValidation:
     Examples
     --------
     Let's look at how the `DraftValidation` class can be used to draft a validation plan for a
-    table. The table to be used is `"nycflights"`, which is available here via the `load_dataset()`
-    function. The model to be used is `"anthropic:claude-3-5-sonnet-latest"`. The example assumes
-    that the API key is stored in an `.env` file as `ANTHROPIC_API_KEY`.
+    table. The table to be used is `"nycflights"`, which is available here via the
+    [`load_dataset()`](`pointblank.load_dataset`) function. The model to be used is
+    `"anthropic:claude-3-5-sonnet-latest"`. The example assumes that the API key is stored in an
+    `.env` file as `ANTHROPIC_API_KEY`.
 
     ```python
     import pointblank as pb
