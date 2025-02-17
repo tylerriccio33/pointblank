@@ -226,14 +226,15 @@ def col(
     """
     Helper function for referencing a column in the input table.
 
-    Many of the validation methods (i.e., `col_vals_*()` methods) in pointblank have a `value=`
+    Many of the validation methods (i.e., `col_vals_*()` methods) in Pointblank have a `value=`
     argument. These validations are comparisons between column values and a literal value, or,
     between column values and adjacent values in another column. The `col()` helper function is used
     to specify that it is a column being referenced, not a literal value.
 
     The `col()` doesn't check that the column exists in the input table. It acts to signal that the
-    value being compared is a column value. During validation (i.e., when `interrogate()` is
-    called), pointblank will then check that the column exists in the input table.
+    value being compared is a column value. During validation (i.e., when
+    [`interrogate()`](`pointblank.Validate.interrogate`) is called), Pointblank will then check that
+    the column exists in the input table.
 
     Parameters
     ----------
@@ -252,20 +253,20 @@ def col(
     -----------------------------------
     The `col()` function can be used in the `columns=` argument of the following validation methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     If specifying a single column with certainty (you have the exact name), `col()` is not necessary
     since you can just pass the column name as a string (though it is still valid to use
@@ -274,7 +275,8 @@ def col(
     don't end with `"e"`), you need to use `col()` to wrap expressions involving column selector
     functions and logical operators such as `&`, `|`, `-`, and `~`.
 
-    Here is an example of such usage with the `col_vals_gt()` validation method:
+    Here is an example of such usage with the [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    validation method:
 
     ```python
     col_vals_gt(columns=col(starts_with("a") & ~ends_with("e")), value=10)
@@ -292,35 +294,35 @@ def col(
     --------------------------------------------------------
     The `col()` function can be used in the `value=` argument of the following validation methods
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
 
     and in the `left=` and `right=` arguments (either or both) of these two validation methods
 
-    - `col_vals_between()`
-    - `col_vals_outside()`
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
 
-    You cannot use column selector functions such as `starts_with()` in either of the `value=`,
-    `left=`, or `right=` arguments since there would be no guarantee that a single column will be
-    resolved from the target table with this approach. The `col()` function is used to signal that
-    the value being compared is a column value and not a literal value.
+    You cannot use column selector functions such as [`starts_with()`](`pointblank.starts_with`)
+    in either of the `value=`, `left=`, or `right=` arguments since there would be no guarantee that
+    a single column will be resolved from the target table with this approach. The `col()` function
+    is used to signal that the value being compared is a column value and not a literal value.
 
     Available Selectors
     -------------------
     There is a collection of selectors available in pointblank, allowing you to select columns based
     on attributes of column names and positions. The selectors are:
 
-    - `starts_with()`
-    - `ends_with()`
-    - `contains()`
-    - `matches()`
-    - `everything()`
-    - `first_n()`
-    - `last_n()`
+    - [`starts_with()`](`pointblank.starts_with`)
+    - [`ends_with()`](`pointblank.ends_with`)
+    - [`contains()`](`pointblank.contains`)
+    - [`matches()`](`pointblank.matches`)
+    - [`everything()`](`pointblank.everything`)
+    - [`first_n()`](`pointblank.first_n`)
+    - [`last_n()`](`pointblank.last_n`)
 
     Alternatively, we support selectors from the Narwhals library! Those selectors can additionally
     take advantage of the data types of the columns. The selectors are:
@@ -373,8 +375,9 @@ def col(
     comparison is across columns, not with a fixed literal value.
 
     If you want to select an arbitrary set of columns upon which to base a validation, you can use
-    column selector functions (e.g., `starts_with()`, `ends_with()`, etc.) to specify columns in the
-    `columns=` argument of a validation method. Let's use the `starts_with()` column selector
+    column selector functions (e.g., [`starts_with()`](`pointblank.starts_with`),
+    [`ends_with()`](`pointblank.ends_with`), etc.) to specify columns in the `columns=` argument of
+    a validation method. Let's use the [`starts_with()`](`pointblank.starts_with`) column selector
     function to select columns that start with `"paid"` and validate that the values in those
     columns are greater than `10`.
 
@@ -397,11 +400,11 @@ def col(
     validation
     ```
 
-    In the above example the `col()` function contains the invocation of the `starts_with()` column
-    selector function. This is not strictly necessary when using a single column selector function,
-    so `columns=pb.starts_with("paid")` would be equivalent usage here. However, the use of `col()`
-    is required when using multiple column selector functions with logical operators. Here is an
-    example of that more complex usage:
+    In the above example the `col()` function contains the invocation of the
+    [`starts_with()`](`pointblank.starts_with`) column selector function. This is not strictly
+    necessary when using a single column selector function, so `columns=pb.starts_with("paid")`
+    would be equivalent usage here. However, the use of `col()` is required when using multiple
+    column selector functions with logical operators. Here is an example of that more complex usage:
 
     ```{python}
     tbl = pl.DataFrame(
@@ -428,9 +431,10 @@ def col(
     validation
     ```
 
-    In the above example the `col()` function contains the invocation of the `starts_with()` and
-    `matches()` column selector functions, combined with the `&` operator. This is necessary to
-    specify the set of columns that start with `"paid"` *and* match the text `"2023"` or `"2024"`.
+    In the above example the `col()` function contains the invocation of the
+    [`starts_with()`](`pointblank.starts_with`) and [`matches()`](`pointblank.matches`) column
+    selector functions, combined with the `&` operator. This is necessary to specify the set of
+    columns that start with `"paid"` *and* match the text `"2023"` or `"2024"`.
 
     If you'd like to take advantage of Narwhals selectors, that's also possible. Here is an example
     of using the `numeric()` column selector function to select all numeric columns for validation,
@@ -465,8 +469,8 @@ def col(
     when using a single column selector, so `columns=ncs.numeric()` would also be fine here.
 
     Narwhals selectors can also use operators to combine multiple selectors. Here is an example of
-    using the `numeric()` and `matches()` selectors together to select all numeric columns that fit
-    a specific pattern.
+    using the `numeric()` and [`matches()`](`pointblank.matches`) selectors together to select all
+    numeric columns that fit a specific pattern.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -491,9 +495,9 @@ def col(
     ```
 
     In the above example the `col()` function contains the invocation of the `numeric()` and
-    `matches()` column selector functions from Narwhals, combined with the `&` operator. This is
-    necessary to specify the set of columns that are numeric *and* match the text `"2023"` or
-    `"2024"`.
+    [`matches()`](`pointblank.matches`) column selector functions from Narwhals, combined with the
+    `&` operator. This is necessary to specify the set of columns that are numeric *and* match the
+    text `"2023"` or `"2024"`.
     """
     if isinstance(exprs, str):
         return ColumnLiteral(exprs=exprs)
@@ -510,7 +514,8 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     Select columns that start with specified text.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `starts_with()` selector
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `starts_with()` selector
     function can be used to select one or more columns that start with some specified text. So if
     the set of table columns consists of
 
@@ -543,20 +548,20 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `starts_with()` selector function doesn't need to be used in isolation. Read the next
     section for information on how to compose it with other column selectors for more refined ways
@@ -566,8 +571,9 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     ---------------------------------------------------------------------
     The `starts_with()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select columns that start with `"a"` and end with `"e"`, you
-    can use the `starts_with()` and `ends_with()` functions together. The only condition is that the
-    expressions are wrapped in the `col()` function, like this:
+    can use the `starts_with()` and [`ends_with()`](`pointblank.ends_with`) functions together. The
+    only condition is that the expressions are wrapped in the [`col()`](`pointblank.col`) function,
+    like this:
 
     ```python
     col(starts_with("a") & ends_with("e"))
@@ -627,9 +633,10 @@ def starts_with(text: str, case_sensitive: bool = False) -> StartsWith:
     one for `paid_2022`. The values in both columns were all greater than `10`.
 
     We can also use the `starts_with()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select columns that start with `"paid"` and match the text
-    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select columns that start with
+    `"paid"` and match the text `"2023"` or `"2024"`, we can use the `&` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -667,7 +674,8 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     Select columns that end with specified text.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `ends_with()` selector
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `ends_with()` selector
     function can be used to select one or more columns that end with some specified text. So if the
     set of table columns consists of
 
@@ -699,20 +707,20 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `ends_with()` selector function doesn't need to be used in isolation. Read the next section
     for information on how to compose it with other column selectors for more refined ways to select
@@ -722,8 +730,9 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     ---------------------------------------------------------------------
     The `ends_with()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select columns that end with `"e"` and start with `"a"`, you
-    can use the `ends_with()` and `starts_with()` functions together. The only condition is that the
-    expressions are wrapped in the `col()` function, like this:
+    can use the `ends_with()` and [`starts_with()`](`pointblank.starts_with`) functions together.
+    The only condition is that the expressions are wrapped in the [`col()`](`pointblank.col`)
+    function, like this:
 
     ```python
     col(ends_with("e") & starts_with("a"))
@@ -783,9 +792,10 @@ def ends_with(text: str, case_sensitive: bool = False) -> EndsWith:
     for `2022_pay`. The values in both columns were all greater than `10`.
 
     We can also use the `ends_with()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select columns that end with `"pay"` and match the text
-    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select columns that end with `"pay"`
+    and match the text `"2023"` or `"2024"`, we can use the `&` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -823,9 +833,10 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     Select columns that contain specified text.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `contains()` selector function
-    can be used to select one or more columns that contain some specified text. So if the set of
-    table columns consists of
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `contains()` selector
+    function can be used to select one or more columns that contain some specified text. So if the
+    set of table columns consists of
 
     `[profit, conv_first, conv_last, highest_conv, age]`
 
@@ -856,20 +867,20 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `contains()` selector function doesn't need to be used in isolation. Read the next section
     for information on how to compose it with other column selectors for more refined ways to select
@@ -879,8 +890,9 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     ---------------------------------------------------------------------
     The `contains()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select columns that have the text `"_n"` and start with
-    `"item"`, you can use the `contains()` and `starts_with()` functions together. The only
-    condition is that the expressions are wrapped in the `col()` function, like this:
+    `"item"`, you can use the `contains()` and [`starts_with()`](`pointblank.starts_with`) functions
+    together. The only condition is that the expressions are wrapped in the
+    [`col()`](`pointblank.col`) function, like this:
 
     ```python
     col(contains("_n") & starts_with("item"))
@@ -940,9 +952,10 @@ def contains(text: str, case_sensitive: bool = False) -> Contains:
     and one for `2022_pay_total`. The values in both columns were all greater than `10`.
 
     We can also use the `contains()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select columns that contain `"pay"` and match the text
-    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select columns that contain `"pay"`
+    and match the text `"2023"` or `"2024"`, we can use the `&` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -980,9 +993,10 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     Select columns that match a specified regular expression pattern.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `matches()` selector function
-    can be used to select one or more columns matching a provided regular expression pattern. So if
-    the set of table columns consists of
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `matches()` selector
+    function can be used to select one or more columns matching a provided regular expression
+    pattern. So if the set of table columns consists of
 
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
@@ -1013,20 +1027,20 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `matches()` selector function doesn't need to be used in isolation. Read the next section
     for information on how to compose it with other column selectors for more refined ways to select
@@ -1036,8 +1050,9 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     ---------------------------------------------------------------------
     The `matches()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select columns that have the text starting with five digits
-    and end with `"_id"`, you can use the `matches()` and `ends_with()` functions together. The only
-    condition is that the expressions are wrapped in the `col()` function, like this:
+    and end with `"_id"`, you can use the `matches()` and [`ends_with()`](`pointblank.ends_with`)
+    functions together. The only condition is that the expressions are wrapped in the
+    [`col()`](`pointblank.col`) function, like this:
 
     ```python
     col(matches(r"^\d{5}") & ends_with("_id"))
@@ -1097,9 +1112,10 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     for `new_identifier`. The values in both columns all match the pattern `"ID\d{4}"`.
 
     We can also use the `matches()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select columns that contain `"pay"` and match the text
-    `"2023"` or `"2024"`, we can use the `&` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select columns that contain `"pay"`
+    and match the text `"2023"` or `"2024"`, we can use the `&` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -1137,7 +1153,8 @@ def everything() -> Everything:
     Select all columns.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `everything()` selector
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `everything()` selector
     function can be used to select every column in the table. If you have a table with six columns
     and they're all suitable for a specific type of validation, you can use `columns=everything())`
     and all six columns will be selected for validation.
@@ -1152,20 +1169,20 @@ def everything() -> Everything:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `everything()` selector function doesn't need to be used in isolation. Read the next section
     for information on how to compose it with other column selectors for more refined ways to select
@@ -1175,8 +1192,9 @@ def everything() -> Everything:
     ---------------------------------------------------------------------
     The `everything()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select all column names except those having starting with
-    "id_", you can use the `everything()` and `starts_with()` functions together. The only condition
-    is that the expressions are wrapped in the `col()` function, like this:
+    "id_", you can use the `everything()` and [`starts_with()`](`pointblank.starts_with`)
+    functions together. The only condition is that the expressions are wrapped in the
+    [`col()`](`pointblank.col`) function, like this:
 
     ```python
     col(everything() - starts_with("id_"))
@@ -1235,9 +1253,9 @@ def everything() -> Everything:
     table. The values in every column were all lower than `1000`.
 
     We can also use the `everything()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select every column except those that begin with `"2023"`
-    we can use the `-` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select every column except those that
+    begin with `"2023"` we can use the `-` operator to combine column selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -1269,9 +1287,10 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     Select the first `n` columns in the column list.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `first_n()` selector function
-    can be used to select *n* columns positioned at the start of the column list. So if the set of
-    table columns consists of
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `first_n()` selector
+    function can be used to select *n* columns positioned at the start of the column list. So if the
+    set of table columns consists of
 
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
@@ -1302,20 +1321,20 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `first_n()` selector function doesn't need to be used in isolation. Read the next section
     for information on how to compose it with other column selectors for more refined ways to select
@@ -1325,8 +1344,9 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     ---------------------------------------------------------------------
     The `first_n()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select all column names starting with "rev" along with the
-    first two columns, you can use the `first_n()` and `starts_with()` functions together. The only
-    condition is that the expressions are wrapped in the `col()` function, like this:
+    first two columns, you can use the `first_n()` and [`starts_with()`](`pointblank.starts_with`)
+    functions together. The only condition is that the expressions are wrapped in the
+    [`col()`](`pointblank.col`) function, like this:
 
     ```python
     col(first_n(2) | starts_with("rev"))
@@ -1387,9 +1407,10 @@ def first_n(n: int, offset: int = 0) -> FirstN:
     columns were all greater than `10`.
 
     We can also use the `first_n()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select the first four columns but also omit those columns
-    that end with `"2023"`, we can use the `-` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select the first four columns but
+    also omit those columns that end with `"2023"`, we can use the `-` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
@@ -1422,9 +1443,10 @@ def last_n(n: int, offset: int = 0) -> LastN:
     Select the last `n` columns in the column list.
 
     Many validation methods have a `columns=` argument that can be used to specify the columns for
-    validation (e.g., `col_vals_gt()`, `col_vals_regex()`, etc.). The `last_n()` selector function
-    can be used to select *n* columns positioned at the end of the column list. So if the set of
-    table columns consists of
+    validation (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+    [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`), etc.). The `last_n()` selector
+    function can be used to select *n* columns positioned at the end of the column list. So if the
+    set of table columns consists of
 
     `[age, rev_01, rev_02, profit_01, profit_02]`
 
@@ -1455,20 +1477,20 @@ def last_n(n: int, offset: int = 0) -> LastN:
     This selector function can be used in the `columns=` argument of the following validation
     methods:
 
-    - `col_vals_gt()`
-    - `col_vals_lt()`
-    - `col_vals_ge()`
-    - `col_vals_le()`
-    - `col_vals_eq()`
-    - `col_vals_ne()`
-    - `col_vals_between()`
-    - `col_vals_outside()`
-    - `col_vals_in_set()`
-    - `col_vals_not_in_set()`
-    - `col_vals_null()`
-    - `col_vals_not_null()`
-    - `col_vals_regex()`
-    - `col_exists()`
+    - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+    - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+    - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+    - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+    - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+    - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+    - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+    - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+    - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+    - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+    - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+    - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+    - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+    - [`col_exists()`](`pointblank.Validate.col_exists`)
 
     The `last_n()` selector function doesn't need to be used in isolation. Read the next section for
     information on how to compose it with other column selectors for more refined ways to select
@@ -1478,8 +1500,9 @@ def last_n(n: int, offset: int = 0) -> LastN:
     ---------------------------------------------------------------------
     The `last_n()` function can be composed with other column selectors to create fine-grained
     column selections. For example, to select all column names starting with "rev" along with the
-    last two columns, you can use the `last_n()` and `starts_with()` functions together. The only
-    condition is that the expressions are wrapped in the `col()` function, like this:
+    last two columns, you can use the `last_n()` and [`starts_with()`](`pointblank.starts_with`)
+    functions together. The only condition is that the expressions are wrapped in the
+    [`col()`](`pointblank.col`) function, like this:
 
     ```python
     col(last_n(2) | starts_with("rev"))
@@ -1540,9 +1563,10 @@ def last_n(n: int, offset: int = 0) -> LastN:
     columns were all greater than `10`.
 
     We can also use the `last_n()` function in combination with other column selectors (within
-    `col()`) to create more complex column selection criteria (i.e., to select columns that satisfy
-    multiple conditions). For example, to select the last four columns but also omit those columns
-    that end with `"2023"`, we can use the `-` operator to combine column selectors.
+    [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
+    columns that satisfy multiple conditions). For example, to select the last four columns but also
+    omit those columns that end with `"2023"`, we can use the `-` operator to combine column
+    selectors.
 
     ```{python}
     tbl = pl.DataFrame(
