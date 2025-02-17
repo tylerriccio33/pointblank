@@ -5068,6 +5068,8 @@ class Validate:
         method is used to assert that all validation steps passed perfectly.
 
         ```{python}
+        #| error: True
+
         import pointblank as pb
         import polars as pl
 
