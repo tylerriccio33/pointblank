@@ -5047,6 +5047,51 @@ class Validate:
         """
         return all(validation.all_passed for validation in self.validation_info)
 
+    def assert_passing(self) -> None:
+        """
+        Raise an `AssertionError` if all tests are not passing.
+
+        The `assert_passing()` method will raise an `AssertionError` if a test does not pass. This
+        method simply wraps `all_passed` for more ready use in test suites. The method does not
+        preserve information or the object itself, and must be further investigated.
+
+        Raises
+        -------
+        AssertionError
+            If any validation step has failing test units.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the second step will have a failing test
+        unit (the value `10` isn't less than `9`). After interrogation, the `assert_passing()`
+        method is used to assert that all validation steps passed perfectly.
+
+        ```{python}
+
+        tbl = pl.DataFrame(
+            {
+            "a": [1, 2, 9, 5],
+            "b": [5, 6, 10, 3],
+            "c": ["a", "b", "a", "a"],
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=0)
+            .col_vals_lt(columns="b", value=9)
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.assert_passing()
+        ```
+        """
+        if not self.all_passed():
+            msg = "All tests did not pass."
+            raise AssertionError(msg)
+
     def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units for each validation step.
