@@ -5016,9 +5016,9 @@ class Validate:
         """
         Raise an `AssertionError` if all tests are not passing.
 
-        The `assert_passing()` method will raise an `AssertionError` if a test does not pass.
-        This method simply wraps `all_passed` for more ready use in test suites. The method
-        does not preserve information or the object itself, and must be further investigated.
+        The `assert_passing()` method will raise an `AssertionError` if a test does not pass. This
+        method simply wraps `all_passed` for more ready use in test suites. The method does not
+        preserve information or the object itself, and must be further investigated.
 
         Raises
         -------
