@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import Callable
 from dataclasses import dataclass, field
 
-__all__ = ["Thresholds"]
+__all__ = ["Thresholds", "Actions"]
 
 
 @dataclass
@@ -289,3 +290,43 @@ def _threshold_check(failing_test_units: int, threshold: int | None) -> bool:
         return False
 
     return failing_test_units < threshold
+
+
+@dataclass
+class Actions:
+    """
+    Definition of action values.
+
+    Parameters
+    ----------
+    warn
+        A Callable (or list of Callable values) for the 'warn' level. Using `None` means that no
+        action is taken at the 'warn' level.
+    stop
+        A Callable (or list thereof) for the 'stop' level. Using `None` means that no action is
+        taken at the 'stop' level.
+    notify
+        A Callable (or list thereof)  for the 'notify' level. Using `None` means that no action is
+        taken at the 'notify' level.
+
+    Returns
+    -------
+    Actions
+        An Actions object. This can be used when using the `Validate` class (to set actions for
+        meeting different threshold levels globally) or when defining validation steps through
+        `Validate`'s methods (so that action values are scoped to individual validation steps,
+        overriding any global actions).
+    """
+
+    warn: Callable | None = None
+    stop: Callable | None = None
+    notify: Callable | None = None
+
+    def __repr__(self) -> str:
+        return f"Actions(warn={self.warn}, stop={self.stop}, notify={self.notify})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def _get_action(self, level: str) -> Callable | None:
+        return getattr(self, level)

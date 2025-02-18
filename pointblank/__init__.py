@@ -30,7 +30,7 @@ from pointblank.validate import (
     get_row_count,
 )
 from pointblank.schema import Schema
-from pointblank.thresholds import Thresholds
+from pointblank.thresholds import Thresholds, Actions
 from pointblank.datascan import DataScan
 from pointblank.draft import DraftValidation
 
@@ -38,6 +38,7 @@ __all__ = [
     "TF",
     "Validate",
     "Thresholds",
+    "Actions",
     "Schema",
     "DataScan",
     "DraftValidation",
