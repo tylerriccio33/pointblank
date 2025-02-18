@@ -337,9 +337,9 @@ class Actions:
         are scoped to individual validation steps, overriding any globally set actions).
     """
 
-    warn: Callable | None = None
-    stop: Callable | None = None
-    notify: Callable | None = None
+    warn: str | Callable | None = None
+    stop: str | Callable | None = None
+    notify: str | Callable | None = None
 
     def __repr__(self) -> str:
         return f"Actions(warn={self.warn}, stop={self.stop}, notify={self.notify})"
@@ -347,5 +347,5 @@ class Actions:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def _get_action(self, level: str) -> Callable | None:
+    def _get_action(self, level: str) -> str | Callable | None:
         return getattr(self, level)
