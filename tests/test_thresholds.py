@@ -372,3 +372,29 @@ def test_actions_callable_inputs():
 
     pattern = r"Actions\(warn=\[<function.*?>\], stop=\[<function.*?>\], notify=\[<function.*?>\]\)"
     assert re.match(pattern, repr(a))
+
+
+def test_actions_list_inputs():
+
+    def warn():
+        return "warning function"
+
+    def stop():
+        return "stopping function"
+
+    def notify():
+        return "notifying function"
+
+    a = Actions(warn=[warn, "warning string"], stop=["stopping string", stop], notify=[notify])
+
+    assert callable(a.warn[0])
+    assert isinstance(a.warn[1], str)
+    assert isinstance(a.stop[0], str)
+    assert callable(a.stop[1])
+    assert callable(a.notify[0])
+
+    assert a.warn[0]() == "warning function"
+    assert a.warn[1] == "warning string"
+    assert a.stop[0] == "stopping string"
+    assert a.stop[1]() == "stopping function"
+    assert a.notify[0]() == "notifying function"
