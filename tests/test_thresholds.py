@@ -329,24 +329,24 @@ def test_actions_default():
 
     a = Actions()
 
-    assert a.warn is None
-    assert a.stop is None
-    assert a.notify is None
+    assert a.warn == []
+    assert a.stop == []
+    assert a.notify == []
 
 
 def test_actions_repr():
     a = Actions()
-    assert repr(a) == "Actions(warn=None, stop=None, notify=None)"
-    assert str(a) == "Actions(warn=None, stop=None, notify=None)"
+    assert repr(a) == "Actions(warn=[], stop=[], notify=[])"
+    assert str(a) == "Actions(warn=[], stop=[], notify=[])"
 
 
 def test_actions_str_inputs():
 
     a = Actions(warn="warning", stop="stopping", notify="notifying")
 
-    assert a.warn == "warning"
-    assert a.stop == "stopping"
-    assert a.notify == "notifying"
+    assert a.warn == ["warning"]
+    assert a.stop == ["stopping"]
+    assert a.notify == ["notifying"]
 
 
 def test_actions_callable_inputs():
@@ -362,13 +362,13 @@ def test_actions_callable_inputs():
 
     a = Actions(warn=warn, stop=stop, notify=notify)
 
-    assert callable(a.warn)
-    assert callable(a.stop)
-    assert callable(a.notify)
+    assert callable(a.warn[0])
+    assert callable(a.stop[0])
+    assert callable(a.notify[0])
 
-    assert a.warn() == "warning"
-    assert a.stop() == "stopping"
-    assert a.notify() == "notifying"
+    assert a.warn[0]() == "warning"
+    assert a.stop[0]() == "stopping"
+    assert a.notify[0]() == "notifying"
 
-    pattern = r"Actions\(warn=<function.*?>, stop=<function.*?>, notify=<function.*?>\)"
+    pattern = r"Actions\(warn=\[<function.*?>\], stop=\[<function.*?>\], notify=\[<function.*?>\]\)"
     assert re.match(pattern, repr(a))
