@@ -1005,8 +1005,7 @@ def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Check that the `actions=` argument is inherited from Validate, in those steps where
-    # it is not explicitly provided (is `None`)
+    # Check that the `actions=` argument is inherited from Validate
     (
         Validate(
             data=tbl,
@@ -1027,8 +1026,7 @@ def test_validation_actions_override_case(request, tbl_fixture, capsys):
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Check that the `actions=` argument is inherited from Validate, in those steps where
-    # it is not explicitly provided (is `None`)
+    # Check that the `actions=` argument is *not* inherited from Validate
     (
         Validate(
             data=tbl,
@@ -1045,15 +1043,13 @@ def test_validation_actions_override_case(request, tbl_fixture, capsys):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
-def test_validation_actions_multiple_actions(request, tbl_fixture, capsys):
+def test_validation_actions_multiple_actions_inherit(request, tbl_fixture, capsys):
 
     def notify():
         print("NOTIFIER")
 
     tbl = request.getfixturevalue(tbl_fixture)
 
-    # Check that the `actions=` argument is inherited from Validate, in those steps where
-    # it is not explicitly provided (is `None`)
     (
         Validate(
             data=tbl,
@@ -1072,6 +1068,38 @@ def test_validation_actions_multiple_actions(request, tbl_fixture, capsys):
     # Verify that "notification" is emitted before "NOTIFIER"
     notification_index = captured.out.index("notification")
     notifier_index = captured.out.index("NOTIFIER")
+    assert notification_index < notifier_index
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions_override(request, tbl_fixture, capsys):
+
+    def notify():
+        print("NOTIFIER")
+
+    def notify_step():
+        print("NOTIFY STEP")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=["notification", notify]),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "step notify" in captured.out
+    assert "NOTIFY STEP" in captured.out
+
+    # Verify that "step notify" is emitted before "NOTIFY STEP"
+    notification_index = captured.out.index("step notify")
+    notifier_index = captured.out.index("NOTIFY STEP")
     assert notification_index < notifier_index
 
 
