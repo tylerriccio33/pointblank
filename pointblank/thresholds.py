@@ -319,14 +319,14 @@ class Actions:
     Parameters
     ----------
     warn
-        A string, `Callable`, or list of `Callable` values for the 'warn' level. Using `None` means
-        no action should be performed at the 'warn' level.
-    stop
-        A string, `Callable`, or list of `Callable` values for the 'stop' level. Using `None` means
-        no action should be performed at the 'warn' level.
-    notify
-        A string, `Callable`, or list of `Callable` values for the 'notify' level. Using `None`
+        A string, `Callable`, or list of `Callable`/string values for the 'warn' level. Using `None`
         means no action should be performed at the 'warn' level.
+    stop
+        A string, `Callable`, or list of `Callable`/string values for the 'stop' level. Using `None`
+        means no action should be performed at the 'warn' level.
+    notify
+        A string, `Callable`, or list of `Callable`/string values for the 'notify' level. Using
+        `None` means no action should be performed at the 'warn' level.
 
     Returns
     -------
@@ -337,9 +337,23 @@ class Actions:
         are scoped to individual validation steps, overriding any globally set actions).
     """
 
-    warn: str | Callable | None = None
-    stop: str | Callable | None = None
-    notify: str | Callable | None = None
+    warn: str | Callable | list[str | Callable] | None = None
+    stop: str | Callable | list[str | Callable] | None = None
+    notify: str | Callable | list[str | Callable] | None = None
+
+    def __post_init__(self):
+        self.warn = self._ensure_list(self.warn)
+        self.stop = self._ensure_list(self.stop)
+        self.notify = self._ensure_list(self.notify)
+
+    def _ensure_list(
+        self, value: str | Callable | list[str | Callable] | None
+    ) -> list[str | Callable]:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            return [value]
+        return value
 
     def __repr__(self) -> str:
         return f"Actions(warn={self.warn}, stop={self.stop}, notify={self.notify})"
@@ -347,5 +361,5 @@ class Actions:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def _get_action(self, level: str) -> str | Callable | None:
+    def _get_action(self, level: str) -> list[str | Callable]:
         return getattr(self, level)

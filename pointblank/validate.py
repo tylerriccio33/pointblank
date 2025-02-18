@@ -5126,10 +5126,14 @@ class Validate:
                         action = validation.actions._get_action(level=level)
                         if action is None:
                             continue
-                        elif isinstance(action, str):
-                            print(action)
-                        elif callable(action):
-                            action()
+
+                        # A list of actions is expected here, so iterate over them
+                        if isinstance(action, list):
+                            for act in action:
+                                if isinstance(act, str):
+                                    print(act)
+                                elif callable(act):
+                                    act()
 
                     elif self.actions is not None:
 
@@ -5137,10 +5141,13 @@ class Validate:
                         action = self.actions._get_action(level=level)
                         if action is None:
                             continue
-                        elif isinstance(action, str):
-                            print(action)
-                        elif callable(action):
-                            action()
+
+                        if isinstance(action, list):
+                            for act in action:
+                                if isinstance(act, str):
+                                    print(act)
+                                elif callable(act):
+                                    act()
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
