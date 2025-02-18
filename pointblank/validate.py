@@ -34,6 +34,7 @@ from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhal
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
+    Actions,
     _normalize_thresholds_creation,
     _convert_abs_count_to_fraction,
 )
@@ -1536,6 +1537,8 @@ class _ValidationInfo:
         A pre-processing function or lambda to apply to the data table for the validation step.
     thresholds
         The threshold values for the validation.
+    actions
+        The actions to take if the validation fails.
     label
         A label for the validation step. Unused.
     brief
@@ -1584,6 +1587,7 @@ class _ValidationInfo:
     na_pass: bool | None = None
     pre: Callable | None = None
     thresholds: Thresholds | None = None
+    actions: Actions | None = None
     label: str | None = None
     brief: str | None = None
     active: bool | None = None
@@ -1656,6 +1660,10 @@ class Validate:
         input schemes: (1) single integer/float denoting absolute number or fraction of failing test
         units for the 'warn' level, (2) a tuple of 1-3 values, (3) a dictionary of 1-3 entries, or a
         [`Thresholds`](`pointblank.Thresholds`) object.
+    actions
+        The actions to take when validation steps meet or exceed any set threshold levels. This
+        should be provided in the form of an `Actions` object. If `None` then no default actions
+        will be set.
 
     Returns
     -------
@@ -1758,6 +1766,7 @@ class Validate:
     tbl_name: str | None = None
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
+    actions: Actions | None = None
 
     def __post_init__(self):
 
@@ -1787,6 +1796,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -1814,13 +1824,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1929,6 +1945,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -1943,6 +1960,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -1970,13 +1988,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2084,6 +2108,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2098,6 +2123,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2125,13 +2151,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2238,6 +2270,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2252,6 +2285,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2279,13 +2313,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2390,6 +2430,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2404,6 +2445,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2431,13 +2473,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2546,6 +2594,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2560,6 +2609,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2587,13 +2637,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2702,6 +2758,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2718,6 +2775,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2754,13 +2812,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2882,6 +2946,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -2898,6 +2963,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2934,13 +3000,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3065,6 +3137,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3078,6 +3151,7 @@ class Validate:
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3098,13 +3172,19 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3205,6 +3285,7 @@ class Validate:
                 values=set,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3218,6 +3299,7 @@ class Validate:
         set: list[float | int],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3238,13 +3320,19 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
 
@@ -3344,6 +3432,7 @@ class Validate:
                 values=set,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3356,6 +3445,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3373,13 +3463,19 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3476,6 +3572,7 @@ class Validate:
                 column=column,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3488,6 +3585,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3505,13 +3603,19 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3608,6 +3712,7 @@ class Validate:
                 column=column,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3622,6 +3727,7 @@ class Validate:
         na_pass: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3645,13 +3751,19 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3753,6 +3865,7 @@ class Validate:
                 na_pass=na_pass,
                 pre=pre,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -3765,6 +3878,7 @@ class Validate:
         expr: any,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3783,13 +3897,19 @@ class Validate:
             be a Polars column expression or a Narwhals one. For a Pandas DataFrame, the expression
             should either be a lambda expression or a Narwhals column expression.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step, so that the interrogation can
+            react accordingly when exceeding the set levels for different states ('warn', 'stop',
+            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
+            class or more simply as (1) an integer or float denoting the absolute number or fraction
+            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
+            dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3863,6 +3983,7 @@ class Validate:
             values=expr,
             pre=pre,
             thresholds=thresholds,
+            actions=actions,
             active=active,
         )
 
@@ -3874,6 +3995,7 @@ class Validate:
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3891,11 +4013,16 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warn',
+            'stop', and 'notify'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step(s) meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3993,6 +4120,7 @@ class Validate:
                 column=column,
                 values=None,
                 thresholds=thresholds,
+                actions=actions,
                 active=active,
             )
 
@@ -4005,6 +4133,7 @@ class Validate:
         columns_subset: str | list[str] | None = None,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4022,13 +4151,19 @@ class Validate:
             columns are supplied, the distinct comparison will be made over the combination of
             values in those columns.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step, so that the interrogation can
+            react accordingly when exceeding the set levels for different states ('warn', 'stop',
+            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
+            class or more simply as (1) an integer or float denoting the absolute number or fraction
+            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
+            dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4122,6 +4257,7 @@ class Validate:
             column=columns_subset,
             pre=pre,
             thresholds=thresholds,
+            actions=actions,
             active=active,
         )
 
@@ -4139,6 +4275,7 @@ class Validate:
         full_match_dtypes: bool = True,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4177,13 +4314,19 @@ class Validate:
             substring matches are allowed, so a schema data type of `Int` would match a target table
             data type of `Int64`.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a `Thresholds` object.
+            Optional failure threshold levels for the validation step, so that the interrogation can
+            react accordingly when exceeding the set levels for different states ('warn', 'stop',
+            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
+            class or more simply as (1) an integer or float denoting the absolute number or fraction
+            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
+            dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4285,6 +4428,7 @@ class Validate:
             values=values,
             pre=pre,
             thresholds=thresholds,
+            actions=actions,
             active=active,
         )
 
@@ -4298,6 +4442,7 @@ class Validate:
         inverse: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4321,13 +4466,19 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the row
             count of the target table should not match the specified `count=` value.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step, so that the interrogation can
+            react accordingly when exceeding the set levels for different states ('warn', 'stop',
+            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
+            class or more simply as (1) an integer or float denoting the absolute number or fraction
+            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
+            dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4400,6 +4551,7 @@ class Validate:
             values=values,
             pre=pre,
             thresholds=thresholds,
+            actions=actions,
             active=active,
         )
 
@@ -4413,6 +4565,7 @@ class Validate:
         inverse: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4436,13 +4589,19 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the
             column count of the target table should not match the specified `count=` value.
         pre
-            A pre-processing function or lambda to apply to the data table for the validation step.
+            A optional pre-processing function or lambda to apply to the data table during
+            interrogation.
         thresholds
-            Failure threshold levels so that the validation step can react accordingly when
-            exceeding the set levels for different states (`warn`, `stop`, and `notify`). This can
-            be created simply as an integer or float denoting the absolute number or fraction of
-            failing test units for the 'warn' level. Otherwise, you can use a tuple of 1-3 values,
-            a dictionary of 1-3 entries, or a Thresholds object.
+            Optional failure threshold levels for the validation step, so that the interrogation can
+            react accordingly when exceeding the set levels for different states ('warn', 'stop',
+            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
+            class or more simply as (1) an integer or float denoting the absolute number or fraction
+            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
+            dictionary of 1-3 entries.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4515,6 +4674,7 @@ class Validate:
             values=values,
             pre=pre,
             thresholds=thresholds,
+            actions=actions,
             active=active,
         )
 
@@ -4945,6 +5105,34 @@ class Validate:
             # is a boolean column that indicates whether the row passed the validation or not
             if collect_tbl_checked and results_tbl is not None:
                 validation.tbl_checked = results_tbl
+
+            # Perform any necessary actions if threshold levels are exceeded for each
+            # of the severity levels
+            # - `warn` is the threshold for a warning
+            # - `stop` is the threshold for stopping
+            # - `notify` is the threshold for notifying
+            for level in ["warn", "stop", "notify"]:
+                if getattr(validation, level) and (
+                    self.actions is not None or validation.actions is not None
+                ):
+
+                    #
+                    # If step-level actions are set, prefer those over actions set globally
+                    #
+
+                    if validation.actions is not None:
+
+                        # Action execution on the step level
+                        action = validation.actions._get_action(level=level)
+                        if action is not None:
+                            action()
+
+                    elif self.actions is not None:
+
+                        # Action execution on the global level
+                        action = self.actions._get_action(level=level)
+                        if action is not None:
+                            action()
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
