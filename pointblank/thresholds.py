@@ -11,24 +11,32 @@ class Thresholds:
     """
     Definition of threshold values.
 
+    Thresholds are used to set limits on the number of failing test units at different levels. The
+    levels are 'warn', 'stop', and 'notify'. These levels correspond to different levels of
+    severity when a threshold is reached. The threshold values can be set as absolute counts or as
+    fractions of the total number of test units. When a threshold is reached, an action can be taken
+    (e.g., displaying a message or calling a function) if there is an associated action defined for
+    that level (defined through the [`Actions`](`pointblank.Actions`) class).
+
     Parameters
     ----------
     warn_at
         The threshold for the 'warn' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
     stop_at
         The threshold for the 'stop' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
     notify_at
         The threshold for the 'notify' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
 
     Returns
     -------
     Thresholds
-        A Thresholds object. This can be used when using the `Validate` class (to set thresholds
-        globally) or when defining validation steps through `Validate`'s methods (so that threshold
-        values are scoped to individual validation steps, overriding any global thresholds).
+        A `Thresholds` object. This can be used when using the [`Validate`](`pointblank.Validate`)
+        class (to set thresholds globally) or when defining validation steps like
+        [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that threshold values are scoped to
+        individual validation steps, overriding any global thresholds).
 
     Examples
     --------
@@ -65,7 +73,7 @@ class Thresholds:
     thresholds
     ```
 
-    The `Thresholds` object can be used to set global thresholds for all validation steps. Or, you
+    The `thresholds` object can be used to set global thresholds for all validation steps. Or, you
     can set thresholds for individual validation steps, which will override the global thresholds.
     Here's a data validation workflow example where we set global thresholds and then override with
     different thresholds at the [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) step:
@@ -87,7 +95,7 @@ class Thresholds:
 
     As can be seen, the last step ([`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)) has its own
     thresholds, which override the global thresholds set at the beginning of the validation workflow
-    (in the `Validate` class).
+    (in the [`Validate`](`pointblank.Validate`) class).
     """
 
     warn_at: int | float | bool | None = None
@@ -297,25 +305,36 @@ class Actions:
     """
     Definition of action values.
 
+    Actions complement threshold values by defining what action should be taken when a threshold
+    level is reached. The action can be a string or a `Callable`. When a string is used, it is
+    interpreted as a message to be displayed. When a `Callable` is used, it will be invoked at
+    interrogation time if the threshold level is met or exceeded.
+
+    There are three threshold levels: 'warn', 'stop', and 'notify'. These levels correspond to
+    different levels of severity when a threshold is reached. Those thresholds can be defined using
+    the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions don't have
+    to be defined for all threshold levels; if an action is not defined for a level in exceedence,
+    no action will be taken.
+
     Parameters
     ----------
     warn
-        A Callable (or list of Callable values) for the 'warn' level. Using `None` means that no
-        action is taken at the 'warn' level.
+        A string, `Callable`, or list of `Callable` values for the 'warn' level. Using `None` means
+        no action should be performed at the 'warn' level.
     stop
-        A Callable (or list thereof) for the 'stop' level. Using `None` means that no action is
-        taken at the 'stop' level.
+        A string, `Callable`, or list of `Callable` values for the 'stop' level. Using `None` means
+        no action should be performed at the 'warn' level.
     notify
-        A Callable (or list thereof)  for the 'notify' level. Using `None` means that no action is
-        taken at the 'notify' level.
+        A string, `Callable`, or list of `Callable` values for the 'notify' level. Using `None`
+        means no action should be performed at the 'warn' level.
 
     Returns
     -------
     Actions
-        An Actions object. This can be used when using the `Validate` class (to set actions for
-        meeting different threshold levels globally) or when defining validation steps through
-        `Validate`'s methods (so that action values are scoped to individual validation steps,
-        overriding any global actions).
+        An `Actions` object. This can be used when using the [`Validate`](`pointblank.Validate`)
+        class (to set actions for meeting different threshold levels globally) or when defining
+        validation steps like [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that actions
+        are scoped to individual validation steps, overriding any globally set actions).
     """
 
     warn: Callable | None = None
