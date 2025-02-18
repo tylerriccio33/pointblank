@@ -66,6 +66,7 @@ quartodoc:
         - name: Validate
           members: []
         - name: Thresholds
+        - name: Actions
         - name: Schema
           members: []
         - name: DraftValidation
