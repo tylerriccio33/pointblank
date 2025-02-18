@@ -5124,14 +5124,22 @@ class Validate:
 
                         # Action execution on the step level
                         action = validation.actions._get_action(level=level)
-                        if action is not None:
+                        if action is None:
+                            continue
+                        elif isinstance(action, str):
+                            print(action)
+                        elif callable(action):
                             action()
 
                     elif self.actions is not None:
 
                         # Action execution on the global level
                         action = self.actions._get_action(level=level)
-                        if action is not None:
+                        if action is None:
+                            continue
+                        elif isinstance(action, str):
+                            print(action)
+                        elif callable(action):
                             action()
 
             # If this is a row-based validation step, then extract the rows that failed
