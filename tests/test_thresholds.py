@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import pytest
+import re
 
 from pointblank.thresholds import (
     Thresholds,
+    Actions,
     _convert_abs_count_to_fraction,
     _normalize_thresholds_creation,
     _threshold_check,
@@ -321,3 +323,52 @@ def test_threshold_check():
     assert _threshold_check(failing_test_units=4, threshold=5) is True
     assert _threshold_check(failing_test_units=0, threshold=0) is False
     assert _threshold_check(failing_test_units=80, threshold=None) is False
+
+
+def test_actions_default():
+
+    a = Actions()
+
+    assert a.warn is None
+    assert a.stop is None
+    assert a.notify is None
+
+
+def test_actions_repr():
+    a = Actions()
+    assert repr(a) == "Actions(warn=None, stop=None, notify=None)"
+    assert str(a) == "Actions(warn=None, stop=None, notify=None)"
+
+
+def test_actions_str_inputs():
+
+    a = Actions(warn="warning", stop="stopping", notify="notifying")
+
+    assert a.warn == "warning"
+    assert a.stop == "stopping"
+    assert a.notify == "notifying"
+
+
+def test_actions_callable_inputs():
+
+    def warn():
+        return "warning"
+
+    def stop():
+        return "stopping"
+
+    def notify():
+        return "notifying"
+
+    a = Actions(warn=warn, stop=stop, notify=notify)
+
+    assert callable(a.warn)
+    assert callable(a.stop)
+    assert callable(a.notify)
+
+    assert a.warn() == "warning"
+    assert a.stop() == "stopping"
+    assert a.notify() == "notifying"
+
+    pattern = r"Actions\(warn=<function.*?>, stop=<function.*?>, notify=<function.*?>\)"
+    assert re.match(pattern, repr(a))
