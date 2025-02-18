@@ -18,19 +18,20 @@ import great_tables as GT
 import narwhals as nw
 
 from pointblank.validate import (
-    Validate,
-    load_dataset,
-    preview,
-    missing_vals_tbl,
+    Actions,
     get_column_count,
     get_row_count,
+    load_dataset,
+    missing_vals_tbl,
     PointblankConfig,
-    _ValidationInfo,
-    _process_title_text,
-    _get_default_title_text,
-    _fmt_lg,
+    preview,
+    Validate,
     _create_table_time_html,
     _create_table_type_html,
+    _fmt_lg,
+    _get_default_title_text,
+    _process_title_text,
+    _ValidationInfo,
 )
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema, _get_schema_validation_info
@@ -997,6 +998,81 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     assert v.validation_info[25].thresholds.warn_at == 0.5
     assert v.validation_info[25].thresholds.stop_at is None
     assert v.validation_info[25].thresholds.notify_at is None
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `actions=` argument is inherited from Validate, in those steps where
+    # it is not explicitly provided (is `None`)
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify="notification"),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification" in captured.out
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_override_case(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `actions=` argument is inherited from Validate, in those steps where
+    # it is not explicitly provided (is `None`)
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify="notification"),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify="notification override"))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification override" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification override" in captured.out
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions(request, tbl_fixture, capsys):
+
+    def notify():
+        print("NOTIFIER")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `actions=` argument is inherited from Validate, in those steps where
+    # it is not explicitly provided (is `None`)
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=["notification", notify]),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification" in captured.out
+    assert "NOTIFIER" in captured.out
+
+    # Verify that "notification" is emitted before "NOTIFIER"
+    notification_index = captured.out.index("notification")
+    notifier_index = captured.out.index("NOTIFIER")
+    assert notification_index < notifier_index
 
 
 def test_validation_with_preprocessing_pd(tbl_pd):
