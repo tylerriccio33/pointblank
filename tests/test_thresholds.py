@@ -329,15 +329,15 @@ def test_actions_default():
 
     a = Actions()
 
-    assert a.warn == []
-    assert a.stop == []
-    assert a.notify == []
+    assert a.warn is None
+    assert a.stop is None
+    assert a.notify is None
 
 
 def test_actions_repr():
     a = Actions()
-    assert repr(a) == "Actions(warn=[], stop=[], notify=[])"
-    assert str(a) == "Actions(warn=[], stop=[], notify=[])"
+    assert repr(a) == "Actions(warn=None, stop=None, notify=None)"
+    assert str(a) == "Actions(warn=None, stop=None, notify=None)"
 
 
 def test_actions_str_inputs():
