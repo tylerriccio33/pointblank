@@ -350,7 +350,7 @@ class Actions:
         self, value: str | Callable | list[str | Callable] | None
     ) -> list[str | Callable]:
         if value is None:
-            return []
+            return None
         if not isinstance(value, list):
             return [value]
         return value
