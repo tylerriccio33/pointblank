@@ -1103,6 +1103,93 @@ def test_validation_actions_multiple_actions_override(request, tbl_fixture, caps
     assert notification_index < notifier_index
 
 
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions_step_only(request, tbl_fixture, capsys):
+
+    def notify_step():
+        print("NOTIFY STEP")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "step notify" in captured.out
+    assert "NOTIFY STEP" in captured.out
+
+    # Verify that "step notify" is emitted before "NOTIFY STEP"
+    notification_index = captured.out.index("step notify")
+    notifier_index = captured.out.index("NOTIFY STEP")
+    assert notification_index < notifier_index
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_inherit_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=None),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_override_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=None),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
 def test_validation_with_preprocessing_pd(tbl_pd):
 
     v = (
