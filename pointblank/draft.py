@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from importlib_resources import files
+
 from narwhals.typing import FrameT
 from typing import Any
 
 from pointblank._constants import MODEL_PROVIDERS
 from pointblank.datascan import DataScan
-from pointblank._utils import _get_api_and_examples_text
 
 __all__ = [
     "DraftValidation",
@@ -200,7 +201,7 @@ class DraftValidation:
         tbl_json = DataScan(data=self.data).to_json()
 
         # Get the LLM provider from the `model` value
-        provider = self.model.split(":")[0]
+        provider = self.model.split(sep=":", maxsplit=1)[0]
 
         # Validate that the provider is supported
         if provider not in MODEL_PROVIDERS:
@@ -208,11 +209,12 @@ class DraftValidation:
                 f"Unsupported provider: {provider}. Supported providers are {MODEL_PROVIDERS}."
             )
 
-        # Generate the API and examples text
-        api_and_examples_text = _get_api_and_examples_text()  # pragma: no cover
+        # Read the API/examples text from a file
+        with files("pointblank.data").joinpath("api-docs.txt").open() as f:  # pragma: no cover
+            api_and_examples_text = f.read()
 
         # Get the model name from the `model` value
-        model_name = self.model.split(":")[1]  # pragma: no cover
+        model_name = self.model.split(sep=":", maxsplit=1)[1]  # pragma: no cover
 
         prompt = (  # pragma: no cover
             f"{api_and_examples_text}"
@@ -237,7 +239,8 @@ class DraftValidation:
             "    plan, comment above should read # The validation plan; (4) end with a single call "
             "    of `validation`"
             "  - the name of the dataset won't be known to you. Simply use the text your_data in "
-            "    the `data=` arg of the `Validate` class."
+            "    the `data=` arg of the `Validate` class, and, add the comment to the right of the "
+            "    code line # Replace your_data with the actual data variable"
             "  - use the text `Draft Validation` in the `label=` argument of `Validate`"
             "  - don't use an invocation of the `load_dataset()` function anywhere, that is just "
             "    for loading example datasets."
