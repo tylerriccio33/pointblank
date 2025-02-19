@@ -200,7 +200,7 @@ class DraftValidation:
         tbl_json = DataScan(data=self.data).to_json()
 
         # Get the LLM provider from the `model` value
-        provider = self.model.split(":")[0]
+        provider = self.model.split(sep=":", maxsplit=1)[0]
 
         # Validate that the provider is supported
         if provider not in MODEL_PROVIDERS:
@@ -212,7 +212,7 @@ class DraftValidation:
         api_and_examples_text = _get_api_and_examples_text()  # pragma: no cover
 
         # Get the model name from the `model` value
-        model_name = self.model.split(":")[1]  # pragma: no cover
+        model_name = self.model.split(sep=":", maxsplit=1)[1]  # pragma: no cover
 
         prompt = (  # pragma: no cover
             f"{api_and_examples_text}"
