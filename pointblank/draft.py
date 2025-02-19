@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from importlib_resources import files
+
 from narwhals.typing import FrameT
 from typing import Any
 
@@ -208,8 +210,9 @@ class DraftValidation:
                 f"Unsupported provider: {provider}. Supported providers are {MODEL_PROVIDERS}."
             )
 
-        # Generate the API and examples text
-        api_and_examples_text = _get_api_and_examples_text()  # pragma: no cover
+        # Read the API/examples text from a file
+        with files("pointblank.data").joinpath("api-docs.txt").open() as f:  # pragma: no cover
+            api_and_examples_text = f.read()
 
         # Get the model name from the `model` value
         model_name = self.model.split(sep=":", maxsplit=1)[1]  # pragma: no cover
