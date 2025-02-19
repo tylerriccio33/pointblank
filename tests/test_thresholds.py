@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import pytest
+import re
 
 from pointblank.thresholds import (
     Thresholds,
+    Actions,
     _convert_abs_count_to_fraction,
     _normalize_thresholds_creation,
     _threshold_check,
@@ -321,3 +323,78 @@ def test_threshold_check():
     assert _threshold_check(failing_test_units=4, threshold=5) is True
     assert _threshold_check(failing_test_units=0, threshold=0) is False
     assert _threshold_check(failing_test_units=80, threshold=None) is False
+
+
+def test_actions_default():
+
+    a = Actions()
+
+    assert a.warn is None
+    assert a.stop is None
+    assert a.notify is None
+
+
+def test_actions_repr():
+    a = Actions()
+    assert repr(a) == "Actions(warn=None, stop=None, notify=None)"
+    assert str(a) == "Actions(warn=None, stop=None, notify=None)"
+
+
+def test_actions_str_inputs():
+
+    a = Actions(warn="warning", stop="stopping", notify="notifying")
+
+    assert a.warn == ["warning"]
+    assert a.stop == ["stopping"]
+    assert a.notify == ["notifying"]
+
+
+def test_actions_callable_inputs():
+
+    def warn():
+        return "warning"
+
+    def stop():
+        return "stopping"
+
+    def notify():
+        return "notifying"
+
+    a = Actions(warn=warn, stop=stop, notify=notify)
+
+    assert callable(a.warn[0])
+    assert callable(a.stop[0])
+    assert callable(a.notify[0])
+
+    assert a.warn[0]() == "warning"
+    assert a.stop[0]() == "stopping"
+    assert a.notify[0]() == "notifying"
+
+    pattern = r"Actions\(warn=\[<function.*?>\], stop=\[<function.*?>\], notify=\[<function.*?>\]\)"
+    assert re.match(pattern, repr(a))
+
+
+def test_actions_list_inputs():
+
+    def warn():
+        return "warning function"
+
+    def stop():
+        return "stopping function"
+
+    def notify():
+        return "notifying function"
+
+    a = Actions(warn=[warn, "warning string"], stop=["stopping string", stop], notify=[notify])
+
+    assert callable(a.warn[0])
+    assert isinstance(a.warn[1], str)
+    assert isinstance(a.stop[0], str)
+    assert callable(a.stop[1])
+    assert callable(a.notify[0])
+
+    assert a.warn[0]() == "warning function"
+    assert a.warn[1] == "warning string"
+    assert a.stop[0] == "stopping string"
+    assert a.stop[1]() == "stopping function"
+    assert a.notify[0]() == "notifying function"

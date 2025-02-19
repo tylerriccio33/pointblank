@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import Callable
 from dataclasses import dataclass, field
 
-__all__ = ["Thresholds"]
+__all__ = ["Thresholds", "Actions"]
 
 
 @dataclass
@@ -10,24 +11,32 @@ class Thresholds:
     """
     Definition of threshold values.
 
+    Thresholds are used to set limits on the number of failing test units at different levels. The
+    levels are 'warn', 'stop', and 'notify'. These levels correspond to different levels of
+    severity when a threshold is reached. The threshold values can be set as absolute counts or as
+    fractions of the total number of test units. When a threshold is reached, an action can be taken
+    (e.g., displaying a message or calling a function) if there is an associated action defined for
+    that level (defined through the [`Actions`](`pointblank.Actions`) class).
+
     Parameters
     ----------
     warn_at
         The threshold for the 'warn' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
     stop_at
         The threshold for the 'stop' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
     notify_at
         The threshold for the 'notify' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to 1.
+        total. Using `True` will set this threshold to `1`.
 
     Returns
     -------
     Thresholds
-        A Thresholds object. This can be used when using the `Validate` class (to set thresholds
-        globally) or when defining validation steps through `Validate`'s methods (so that threshold
-        values are scoped to individual validation steps, overriding any global thresholds).
+        A `Thresholds` object. This can be used when using the [`Validate`](`pointblank.Validate`)
+        class (to set thresholds globally) or when defining validation steps like
+        [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that threshold values are scoped to
+        individual validation steps, overriding any global thresholds).
 
     Examples
     --------
@@ -64,7 +73,7 @@ class Thresholds:
     thresholds
     ```
 
-    The `Thresholds` object can be used to set global thresholds for all validation steps. Or, you
+    The `thresholds` object can be used to set global thresholds for all validation steps. Or, you
     can set thresholds for individual validation steps, which will override the global thresholds.
     Here's a data validation workflow example where we set global thresholds and then override with
     different thresholds at the [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) step:
@@ -86,7 +95,7 @@ class Thresholds:
 
     As can be seen, the last step ([`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)) has its own
     thresholds, which override the global thresholds set at the beginning of the validation workflow
-    (in the `Validate` class).
+    (in the [`Validate`](`pointblank.Validate`) class).
     """
 
     warn_at: int | float | bool | None = None
@@ -289,3 +298,68 @@ def _threshold_check(failing_test_units: int, threshold: int | None) -> bool:
         return False
 
     return failing_test_units < threshold
+
+
+@dataclass
+class Actions:
+    """
+    Definition of action values.
+
+    Actions complement threshold values by defining what action should be taken when a threshold
+    level is reached. The action can be a string or a `Callable`. When a string is used, it is
+    interpreted as a message to be displayed. When a `Callable` is used, it will be invoked at
+    interrogation time if the threshold level is met or exceeded.
+
+    There are three threshold levels: 'warn', 'stop', and 'notify'. These levels correspond to
+    different levels of severity when a threshold is reached. Those thresholds can be defined using
+    the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions don't have
+    to be defined for all threshold levels; if an action is not defined for a level in exceedence,
+    no action will be taken.
+
+    Parameters
+    ----------
+    warn
+        A string, `Callable`, or list of `Callable`/string values for the 'warn' level. Using `None`
+        means no action should be performed at the 'warn' level.
+    stop
+        A string, `Callable`, or list of `Callable`/string values for the 'stop' level. Using `None`
+        means no action should be performed at the 'warn' level.
+    notify
+        A string, `Callable`, or list of `Callable`/string values for the 'notify' level. Using
+        `None` means no action should be performed at the 'warn' level.
+
+    Returns
+    -------
+    Actions
+        An `Actions` object. This can be used when using the [`Validate`](`pointblank.Validate`)
+        class (to set actions for meeting different threshold levels globally) or when defining
+        validation steps like [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that actions
+        are scoped to individual validation steps, overriding any globally set actions).
+    """
+
+    warn: str | Callable | list[str | Callable] | None = None
+    stop: str | Callable | list[str | Callable] | None = None
+    notify: str | Callable | list[str | Callable] | None = None
+
+    def __post_init__(self):
+        self.warn = self._ensure_list(self.warn)
+        self.stop = self._ensure_list(self.stop)
+        self.notify = self._ensure_list(self.notify)
+
+    def _ensure_list(
+        self, value: str | Callable | list[str | Callable] | None
+    ) -> list[str | Callable]:
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            return [value]
+        return value
+
+    def __repr__(self) -> str:
+        return f"Actions(warn={self.warn}, stop={self.stop}, notify={self.notify})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def _get_action(self, level: str) -> list[str | Callable]:
+        return getattr(self, level)

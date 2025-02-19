@@ -18,19 +18,20 @@ import great_tables as GT
 import narwhals as nw
 
 from pointblank.validate import (
-    Validate,
-    load_dataset,
-    preview,
-    missing_vals_tbl,
+    Actions,
     get_column_count,
     get_row_count,
+    load_dataset,
+    missing_vals_tbl,
     PointblankConfig,
-    _ValidationInfo,
-    _process_title_text,
-    _get_default_title_text,
-    _fmt_lg,
+    preview,
+    Validate,
     _create_table_time_html,
     _create_table_type_html,
+    _fmt_lg,
+    _get_default_title_text,
+    _process_title_text,
+    _ValidationInfo,
 )
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema, _get_schema_validation_info
@@ -353,6 +354,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "na_pass",
         "pre",
         "thresholds",
+        "actions",
         "label",
         "brief",
         "active",
@@ -381,6 +383,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.values == 0
     assert val_info.na_pass is False
     assert val_info.thresholds == Thresholds()
+    assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
@@ -426,6 +429,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "na_pass",
         "pre",
         "thresholds",
+        "actions",
         "label",
         "brief",
         "active",
@@ -453,6 +457,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.values == 0
     assert val_info.na_pass is False
     assert val_info.thresholds == Thresholds()
+    assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
     assert val_info.active is True
@@ -993,6 +998,196 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     assert v.validation_info[25].thresholds.warn_at == 0.5
     assert v.validation_info[25].thresholds.stop_at is None
     assert v.validation_info[25].thresholds.notify_at is None
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `actions=` argument is inherited from Validate
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify="notification"),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification" in captured.out
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_override_case(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    # Check that the `actions=` argument is *not* inherited from Validate
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify="notification"),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify="notification override"))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification override" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification override" in captured.out
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions_inherit(request, tbl_fixture, capsys):
+
+    def notify():
+        print("NOTIFIER")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=["notification", notify]),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "notification" in captured.out
+    assert "NOTIFIER" in captured.out
+
+    # Verify that "notification" is emitted before "NOTIFIER"
+    notification_index = captured.out.index("notification")
+    notifier_index = captured.out.index("NOTIFIER")
+    assert notification_index < notifier_index
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions_override(request, tbl_fixture, capsys):
+
+    def notify():
+        print("NOTIFIER")
+
+    def notify_step():
+        print("NOTIFY STEP")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=["notification", notify]),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "step notify" in captured.out
+    assert "NOTIFY STEP" in captured.out
+
+    # Verify that "step notify" is emitted before "NOTIFY STEP"
+    notification_index = captured.out.index("step notify")
+    notifier_index = captured.out.index("NOTIFY STEP")
+    assert notification_index < notifier_index
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_multiple_actions_step_only(request, tbl_fixture, capsys):
+
+    def notify_step():
+        print("NOTIFY STEP")
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .interrogate()
+    )
+
+    # Capture the output and verify that "notification" was printed to the console
+    captured = capsys.readouterr()
+    assert "step notify" in captured.out
+    assert "NOTIFY STEP" in captured.out
+
+    # Verify that "step notify" is emitted before "NOTIFY STEP"
+    notification_index = captured.out.index("step notify")
+    notifier_index = captured.out.index("NOTIFY STEP")
+    assert notification_index < notifier_index
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_inherit_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=None),
+        )
+        .col_vals_gt(columns="x", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_override_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            actions=Actions(notify=None),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    (
+        Validate(
+            data=tbl,
+            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+        )
+        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .interrogate()
+    )
+
+    # Capture the output and verify that nothing was printed to the console
+    captured = capsys.readouterr()
+    assert captured.out == ""
 
 
 def test_validation_with_preprocessing_pd(tbl_pd):
@@ -7609,20 +7804,18 @@ def test_get_schema_step_report_25_5(tbl_schema_tests, snapshot):
     snapshot.assert_match(str(report_df), "schema_step_report_25-5.txt")
 
 
-@pytest.mark.parametrize(('tbl','should_pass'), itertools.product(TBL_LIST, [True, False]))
-def test_assert_passing(request, tbl : str , *, should_pass: bool) -> None:
+@pytest.mark.parametrize(("tbl", "should_pass"), itertools.product(TBL_LIST, [True, False]))
+def test_assert_passing(request, tbl: str, *, should_pass: bool) -> None:
     tbl = request.getfixturevalue(tbl)
 
     if should_pass:
-        val = 0 # should always pass
+        val = 0  # should always pass
         catcher = contextlib.nullcontext
     else:
-        val = 100 # should always fail
-        catcher = partial(pytest.raises, AssertionError, match = "All tests did not pass")
-
+        val = 100  # should always fail
+        catcher = partial(pytest.raises, AssertionError, match="All tests did not pass")
 
     v = Validate(tbl).col_vals_gt(columns="x", value=val).interrogate()
-
 
     try:
         assert v.all_passed() == should_pass
@@ -7630,25 +7823,26 @@ def test_assert_passing(request, tbl : str , *, should_pass: bool) -> None:
         pytest.mark.skip(reason="Unexpected result invalidating the test. Please review.")
 
     with catcher():
-        v.assert_passing() # should not raise since all passing
+        v.assert_passing()  # should not raise since all passing
+
 
 def test_assert_passing_example() -> None:
     tbl = pl.DataFrame(
         {
-        "a": [1, 2, 9, 5],
-        "b": [5, 6, 10, 3],
-        "c": ["a", "b", "a", "a"],
+            "a": [1, 2, 9, 5],
+            "b": [5, 6, 10, 3],
+            "c": ["a", "b", "a", "a"],
         }
     )
 
     validation = (
         Validate(data=tbl)
         .col_vals_gt(columns="a", value=0)
-        .col_vals_lt(columns="b", value=9) # this step will not pass
+        .col_vals_lt(columns="b", value=9)  # this step will not pass
         .col_vals_in_set(columns="c", set=["a", "b"])
         .interrogate()
     )
-    with pytest.raises(AssertionError, match = "All tests did not pass"):
+    with pytest.raises(AssertionError, match="All tests did not pass"):
         validation.assert_passing()
 
     passing_validation = (
