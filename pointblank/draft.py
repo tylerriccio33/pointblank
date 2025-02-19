@@ -9,7 +9,6 @@ from typing import Any
 
 from pointblank._constants import MODEL_PROVIDERS
 from pointblank.datascan import DataScan
-from pointblank._utils import _get_api_and_examples_text
 
 __all__ = [
     "DraftValidation",
