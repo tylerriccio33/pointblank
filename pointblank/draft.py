@@ -306,6 +306,15 @@ class DraftValidation:
                 api_key=self.api_key,
             )
 
+        if provider == "bedrock":  # pragma: no cover
+
+            from chatlas import ChatBedrockAnthropic  # pragma: no cover
+
+            chat = ChatBedrockAnthropic(  # pragma: no cover
+                model=model_name,
+                system_prompt="You are a terse assistant and a Python expert.",
+            )
+
         self.response = str(chat.chat(prompt, stream=False, echo="none"))  # pragma: no cover
 
     def __str__(self) -> str:

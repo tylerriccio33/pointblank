@@ -114,6 +114,7 @@ VALIDATION_REPORT_FIELDS = [
 MODEL_PROVIDERS = [
     "openai",
     "anthropic",
+    "bedrock",
 ]
 
 TABLE_TYPE_STYLES = {
