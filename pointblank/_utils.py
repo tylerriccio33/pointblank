@@ -455,7 +455,9 @@ def _get_api_text() -> str:
     validate_exported = [
         "Validate",
         "Thresholds",
+        "Actions",
         "Schema",
+        "DraftValidation",
     ]
 
     val_steps_exported = [
