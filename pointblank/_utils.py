@@ -504,9 +504,9 @@ def _get_api_text() -> str:
         "Validate.n_failed",
         "Validate.f_passed",
         "Validate.f_failed",
-        "Validate.warn",
-        "Validate.stop",
-        "Validate.notify",
+        "Validate.warning",
+        "Validate.error",
+        "Validate.critical",
     ]
 
     inspect_exported = [

@@ -74,8 +74,8 @@ def test_check_thresholds():
     assert _check_thresholds(thresholds=1) is None
     assert _check_thresholds(thresholds=(1.0, 2.0)) is None
     assert _check_thresholds(thresholds=(1, 2)) is None
-    assert _check_thresholds(thresholds={"warn_at": 2.0}) is None
-    assert _check_thresholds(thresholds={"stop_at": 2}) is None
+    assert _check_thresholds(thresholds={"warning": 2.0}) is None
+    assert _check_thresholds(thresholds={"error": 2}) is None
     assert _check_thresholds(thresholds=None) is None
     assert _check_thresholds(thresholds=True) is None
     assert _check_thresholds(thresholds=Thresholds()) is None

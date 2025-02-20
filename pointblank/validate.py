@@ -20,15 +20,16 @@ from great_tables import GT, html, loc, style, google_font, from_column, vals
 
 from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
+    CHECK_MARK_SPAN,
     COMPATIBLE_DTYPES,
-    METHOD_CATEGORY_MAP,
+    CROSS_MARK_SPAN,
     IBIS_BACKENDS,
+    METHOD_CATEGORY_MAP,
     ROW_BASED_VALIDATION_TYPES,
-    VALIDATION_REPORT_FIELDS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
-    CHECK_MARK_SPAN,
-    CROSS_MARK_SPAN,
+    SEVERITY_LEVEL_COLORS,
+    VALIDATION_REPORT_FIELDS,
 )
 from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
 from pointblank.schema import Schema, _get_schema_validation_info
@@ -1557,12 +1558,12 @@ class _ValidationInfo:
         The fraction of test units that passed. The calculation is `n_passed / n`.
     f_failed
         The fraction of test units that failed. The calculation is `n_failed / n`.
-    warn
-        Whether the number of failing test units is beyond the warning threshold.
-    stop
-        Whether the number of failing test units is beyond the stopping threshold.
-    notify
-        Whether the number of failing test units is beyond the notification threshold.
+    warning
+        Whether the number of failing test units is beyond the 'warning' threshold level.
+    error
+        Whether the number of failing test units is beyond the 'error' threshold level.
+    critical
+        Whether the number of failing test units is beyond the 'critical' threshold level.
     tbl_checked
         The data table in its native format that has been checked for the validation step. It wil
         include a new column called `pb_is_good_` that is a boolean column that indicates whether
@@ -1599,9 +1600,9 @@ class _ValidationInfo:
     n_failed: int | None = None
     f_passed: int | None = None
     f_failed: int | None = None
-    warn: bool | None = None
-    stop: bool | None = None
-    notify: bool | None = None
+    warning: bool | None = None
+    error: bool | None = None
+    critical: bool | None = None
     tbl_checked: FrameT | None = None
     extract: FrameT | None = None
     val_info: dict[str, any] | None = None
@@ -1706,11 +1707,11 @@ class Validate:
     ```
 
     We ought to think about what's tolerable in terms of data quality so let's designate
-    proportional failure thresholds to the **warn**, **stop**, and **notify** states. This can be
+    proportional failure thresholds to the 'warning', 'error', and 'critical' states. This can be
     done by using the [`Thresholds`](`pointblank.Thresholds`) class.
 
     ```{python}
-    thresholds = pb.Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35)
+    thresholds = pb.Thresholds(warning=0.10, error=0.25, critical=0.35)
     ```
 
     Now, we use the `Validate` class and give it the `thresholds` object (which serves as a default
@@ -1828,8 +1829,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -1992,8 +1993,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -2155,8 +2156,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -2317,8 +2318,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -2477,8 +2478,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -2641,8 +2642,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -2816,8 +2817,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3004,8 +3005,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3176,8 +3177,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3324,8 +3325,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3467,8 +3468,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3607,8 +3608,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3755,8 +3756,8 @@ class Validate:
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -3900,12 +3901,12 @@ class Validate:
             A optional pre-processing function or lambda to apply to the data table during
             interrogation.
         thresholds
-            Optional failure threshold levels for the validation step, so that the interrogation can
-            react accordingly when exceeding the set levels for different states ('warn', 'stop',
-            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
-            class or more simply as (1) an integer or float denoting the absolute number or fraction
-            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
-            dictionary of 1-3 entries.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4014,8 +4015,8 @@ class Validate:
             generated for each column.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warn',
-            'stop', and 'notify'). This can be created using the
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
             [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
             denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
             a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
@@ -4154,12 +4155,12 @@ class Validate:
             A optional pre-processing function or lambda to apply to the data table during
             interrogation.
         thresholds
-            Optional failure threshold levels for the validation step, so that the interrogation can
-            react accordingly when exceeding the set levels for different states ('warn', 'stop',
-            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
-            class or more simply as (1) an integer or float denoting the absolute number or fraction
-            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
-            dictionary of 1-3 entries.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4317,12 +4318,12 @@ class Validate:
             A optional pre-processing function or lambda to apply to the data table during
             interrogation.
         thresholds
-            Optional failure threshold levels for the validation step, so that the interrogation can
-            react accordingly when exceeding the set levels for different states ('warn', 'stop',
-            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
-            class or more simply as (1) an integer or float denoting the absolute number or fraction
-            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
-            dictionary of 1-3 entries.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4469,12 +4470,12 @@ class Validate:
             A optional pre-processing function or lambda to apply to the data table during
             interrogation.
         thresholds
-            Optional failure threshold levels for the validation step, so that the interrogation can
-            react accordingly when exceeding the set levels for different states ('warn', 'stop',
-            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
-            class or more simply as (1) an integer or float denoting the absolute number or fraction
-            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
-            dictionary of 1-3 entries.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4592,12 +4593,12 @@ class Validate:
             A optional pre-processing function or lambda to apply to the data table during
             interrogation.
         thresholds
-            Optional failure threshold levels for the validation step, so that the interrogation can
-            react accordingly when exceeding the set levels for different states ('warn', 'stop',
-            and 'notify'). This can be created using the [`Thresholds`](`pointblank.Thresholds`)
-            class or more simply as (1) an integer or float denoting the absolute number or fraction
-            of failing test units for the 'warn' level, (2) a tuple of 1-3 values, or (3) a
-            dictionary of 1-3 entries.
+            Optional failure threshold levels for the validation step(s), so that the interrogation
+            can react accordingly when exceeding the set levels for different states ('warning',
+            'error', and 'critical'). This can be created using the
+            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
+            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
+            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -5089,10 +5090,10 @@ class Validate:
 
             # Determine if the number of failing test units is beyond the threshold value
             # for each of the severity levels
-            # - `warn` is the threshold for a warning
-            # - `stop` is the threshold for stopping
-            # - `notify` is the threshold for notifying
-            for level in ["warn", "stop", "notify"]:
+            # - `warning` is the threshold for the 'warning' severity level
+            # - `error` is the threshold for 'error' severity level
+            # - `critical` is the threshold for the 'critical' severity level
+            for level in ["warning", "error", "critical"]:
                 setattr(
                     validation,
                     level,
@@ -5107,11 +5108,8 @@ class Validate:
                 validation.tbl_checked = results_tbl
 
             # Perform any necessary actions if threshold levels are exceeded for each
-            # of the severity levels
-            # - `warn` is the threshold for a warning
-            # - `stop` is the threshold for stopping
-            # - `notify` is the threshold for notifying
-            for level in ["warn", "stop", "notify"]:
+            # of the severity levels ('warning', 'error', 'critical')
+            for level in ["warning", "error", "critical"]:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
@@ -5744,42 +5742,41 @@ class Validate:
             return result[i]
         return result
 
-    def warn(
+    def warning(
         self, i: int | list[int] | None = None, scalar: bool = False
     ) -> dict[int, bool] | bool:
         """
-        Provides a dictionary of the warning status for each validation step.
+        Get the 'warning' level status for each validation step.
 
-        The warning status (`warn`) for a validation step is `True` if the fraction of failing test
-        units meets or exceeds the threshold for the warning level. Otherwise, the status is
-        `False`.
+        The 'warning' status for a validation step is `True` if the fraction of failing test units
+        meets or exceeds the threshold for the 'warning' level. Otherwise, the status is `False`.
 
-        The ascribed name of `warn` is semantic and does not imply that a warning message is
-        generated, it is simply a status indicator that could be used to trigger a warning message.
-        Here's how it fits in with other status indicators:
+        The ascribed name of 'warning' is semantic and does not imply that a warning message is
+        generated, it is simply a status indicator that could be used to trigger some action to be
+        taken. Here's how it fits in with other status indicators:
 
-        - `warn`: the status obtained by calling `warn()`, least severe
-        - `stop`: the status obtained by calling [`stop()`](`pointblank.Validate.stop`), middle
+        - 'warning': the status obtained by calling 'warning()', least severe
+        - 'error': the status obtained by calling [`error()`](`pointblank.Validate.error`), middle
         severity
-        - `notify`: the status obtained by calling [`notify()`](`pointblank.Validate.notify`), most
-        severe
+        - 'critical': the status obtained by calling [`critical()`](`pointblank.Validate.critical`),
+        most severe
 
-        This method provides a dictionary of the warning status for each validation step. If the
+        This method provides a dictionary of the 'warning' status for each validation step. If the
         `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
         instead of a dictionary.
 
         Parameters
         ----------
         i
-            The validation step number(s) from which the warning status is obtained. Can be provided
-            as a list of integers or a single integer. If `None`, all steps are included.
+            The validation step number(s) from which the 'warning' status is obtained. Can be
+            provided as a list of integers or a single integer. If `None`, all steps are included.
         scalar
             If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
 
         Returns
         -------
         dict[int, bool] | bool
-            A dictionary of the warning status for each validation step or a scalar value.
+            A dictionary of the 'warning' status for each validation step or a scalar value.
 
         Examples
         --------
@@ -5788,12 +5785,12 @@ class Validate:
         units, the rest will be completely passing. We've set thresholds here for each of the steps
         by using `thresholds=(2, 4, 5)`, which means:
 
-        - the `warn` threshold is `2` failing test units
-        - the `stop` threshold is `4` failing test units
-        - the `notify` threshold is `5` failing test units
+        - the 'warning' threshold is `2` failing test units
+        - the 'error' threshold is `4` failing test units
+        - the 'critical' threshold is `5` failing test units
 
-        After interrogation, the `warn()` method is used to determine the `warn` status for each
-        validation step.
+        After interrogation, the `warning()` method is used to determine the 'warning' status for
+        each validation step.
 
         ```{python}
         import pointblank as pb
@@ -5815,69 +5812,68 @@ class Validate:
             .interrogate()
         )
 
-        validation.warn()
+        validation.warning()
         ```
 
-        The returned dictionary provides the `warn` status for each validation step. The first step
-        has a `True` value since the number of failing test units meets the threshold for the
-        `warn` level. The second and third steps have `False` values since the number of failing
-        test units was `0`, which is below the threshold for the `warn` level.
+        The returned dictionary provides the 'warning' status for each validation step. The first
+        step has a `True` value since the number of failing test units meets the threshold for the
+        'warning' level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the 'warning' level.
 
-        We can also visually inspect the `warn` status across all steps by viewing the validation
+        We can also visually inspect the 'warning' status across all steps by viewing the validation
         table:
 
         ```{python}
         validation
         ```
 
-        We can see that there's a filled yellow circle in the first step (far right side, in the
-        `W` column) indicating that the `warn` threshold was met. The other steps have empty yellow
-        circles. This means that thresholds were 'set but not met' in those steps.
+        We can see that there's a filled gray circle in the first step (look to the far right side,
+        in the `W` column) indicating that the 'warning' threshold was met. The other steps have
+        empty gray circles. This means that thresholds were 'set but not met' in those steps.
 
-        If we wanted to check the `warn` status for a single validation step, we can provide the
+        If we wanted to check the 'warning' status for a single validation step, we can provide the
         step number. Also, we could have the value returned as a scalar by setting `scalar=True`
         (ensuring that `i=` is a scalar).
 
         ```{python}
-        validation.warn(i=1)
+        validation.warning(i=1)
         ```
 
-        The returned value is `True`, indicating that the first validation step had the `warn`
-        threshold met.
+        The returned value is `True`, indicating that the first validation step had met the
+        'warning' threshold.
         """
-        result = self._get_validation_dict(i, "warn")
+        result = self._get_validation_dict(i, "warning")
         if scalar and isinstance(i, int):
             return result[i]
         return result
 
-    def stop(
+    def error(
         self, i: int | list[int] | None = None, scalar: bool = False
     ) -> dict[int, bool] | bool:
         """
-        Provides a dictionary of the stopping status for each validation step.
+        Get the 'error' level status for each validation step.
 
-        The stopping status (`stop`) for a validation step is `True` if the fraction of failing test
-        units meets or exceeds the threshold for the stopping level. Otherwise, the status is
-        `False`.
+        The 'error' status for a validation step is `True` if the fraction of failing test units
+        meets or exceeds the threshold for the 'error' level. Otherwise, the status is `False`.
 
-        The ascribed name of `stop` is semantic and does not imply that the validation process
-        is halted, it is simply a status indicator that could be used to trigger a stoppage of the
-        validation process. Here's how it fits in with other status indicators:
+        The ascribed name of 'error' is semantic and does not imply that the validation process
+        is halted, it is simply a status indicator that could be used to trigger some action to be
+        taken. Here's how it fits in with other status indicators:
 
-        - `warn`: the status obtained by calling [`warn()`](`pointblank.Validate.warn`), least
-        severe
-        - `stop`: the status obtained by calling `stop()`, middle severity
-        - `notify`: the status obtained by calling [`notify()`](`pointblank.Validate.notify`), most
-        severe
+        - 'warning': the status obtained by calling [`warning()`](`pointblank.Validate.warning`),
+        least severe
+        - 'error': the status obtained by calling `error()`, middle severity
+        - 'critical': the status obtained by calling [`critical()`](`pointblank.Validate.critical`),
+        most severe
 
-        This method provides a dictionary of the stopping status for each validation step. If the
+        This method provides a dictionary of the 'error' status for each validation step. If the
         `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
         instead of a dictionary.
 
         Parameters
         ----------
         i
-            The validation step number(s) from which the stopping status is obtained. Can be
+            The validation step number(s) from which the 'error' status is obtained. Can be
             provided as a list of integers or a single integer. If `None`, all steps are included.
         scalar
             If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
@@ -5885,7 +5881,7 @@ class Validate:
         Returns
         -------
         dict[int, bool] | bool
-            A dictionary of the stopping status for each validation step or a scalar value.
+            A dictionary of the 'error' status for each validation step or a scalar value.
 
         Examples
         --------
@@ -5894,11 +5890,11 @@ class Validate:
         units, the rest will be completely passing. We've set thresholds here for each of the steps
         by using `thresholds=(2, 4, 5)`, which means:
 
-        - the `warn` threshold is `2` failing test units
-        - the `stop` threshold is `4` failing test units
-        - the `notify` threshold is `5` failing test units
+        - the 'warning' threshold is `2` failing test units
+        - the 'error' threshold is `4` failing test units
+        - the 'critical' threshold is `5` failing test units
 
-        After interrogation, the `stop()` method is used to determine the `stop` status for each
+        After interrogation, the `error()` method is used to determine the 'error' status for each
         validation step.
 
         ```{python}
@@ -5921,61 +5917,60 @@ class Validate:
             .interrogate()
         )
 
-        validation.stop()
+        validation.error()
         ```
 
-        The returned dictionary provides the `stop` status for each validation step. The first step
+        The returned dictionary provides the 'error' status for each validation step. The first step
         has a `True` value since the number of failing test units meets the threshold for the
-        `stop` level. The second and third steps have `False` values since the number of failing
-        test units was `0`, which is below the threshold for the `stop` level.
+        'error' level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the 'error' level.
 
-        We can also visually inspect the `stop` status across all steps by viewing the validation
+        We can also visually inspect the 'error' status across all steps by viewing the validation
         table:
 
         ```{python}
         validation
         ```
 
-        We can see that there are filled yellow and red circles in the first step (far right side,
-        in the `W` and `S` columns) indicating that the `warn` and `stop` thresholds were met. The
-        other steps have empty yellow and red circles. This means that thresholds were 'set but not
-        met' in those steps.
+        We can see that there are filled gray and yellow circles in the first step (far right side,
+        in the `W` and `E` columns) indicating that the 'warning' and 'error' thresholds were met.
+        The other steps have empty gray and yellow circles. This means that thresholds were 'set but
+        not met' in those steps.
 
-        If we wanted to check the `stop` status for a single validation step, we can provide the
+        If we wanted to check the 'error' status for a single validation step, we can provide the
         step number. Also, we could have the value returned as a scalar by setting `scalar=True`
         (ensuring that `i=` is a scalar).
 
         ```{python}
-        validation.stop(i=1)
+        validation.error(i=1)
         ```
 
-        The returned value is `True`, indicating that the first validation step had the `stop`
+        The returned value is `True`, indicating that the first validation step had the 'error'
         threshold met.
         """
-        result = self._get_validation_dict(i, "stop")
+        result = self._get_validation_dict(i, "error")
         if scalar and isinstance(i, int):
             return result[i]
         return result
 
-    def notify(
+    def critical(
         self, i: int | list[int] | None = None, scalar: bool = False
     ) -> dict[int, bool] | bool:
         """
-        Provides a dictionary of the notification status for each validation step.
+        Get the 'critical' level status for each validation step.
 
-        The notification status (`notify`) for a validation step is `True` if the fraction of
-        failing test units meets or exceeds the threshold for the notification level. Otherwise,
-        the status is `False`.
+        The 'critical' status for a validation step is `True` if the fraction of failing test units
+        meets or exceeds the threshold for the notification level. Otherwise, the status is `False`.
 
-        The ascribed name of `notify` is semantic and does not imply that a notification message
-        is generated, it is simply a status indicator that could be used to trigger some sort of
-        notification. Here's how it fits in with other status indicators:
+        The ascribed name of 'critical' is semantic and is thus simply a status indicator that could
+        be used to trigger some action to be take. Here's how it fits in with other status
+        indicators:
 
-        - `warn`: the status obtained by calling [`warn()`](`pointblank.Validate.warn`), least
-        severe
-        - `stop`: the status obtained by calling [`stop()`](`pointblank.Validate.stop`), middle
+        - 'warning': the status obtained by calling [`warning()`](`pointblank.Validate.warning`),
+        least severe
+        - 'error': the status obtained by calling [`error()`](`pointblank.Validate.error`), middle
         severity
-        - `notify`: the status obtained by calling `notify()`, most severe
+        - 'critical': the status obtained by calling `critical()`, most severe
 
         This method provides a dictionary of the notification status for each validation step. If
         the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
@@ -6001,12 +5996,12 @@ class Validate:
         units, the rest will be completely passing. We've set thresholds here for each of the steps
         by using `thresholds=(2, 4, 5)`, which means:
 
-        - the `warn` threshold is `2` failing test units
-        - the `stop` threshold is `4` failing test units
-        - the `notify` threshold is `5` failing test units
+        - the 'warning' threshold is `2` failing test units
+        - the 'error' threshold is `4` failing test units
+        - the 'critical' threshold is `5` failing test units
 
-        After interrogation, the `notify()` method is used to determine the `notify` status for each
-        validation step.
+        After interrogation, the `critical()` method is used to determine the 'critical' status for
+        each validation step.
 
         ```{python}
         import pointblank as pb
@@ -6028,38 +6023,38 @@ class Validate:
             .interrogate()
         )
 
-        validation.notify()
+        validation.critical()
         ```
 
-        The returned dictionary provides the `notify` status for each validation step. The first step
-        has a `True` value since the number of failing test units meets the threshold for the
-        `notify` level. The second and third steps have `False` values since the number of failing
-        test units was `0`, which is below the threshold for the `notify` level.
+        The returned dictionary provides the 'critical' status for each validation step. The first
+        step has a `True` value since the number of failing test units meets the threshold for the
+        'critical' level. The second and third steps have `False` values since the number of failing
+        test units was `0`, which is below the threshold for the 'critical' level.
 
-        We can also visually inspect the `notify` status across all steps by viewing the validation
-        table:
+        We can also visually inspect the 'critical' status across all steps by viewing the
+        validation table:
 
         ```{python}
         validation
         ```
 
-        We can see that there are filled yellow, red, and blue circles in the first step (far right
-        side, in the `W`, `S`, and `N` columns) indicating that the `warn`, `stop`, and `notify`
-        thresholds were met. The other steps have empty yellow, red, and blue circles. This means
-        that thresholds were 'set but not met' in those steps.
+        We can see that there are filled gray, yellow, and red circles in the first step (far right
+        side, in the `W`, `E`, and `C` columns) indicating that the 'warning', 'error', and
+        'critical' thresholds were met. The other steps have empty gray, yellow, and red circles.
+        This means that thresholds were 'set but not met' in those steps.
 
-        If we wanted to check the `notify` status for a single validation step, we can provide the
+        If we wanted to check the 'critical' status for a single validation step, we can provide the
         step number. Also, we could have the value returned as a scalar by setting `scalar=True`
         (ensuring that `i=` is a scalar).
 
         ```{python}
-        validation.notify(i=1)
+        validation.critical(i=1)
         ```
 
-        The returned value is `True`, indicating that the first validation step had the `notify`
+        The returned value is `True`, indicating that the first validation step had the 'critical'
         threshold met.
         """
-        result = self._get_validation_dict(i, "notify")
+        result = self._get_validation_dict(i, "critical")
         if scalar and isinstance(i, int):
             return result[i]
         return result
@@ -6416,8 +6411,8 @@ class Validate:
         The `get_tabular_report()` method returns a GT table object that represents the validation
         report. This validation table provides a summary of the validation results, including the
         validation steps, the number of test units, the number of failing test units, and the
-        fraction of failing test units. The table also includes status indicators for the `warn`,
-        `stop`, and `notify` levels.
+        fraction of failing test units. The table also includes status indicators for the 'warning',
+        'error', and 'critical' levels.
 
         You could simply display the validation table without the use of the `get_tabular_report()`
         method. However, the method provides a way to customize the title of the report. In the
@@ -6579,8 +6574,8 @@ class Validate:
                         "pass": "PASS",
                         "fail": "FAIL",
                         "w_upd": "W",
-                        "s_upd": "S",
-                        "n_upd": "N",
+                        "s_upd": "E",
+                        "n_upd": "C",
                         "extract_upd": "EXT",
                     }
                 )
@@ -6834,20 +6829,20 @@ class Validate:
         # Process `w_upd`, `s_upd`, `n_upd` entries
         # ------------------------------------------------
 
-        # Transform `warn`, `stop`, and `notify` to `w_upd`, `s_upd`, and `n_upd` entries
+        # Transform 'warning', 'error', and 'critical' to `w_upd`, `s_upd`, and `n_upd` entries
         validation_info_dict["w_upd"] = _transform_w_s_n(
-            values=validation_info_dict["warn"],
-            color="#E5AB00",
+            values=validation_info_dict["warning"],
+            color=SEVERITY_LEVEL_COLORS["warning"],
             interrogation_performed=interrogation_performed,
         )
         validation_info_dict["s_upd"] = _transform_w_s_n(
-            values=validation_info_dict["stop"],
-            color="#CF142B",
+            values=validation_info_dict["error"],
+            color=SEVERITY_LEVEL_COLORS["error"],
             interrogation_performed=interrogation_performed,
         )
         validation_info_dict["n_upd"] = _transform_w_s_n(
-            values=validation_info_dict["notify"],
-            color="#439CFE",
+            values=validation_info_dict["critical"],
+            color=SEVERITY_LEVEL_COLORS["critical"],
             interrogation_performed=interrogation_performed,
         )
 
@@ -6858,10 +6853,10 @@ class Validate:
         # For the `status_color` entry, we will add a string based on the status of the validation:
         #
         # CASE 1: if `all_passed` is `True`, then the status color will be green
-        # CASE 2: If none of `warn`, `stop`, or `notify` are `True`, then the status color will be
-        #   light green ("#4CA64C66") (includes alpha of `0.5`)
-        # CASE 3: If `warn` is `True`, then the status color will be yellow ("#FFBF00")
-        # CASE 4: If `stop` is `True`, then the status color will be red (#CF142B")
+        # CASE 2: If none of `warning`, `error`, or `critical` are `True`, then the status color
+        #   will be light green (includes alpha of `0.5`)
+        # CASE 3: If `warn` is `True`, then the status color will be yellow
+        # CASE 4: If `stop` is `True`, then the status color will be red
 
         # Create a list to store the status colors
         status_color_list = []
@@ -6869,14 +6864,14 @@ class Validate:
         # Iterate over the validation steps
         for i in range(len(validation_info_dict["type_upd"])):
             if validation_info_dict["all_passed"][i]:
-                status_color_list.append("#4CA64C")
-            elif validation_info_dict["stop"][i]:
-                status_color_list.append("#CF142B")
-            elif validation_info_dict["warn"][i]:
-                status_color_list.append("#FFBF00")
+                status_color_list.append(SEVERITY_LEVEL_COLORS["green"])
+            elif validation_info_dict["critical"][i]:
+                status_color_list.append(SEVERITY_LEVEL_COLORS["critical"])
+            elif validation_info_dict["warning"][i]:
+                status_color_list.append(SEVERITY_LEVEL_COLORS["warning"])
             else:
                 # No status entered (W, S, N) but also not all passed
-                status_color_list.append("#4CA64C66")
+                status_color_list.append(SEVERITY_LEVEL_COLORS["green"] + "66")
 
         # Add the `status_color` entry to the dictionary
         validation_info_dict["status_color"] = status_color_list
@@ -6972,10 +6967,10 @@ class Validate:
         validation_info_dict.pop("f_passed")
         validation_info_dict.pop("f_failed")
 
-        # Remove the `warn`, `stop`, and `notify` entries from the dictionary
-        validation_info_dict.pop("warn")
-        validation_info_dict.pop("stop")
-        validation_info_dict.pop("notify")
+        # Remove the `warning`, `error`, and `critical` entries from the dictionary
+        validation_info_dict.pop("warning")
+        validation_info_dict.pop("error")
+        validation_info_dict.pop("critical")
 
         # Drop other keys from the dictionary
         validation_info_dict.pop("na_pass")
@@ -7118,8 +7113,8 @@ class Validate:
                     "pass": "PASS",
                     "fail": "FAIL",
                     "w_upd": "W",
-                    "s_upd": "S",
-                    "n_upd": "N",
+                    "s_upd": "E",
+                    "n_upd": "C",
                     "extract_upd": "EXT",
                 }
             )
@@ -7552,9 +7547,9 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "n_failed",
         "f_passed",
         "f_failed",
-        "warn",
-        "stop",
-        "notify",
+        "warning",
+        "error",
+        "critical",
         "extract",
         "proc_duration_s",
     ]
@@ -7897,49 +7892,59 @@ def _create_thresholds_html(thresholds: Thresholds) -> str:
     if thresholds == Thresholds():
         return ""
 
-    warn = (
-        thresholds.warn_fraction
-        if thresholds.warn_fraction is not None
-        else (thresholds.warn_count if thresholds.warn_count is not None else "&mdash;")
+    warning = (
+        thresholds.warning_fraction
+        if thresholds.warning_fraction is not None
+        else (thresholds.warning_count if thresholds.warning_count is not None else "&mdash;")
     )
 
-    stop = (
-        thresholds.stop_fraction
-        if thresholds.stop_fraction is not None
-        else (thresholds.stop_count if thresholds.stop_count is not None else "&mdash;")
+    error = (
+        thresholds.error_fraction
+        if thresholds.error_fraction is not None
+        else (thresholds.error_count if thresholds.error_count is not None else "&mdash;")
     )
 
-    notify = (
-        thresholds.notify_fraction
-        if thresholds.notify_fraction is not None
-        else (thresholds.notify_count if thresholds.notify_count is not None else "&mdash;")
+    critical = (
+        thresholds.critical_fraction
+        if thresholds.critical_fraction is not None
+        else (thresholds.critical_count if thresholds.critical_count is not None else "&mdash;")
     )
+
+    warning_color = SEVERITY_LEVEL_COLORS["warning"]
+    error_color = SEVERITY_LEVEL_COLORS["error"]
+    critical_color = SEVERITY_LEVEL_COLORS["critical"]
 
     return (
         "<span>"
-        '<span style="background-color: #E5AB00; color: white; padding: 0.5em 0.5em; position: inherit; '
-        "text-transform: uppercase; margin: 5px 0px 5px 5px; border: solid 1px #E5AB00; font-weight: bold; "
-        'padding: 2px 15px 2px 15px; font-size: smaller;">WARN</span>'
-        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
-        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #E5AB00; padding: 2px 15px 2px 15px; "
+        f'<span style="background-color: {warning_color}; color: white; '
+        "padding: 0.5em 0.5em; position: inherit; text-transform: uppercase; "
+        f"margin: 5px 0px 5px 5px; border: solid 1px {warning_color}; "
+        'font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;">WARNING</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; '
+        "position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
+        f"border: solid 1px {warning_color}; padding: 2px 15px 2px 15px; "
         'font-size: smaller; margin-right: 5px;">'
-        f"{warn}"
+        f"{warning}"
         "</span>"
-        '<span style="background-color: #D0182F; color: white; padding: 0.5em 0.5em; position: inherit; '
-        "text-transform: uppercase; margin: 5px 0px 5px 1px; border: solid 1px #D0182F; font-weight: bold; "
-        'padding: 2px 15px 2px 15px; font-size: smaller;">STOP</span>'
-        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
-        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #D0182F; padding: 2px 15px 2px 15px; "
+        f'<span style="background-color: {error_color}; color: white; '
+        "padding: 0.5em 0.5em; position: inherit; text-transform: uppercase; "
+        f"margin: 5px 0px 5px 1px; border: solid 1px {error_color}; "
+        'font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;">ERROR</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; '
+        "position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
+        f"border: solid 1px {error_color}; padding: 2px 15px 2px 15px; "
         'font-size: smaller; margin-right: 5px;">'
-        f"{stop}"
+        f"{error}"
         "</span>"
-        '<span style="background-color: #499FFE; color: white; padding: 0.5em 0.5em; position: inherit; '
-        "text-transform: uppercase; margin: 5px 0px 5px 1px; border: solid 1px #499FFE; font-weight: bold; "
-        'padding: 2px 15px 2px 15px; font-size: smaller;">NOTIFY</span>'
-        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; position: inherit; '
-        "margin: 5px 0px 5px -4px; font-weight: bold; border: solid 1px #499FFE; padding: 2px 15px 2px 15px; "
+        f'<span style="background-color: {critical_color}; color: white; '
+        "padding: 0.5em 0.5em; position: inherit; text-transform: uppercase; "
+        f"margin: 5px 0px 5px 1px; border: solid 1px {critical_color}; "
+        'font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;">CRITICAL</span>'
+        '<span style="background-color: none; color: #333333; padding: 0.5em 0.5em; '
+        "position: inherit; margin: 5px 0px 5px -4px; font-weight: bold; "
+        f"border: solid 1px {critical_color}; padding: 2px 15px 2px 15px; "
         'font-size: smaller;">'
-        f"{notify}"
+        f"{critical}"
         "</span>"
         "</span>"
     )

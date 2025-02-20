@@ -19,9 +19,9 @@ validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
         thresholds=pb.Thresholds(  # setting relative threshold defaults for all steps
-            warn_at=0.05,          # 5% failing test units: warn threshold (yellow)
-            stop_at=0.10,          # 10% failed test units: stop threshold (red)
-            notify_at=0.15         # 15% failed test units: notify threshold (blue)
+            warning=0.05,          # 5% failing test units: warning threshold (gray)
+            error=0.10,            # 10% failed test units: error threshold (yellow)
+            critical=0.15          # 15% failed test units: critical threshold (red)
         ),
     )
     .col_vals_in_set(columns="item_type", set=["iap", "ad"])
@@ -30,7 +30,7 @@ validation = (
     .col_vals_gt(
         columns="session_duration",
         value=4,
-        thresholds=(5, 10, 20)  # setting absolute thresholds for *this* step (warn, stop, notify)
+        thresholds=(5, 10, 20)     # setting absolute thresholds for *this* step (W, E, C)
     )
     .col_exists(columns="end_day")
     .interrogate()
@@ -46,9 +46,9 @@ validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
         thresholds=pb.Thresholds(  # setting relative threshold defaults for all steps
-            warn_at=0.05,          # 5% failing test units: warn threshold (yellow)
-            stop_at=0.10,          # 10% failed test units: stop threshold (red)
-            notify_at=0.15         # 15% failed test units: notify threshold (blue)
+            warning=0.05,          # 5% failing test units: warning threshold (gray)
+            error=0.10,            # 10% failed test units: error threshold (yellow)
+            critical=0.15          # 15% failed test units: critical threshold (red)
         ),
     )
     .col_vals_in_set(columns="item_type", set=["iap", "ad"])
@@ -57,7 +57,7 @@ validation = (
     .col_vals_gt(
         columns="session_duration",
         value=4,
-        thresholds=(5, 10, 20)  # setting absolute thresholds for *this* step (warn, stop, notify)
+        thresholds=(5, 10, 20)     # setting absolute thresholds for *this* step (W, E, C)
     )
     .col_exists(columns="end_day")
     .interrogate()

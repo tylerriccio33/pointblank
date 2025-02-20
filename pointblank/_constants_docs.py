@@ -25,10 +25,10 @@ ARG_DOCSTRINGS = {
         A pre-processing function or lambda to apply to the data table for the validation step.""",
     "thresholds": """thresholds
         Failure threshold levels so that the validation step can react accordingly when exceeding
-        the set levels for different states (`warn`, `stop`, and `notify`). This can be created
-        simply as an integer or float denoting the absolute number or fraction of failing test units
-        for the 'warn' level. Otherwise, you can use a tuple of 1-3 values, a dictionary of 1-3
-        entries, or a Thresholds object.""",
+        the set levels for different states ('warning', 'error', and 'critical'). This can be
+        created simply as an integer or float denoting the absolute number or fraction of failing
+        test units for the 'warning' level. Otherwise, you can use a tuple of 1-3 values, a
+        dictionary of 1-3 entries, or a Thresholds object.""",
     "active": """active
         A boolean value indicating whether the validation step should be active. Using `False` will
         make the validation step inactive (still reporting its presence and keeping indexes for the
