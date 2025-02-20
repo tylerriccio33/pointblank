@@ -100,13 +100,18 @@ class DraftValidation:
     validation plan. As such, even very large tables can be used with the `DraftValidation` class
     since the contents of the table are not sent to the model provider.
 
+    The Amazon Bedrock is a special case since it is a self-hosted model and security controls are
+    in place to ensure that data is kept within the user's AWS environment. If using an Ollama
+    model all data is handled locally, though only a few models are capable enough to perform the
+    task of drafting a validation plan.
+
     Examples
     --------
     Let's look at how the `DraftValidation` class can be used to draft a validation plan for a
     table. The table to be used is `"nycflights"`, which is available here via the
     [`load_dataset()`](`pointblank.load_dataset`) function. The model to be used is
-    `"anthropic:claude-3-5-sonnet-latest"`. The example assumes that the API key is stored in an
-    `.env` file as `ANTHROPIC_API_KEY`.
+    `"anthropic:claude-3-5-sonnet-latest"` (which performs very well compared to other LLMs). The
+    example assumes that the API key is stored in an `.env` file as `ANTHROPIC_API_KEY`.
 
     ```python
     import pointblank as pb
@@ -150,7 +155,7 @@ class DraftValidation:
     # The validation plan
     validation = (
         pb.Validate(
-            data=your_data,
+            data=your_data,  # Replace your_data with the actual data variable
             label="Draft Validation",
             thresholds=pb.Thresholds(warning=0.10, error=0.25, critical=0.35)
         )
@@ -183,8 +188,8 @@ class DraftValidation:
     requirements of the table being validated.
 
     Note that the output does not know how the data was obtained, so it uses the placeholder
-    `your_data` in the `data=` argument of the `Validate` class. This should be replaced with the
-    actual data variable.
+    `your_data` in the `data=` argument of the `Validate` class. When adapted for use, this should
+    be replaced with the actual data variable.
     """
 
     data: FrameT | Any
