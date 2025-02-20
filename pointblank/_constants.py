@@ -114,6 +114,7 @@ VALIDATION_REPORT_FIELDS = [
 MODEL_PROVIDERS = [
     "openai",
     "anthropic",
+    "ollama",
     "bedrock",
 ]
 
