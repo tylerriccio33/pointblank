@@ -134,9 +134,9 @@ quartodoc:
         - name: Validate.n_failed
         - name: Validate.f_passed
         - name: Validate.f_failed
-        - name: Validate.warn
-        - name: Validate.stop
-        - name: Validate.notify
+        - name: Validate.warning
+        - name: Validate.error
+        - name: Validate.critical
     - title: Inspect
       desc: >
         The *Inspect* group contains functions that are helpful for getting to grips on a new data
