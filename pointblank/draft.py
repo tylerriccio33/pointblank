@@ -39,8 +39,8 @@ class DraftValidation:
         The data to be used for drafting a validation plan.
     model
         The model to be used. This should be in the form of `provider:model` (e.g.,
-        `"anthropic:claude-3-5-sonnet-latest"`). Supported providers are `"anthropic"` and
-        `"openai"`.
+        `"anthropic:claude-3-5-sonnet-latest"`). Supported providers are `"anthropic"`, `"openai"`,
+        and `"bedrock"` (Amazon Bedrock).
     api_key
         The API key to be used for the model.
 
