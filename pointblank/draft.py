@@ -24,9 +24,9 @@ class DraftValidation:
     starting point for validating a table. This can be useful when you have a new table and you
     want to get a sense of how to validate it (and adjustments could always be made later). The
     `DraftValidation` class uses the `chatlas` package to draft a validation plan for a given table
-    using an LLM from either the `"anthropic"`, `"openai"`, or `"bedrock"` provider. You can install
-    all requirements for the class by using an optional install of Pointblank via `pip install
-    pointblank[generate]`.
+    using an LLM from either the `"anthropic"`, `"openai"`, `"ollama"` or `"bedrock"` provider. You
+    can install all requirements for the class through an optional 'generate' install of Pointblank
+    via `pip install pointblank[generate]`.
 
     :::{.callout-warning}
     The `DraftValidation()` class is still experimental. Please report any issues you encounter in
@@ -40,7 +40,7 @@ class DraftValidation:
     model
         The model to be used. This should be in the form of `provider:model` (e.g.,
         `"anthropic:claude-3-5-sonnet-latest"`). Supported providers are `"anthropic"`, `"openai"`,
-        and `"bedrock"` (Amazon Bedrock).
+        `"ollama"`, and `"bedrock"`.
     api_key
         The API key to be used for the model.
 
@@ -52,9 +52,15 @@ class DraftValidation:
     Constructing the `model` Argument
     ---------------------------------
     The `model=` argument should be constructed using the provider and model name separated by a
-    colon. The provider can be either `"anthropic"` or `"openai"`. The model name should be the
-    specific model to be used. For example, model names are subject to change so consult the
-    provider's documentation for the most up-to-date model names.
+    colon (`provider:model`). The provider text can any of:
+
+    - `"anthropic"` (Anthropic)
+    - `"openai"` (OpenAI)
+    - `"ollama"` (Ollama)
+    - `"bedrock"` (Amazon Bedrock)
+
+    The model name should be the specific model to be used from the provider. Model names are
+    subject to change so consult the provider's documentation for the most up-to-date model names.
 
     Notes on Authentication
     -----------------------
@@ -94,13 +100,18 @@ class DraftValidation:
     validation plan. As such, even very large tables can be used with the `DraftValidation` class
     since the contents of the table are not sent to the model provider.
 
+    The Amazon Bedrock is a special case since it is a self-hosted model and security controls are
+    in place to ensure that data is kept within the user's AWS environment. If using an Ollama
+    model all data is handled locally, though only a few models are capable enough to perform the
+    task of drafting a validation plan.
+
     Examples
     --------
     Let's look at how the `DraftValidation` class can be used to draft a validation plan for a
     table. The table to be used is `"nycflights"`, which is available here via the
     [`load_dataset()`](`pointblank.load_dataset`) function. The model to be used is
-    `"anthropic:claude-3-5-sonnet-latest"`. The example assumes that the API key is stored in an
-    `.env` file as `ANTHROPIC_API_KEY`.
+    `"anthropic:claude-3-5-sonnet-latest"` (which performs very well compared to other LLMs). The
+    example assumes that the API key is stored in an `.env` file as `ANTHROPIC_API_KEY`.
 
     ```python
     import pointblank as pb
@@ -144,7 +155,7 @@ class DraftValidation:
     # The validation plan
     validation = (
         pb.Validate(
-            data=your_data,
+            data=your_data,  # Replace your_data with the actual data variable
             label="Draft Validation",
             thresholds=pb.Thresholds(warning=0.10, error=0.25, critical=0.35)
         )
@@ -177,8 +188,8 @@ class DraftValidation:
     requirements of the table being validated.
 
     Note that the output does not know how the data was obtained, so it uses the placeholder
-    `your_data` in the `data=` argument of the `Validate` class. This should be replaced with the
-    actual data variable.
+    `your_data` in the `data=` argument of the `Validate` class. When adapted for use, this should
+    be replaced with the actual data variable.
     """
 
     data: FrameT | Any
@@ -307,6 +318,24 @@ class DraftValidation:
                 model=model_name,
                 system_prompt="You are a terse assistant and a Python expert.",
                 api_key=self.api_key,
+            )
+
+        if provider == "ollama":  # pragma: no cover
+
+            # Check that the openai package is installed
+            try:
+                import openai  # noqa
+            except ImportError:  # pragma: no cover
+                raise ImportError(  # pragma: no cover
+                    "The `openai` package is required to use the `DraftValidation` class with "
+                    "`ollama`. Please install it using `pip install openai`."
+                )
+
+            from chatlas import ChatOllama
+
+            chat = ChatOllama(
+                model=model_name,
+                system_prompt="You are a terse assistant and a Python expert.",
             )
 
         if provider == "bedrock":  # pragma: no cover
