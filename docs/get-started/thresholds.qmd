@@ -9,9 +9,9 @@ This is a work in progress. And some of this article is just an outline for now.
 :::
 
 Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
-will be able to trigger custom actions. For example, when testing a column for Null/missing values
-with `col_vals_not_null()` you might want to warn on any missing values and stop where there are
-10% missing values in the column.
+will be able to trigger custom actions. For example, when testing a column for null/missing values
+with `col_vals_not_null()` you might want a warning on any missing values an elevated flag where
+there are 10% missing values in the column.
 
 ```{python}
 import pointblank as pb
@@ -25,16 +25,18 @@ validation_1 = (
 validation_1
 ```
 
-The code uses `thresholds=(1, 0.1)` to set a `warn` threshold of `1` and a `stop` threshold of `0.1`
-(which is 10%) failing test units. Notice these pieces in the validation table:
+The code uses `thresholds=(1, 0.1)` to set a 'warning' threshold of `1` and an 'error' threshold of
+`0.1` (which is 10%) failing test units. Notice these pieces in the validation table:
 
 - The `FAIL` column shows that 2 tests units have failed
-- The `W` column (short for `warn`) shows a filled yellow circle indicating it's reached threshold
-- The `S` column (`stop`) shows an open red circle indicating it's below threshold
+- The `W` column (short for 'warning') shows a filled yellow circle indicating it's reached the
+threshold level
+- The `E` column (for 'error' level) shows an open red circle indicating it's below the threshold
+level
 
-The one final threshold, `N` (`notify`), wasn't set so appears on the validation table as a dash.
+The one final threshold, `C` ('critical'), wasn't set so appears on the validation table as a dash.
 
-## Using the `Validation(threshold=)` Argument
+## Using the `Validation(thresholds=)` Argument
 
 We can also define thresholds globally. This means that every validation step will re-use the same
 set of threshold values.
@@ -62,20 +64,20 @@ argument is present in every validation method).
 
 ### Using a Tuple
 
-The fastest way to define a threshold is to use a tuple with entries for `warn`, `stop`, and
-`nofify` levels.
+The fastest way to define a threshold is to use a tuple with entries for 'warning', 'error', and
+'critical' levels.
 
 ```python
-# (warn, stop, notify)
-threshold = (1, 2, 3)
+# (warning, error, critical)
+thresholds = (1, 2, 3)
 
-Validate(data=..., threshold=threshold)
+pb.Validate(data=..., thresholds=thresholds)
 ```
 
 Note that a shorter tuple or even single values are also allowed:
 
-- `(1, 2)`: `warn` state at 1 failing test unit, `stop` state at 2 failing test units
-- `1` or `(1, )`: `warn` state at 1 failing test unit
+- `(1, 2)`: 'warning' state at 1 failing test unit, `error` state at 2 failing test units
+- `1` or `(1, )`: 'warning' state at 1 failing test unit
 
 ### The `Threshold` Class
 
