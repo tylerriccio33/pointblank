@@ -24,8 +24,8 @@ class DraftValidation:
     starting point for validating a table. This can be useful when you have a new table and you
     want to get a sense of how to validate it (and adjustments could always be made later). The
     `DraftValidation` class uses the `chatlas` package to draft a validation plan for a given table
-    using an LLM from either the `"anthropic"` or `"openai"` provider. You can install all
-    requirements for the class by using the optional install of Pointblank with `pip install
+    using an LLM from either the `"anthropic"`, `"openai"`, or `"bedrock"` provider. You can install
+    all requirements for the class by using an optional install of Pointblank via `pip install
     pointblank[generate]`.
 
     :::{.callout-warning}
