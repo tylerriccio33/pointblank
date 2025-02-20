@@ -104,9 +104,9 @@ VALIDATION_REPORT_FIELDS = [
     "n_failed",
     "f_passed",
     "f_failed",
-    "warn",
-    "stop",
-    "notify",
+    "warning",
+    "error",
+    "critical",
     "time_processed",
     "proc_duration_s",
 ]
@@ -126,6 +126,13 @@ TABLE_TYPE_STYLES = {
     "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
+}
+
+SEVERITY_LEVEL_COLORS = {
+    "warning": "#AAAAAA",
+    "error": "#EBBC14",
+    "critical": "#FF3300",
+    "green": "#4CA64C",
 }
 
 CHECK_MARK_SPAN = "<span style='color: #4CA64C;'>&check;</span>"

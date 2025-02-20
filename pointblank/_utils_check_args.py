@@ -159,7 +159,7 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
     if isinstance(thresholds, dict):
 
         # Check keys for invalid entries and raise a ValueError if any are found
-        invalid_keys = set(thresholds.keys()) - {"warn_at", "stop_at", "notify_at"}
+        invalid_keys = set(thresholds.keys()) - {"warning", "error", "critical"}
 
         if invalid_keys:
             raise ValueError(f"Invalid keys in the thresholds dictionary: {invalid_keys}")

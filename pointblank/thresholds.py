@@ -12,7 +12,7 @@ class Thresholds:
     Definition of threshold values.
 
     Thresholds are used to set limits on the number of failing test units at different levels. The
-    levels are 'warn', 'stop', and 'notify'. These levels correspond to different levels of
+    levels are 'warning', 'error', and 'critical'. These levels correspond to different levels of
     severity when a threshold is reached. The threshold values can be set as absolute counts or as
     fractions of the total number of test units. When a threshold is reached, an action can be taken
     (e.g., displaying a message or calling a function) if there is an associated action defined for
@@ -20,15 +20,15 @@ class Thresholds:
 
     Parameters
     ----------
-    warn_at
-        The threshold for the 'warn' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to `1`.
-    stop_at
-        The threshold for the 'stop' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to `1`.
-    notify_at
-        The threshold for the 'notify' level. This can be an absolute count or a fraction of the
-        total. Using `True` will set this threshold to `1`.
+    warning
+        The threshold for the 'warning' level. This can be an absolute count or a fraction of the
+        total. Using `True` will set this threshold value to `1`.
+    error
+        The threshold for the 'error' level. This can be an absolute count or a fraction of the
+        total. Using `True` will set this threshold value to `1`.
+    critical
+        The threshold for the 'critical' level. This can be an absolute count or a fraction of the
+        total. Using `True` will set this threshold value to `1`.
 
     Returns
     -------
@@ -47,28 +47,28 @@ class Thresholds:
     pb.config(report_incl_footer=False)
     ```
     In a data validation workflow, you can set thresholds for the number of failing test units at
-    different levels. For example, you can set a threshold to warn when the number of failing test
-    units exceeds 10% of the total number of test units:
+    different levels. For example, you can set a threshold for the 'warning' level when the number
+    of failing test units exceeds 10% of the total number of test units:
 
     ```{python}
-    thresholds = pb.Thresholds(warn_at=0.1)
+    thresholds = pb.Thresholds(warning=0.1)
 
     thresholds
     ```
 
-    You can also set thresholds for the 'stop' and 'notify' levels:
+    You can also set thresholds for the 'error' and 'critical' levels:
 
     ```{python}
-    thresholds = pb.Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.05)
+    thresholds = pb.Thresholds(warning=0.1, error=0.2, critical=0.05)
 
     thresholds
     ```
 
-    Thresholds can also be set as absolute counts. Here's an example where the 'warn' level is set
-    to `5` failing test units:
+    Thresholds can also be set as absolute counts. Here's an example where the 'warning' level is
+    set to `5` failing test units:
 
     ```{python}
-    thresholds = pb.Thresholds(warn_at=5)
+    thresholds = pb.Thresholds(warning=5)
 
     thresholds
     ```
@@ -83,10 +83,10 @@ class Thresholds:
         pb.Validate(
             data=pb.load_dataset(dataset="small_table"),
             label="Example Validation",
-            thresholds=pb.Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+            thresholds=pb.Thresholds(warning=0.1, error=0.2, critical=0.3)
         )
         .col_vals_not_null(columns=["c", "d"])
-        .col_vals_gt(columns="a", value=3, thresholds=pb.Thresholds(warn_at=5))
+        .col_vals_gt(columns="a", value=3, thresholds=pb.Thresholds(warning=5))
         .interrogate()
     )
 
@@ -98,21 +98,21 @@ class Thresholds:
     (in the [`Validate`](`pointblank.Validate`) class).
     """
 
-    warn_at: int | float | bool | None = None
-    stop_at: int | float | bool | None = None
-    notify_at: int | float | bool | None = None
+    warning: int | float | bool | None = None
+    error: int | float | bool | None = None
+    critical: int | float | bool | None = None
 
-    warn_fraction: float | None = field(default=None, init=False)
-    warn_count: int | None = field(default=None, init=False)
-    stop_fraction: float | None = field(default=None, init=False)
-    stop_count: int | None = field(default=None, init=False)
-    notify_fraction: float | None = field(default=None, init=False)
-    notify_count: int | None = field(default=None, init=False)
+    warning_fraction: float | None = field(default=None, init=False)
+    warning_count: int | None = field(default=None, init=False)
+    error_fraction: float | None = field(default=None, init=False)
+    error_count: int | None = field(default=None, init=False)
+    critical_fraction: float | None = field(default=None, init=False)
+    critical_count: int | None = field(default=None, init=False)
 
     def __post_init__(self):
-        self._process_threshold("warn_at", "warn")
-        self._process_threshold("stop_at", "stop")
-        self._process_threshold("notify_at", "notify")
+        self._process_threshold("warning", "warning")
+        self._process_threshold("error", "error")
+        self._process_threshold("critical", "critical")
 
     def _process_threshold(self, attribute_name, base_name):
         value = getattr(self, attribute_name)
@@ -128,14 +128,14 @@ class Thresholds:
                 raise ValueError(f"Negative values are not allowed for `{attribute_name}`.")
 
     def __repr__(self) -> str:
-        return f"Thresholds(warn_at={self.warn_at}, stop_at={self.stop_at}, notify_at={self.notify_at})"
+        return f"Thresholds(warning={self.warning}, error={self.error}, critical={self.critical})"
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def _get_threshold_value(self, level: str) -> float | int | None:
 
-        # The threshold for a given level (warn, stop, notify) is either:
+        # The threshold for a given level (warning, error, critical) is either:
         # 1. a fraction
         # 2. an absolute count
         # 3. zero
@@ -239,29 +239,29 @@ def _normalize_thresholds_creation(
         thresholds = Thresholds()
 
     elif isinstance(thresholds, (int, float)):
-        thresholds = Thresholds(warn_at=thresholds)
+        thresholds = Thresholds(warning=thresholds)
 
     elif isinstance(thresholds, tuple):
 
         # The tuple should have 1-3 elements
         if len(thresholds) == 1:
-            thresholds = Thresholds(warn_at=thresholds[0])
+            thresholds = Thresholds(warning=thresholds[0])
         elif len(thresholds) == 2:
-            thresholds = Thresholds(warn_at=thresholds[0], stop_at=thresholds[1])
+            thresholds = Thresholds(warning=thresholds[0], error=thresholds[1])
         elif len(thresholds) == 3:
             thresholds = Thresholds(
-                warn_at=thresholds[0], stop_at=thresholds[1], notify_at=thresholds[2]
+                warning=thresholds[0], error=thresholds[1], critical=thresholds[2]
             )
         else:
             raise ValueError("The tuple should have 1-3 elements.")
 
     elif isinstance(thresholds, dict):
 
-        # The dictionary should have keys for "warn_at", "stop_at", and "notify_at"; it can omit
+        # The dictionary should have keys for "warning", "error", and "critical"; it can omit
         # any of these keys
 
         # Check keys for invalid entries and raise a ValueError if any are found
-        invalid_keys = set(thresholds.keys()) - {"warn_at", "stop_at", "notify_at"}
+        invalid_keys = set(thresholds.keys()) - {"warning", "error", "critical"}
 
         if invalid_keys:
             raise ValueError(f"Invalid keys in the thresholds dictionary: {invalid_keys}")
@@ -310,23 +310,23 @@ class Actions:
     interpreted as a message to be displayed. When a `Callable` is used, it will be invoked at
     interrogation time if the threshold level is met or exceeded.
 
-    There are three threshold levels: 'warn', 'stop', and 'notify'. These levels correspond to
-    different levels of severity when a threshold is reached. Those thresholds can be defined using
-    the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions don't have
-    to be defined for all threshold levels; if an action is not defined for a level in exceedence,
-    no action will be taken.
+    There are three threshold levels: 'warning', 'error', and 'critical'. These levels correspond
+    to different levels of severity when a threshold is reached. Those thresholds can be defined
+    using the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions
+    don't have to be defined for all threshold levels; if an action is not defined for a level in
+    exceedence, no action will be taken.
 
     Parameters
     ----------
-    warn
-        A string, `Callable`, or list of `Callable`/string values for the 'warn' level. Using `None`
-        means no action should be performed at the 'warn' level.
-    stop
-        A string, `Callable`, or list of `Callable`/string values for the 'stop' level. Using `None`
-        means no action should be performed at the 'warn' level.
-    notify
-        A string, `Callable`, or list of `Callable`/string values for the 'notify' level. Using
-        `None` means no action should be performed at the 'warn' level.
+    warning
+        A string, `Callable`, or list of `Callable`/string values for the 'warning' level. Using
+        `None` means no action should be performed at the 'warning' level.
+    error
+        A string, `Callable`, or list of `Callable`/string values for the 'error' level. Using
+        `None` means no action should be performed at the 'error' level.
+    critical
+        A string, `Callable`, or list of `Callable`/string values for the 'critical' level. Using
+        `None` means no action should be performed at the 'critical' level.
 
     Returns
     -------
@@ -337,14 +337,14 @@ class Actions:
         are scoped to individual validation steps, overriding any globally set actions).
     """
 
-    warn: str | Callable | list[str | Callable] | None = None
-    stop: str | Callable | list[str | Callable] | None = None
-    notify: str | Callable | list[str | Callable] | None = None
+    warning: str | Callable | list[str | Callable] | None = None
+    error: str | Callable | list[str | Callable] | None = None
+    critical: str | Callable | list[str | Callable] | None = None
 
     def __post_init__(self):
-        self.warn = self._ensure_list(self.warn)
-        self.stop = self._ensure_list(self.stop)
-        self.notify = self._ensure_list(self.notify)
+        self.warning = self._ensure_list(self.warning)
+        self.error = self._ensure_list(self.error)
+        self.critical = self._ensure_list(self.critical)
 
     def _ensure_list(
         self, value: str | Callable | list[str | Callable] | None
@@ -356,7 +356,7 @@ class Actions:
         return value
 
     def __repr__(self) -> str:
-        return f"Actions(warn={self.warn}, stop={self.stop}, notify={self.notify})"
+        return f"Actions(warning={self.warning}, error={self.error}, critical={self.critical})"
 
     def __str__(self) -> str:
         return self.__repr__()
