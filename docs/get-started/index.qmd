@@ -45,7 +45,7 @@ There are three things that should be noted here:
 table
 - validation rules: the validation type is provided here along with key constraints
 - validation results: interrogation results are provided here, with a breakdown of test units
-(*total*, *passing*, and *failing*), threshold states, and more
+(*total*, *passing*, and *failing*), threshold flags, and more
 
 The intent is to provide the key information in one place, and have it be interpretable by data
 stakeholders.
@@ -90,8 +90,8 @@ Test units are dependent on the test being run. The `col_vals_*` tests each valu
 each value will be a test unit (and the number of test units is the number of rows in the target
 table).
 
-This matters because you can set thresholds that signal `warn`, `stop`, and `notify` states based
-the proportion or number of failing test units.
+This matters because you can set thresholds that signal 'warning', 'error', and 'critical' flags
+based the proportion or number of failing test units.
 
 Here's a simple example that uses a single `col_vals_lt()` step along with thresholds set in the
 `thresholds=` argument of the validation method.
@@ -106,16 +106,16 @@ validation_3 = (
 validation_3
 ```
 
-The code uses `thresholds=(2, 4)` to set a `warn` threshold of `2` and a `stop` threshold of `4`.
-If you look at the validation report table, we can see:
+The code uses `thresholds=(2, 4)` to set a 'warning' threshold of `2` and an `error` threshold of
+`4`. If you look at the validation report table, we can see:
 
 - the `FAIL` column shows that 2 tests units have failed
-- the `W` column (short for `warn`) shows a filled yellow circle indicating those failing test units
-reached that threshold value
-- the `S` column (short for `stop`) shows an open red circle indicating that the number of failing
+- the `W` column (short for 'warning') shows a filled yellow circle indicating those failing test
+units reached that threshold value
+- the `E` column (short for 'error') shows an open red circle indicating that the number of failing
 test units is below that threshold
 
-The one final threshold, `N` (for `notify`), wasn't set so it appears on the validation table as a
+The one final threshold, `C` (for 'critical'), wasn't set so it appears on the validation table as a
 long dash.
 
 Thresholds let you take action at different levels of severity. The next section discusses setting
@@ -127,8 +127,8 @@ Thresholds enable you to signal failure at different severity levels. In the nea
 will be able to trigger custom actions (should those actions be defined).
 
 Here's an example where we test if a certain column has Null/missing values with
-`col_vals_not_null()`. This is a case where we want to *warn* on any Null values and *stop* where
-there are 20% Nulls in the column.
+`col_vals_not_null()`. This is a case where we want a warning on *any* null values and a flag at a
+greater severity level when there are 20% or more null values in the column.
 
 ```{python}
 validation_4 = (
@@ -141,7 +141,7 @@ validation_4
 ```
 
 In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was set to `(1, 0.2)`,
-indicating 1 failing test unit is set for `warn` and a `0.2` fraction of all failing test units is
-set to `stop`.
+indicating 1 failing test unit is set for 'warning' and a `0.2` fraction of all failing test units
+is set to 'error'.
 
 For more on thresholds, see the [Thresholds article](./thresholds.qmd).
