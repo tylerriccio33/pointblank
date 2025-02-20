@@ -15,77 +15,77 @@ from pointblank.thresholds import (
 def test_thresholds_default():
     t = Thresholds()
 
-    assert t.warn_fraction is None
-    assert t.warn_count is None
+    assert t.warning_fraction is None
+    assert t.warning_count is None
 
-    assert t.stop_fraction is None
-    assert t.stop_count is None
+    assert t.error_fraction is None
+    assert t.error_count is None
 
-    assert t.notify_fraction is None
-    assert t.notify_count is None
+    assert t.critical_fraction is None
+    assert t.critical_count is None
 
 
 def test_thresholds_absolute():
-    t = Thresholds(warn_at=1, stop_at=2, notify_at=3)
+    t = Thresholds(warning=1, error=2, critical=3)
 
-    assert t.warn_fraction is None
-    assert t.warn_count == 1
+    assert t.warning_fraction is None
+    assert t.warning_count == 1
 
-    assert t.stop_fraction is None
-    assert t.stop_count == 2
+    assert t.error_fraction is None
+    assert t.error_count == 2
 
-    assert t.notify_fraction is None
-    assert t.notify_count == 3
+    assert t.critical_fraction is None
+    assert t.critical_count == 3
 
 
 def test_thresholds_fractional_0_1():
-    t = Thresholds(warn_at=0.01, stop_at=0.1464, notify_at=0.9999)
+    t = Thresholds(warning=0.01, error=0.1464, critical=0.9999)
 
-    assert t.warn_fraction == 0.01
-    assert t.warn_count is None
+    assert t.warning_fraction == 0.01
+    assert t.warning_count is None
 
-    assert t.stop_fraction == 0.1464
-    assert t.stop_count is None
+    assert t.error_fraction == 0.1464
+    assert t.error_count is None
 
-    assert t.notify_fraction == 0.9999
-    assert t.notify_count is None
+    assert t.critical_fraction == 0.9999
+    assert t.critical_count is None
 
 
 def test_thresholds_zero():
-    t = Thresholds(warn_at=0, stop_at=0, notify_at=0)
+    t = Thresholds(warning=0, error=0, critical=0)
 
-    assert t.warn_fraction == 0
-    assert t.warn_count == 0
+    assert t.warning_fraction == 0
+    assert t.warning_count == 0
 
-    assert t.stop_fraction == 0
-    assert t.stop_count == 0
+    assert t.error_fraction == 0
+    assert t.error_count == 0
 
-    assert t.notify_fraction == 0
-    assert t.notify_count == 0
+    assert t.critical_fraction == 0
+    assert t.critical_count == 0
 
 
 def test_thresholds_absolute_rounded():
-    t = Thresholds(warn_at=1.4, stop_at=2.99, notify_at=4.5)
+    t = Thresholds(warning=1.4, error=2.99, critical=4.5)
 
-    assert t.warn_fraction is None
-    assert t.warn_count == 1
+    assert t.warning_fraction is None
+    assert t.warning_count == 1
 
-    assert t.stop_fraction is None
-    assert t.stop_count == 3
+    assert t.error_fraction is None
+    assert t.error_count == 3
 
-    assert t.notify_fraction is None
-    assert t.notify_count == 4
+    assert t.critical_fraction is None
+    assert t.critical_count == 4
 
 
 @pytest.mark.parametrize(
     "param, value",
     [
-        ("warn_at", -1),
-        ("warn_at", -0.1),
-        ("stop_at", -1),
-        ("stop_at", -0.1),
-        ("notify_at", -1),
-        ("notify_at", -0.1),
+        ("warning", -1),
+        ("warning", -0.1),
+        ("error", -1),
+        ("error", -0.1),
+        ("critical", -1),
+        ("critical", -0.1),
     ],
 )
 def test_thresholds_raises_on_negative(param, value):
@@ -94,65 +94,65 @@ def test_thresholds_raises_on_negative(param, value):
 
 
 def test_thresolds_repr():
-    t = Thresholds(warn_at=1, stop_at=2, notify_at=3)
-    assert repr(t) == "Thresholds(warn_at=1, stop_at=2, notify_at=3)"
-    assert str(t) == "Thresholds(warn_at=1, stop_at=2, notify_at=3)"
+    t = Thresholds(warning=1, error=2, critical=3)
+    assert repr(t) == "Thresholds(warning=1, error=2, critical=3)"
+    assert str(t) == "Thresholds(warning=1, error=2, critical=3)"
 
 
-@pytest.mark.parametrize("level", ["warn", "stop", "notify"])
+@pytest.mark.parametrize("level", ["warning", "error", "critical"])
 def test_threshold_get_default(level):
     t = Thresholds()
     assert t._get_threshold_value(level=level) is None
 
 
-@pytest.mark.parametrize("level", ["warn", "stop", "notify"])
+@pytest.mark.parametrize("level", ["warning", "error", "critical"])
 def test_threshold_get_zero(level):
-    t = Thresholds(warn_at=0, stop_at=0, notify_at=0)
+    t = Thresholds(warning=0, error=0, critical=0)
     assert t._get_threshold_value(level=level) == 0
 
 
 @pytest.mark.parametrize(
     "level, expected_value",
     [
-        ("warn", 1),
-        ("stop", 2),
-        ("notify", 3),
+        ("warning", 1),
+        ("error", 2),
+        ("critical", 3),
     ],
 )
 def test_threshold_get_absolute(level, expected_value):
-    t = Thresholds(warn_at=1, stop_at=2, notify_at=3)
+    t = Thresholds(warning=1, error=2, critical=3)
     assert t._get_threshold_value(level=level) == expected_value
 
 
 @pytest.mark.parametrize(
     "level, value",
     [
-        ("warn", 0.1),
-        ("stop", 0.2),
-        ("notify", 0.3),
+        ("warning", 0.1),
+        ("error", 0.2),
+        ("critical", 0.3),
     ],
 )
 def test_threshold_get_fractional_0_1(level, value):
-    t = Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+    t = Thresholds(warning=0.1, error=0.2, critical=0.3)
     assert t._get_threshold_value(level=level) == value
 
 
 @pytest.mark.parametrize(
     "fraction_failing, test_units, level, expected",
     [
-        (0.1, 100, "warn", False),
-        (0.25, 100, "warn", True),
-        (0.3, 100, "warn", True),
-        (0.4, 100, "stop", False),
-        (0.5, 100, "stop", True),
-        (0.6, 100, "stop", True),
-        (0.74, 100, "notify", False),
-        (0.75, 100, "notify", True),
-        (0.76, 100, "notify", True),
+        (0.1, 100, "warning", False),
+        (0.25, 100, "warning", True),
+        (0.3, 100, "warning", True),
+        (0.4, 100, "error", False),
+        (0.5, 100, "error", True),
+        (0.6, 100, "error", True),
+        (0.74, 100, "critical", False),
+        (0.75, 100, "critical", True),
+        (0.76, 100, "critical", True),
     ],
 )
 def test_threshold_result_fractional(fraction_failing, test_units, level, expected):
-    t = Thresholds(warn_at=0.25, stop_at=0.5, notify_at=0.75)
+    t = Thresholds(warning=0.25, error=0.5, critical=0.75)
     assert (
         t._threshold_result(fraction_failing=fraction_failing, test_units=test_units, level=level)
         == expected
@@ -162,19 +162,19 @@ def test_threshold_result_fractional(fraction_failing, test_units, level, expect
 @pytest.mark.parametrize(
     "fraction_failing, test_units, level, expected",
     [
-        (0.1, 100, "warn", False),
-        (0.25, 100, "warn", True),
-        (0.3, 100, "warn", True),
-        (0.4, 100, "stop", False),
-        (0.5, 100, "stop", True),
-        (0.6, 100, "stop", True),
-        (0.74, 100, "notify", False),
-        (0.75, 100, "notify", True),
-        (0.76, 100, "notify", True),
+        (0.1, 100, "warning", False),
+        (0.25, 100, "warning", True),
+        (0.3, 100, "warning", True),
+        (0.4, 100, "error", False),
+        (0.5, 100, "error", True),
+        (0.6, 100, "error", True),
+        (0.74, 100, "critical", False),
+        (0.75, 100, "critical", True),
+        (0.76, 100, "critical", True),
     ],
 )
 def test_threshold_result_absolute(fraction_failing, test_units, level, expected):
-    t = Thresholds(warn_at=25, stop_at=50, notify_at=75)
+    t = Thresholds(warning=25, error=50, critical=75)
     assert (
         t._threshold_result(fraction_failing=fraction_failing, test_units=test_units, level=level)
         == expected
@@ -183,10 +183,10 @@ def test_threshold_result_absolute(fraction_failing, test_units, level, expected
 
 @pytest.mark.parametrize(
     "level",
-    ["warn", "stop", "notify"],
+    ["warning", "error", "critical"],
 )
 def test_threshold_result_zero(level):
-    t = Thresholds(warn_at=0, stop_at=0, notify_at=0)
+    t = Thresholds(warning=0, error=0, critical=0)
 
     assert t._threshold_result(fraction_failing=0, test_units=100, level=level) is True
     assert t._threshold_result(fraction_failing=0.1, test_units=100, level=level) is True
@@ -195,7 +195,7 @@ def test_threshold_result_zero(level):
 
 @pytest.mark.parametrize(
     "level",
-    ["warn", "stop", "notify"],
+    ["warning", "error", "critical"],
 )
 def test_threshold_result_none(level):
     t = Thresholds()
@@ -250,23 +250,23 @@ def test_normalize_thresholds_creation():
     # None should be equivalent to the default Thresholds object
     assert _normalize_thresholds_creation(thresholds=None) == Thresholds()
 
-    # Use of integers or floats should be equivalent, applying the value to the `warn_at` attribute
+    # Use of integers or floats should be equivalent, applying the value to the `warning` attribute
     assert _normalize_thresholds_creation(thresholds=1) == Thresholds(
-        warn_at=1, stop_at=None, notify_at=None
+        warning=1, error=None, critical=None
     )
     assert _normalize_thresholds_creation(thresholds=0.5) == Thresholds(
-        warn_at=0.5, stop_at=None, notify_at=None
+        warning=0.5, error=None, critical=None
     )
 
     # Use of a tuple will vary depending on the length of the tuple
     assert _normalize_thresholds_creation(thresholds=(1,)) == Thresholds(
-        warn_at=1, stop_at=None, notify_at=None
+        warning=1, error=None, critical=None
     )
     assert _normalize_thresholds_creation(thresholds=(0.2, 20)) == Thresholds(
-        warn_at=0.2, stop_at=20, notify_at=None
+        warning=0.2, error=20, critical=None
     )
     assert _normalize_thresholds_creation(thresholds=(0.2, 20, 0.5)) == Thresholds(
-        warn_at=0.2, stop_at=20, notify_at=0.5
+        warning=0.2, error=20, critical=0.5
     )
 
     # ...but the tuple should have 1-3 elements, otherwise it should raise an error
@@ -276,32 +276,32 @@ def test_normalize_thresholds_creation():
         _normalize_thresholds_creation(thresholds=())
 
     # Use of a dictionary should convert the dictionary to a Thresholds object
-    assert _normalize_thresholds_creation(thresholds={"warn_at": 1}) == Thresholds(
-        warn_at=1, stop_at=None, notify_at=None
+    assert _normalize_thresholds_creation(thresholds={"warning": 1}) == Thresholds(
+        warning=1, error=None, critical=None
     )
-    assert _normalize_thresholds_creation(thresholds={"warn_at": 0.2, "stop_at": 20}) == Thresholds(
-        warn_at=0.2, stop_at=20, notify_at=None
+    assert _normalize_thresholds_creation(thresholds={"warning": 0.2, "error": 20}) == Thresholds(
+        warning=0.2, error=20, critical=None
     )
     assert _normalize_thresholds_creation(
-        thresholds={"warn_at": 0.2, "stop_at": 20, "notify_at": 0.5}
-    ) == Thresholds(warn_at=0.2, stop_at=20, notify_at=0.5)
+        thresholds={"warning": 0.2, "error": 20, "critical": 0.5}
+    ) == Thresholds(warning=0.2, error=20, critical=0.5)
     assert _normalize_thresholds_creation(thresholds={}) == Thresholds()
 
     # ...but the dictionary keys need to be valid Thresholds attributes
     with pytest.raises(ValueError):
         _normalize_thresholds_creation(
-            thresholds={"warn_at": 1, "stop_at": 2, "notify_at": 3, "extra": 4}
+            thresholds={"warning": 1, "error": 2, "critical": 3, "extra": 4}
         )
     with pytest.raises(ValueError):
-        _normalize_thresholds_creation(thresholds={"warn_at": 1, "stop_at": 2, "invalid": 3})
+        _normalize_thresholds_creation(thresholds={"warning": 1, "error": 2, "invalid": 3})
     with pytest.raises(ValueError):
-        _normalize_thresholds_creation(thresholds={"warn": 1})
+        _normalize_thresholds_creation(thresholds={"warnings_at": 1})
 
     # Use of a Thresholds object should return the object as is
     assert _normalize_thresholds_creation(thresholds=Thresholds()) == Thresholds()
     assert _normalize_thresholds_creation(
-        thresholds=Thresholds(warn_at=1, notify_at=0.5)
-    ) == Thresholds(warn_at=1, notify_at=0.5)
+        thresholds=Thresholds(warning=1, critical=0.5)
+    ) == Thresholds(warning=1, critical=0.5)
 
     # Anything else should raise an error
     with pytest.raises(ValueError):
@@ -329,24 +329,24 @@ def test_actions_default():
 
     a = Actions()
 
-    assert a.warn is None
-    assert a.stop is None
-    assert a.notify is None
+    assert a.warning is None
+    assert a.error is None
+    assert a.critical is None
 
 
 def test_actions_repr():
     a = Actions()
-    assert repr(a) == "Actions(warn=None, stop=None, notify=None)"
-    assert str(a) == "Actions(warn=None, stop=None, notify=None)"
+    assert repr(a) == "Actions(warning=None, error=None, critical=None)"
+    assert str(a) == "Actions(warning=None, error=None, critical=None)"
 
 
 def test_actions_str_inputs():
 
-    a = Actions(warn="warning", stop="stopping", notify="notifying")
+    a = Actions(warning="bad", error="badder", critical="worst")
 
-    assert a.warn == ["warning"]
-    assert a.stop == ["stopping"]
-    assert a.notify == ["notifying"]
+    assert a.warning == ["bad"]
+    assert a.error == ["badder"]
+    assert a.critical == ["worst"]
 
 
 def test_actions_callable_inputs():
@@ -360,17 +360,19 @@ def test_actions_callable_inputs():
     def notify():
         return "notifying"
 
-    a = Actions(warn=warn, stop=stop, notify=notify)
+    a = Actions(warning=warn, error=stop, critical=notify)
 
-    assert callable(a.warn[0])
-    assert callable(a.stop[0])
-    assert callable(a.notify[0])
+    assert callable(a.warning[0])
+    assert callable(a.error[0])
+    assert callable(a.critical[0])
 
-    assert a.warn[0]() == "warning"
-    assert a.stop[0]() == "stopping"
-    assert a.notify[0]() == "notifying"
+    assert a.warning[0]() == "warning"
+    assert a.error[0]() == "stopping"
+    assert a.critical[0]() == "notifying"
 
-    pattern = r"Actions\(warn=\[<function.*?>\], stop=\[<function.*?>\], notify=\[<function.*?>\]\)"
+    pattern = (
+        r"Actions\(warning=\[<function.*?>\], error=\[<function.*?>\], critical=\[<function.*?>\]\)"
+    )
     assert re.match(pattern, repr(a))
 
 
@@ -385,16 +387,18 @@ def test_actions_list_inputs():
     def notify():
         return "notifying function"
 
-    a = Actions(warn=[warn, "warning string"], stop=["stopping string", stop], notify=[notify])
+    a = Actions(
+        warning=[warn, "warning string"], error=["stopping string", stop], critical=[notify]
+    )
 
-    assert callable(a.warn[0])
-    assert isinstance(a.warn[1], str)
-    assert isinstance(a.stop[0], str)
-    assert callable(a.stop[1])
-    assert callable(a.notify[0])
+    assert callable(a.warning[0])
+    assert isinstance(a.warning[1], str)
+    assert isinstance(a.error[0], str)
+    assert callable(a.error[1])
+    assert callable(a.critical[0])
 
-    assert a.warn[0]() == "warning function"
-    assert a.warn[1] == "warning string"
-    assert a.stop[0] == "stopping string"
-    assert a.stop[1]() == "stopping function"
-    assert a.notify[0]() == "notifying function"
+    assert a.warning[0]() == "warning function"
+    assert a.warning[1] == "warning string"
+    assert a.error[0] == "stopping string"
+    assert a.error[1]() == "stopping function"
+    assert a.critical[0]() == "notifying function"

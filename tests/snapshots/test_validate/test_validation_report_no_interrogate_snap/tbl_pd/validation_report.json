@@ -8,7 +8,7 @@
         "inclusive": null,
         "na_pass": false,
         "pre": null,
-        "thresholds": "Thresholds(warn_at=None, stop_at=None, notify_at=None)",
+        "thresholds": "Thresholds(warning=None, error=None, critical=None)",
         "label": null,
         "brief": null,
         "active": true,
@@ -18,8 +18,8 @@
         "n_failed": null,
         "f_passed": null,
         "f_failed": null,
-        "warn": null,
-        "stop": null,
-        "notify": null
+        "warning": null,
+        "error": null,
+        "critical": null
     }
 ]

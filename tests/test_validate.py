@@ -257,9 +257,9 @@ def test_validation_info():
         n_failed=0,
         f_passed=1.0,
         f_failed=0.0,
-        warn=None,
-        stop=None,
-        notify=None,
+        warning=None,
+        error=None,
+        critical=None,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -284,9 +284,9 @@ def test_validation_info():
     assert v.n_failed == 0
     assert v.f_passed == 1.0
     assert v.f_failed == 0.0
-    assert v.warn is None
-    assert v.stop is None
-    assert v.notify is None
+    assert v.warning is None
+    assert v.error is None
+    assert v.critical is None
 
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
@@ -365,9 +365,9 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "n_failed",
         "f_passed",
         "f_failed",
-        "warn",
-        "stop",
-        "notify",
+        "warning",
+        "error",
+        "critical",
         "tbl_checked",
         "extract",
         "val_info",
@@ -394,9 +394,9 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.n_failed is None
     assert val_info.f_passed is None
     assert val_info.f_failed is None
-    assert val_info.warn is None
-    assert val_info.stop is None
-    assert val_info.notify is None
+    assert val_info.warning is None
+    assert val_info.error is None
+    assert val_info.critical is None
     assert val_info.tbl_checked is None
     assert val_info.extract is None
     assert val_info.val_info is None
@@ -440,9 +440,9 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "n_failed",
         "f_passed",
         "f_failed",
-        "warn",
-        "stop",
-        "notify",
+        "warning",
+        "error",
+        "critical",
         "tbl_checked",
         "extract",
         "val_info",
@@ -468,9 +468,9 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.n_failed == 0
     assert val_info.f_passed == 1.0
     assert val_info.f_failed == 0.0
-    assert val_info.warn is None
-    assert val_info.stop is None
-    assert val_info.notify is None
+    assert val_info.warning is None
+    assert val_info.error is None
+    assert val_info.critical is None
     assert val_info.tbl_checked is not None
     assert val_info.val_info is None
     assert isinstance(val_info.time_processed, str)
@@ -514,23 +514,23 @@ def test_validation_attr_getters(request, tbl_fixture):
     assert f_failed_dict.keys() == {1}
     assert f_failed_dict[1] == 0.0
 
-    # Get the warn status
-    warn_dict = v.warn()
-    assert len(warn_dict) == 1
-    assert warn_dict.keys() == {1}
-    assert warn_dict[1] is None
+    # Get the 'warning' status
+    warning_dict = v.warning()
+    assert len(warning_dict) == 1
+    assert warning_dict.keys() == {1}
+    assert warning_dict[1] is None
 
-    # Get the stop status
-    stop_dict = v.stop()
-    assert len(stop_dict) == 1
-    assert stop_dict.keys() == {1}
-    assert stop_dict[1] is None
+    # Get the 'error' status
+    error_dict = v.error()
+    assert len(error_dict) == 1
+    assert error_dict.keys() == {1}
+    assert error_dict[1] is None
 
-    # Get the notify status
-    notify_dict = v.notify()
-    assert len(notify_dict) == 1
-    assert notify_dict.keys() == {1}
-    assert notify_dict[1] is None
+    # Get the 'critical' status
+    critical_dict = v.critical()
+    assert len(critical_dict) == 1
+    assert critical_dict.keys() == {1}
+    assert critical_dict[1] is None
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -560,17 +560,17 @@ def test_validation_attr_getters_no_dict(request, tbl_fixture):
     f_failed_val = v.f_failed(i=1, scalar=True)
     assert f_failed_val == 0.0
 
-    # Get the warn status
-    warn_val = v.warn(i=1, scalar=True)
-    assert warn_val is None
+    # Get the 'warning' status
+    warning_val = v.warning(i=1, scalar=True)
+    assert warning_val is None
 
-    # Get the stop status
-    stop_val = v.stop(i=1, scalar=True)
-    assert stop_val is None
+    # Get the 'error' status
+    error_val = v.error(i=1, scalar=True)
+    assert error_val is None
 
-    # Get the notify status
-    notify_val = v.notify(i=1, scalar=True)
-    assert notify_val is None
+    # Get the 'critical' status
+    critical_val = v.critical(i=1, scalar=True)
+    assert critical_val is None
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -756,16 +756,16 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
     Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 2))
     Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 3, 4))
     Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, 0.3, 4))
-    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warn_at": 0.1})
-    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"stop_at": 0.1})
-    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"notify_at": 0.1})
-    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warn_at": 0.05, "notify_at": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warning": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"error": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"critical": 0.1})
+    Validate(tbl).col_vals_gt(columns="x", value=0, thresholds={"warning": 0.05, "critical": 0.1})
     Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=Thresholds())
     Validate(tbl).col_vals_gt(
-        columns="x", value=0, thresholds=Thresholds(warn_at=0.1, stop_at=0.2, notify_at=0.3)
+        columns="x", value=0, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3)
     )
     Validate(tbl).col_vals_gt(
-        columns="x", value=0, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3)
+        columns="x", value=0, thresholds=Thresholds(warning=1, error=2, critical=3)
     )
 
     # Raise a ValueError when `thresholds=` is not one of the allowed types
@@ -785,15 +785,15 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
         Validate(tbl).col_vals_gt(columns="x", value=0, thresholds=(1, [2], 3))
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            columns="x", value=0, thresholds={"warning": 0.05, "notify_at": 0.1}
+            columns="x", value=0, thresholds={"warnings": 0.05, "critical": 0.1}
         )
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            columns="x", value=0, thresholds={"warn_at": 0.05, "notify_at": -0.1}
+            columns="x", value=0, thresholds={"warning": 0.05, "critical": -0.1}
         )
     with pytest.raises(ValueError):
         Validate(tbl).col_vals_gt(
-            columns="x", value=0, thresholds={"warn_at": "invalid", "stop_at": 3}
+            columns="x", value=0, thresholds={"warning": "invalid", "critical": 3}
         )
 
 
@@ -839,7 +839,7 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     # Check that the `thresholds=` argument is inherited from Validate, in those steps where
     # it is not explicitly provided (is `None`)
     v = (
-        Validate(tbl, thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3))
+        Validate(tbl, thresholds=Thresholds(warning=1, error=2, critical=3))
         .col_vals_gt(columns="x", value=0)
         .col_vals_gt(columns="x", value=0, thresholds=0.5)
         .col_vals_lt(columns="x", value=2)
@@ -870,134 +870,134 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
     )
 
     # col_vals_gt - inherited
-    assert v.validation_info[0].thresholds.warn_at == 1
-    assert v.validation_info[0].thresholds.stop_at == 2
-    assert v.validation_info[0].thresholds.notify_at == 3
+    assert v.validation_info[0].thresholds.warning == 1
+    assert v.validation_info[0].thresholds.error == 2
+    assert v.validation_info[0].thresholds.critical == 3
 
     # col_vals_gt - overridden
-    assert v.validation_info[1].thresholds.warn_at == 0.5
-    assert v.validation_info[1].thresholds.stop_at is None
-    assert v.validation_info[1].thresholds.notify_at is None
+    assert v.validation_info[1].thresholds.warning == 0.5
+    assert v.validation_info[1].thresholds.error is None
+    assert v.validation_info[1].thresholds.critical is None
 
     # col_vals_lt - inherited
-    assert v.validation_info[2].thresholds.warn_at == 1
-    assert v.validation_info[2].thresholds.stop_at == 2
-    assert v.validation_info[2].thresholds.notify_at == 3
+    assert v.validation_info[2].thresholds.warning == 1
+    assert v.validation_info[2].thresholds.error == 2
+    assert v.validation_info[2].thresholds.critical == 3
 
     # col_vals_lt - overridden
-    assert v.validation_info[3].thresholds.warn_at == 0.5
-    assert v.validation_info[3].thresholds.stop_at is None
-    assert v.validation_info[3].thresholds.notify_at is None
+    assert v.validation_info[3].thresholds.warning == 0.5
+    assert v.validation_info[3].thresholds.error is None
+    assert v.validation_info[3].thresholds.critical is None
 
     # col_vals_eq - inherited
-    assert v.validation_info[4].thresholds.warn_at == 1
-    assert v.validation_info[4].thresholds.stop_at == 2
-    assert v.validation_info[4].thresholds.notify_at == 3
+    assert v.validation_info[4].thresholds.warning == 1
+    assert v.validation_info[4].thresholds.error == 2
+    assert v.validation_info[4].thresholds.critical == 3
 
     # col_vals_eq - overridden
-    assert v.validation_info[5].thresholds.warn_at == 0.5
-    assert v.validation_info[5].thresholds.stop_at is None
-    assert v.validation_info[5].thresholds.notify_at is None
+    assert v.validation_info[5].thresholds.warning == 0.5
+    assert v.validation_info[5].thresholds.error is None
+    assert v.validation_info[5].thresholds.critical is None
 
     # col_vals_ne - inherited
-    assert v.validation_info[6].thresholds.warn_at == 1
-    assert v.validation_info[6].thresholds.stop_at == 2
-    assert v.validation_info[6].thresholds.notify_at == 3
+    assert v.validation_info[6].thresholds.warning == 1
+    assert v.validation_info[6].thresholds.error == 2
+    assert v.validation_info[6].thresholds.critical == 3
 
     # col_vals_ne - overridden
-    assert v.validation_info[7].thresholds.warn_at == 0.5
-    assert v.validation_info[7].thresholds.stop_at is None
-    assert v.validation_info[7].thresholds.notify_at is None
+    assert v.validation_info[7].thresholds.warning == 0.5
+    assert v.validation_info[7].thresholds.error is None
+    assert v.validation_info[7].thresholds.critical is None
 
     # col_vals_ge - inherited
-    assert v.validation_info[8].thresholds.warn_at == 1
-    assert v.validation_info[8].thresholds.stop_at == 2
-    assert v.validation_info[8].thresholds.notify_at == 3
+    assert v.validation_info[8].thresholds.warning == 1
+    assert v.validation_info[8].thresholds.error == 2
+    assert v.validation_info[8].thresholds.critical == 3
 
     # col_vals_ge - overridden
-    assert v.validation_info[9].thresholds.warn_at == 0.5
-    assert v.validation_info[9].thresholds.stop_at is None
-    assert v.validation_info[9].thresholds.notify_at is None
+    assert v.validation_info[9].thresholds.warning == 0.5
+    assert v.validation_info[9].thresholds.error is None
+    assert v.validation_info[9].thresholds.critical is None
 
     # col_vals_le - inherited
-    assert v.validation_info[10].thresholds.warn_at == 1
-    assert v.validation_info[10].thresholds.stop_at == 2
-    assert v.validation_info[10].thresholds.notify_at == 3
+    assert v.validation_info[10].thresholds.warning == 1
+    assert v.validation_info[10].thresholds.error == 2
+    assert v.validation_info[10].thresholds.critical == 3
 
     # col_vals_le - overridden
-    assert v.validation_info[11].thresholds.warn_at == 0.5
-    assert v.validation_info[11].thresholds.stop_at is None
-    assert v.validation_info[11].thresholds.notify_at is None
+    assert v.validation_info[11].thresholds.warning == 0.5
+    assert v.validation_info[11].thresholds.error is None
+    assert v.validation_info[11].thresholds.critical is None
 
     # col_vals_between - inherited
-    assert v.validation_info[12].thresholds.warn_at == 1
-    assert v.validation_info[12].thresholds.stop_at == 2
-    assert v.validation_info[12].thresholds.notify_at == 3
+    assert v.validation_info[12].thresholds.warning == 1
+    assert v.validation_info[12].thresholds.error == 2
+    assert v.validation_info[12].thresholds.critical == 3
 
     # col_vals_between - overridden
-    assert v.validation_info[13].thresholds.warn_at == 0.5
-    assert v.validation_info[13].thresholds.stop_at is None
-    assert v.validation_info[13].thresholds.notify_at is None
+    assert v.validation_info[13].thresholds.warning == 0.5
+    assert v.validation_info[13].thresholds.error is None
+    assert v.validation_info[13].thresholds.critical is None
 
     # col_vals_outside - inherited
-    assert v.validation_info[14].thresholds.warn_at == 1
-    assert v.validation_info[14].thresholds.stop_at == 2
-    assert v.validation_info[14].thresholds.notify_at == 3
+    assert v.validation_info[14].thresholds.warning == 1
+    assert v.validation_info[14].thresholds.error == 2
+    assert v.validation_info[14].thresholds.critical == 3
 
     # col_vals_outside - overridden
-    assert v.validation_info[15].thresholds.warn_at == 0.5
-    assert v.validation_info[15].thresholds.stop_at is None
-    assert v.validation_info[15].thresholds.notify_at is None
+    assert v.validation_info[15].thresholds.warning == 0.5
+    assert v.validation_info[15].thresholds.error is None
+    assert v.validation_info[15].thresholds.critical is None
 
     # col_vals_in_set - inherited
-    assert v.validation_info[16].thresholds.warn_at == 1
-    assert v.validation_info[16].thresholds.stop_at == 2
-    assert v.validation_info[16].thresholds.notify_at == 3
+    assert v.validation_info[16].thresholds.warning == 1
+    assert v.validation_info[16].thresholds.error == 2
+    assert v.validation_info[16].thresholds.critical == 3
 
     # col_vals_in_set - overridden
-    assert v.validation_info[17].thresholds.warn_at == 0.5
-    assert v.validation_info[17].thresholds.stop_at is None
-    assert v.validation_info[17].thresholds.notify_at is None
+    assert v.validation_info[17].thresholds.warning == 0.5
+    assert v.validation_info[17].thresholds.error is None
+    assert v.validation_info[17].thresholds.critical is None
 
     # col_vals_not_in_set - inherited
-    assert v.validation_info[18].thresholds.warn_at == 1
-    assert v.validation_info[18].thresholds.stop_at == 2
-    assert v.validation_info[18].thresholds.notify_at == 3
+    assert v.validation_info[18].thresholds.warning == 1
+    assert v.validation_info[18].thresholds.error == 2
+    assert v.validation_info[18].thresholds.critical == 3
 
     # col_vals_not_in_set - overridden
-    assert v.validation_info[19].thresholds.warn_at == 0.5
-    assert v.validation_info[19].thresholds.stop_at is None
-    assert v.validation_info[19].thresholds.notify_at is None
+    assert v.validation_info[19].thresholds.warning == 0.5
+    assert v.validation_info[19].thresholds.error is None
+    assert v.validation_info[19].thresholds.critical is None
 
     # col_vals_null - inherited
-    assert v.validation_info[20].thresholds.warn_at == 1
-    assert v.validation_info[20].thresholds.stop_at == 2
-    assert v.validation_info[20].thresholds.notify_at == 3
+    assert v.validation_info[20].thresholds.warning == 1
+    assert v.validation_info[20].thresholds.error == 2
+    assert v.validation_info[20].thresholds.critical == 3
 
     # col_vals_null - overridden
-    assert v.validation_info[21].thresholds.warn_at == 0.5
-    assert v.validation_info[21].thresholds.stop_at is None
-    assert v.validation_info[21].thresholds.notify_at is None
+    assert v.validation_info[21].thresholds.warning == 0.5
+    assert v.validation_info[21].thresholds.error is None
+    assert v.validation_info[21].thresholds.critical is None
 
     # col_vals_not_null - inherited
-    assert v.validation_info[22].thresholds.warn_at == 1
-    assert v.validation_info[22].thresholds.stop_at == 2
-    assert v.validation_info[22].thresholds.notify_at == 3
+    assert v.validation_info[22].thresholds.warning == 1
+    assert v.validation_info[22].thresholds.error == 2
+    assert v.validation_info[22].thresholds.critical == 3
 
     # col_vals_not_null - overridden
-    assert v.validation_info[23].thresholds.warn_at == 0.5
-    assert v.validation_info[23].thresholds.stop_at is None
-    assert v.validation_info[23].thresholds.notify_at is None
+    assert v.validation_info[23].thresholds.warning == 0.5
+    assert v.validation_info[23].thresholds.error is None
+    assert v.validation_info[23].thresholds.critical is None
 
     # col_exists - inherited
-    assert v.validation_info[24].thresholds.warn_at == 1
-    assert v.validation_info[24].thresholds.stop_at == 2
-    assert v.validation_info[24].thresholds.notify_at == 3
+    assert v.validation_info[24].thresholds.warning == 1
+    assert v.validation_info[24].thresholds.error == 2
+    assert v.validation_info[24].thresholds.critical == 3
 
     # col_exists - overridden
-    assert v.validation_info[25].thresholds.warn_at == 0.5
-    assert v.validation_info[25].thresholds.stop_at is None
-    assert v.validation_info[25].thresholds.notify_at is None
+    assert v.validation_info[25].thresholds.warning == 0.5
+    assert v.validation_info[25].thresholds.error is None
+    assert v.validation_info[25].thresholds.critical is None
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -1009,8 +1009,8 @@ def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify="notification"),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical="notification"),
         )
         .col_vals_gt(columns="x", value=10000)
         .interrogate()
@@ -1030,10 +1030,10 @@ def test_validation_actions_override_case(request, tbl_fixture, capsys):
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify="notification"),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical="notification"),
         )
-        .col_vals_gt(columns="x", value=10000, actions=Actions(notify="notification override"))
+        .col_vals_gt(columns="x", value=10000, actions=Actions(critical="notification override"))
         .interrogate()
     )
 
@@ -1053,8 +1053,8 @@ def test_validation_actions_multiple_actions_inherit(request, tbl_fixture, capsy
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify=["notification", notify]),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical=["notification", notify]),
         )
         .col_vals_gt(columns="x", value=10000)
         .interrogate()
@@ -1085,10 +1085,12 @@ def test_validation_actions_multiple_actions_override(request, tbl_fixture, caps
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify=["notification", notify]),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical=["notification", notify]),
         )
-        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .col_vals_gt(
+            columns="x", value=10000, actions=Actions(critical=["step notify", notify_step])
+        )
         .interrogate()
     )
 
@@ -1114,9 +1116,11 @@ def test_validation_actions_multiple_actions_step_only(request, tbl_fixture, cap
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
         )
-        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=["step notify", notify_step]))
+        .col_vals_gt(
+            columns="x", value=10000, actions=Actions(critical=["step notify", notify_step])
+        )
         .interrogate()
     )
 
@@ -1139,8 +1143,8 @@ def test_validation_actions_inherit_none(request, tbl_fixture, capsys):
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify=None),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical=None),
         )
         .col_vals_gt(columns="x", value=10000)
         .interrogate()
@@ -1159,10 +1163,10 @@ def test_validation_actions_override_none(request, tbl_fixture, capsys):
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
-            actions=Actions(notify=None),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(critical=None),
         )
-        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .col_vals_gt(columns="x", value=10000, actions=Actions(critical=None))
         .interrogate()
     )
 
@@ -1179,9 +1183,9 @@ def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
     (
         Validate(
             data=tbl,
-            thresholds=Thresholds(warn_at=1, stop_at=2, notify_at=3),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
         )
-        .col_vals_gt(columns="x", value=10000, actions=Actions(notify=None))
+        .col_vals_gt(columns="x", value=10000, actions=Actions(critical=None))
         .interrogate()
     )
 
@@ -4403,12 +4407,12 @@ def test_interrogate_with_active_inactive(request, tbl_fixture):
     assert validation.validation_info[1].n_passed is None
     assert validation.validation_info[0].n_failed == 0
     assert validation.validation_info[1].n_failed is None
-    assert validation.validation_info[0].warn is None
-    assert validation.validation_info[1].warn is None
-    assert validation.validation_info[0].stop is None
-    assert validation.validation_info[1].stop is None
-    assert validation.validation_info[0].notify is None
-    assert validation.validation_info[1].notify is None
+    assert validation.validation_info[0].warning is None
+    assert validation.validation_info[1].warning is None
+    assert validation.validation_info[0].error is None
+    assert validation.validation_info[1].error is None
+    assert validation.validation_info[0].critical is None
+    assert validation.validation_info[1].critical is None
     assert validation.validation_info[1].extract is None
     assert validation.validation_info[1].extract is None
 
@@ -4561,7 +4565,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
             data=load_dataset(),
             tbl_name="small_table",
             label="Simple pointblank validation example",
-            thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
         )
         .col_vals_gt(columns="d", value=100)
         .col_vals_lt(columns="c", value=5)
@@ -4612,7 +4616,7 @@ def test_no_interrogation_validation_report_html_snap(snapshot):
             data=load_dataset(),
             tbl_name="small_table",
             label="Simple pointblank validation example",
-            thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
         )
         .col_vals_gt(columns="d", value=100)
         .col_vals_lt(columns="c", value=5)
@@ -4652,7 +4656,7 @@ def test_no_steps_validation_report_html_snap(snapshot):
     validation = Validate(
         data=load_dataset(),
         tbl_name="small_table",
-        thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+        thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
     )
 
     html_str = validation.get_tabular_report().as_raw_html()
@@ -4666,7 +4670,7 @@ def test_no_steps_validation_report_html_with_interrogate():
     validation = Validate(
         data=load_dataset(),
         tbl_name="small_table",
-        thresholds=Thresholds(warn_at=0.10, stop_at=0.25, notify_at=0.35),
+        thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
     )
 
     assert (
