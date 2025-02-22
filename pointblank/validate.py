@@ -25,6 +25,7 @@ from pointblank._constants import (
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
     METHOD_CATEGORY_MAP,
+    REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
@@ -1665,6 +1666,17 @@ class Validate:
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no default actions
         will be set.
+    lang
+        The language to use for automatic creation of briefs (short descriptions for each validation
+        step). By default, `None` will create English (`"en"`) text. Other options include French
+        (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
+        (`"tr"`), Chinese (`"zh"`), Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish
+        (`"sv"`), and Dutch (`"nl"`).
+    locale
+        An optional locale ID to use for formatting values in the reporting table according the
+        locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
+        French (France). More simply, this can be a language identifier without a designation of
+        territory, like `"es"` for Spanish.
 
     Returns
     -------
@@ -1768,6 +1780,8 @@ class Validate:
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
     actions: Actions | None = None
+    lang: str | None = None
+    locale: str | None = None
 
     def __post_init__(self):
 
@@ -1776,6 +1790,13 @@ class Validate:
 
         # Normalize the thresholds value (if any) to a Thresholds object
         self.thresholds = _normalize_thresholds_creation(self.thresholds)
+
+        # Normalize the reporting language identifier and error if invalid
+        self.lang = _normalize_reporting_language(lang=self.lang)
+
+        # Set the `locale` to the `lang` value if `locale` isn't set
+        if self.locale is None:
+            self.locale = self.lang
 
         # TODO: Add functionality to obtain the column names and types from the table
         self.col_names = None
@@ -7512,6 +7533,19 @@ class Validate:
             if validation.i in i
         }
 
+
+def _normalize_reporting_language(lang: str | None) -> str:
+
+    if lang is None:
+        return "en"
+
+    if lang.lower() not in REPORTING_LANGUAGES:
+
+        raise ValueError(
+            f"The text '{lang}' doesn't correspond to a Pointblank reporting language."
+        )
+
+    return lang.lower()
 
 def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     """

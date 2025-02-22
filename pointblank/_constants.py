@@ -129,6 +129,8 @@ TABLE_TYPE_STYLES = {
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
 }
 
+REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
+
 SEVERITY_LEVEL_COLORS = {
     "warning": "#AAAAAA",
     "error": "#EBBC14",
