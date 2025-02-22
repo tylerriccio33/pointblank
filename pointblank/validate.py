@@ -7683,11 +7683,13 @@ def _create_autobrief(
             lang=lang, column=column, value_1=values[0], value_2=values[1], not_=True
         )
 
+    if assertion_type in ["col_vals_in_set", "col_vals_not_in_set"]:
+        return _create_autobrief_set(lang=lang, column=column, values=values, not_=True)
+
+    if assertion_type in ["col_vals_null", "col_vals_not_null"]:
+        return _create_autobrief_null(lang=lang, column=column, not_=True)
+
     # TODO: Add autobriefs for all the other validation methods
-    # - `col_vals_in_set()`
-    # - `col_vals_not_in_set()`
-    # - `col_vals_null()`
-    # - `col_vals_not_null()`
     # - `col_vals_regex()`
     # - `col_vals_expr()`
     # - `col_exists()`
@@ -7746,6 +7748,52 @@ def _create_autobrief_between(
             column_computed_text=column_computed_text,
             value_1=value_1,
             value_2=value_2,
+        )
+
+    return autobrief
+
+
+def _create_autobrief_set(
+    lang: str, column: str | None, values: list[any], not_: bool = False
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    values_text = _prep_values_text(values=values, lang=lang, limit=3)
+
+    column_text = _prep_column_text(column=column)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["in_set_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            values_text=values_text,
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_in_set_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            values_text=values_text,
+        )
+
+    return autobrief
+
+
+def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["null_expectation_text"][lang].format(
+            column_text=column_text, column_computed_text=column_computed_text
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_null_expectation_text"][lang].format(
+            column_text=column_text, column_computed_text=column_computed_text
         )
 
     return autobrief
