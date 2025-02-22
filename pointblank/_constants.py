@@ -67,6 +67,15 @@ METHOD_CATEGORY_MAP = {
     "col_count_match": "COL_COUNT_MATCH",
 }
 
+COMPARISON_OPERATORS = {
+    "col_vals_gt": ">",
+    "col_vals_ge": ">=",
+    "col_vals_lt": "<",
+    "col_vals_le": "<=",
+    "col_vals_eq": "==",
+    "col_vals_ne": "!=",
+}
+
 ROW_BASED_VALIDATION_TYPES = [
     "col_vals_gt",
     "col_vals_lt",
