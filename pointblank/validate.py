@@ -4959,8 +4959,6 @@ class Validate:
                 assertion_type=assertion_type, lang=self.lang, column=column, values=value
             )
 
-            print(autobrief)
-
             validation.autobrief = autobrief
 
             # Skip the validation step if it is not active but still record the time of processing
