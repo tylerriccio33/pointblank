@@ -7711,8 +7711,6 @@ def _create_autobrief_comparison(
     column_text = _prep_column_text(column=column)
 
     values_text = values
-    # TODO: use _prep_values_text() to obtain `values_text`
-    # values_text = _prep_values_text(values=values, lang=lang, limit=3)
 
     compare_expectation_text = AUTOBRIEFS_TEXT["compare_expectation_text"][lang]
 
