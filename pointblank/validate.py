@@ -7669,7 +7669,9 @@ def _create_autobrief(
         "col_vals_eq",
         "col_vals_ne",
     ]:
-        return _create_autobrief_comparison(assertion_type, lang, column, values)
+        return _create_autobrief_comparison(
+            assertion_type=assertion_type, lang=lang, column=column, values=values
+        )
 
     if assertion_type == "col_vals_between":
         return _create_autobrief_between(
@@ -7687,14 +7689,26 @@ def _create_autobrief(
     if assertion_type in ["col_vals_null", "col_vals_not_null"]:
         return _create_autobrief_null(lang=lang, column=column, not_=True)
 
-    # TODO: Add autobriefs for all the other validation methods
-    # - `col_vals_regex()`
-    # - `col_vals_expr()`
-    # - `col_exists()`
-    # - `rows_distinct()`
-    # - `col_schema_match()`
-    # - `row_count_match()`
-    # - `col_count_match()`
+    if assertion_type == "col_vals_regex":
+        return _create_autobrief_regex(lang=lang, column=column, pattern=values)
+
+    if assertion_type == "col_vals_expr":
+        return _create_autobrief_expr(lang=lang)
+
+    if assertion_type == "col_exists":
+        return _create_autobrief_col_exists(lang=lang, column=column)
+
+    if assertion_type == "col_schema_match":
+        return _create_autobrief_col_schema_match(lang=lang)
+
+    if assertion_type == "rows_distinct":
+        return _create_autobrief_rows_distinct(lang=lang, columns_subset=column)
+
+    if assertion_type == "row_count_match":
+        return _create_autobrief_row_count_match(lang=lang, value=values)
+
+    if assertion_type == "col_count_match":
+        return _create_autobrief_col_count_match(lang=lang, value=values)
 
     return None
 
@@ -7793,6 +7807,84 @@ def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) ->
         autobrief = AUTOBRIEFS_TEXT["not_null_expectation_text"][lang].format(
             column_text=column_text, column_computed_text=column_computed_text
         )
+
+    return autobrief
+
+
+def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    autobrief = AUTOBRIEFS_TEXT["regex_expectation_text"][lang].format(
+        column_text=column_text,
+        column_computed_text=column_computed_text,
+        values_text=pattern,
+    )
+
+    return autobrief
+
+
+def _create_autobrief_expr(lang: str) -> str:
+
+    autobrief = AUTOBRIEFS_TEXT["col_vals_expr_expectation_text"][lang]
+
+    return autobrief
+
+
+def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
+
+    column_text = _prep_column_text(column=column)
+
+    autobrief = AUTOBRIEFS_TEXT["col_exists_expectation_text"][lang].format(column_text=column_text)
+
+    return autobrief
+
+
+def _create_autobrief_col_schema_match(lang: str) -> str:
+
+    autobrief = AUTOBRIEFS_TEXT["col_schema_match_expectation_text"][lang]
+
+    return autobrief
+
+
+def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None) -> str:
+
+    if columns_subset is None:
+
+        autobrief = AUTOBRIEFS_TEXT["all_row_distinct_expectation_text"][lang]
+
+    else:
+
+        column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
+
+        autobrief = AUTOBRIEFS_TEXT["across_row_distinct_expectation_text"][lang].format(
+            column_text=column_text
+        )
+
+    return autobrief
+
+
+def _create_autobrief_row_count_match(lang: str, value: int) -> str:
+
+    values_text = str(value["count"])
+
+    autobrief = AUTOBRIEFS_TEXT["row_count_match_n_expectation_text"][lang].format(
+        values_text=values_text
+    )
+
+    return autobrief
+
+
+def _create_autobrief_col_count_match(lang: str, value: int) -> str:
+
+    values_text = str(value["count"])
+
+    autobrief = AUTOBRIEFS_TEXT["col_count_match_n_expectation_text"][lang].format(
+        values_text=values_text
+    )
 
     return autobrief
 
