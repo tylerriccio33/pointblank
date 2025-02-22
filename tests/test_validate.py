@@ -23,6 +23,7 @@ from pointblank.validate import (
     get_row_count,
     load_dataset,
     missing_vals_tbl,
+    _normalize_reporting_language,
     PointblankConfig,
     preview,
     Validate,
@@ -234,6 +235,51 @@ def tbl_schema_tests():
     )
 
 
+def test_normalize_reporting_language():
+
+    assert _normalize_reporting_language(lang=None) == "en"
+    assert _normalize_reporting_language(lang="en") == "en"
+    assert _normalize_reporting_language(lang="IT") == "it"
+
+    # Raise if `lang` value is invalid
+    with pytest.raises(ValueError):
+        _normalize_reporting_language(lang="invalid")
+        _normalize_reporting_language(lang="fr-CA")
+
+
+def test_validate_class():
+
+    validate = Validate(tbl_pd)
+
+    assert validate.data == tbl_pd
+    assert validate.tbl_name is None
+    assert validate.label is None
+    assert validate.thresholds == Thresholds()
+    assert validate.actions is None
+    assert validate.lang == "en"
+    assert validate.locale == "en"
+    assert validate.time_start is None
+    assert validate.time_end is None
+    assert validate.validation_info == []
+
+
+def test_validate_class_lang_locale():
+
+    validate_1 = Validate(tbl_pd, lang="fr", locale="fr-CA")
+
+    assert validate_1.lang == "fr"
+    assert validate_1.locale == "fr-CA"
+
+    validate_2 = Validate(tbl_pd, lang="de", locale=None)
+
+    assert validate_2.lang == "de"
+    assert validate_2.locale == "de"
+
+    # Raise if `lang` value is invalid
+    with pytest.raises(ValueError):
+        Validate(tbl_pd, lang="invalid")
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -249,6 +295,7 @@ def test_validation_info():
         thresholds=Thresholds(),
         label=None,
         brief=None,
+        autobrief=None,
         active=True,
         eval_error=False,
         all_passed=True,
@@ -276,6 +323,7 @@ def test_validation_info():
     assert v.thresholds == Thresholds()
     assert v.label is None
     assert v.brief is None
+    assert v.autobrief is None
     assert v.active is True
     assert v.eval_error is False
     assert v.all_passed is True
@@ -357,6 +405,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "actions",
         "label",
         "brief",
+        "autobrief",
         "active",
         "eval_error",
         "all_passed",
@@ -386,6 +435,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
+    assert val_info.autobrief is None
     assert val_info.active is True
     assert val_info.eval_error is None
     assert val_info.all_passed is None
@@ -432,6 +482,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "actions",
         "label",
         "brief",
+        "autobrief",
         "active",
         "eval_error",
         "all_passed",
@@ -460,6 +511,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
+    assert val_info.autobrief is not None
     assert val_info.active is True
     assert val_info.eval_error is None
     assert val_info.all_passed is True
