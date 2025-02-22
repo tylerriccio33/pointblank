@@ -21,6 +21,7 @@ from great_tables import GT, html, loc, style, google_font, from_column, vals
 from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
     CHECK_MARK_SPAN,
+    COMPARISON_OPERATORS,
     COMPATIBLE_DTYPES,
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
@@ -32,6 +33,7 @@ from pointblank._constants import (
     SEVERITY_LEVEL_COLORS,
     VALIDATION_REPORT_FIELDS,
 )
+from pointblank._constants_autobriefs import AUTOBRIEFS_TEXT
 from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
@@ -5010,6 +5012,15 @@ class Validate:
             assertion_category = METHOD_CATEGORY_MAP[assertion_method]
             compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
 
+            # Generate the autobrief description for the validation step; it's important to perform
+            # that here since text components like the column and the value(s) have been resolved
+            # at this point
+            autobrief = _create_autobrief(
+                assertion_type=assertion_type, lang=self.lang, column=column, values=value
+            )
+
+            validation.autobrief = autobrief
+
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
             )
@@ -7644,6 +7655,136 @@ def _normalize_reporting_language(lang: str | None) -> str:
         )
 
     return lang.lower()
+
+
+def _create_autobrief(
+    assertion_type: str, lang: str, column: str | None, values: str | None
+) -> str:
+
+    if assertion_type in [
+        "col_vals_gt",
+        "col_vals_ge",
+        "col_vals_lt",
+        "col_vals_le",
+        "col_vals_eq",
+        "col_vals_ne",
+    ]:
+        return _create_autobrief_comparison(assertion_type, lang, column, values)
+
+    if assertion_type == "col_vals_between":
+        return _create_autobrief_between(
+            lang=lang, column=column, value_1=values[0], value_2=values[1]
+        )
+
+    if assertion_type == "col_vals_outside":
+        return _create_autobrief_between(
+            lang=lang, column=column, value_1=values[0], value_2=values[1], not_=True
+        )
+
+    # TODO: Add autobriefs for all the other validation methods
+    # - `col_vals_in_set()`
+    # - `col_vals_not_in_set()`
+    # - `col_vals_null()`
+    # - `col_vals_not_null()`
+    # - `col_vals_regex()`
+    # - `col_vals_expr()`
+    # - `col_exists()`
+    # - `rows_distinct()`
+    # - `col_schema_match()`
+    # - `row_count_match()`
+    # - `col_count_match()`
+
+    return None
+
+
+def _create_autobrief_comparison(
+    assertion_type: str, lang: str, column: str | None, values: str | None
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    operator = COMPARISON_OPERATORS[assertion_type]
+
+    column_text = _prep_column_text(column=column)
+
+    values_text = values
+    # TODO: use _prep_values_text() to obtain `values_text`
+    # values_text = _prep_values_text(values=values, lang=lang, limit=3)
+
+    compare_expectation_text = AUTOBRIEFS_TEXT["compare_expectation_text"][lang]
+
+    autobrief = compare_expectation_text.format(
+        column_text=column_text,
+        column_computed_text=column_computed_text,
+        operator=operator,
+        values_text=values_text,
+    )
+
+    return autobrief
+
+
+def _create_autobrief_between(
+    lang: str, column: str | None, value_1: str, value_2: str, not_: bool = False
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["between_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            value_1=value_1,
+            value_2=value_2,
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_between_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            value_1=value_1,
+            value_2=value_2,
+        )
+
+    return autobrief
+
+
+def _prep_column_text(column: list[str]) -> str:
+    return "`" + str(column[0]) + "`"
+
+
+def _prep_values_text(
+    values: str | int | float | list[str | int | float],
+    lang: str,
+    limit: int = 3,
+) -> str:
+
+    if isinstance(values, (str, int, float)):
+        values = [values]
+
+    length_values = len(values)
+
+    if length_values == 0:
+        return ""
+
+    if length_values > limit:
+        num_omitted = length_values - limit
+
+        values_str = ", ".join([f"`{value}`" for value in values[:limit]])
+
+        additional_text = AUTOBRIEFS_TEXT["values_text"][lang]
+
+        additional_str = additional_text.format(num_omitted=num_omitted)
+
+        values_str = f"{values_str}, {additional_str}"
+
+    else:
+        values_str = ", ".join([f"`{value}`" for value in values])
+
+    return values_str
+
 
 def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     """
