@@ -2997,8 +2997,6 @@ class Validate:
         # Iterate over the columns and create a validation step for each
         for column in columns:
 
-            autobrief = f"Check if values in column `{column}` are between `{left}` and `{right}`."
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3009,7 +3007,6 @@ class Validate:
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
-                autobrief=autobrief,
                 active=active,
             )
 
@@ -3196,10 +3193,6 @@ class Validate:
         # Iterate over the columns and create a validation step for each
         for column in columns:
 
-            autobrief = (
-                f"Check if values in column `{column}` are outside of `{left}` and `{right}`."
-            )
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3210,7 +3203,6 @@ class Validate:
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
-                autobrief=autobrief,
                 active=active,
             )
 
@@ -3356,8 +3348,6 @@ class Validate:
         # Iterate over the columns and create a validation step for each
         for column in columns:
 
-            autobrief = f"Check if values in column `{column}` are in the set of `{set}`."
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3366,7 +3356,6 @@ class Validate:
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
-                autobrief=autobrief,
                 active=active,
             )
 
@@ -3518,6 +3507,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3662,6 +3652,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3806,6 +3797,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3963,6 +3955,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -4085,6 +4078,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4226,6 +4220,7 @@ class Validate:
                 values=None,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -4367,6 +4362,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4542,6 +4538,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4669,6 +4666,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4796,6 +4794,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
