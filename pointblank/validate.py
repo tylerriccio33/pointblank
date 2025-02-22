@@ -4941,6 +4941,28 @@ class Validate:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
 
+            assertion_type = validation.assertion_type
+            column = validation.column
+            value = validation.values
+            inclusive = validation.inclusive
+            na_pass = validation.na_pass
+            threshold = validation.thresholds
+
+            assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
+            assertion_category = METHOD_CATEGORY_MAP[assertion_method]
+            compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
+
+            # Generate the autobrief description for the validation step; it's important to perform
+            # that here since text components like the column and the value(s) have been resolved
+            # at this point
+            autobrief = _create_autobrief(
+                assertion_type=assertion_type, lang=self.lang, column=column, values=value
+            )
+
+            print(autobrief)
+
+            validation.autobrief = autobrief
+
             # Skip the validation step if it is not active but still record the time of processing
             if not validation.active:
                 end_time = datetime.datetime.now(datetime.timezone.utc)
@@ -5000,26 +5022,6 @@ class Validate:
                 elif isinstance(validation.pre, Callable):
 
                     data_tbl_step = validation.pre(data_tbl_step)
-
-            assertion_type = validation.assertion_type
-            column = validation.column
-            value = validation.values
-            inclusive = validation.inclusive
-            na_pass = validation.na_pass
-            threshold = validation.thresholds
-
-            assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
-            assertion_category = METHOD_CATEGORY_MAP[assertion_method]
-            compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
-
-            # Generate the autobrief description for the validation step; it's important to perform
-            # that here since text components like the column and the value(s) have been resolved
-            # at this point
-            autobrief = _create_autobrief(
-                assertion_type=assertion_type, lang=self.lang, column=column, values=value
-            )
-
-            validation.autobrief = autobrief
 
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
