@@ -34,7 +34,7 @@ from pointblank._constants import (
     VALIDATION_REPORT_FIELDS,
 )
 from pointblank._constants_autobriefs import AUTOBRIEFS_TEXT
-from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
+from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals, ColumnLiteral
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
@@ -7683,10 +7683,16 @@ def _create_autobrief(
             lang=lang, column=column, value_1=values[0], value_2=values[1], not_=True
         )
 
-    if assertion_type in ["col_vals_in_set", "col_vals_not_in_set"]:
+    if assertion_type == "col_vals_in_set":
+        return _create_autobrief_set(lang=lang, column=column, values=values)
+
+    if assertion_type == "col_vals_not_in_set":
         return _create_autobrief_set(lang=lang, column=column, values=values, not_=True)
 
-    if assertion_type in ["col_vals_null", "col_vals_not_null"]:
+    if assertion_type == "col_vals_null":
+        return _create_autobrief_null(lang=lang, column=column)
+
+    if assertion_type == "col_vals_not_null":
         return _create_autobrief_null(lang=lang, column=column, not_=True)
 
     if assertion_type == "col_vals_regex":
@@ -7724,7 +7730,7 @@ def _create_autobrief_comparison(
 
     column_text = _prep_column_text(column=column)
 
-    values_text = values
+    values_text = _prep_values_text(values=values, lang=lang, limit=3)
 
     compare_expectation_text = AUTOBRIEFS_TEXT["compare_expectation_text"][lang]
 
@@ -7747,19 +7753,22 @@ def _create_autobrief_between(
 
     column_text = _prep_column_text(column=column)
 
+    value_1_text = _prep_values_text(values=value_1, lang=lang, limit=3)
+    value_2_text = _prep_values_text(values=value_2, lang=lang, limit=3)
+
     if not not_:
         autobrief = AUTOBRIEFS_TEXT["between_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
-            value_1=value_1,
-            value_2=value_2,
+            value_1=value_1_text,
+            value_2=value_2_text,
         )
     else:
         autobrief = AUTOBRIEFS_TEXT["not_between_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
-            value_1=value_1,
-            value_2=value_2,
+            value_1=value_1_text,
+            value_2=value_2_text,
         )
 
     return autobrief
@@ -7869,7 +7878,7 @@ def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None)
 
 def _create_autobrief_row_count_match(lang: str, value: int) -> str:
 
-    values_text = str(value["count"])
+    values_text = _prep_values_text(value["count"], lang=lang)
 
     autobrief = AUTOBRIEFS_TEXT["row_count_match_n_expectation_text"][lang].format(
         values_text=values_text
@@ -7880,7 +7889,7 @@ def _create_autobrief_row_count_match(lang: str, value: int) -> str:
 
 def _create_autobrief_col_count_match(lang: str, value: int) -> str:
 
-    values_text = str(value["count"])
+    values_text = _prep_values_text(value["count"], lang=lang)
 
     autobrief = AUTOBRIEFS_TEXT["col_count_match_n_expectation_text"][lang].format(
         values_text=values_text
@@ -7898,6 +7907,9 @@ def _prep_values_text(
     lang: str,
     limit: int = 3,
 ) -> str:
+
+    if isinstance(values, ColumnLiteral):
+        return f"`{values}`"
 
     if isinstance(values, (str, int, float)):
         values = [values]
