@@ -23,6 +23,7 @@ from pointblank.validate import (
     get_row_count,
     load_dataset,
     missing_vals_tbl,
+    _normalize_reporting_language,
     PointblankConfig,
     preview,
     Validate,
@@ -234,6 +235,51 @@ def tbl_schema_tests():
     )
 
 
+def test_normalize_reporting_language():
+
+    assert _normalize_reporting_language(lang=None) == "en"
+    assert _normalize_reporting_language(lang="en") == "en"
+    assert _normalize_reporting_language(lang="IT") == "it"
+
+    # Raise if `lang` value is invalid
+    with pytest.raises(ValueError):
+        _normalize_reporting_language(lang="invalid")
+        _normalize_reporting_language(lang="fr-CA")
+
+
+def test_validate_class():
+
+    validate = Validate(tbl_pd)
+
+    assert validate.data == tbl_pd
+    assert validate.tbl_name is None
+    assert validate.label is None
+    assert validate.thresholds == Thresholds()
+    assert validate.actions is None
+    assert validate.lang == "en"
+    assert validate.locale == "en"
+    assert validate.time_start is None
+    assert validate.time_end is None
+    assert validate.validation_info == []
+
+
+def test_validate_class_lang_locale():
+
+    validate_1 = Validate(tbl_pd, lang="fr", locale="fr-CA")
+
+    assert validate_1.lang == "fr"
+    assert validate_1.locale == "fr-CA"
+
+    validate_2 = Validate(tbl_pd, lang="de", locale=None)
+
+    assert validate_2.lang == "de"
+    assert validate_2.locale == "de"
+
+    # Raise if `lang` value is invalid
+    with pytest.raises(ValueError):
+        Validate(tbl_pd, lang="invalid")
+
+
 def test_validation_info():
 
     v = _ValidationInfo(
@@ -249,6 +295,7 @@ def test_validation_info():
         thresholds=Thresholds(),
         label=None,
         brief=None,
+        autobrief=None,
         active=True,
         eval_error=False,
         all_passed=True,
@@ -276,6 +323,7 @@ def test_validation_info():
     assert v.thresholds == Thresholds()
     assert v.label is None
     assert v.brief is None
+    assert v.autobrief is None
     assert v.active is True
     assert v.eval_error is False
     assert v.all_passed is True
@@ -357,6 +405,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "actions",
         "label",
         "brief",
+        "autobrief",
         "active",
         "eval_error",
         "all_passed",
@@ -386,6 +435,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
+    assert val_info.autobrief is None
     assert val_info.active is True
     assert val_info.eval_error is None
     assert val_info.all_passed is None
@@ -432,6 +482,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "actions",
         "label",
         "brief",
+        "autobrief",
         "active",
         "eval_error",
         "all_passed",
@@ -460,6 +511,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.actions is None
     assert val_info.label is None
     assert val_info.brief is None
+    assert val_info.autobrief is not None
     assert val_info.active is True
     assert val_info.eval_error is None
     assert val_info.all_passed is True
@@ -869,135 +921,341 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
         .interrogate()
     )
 
-    # col_vals_gt - inherited
+    # `col_vals_gt()` - inherited
     assert v.validation_info[0].thresholds.warning == 1
     assert v.validation_info[0].thresholds.error == 2
     assert v.validation_info[0].thresholds.critical == 3
 
-    # col_vals_gt - overridden
+    # `col_vals_gt()` - overridden
     assert v.validation_info[1].thresholds.warning == 0.5
     assert v.validation_info[1].thresholds.error is None
     assert v.validation_info[1].thresholds.critical is None
 
-    # col_vals_lt - inherited
+    # `col_vals_lt()` - inherited
     assert v.validation_info[2].thresholds.warning == 1
     assert v.validation_info[2].thresholds.error == 2
     assert v.validation_info[2].thresholds.critical == 3
 
-    # col_vals_lt - overridden
+    # `col_vals_lt()` - overridden
     assert v.validation_info[3].thresholds.warning == 0.5
     assert v.validation_info[3].thresholds.error is None
     assert v.validation_info[3].thresholds.critical is None
 
-    # col_vals_eq - inherited
+    # `col_vals_eq()` - inherited
     assert v.validation_info[4].thresholds.warning == 1
     assert v.validation_info[4].thresholds.error == 2
     assert v.validation_info[4].thresholds.critical == 3
 
-    # col_vals_eq - overridden
+    # `col_vals_eq()` - overridden
     assert v.validation_info[5].thresholds.warning == 0.5
     assert v.validation_info[5].thresholds.error is None
     assert v.validation_info[5].thresholds.critical is None
 
-    # col_vals_ne - inherited
+    # `col_vals_ne()` - inherited
     assert v.validation_info[6].thresholds.warning == 1
     assert v.validation_info[6].thresholds.error == 2
     assert v.validation_info[6].thresholds.critical == 3
 
-    # col_vals_ne - overridden
+    # `col_vals_ne()` - overridden
     assert v.validation_info[7].thresholds.warning == 0.5
     assert v.validation_info[7].thresholds.error is None
     assert v.validation_info[7].thresholds.critical is None
 
-    # col_vals_ge - inherited
+    # `col_vals_ge()` - inherited
     assert v.validation_info[8].thresholds.warning == 1
     assert v.validation_info[8].thresholds.error == 2
     assert v.validation_info[8].thresholds.critical == 3
 
-    # col_vals_ge - overridden
+    # `col_vals_ge()` - overridden
     assert v.validation_info[9].thresholds.warning == 0.5
     assert v.validation_info[9].thresholds.error is None
     assert v.validation_info[9].thresholds.critical is None
 
-    # col_vals_le - inherited
+    # `col_vals_le()` - inherited
     assert v.validation_info[10].thresholds.warning == 1
     assert v.validation_info[10].thresholds.error == 2
     assert v.validation_info[10].thresholds.critical == 3
 
-    # col_vals_le - overridden
+    # `col_vals_le()` - overridden
     assert v.validation_info[11].thresholds.warning == 0.5
     assert v.validation_info[11].thresholds.error is None
     assert v.validation_info[11].thresholds.critical is None
 
-    # col_vals_between - inherited
+    # `col_vals_between()` - inherited
     assert v.validation_info[12].thresholds.warning == 1
     assert v.validation_info[12].thresholds.error == 2
     assert v.validation_info[12].thresholds.critical == 3
 
-    # col_vals_between - overridden
+    # `col_vals_between()` - overridden
     assert v.validation_info[13].thresholds.warning == 0.5
     assert v.validation_info[13].thresholds.error is None
     assert v.validation_info[13].thresholds.critical is None
 
-    # col_vals_outside - inherited
+    # `col_vals_outside()` - inherited
     assert v.validation_info[14].thresholds.warning == 1
     assert v.validation_info[14].thresholds.error == 2
     assert v.validation_info[14].thresholds.critical == 3
 
-    # col_vals_outside - overridden
+    # `col_vals_outside()` - overridden
     assert v.validation_info[15].thresholds.warning == 0.5
     assert v.validation_info[15].thresholds.error is None
     assert v.validation_info[15].thresholds.critical is None
 
-    # col_vals_in_set - inherited
+    # `col_vals_in_set()` - inherited
     assert v.validation_info[16].thresholds.warning == 1
     assert v.validation_info[16].thresholds.error == 2
     assert v.validation_info[16].thresholds.critical == 3
 
-    # col_vals_in_set - overridden
+    # `col_vals_in_set()` - overridden
     assert v.validation_info[17].thresholds.warning == 0.5
     assert v.validation_info[17].thresholds.error is None
     assert v.validation_info[17].thresholds.critical is None
 
-    # col_vals_not_in_set - inherited
+    # `col_vals_not_in_set()` - inherited
     assert v.validation_info[18].thresholds.warning == 1
     assert v.validation_info[18].thresholds.error == 2
     assert v.validation_info[18].thresholds.critical == 3
 
-    # col_vals_not_in_set - overridden
+    # `col_vals_not_in_set()` - overridden
     assert v.validation_info[19].thresholds.warning == 0.5
     assert v.validation_info[19].thresholds.error is None
     assert v.validation_info[19].thresholds.critical is None
 
-    # col_vals_null - inherited
+    # `col_vals_null()` - inherited
     assert v.validation_info[20].thresholds.warning == 1
     assert v.validation_info[20].thresholds.error == 2
     assert v.validation_info[20].thresholds.critical == 3
 
-    # col_vals_null - overridden
+    # `col_vals_null()` - overridden
     assert v.validation_info[21].thresholds.warning == 0.5
     assert v.validation_info[21].thresholds.error is None
     assert v.validation_info[21].thresholds.critical is None
 
-    # col_vals_not_null - inherited
+    # `col_vals_not_null()` - inherited
     assert v.validation_info[22].thresholds.warning == 1
     assert v.validation_info[22].thresholds.error == 2
     assert v.validation_info[22].thresholds.critical == 3
 
-    # col_vals_not_null - overridden
+    # `col_vals_not_null()` - overridden
     assert v.validation_info[23].thresholds.warning == 0.5
     assert v.validation_info[23].thresholds.error is None
     assert v.validation_info[23].thresholds.critical is None
 
-    # col_exists - inherited
+    # `col_exists()` - inherited
     assert v.validation_info[24].thresholds.warning == 1
     assert v.validation_info[24].thresholds.error == 2
     assert v.validation_info[24].thresholds.critical == 3
 
-    # col_exists - overridden
+    # `col_exists()` - overridden
     assert v.validation_info[25].thresholds.warning == 0.5
     assert v.validation_info[25].thresholds.error is None
     assert v.validation_info[25].thresholds.critical is None
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_autobriefs(request, tbl_fixture):
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    schema = Schema(columns=["x", "y", "z"])
+
+    # Perform every type of validation step in ways that exercise the autobriefs
+    v = (
+        Validate(tbl)
+        .col_vals_gt(columns="x", value=0)
+        .col_vals_gt(columns="x", value=col("y"))
+        .col_vals_lt(columns="x", value=2)
+        .col_vals_lt(columns="x", value=col("y"))
+        .col_vals_eq(columns="z", value=4)
+        .col_vals_eq(columns="z", value=col("y"))
+        .col_vals_ne(columns="z", value=6)
+        .col_vals_ne(columns="z", value=col("y"))
+        .col_vals_ge(columns="z", value=8)
+        .col_vals_ge(columns="z", value=col("y"))
+        .col_vals_le(columns="z", value=10)
+        .col_vals_le(columns="z", value=col("y"))
+        .col_vals_between(columns="x", left=0, right=5)
+        .col_vals_between(columns="x", left=col("y"), right=5)
+        .col_vals_between(columns="x", left=0, right=col("z"))
+        .col_vals_between(columns="x", left=col("y"), right=col("z"))
+        .col_vals_outside(columns="x", left=-5, right=0)
+        .col_vals_outside(columns="x", left=col("y"), right=0)
+        .col_vals_outside(columns="x", left=-5, right=col("z"))
+        .col_vals_outside(columns="x", left=col("y"), right=col("z"))
+        .col_vals_in_set(columns="x", set=[1, 2])
+        .col_vals_in_set(columns="x", set=[1, 2, 3])
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4])
+        .col_vals_in_set(columns="x", set=[1, 2, 3, 4, 5])
+        .col_vals_not_in_set(columns="x", set=[1, 2])
+        .col_vals_not_in_set(columns="x", set=[1, 2, 3])
+        .col_vals_not_in_set(columns="x", set=[1, 2, 3, 4])
+        .col_vals_not_in_set(columns="x", set=[1, 2, 3, 4, 5])
+        .col_vals_null(columns="x")
+        .col_vals_not_null(columns="x")
+        .col_exists(columns="x")
+        .rows_distinct()
+        .rows_distinct(columns_subset=["x", "y"])
+        .col_schema_match(schema=schema)
+        .row_count_match(count=5)
+        .col_count_match(count=3)
+        .interrogate()
+    )
+
+    # `col_vals_gt()`
+    assert v.validation_info[0].autobrief == "Expect that values in `x` should be > `0`."
+
+    # `col_vals_gt()` - column literal
+    assert v.validation_info[1].autobrief == "Expect that values in `x` should be > `y`."
+
+    # `col_vals_lt()`
+    assert v.validation_info[2].autobrief == "Expect that values in `x` should be < `2`."
+
+    # `col_vals_lt()` - column literal
+    assert v.validation_info[3].autobrief == "Expect that values in `x` should be < `y`."
+
+    # `col_vals_eq()`
+    assert v.validation_info[4].autobrief == "Expect that values in `z` should be == `4`."
+
+    # `col_vals_eq()` - column literal
+    assert v.validation_info[5].autobrief == "Expect that values in `z` should be == `y`."
+
+    # `col_vals_ne()`
+    assert v.validation_info[6].autobrief == "Expect that values in `z` should be != `6`."
+
+    # `col_vals_ne()` - column literal
+    assert v.validation_info[7].autobrief == "Expect that values in `z` should be != `y`."
+
+    # `col_vals_ge()`
+    assert v.validation_info[8].autobrief == "Expect that values in `z` should be >= `8`."
+
+    # `col_vals_ge()` - column literal
+    assert v.validation_info[9].autobrief == "Expect that values in `z` should be >= `y`."
+
+    # `col_vals_le()`
+    assert v.validation_info[10].autobrief == "Expect that values in `z` should be <= `10`."
+
+    # `col_vals_le()` - column literal
+    assert v.validation_info[11].autobrief == "Expect that values in `z` should be <= `y`."
+
+    # `col_vals_between()`
+    assert (
+        v.validation_info[12].autobrief
+        == "Expect that values in `x` should be between `0` and `5`."
+    )
+
+    # `col_vals_between()` - left column literal
+    assert (
+        v.validation_info[13].autobrief
+        == "Expect that values in `x` should be between `y` and `5`."
+    )
+
+    # `col_vals_between()` - right column literal
+    assert (
+        v.validation_info[14].autobrief
+        == "Expect that values in `x` should be between `0` and `z`."
+    )
+
+    # `col_vals_between()` - left and right column literal
+    assert (
+        v.validation_info[15].autobrief
+        == "Expect that values in `x` should be between `y` and `z`."
+    )
+
+    # `col_vals_outside()`
+    assert (
+        v.validation_info[16].autobrief
+        == "Expect that values in `x` should not be between `-5` and `0`."
+    )
+
+    # `col_vals_outside()` - left column literal
+    assert (
+        v.validation_info[17].autobrief
+        == "Expect that values in `x` should not be between `y` and `0`."
+    )
+
+    # `col_vals_outside()` - right column literal
+    assert (
+        v.validation_info[18].autobrief
+        == "Expect that values in `x` should not be between `-5` and `z`."
+    )
+
+    # `col_vals_outside()` - left and right column literal
+    assert (
+        v.validation_info[19].autobrief
+        == "Expect that values in `x` should not be between `y` and `z`."
+    )
+
+    # `col_vals_in_set()` - 2 elements
+    assert (
+        v.validation_info[20].autobrief
+        == "Expect that values in `x` should be in the set of `1`, `2`."
+    )
+
+    # `col_vals_in_set()` - 3 elements
+    assert (
+        v.validation_info[21].autobrief
+        == "Expect that values in `x` should be in the set of `1`, `2`, `3`."
+    )
+
+    # `col_vals_in_set()` - 4 elements
+    assert (
+        v.validation_info[22].autobrief
+        == "Expect that values in `x` should be in the set of `1`, `2`, `3`, and 1 more."
+    )
+
+    # `col_vals_in_set()` - 5 elements
+    assert (
+        v.validation_info[23].autobrief
+        == "Expect that values in `x` should be in the set of `1`, `2`, `3`, and 2 more."
+    )
+
+    # `col_vals_not_in_set()` - 2 elements
+    assert (
+        v.validation_info[24].autobrief
+        == "Expect that values in `x` should not be in the set of `1`, `2`."
+    )
+
+    # `col_vals_not_in_set()` - 3 elements
+    assert (
+        v.validation_info[25].autobrief
+        == "Expect that values in `x` should not be in the set of `1`, `2`, `3`."
+    )
+
+    # `col_vals_not_in_set()` - 4 elements
+    assert (
+        v.validation_info[26].autobrief
+        == "Expect that values in `x` should not be in the set of `1`, `2`, `3`, and 1 more."
+    )
+
+    # `col_vals_not_in_set()` - 5 elements
+    assert (
+        v.validation_info[27].autobrief
+        == "Expect that values in `x` should not be in the set of `1`, `2`, `3`, and 2 more."
+    )
+
+    # `col_vals_null()`
+    assert v.validation_info[28].autobrief == "Expect that all values in `x` should be Null."
+
+    # `col_vals_not_null()`
+    assert v.validation_info[29].autobrief == "Expect that all values in `x` should not be Null."
+
+    # `col_exists()`
+    assert v.validation_info[30].autobrief == "Expect that column `x` exists."
+
+    # `rows_distinct()`
+    assert v.validation_info[31].autobrief == "Expect entirely distinct rows across all columns."
+
+    # `rows_distinct()` - subset of columns
+    assert v.validation_info[32].autobrief == "Expect entirely distinct rows across `x`, `y`."
+
+    # `col_schema_match()`
+    assert v.validation_info[33].autobrief == "Expect that column schemas match."
+
+    # `row_count_match()`
+    assert v.validation_info[34].autobrief == "Expect that the row count is exactly `5`."
+
+    # `col_count_match()`
+    assert v.validation_info[35].autobrief == "Expect that the column count is exactly `3`."
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)

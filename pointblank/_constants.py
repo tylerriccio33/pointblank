@@ -67,6 +67,15 @@ METHOD_CATEGORY_MAP = {
     "col_count_match": "COL_COUNT_MATCH",
 }
 
+COMPARISON_OPERATORS = {
+    "col_vals_gt": ">",
+    "col_vals_ge": ">=",
+    "col_vals_lt": "<",
+    "col_vals_le": "<=",
+    "col_vals_eq": "==",
+    "col_vals_ne": "!=",
+}
+
 ROW_BASED_VALIDATION_TYPES = [
     "col_vals_gt",
     "col_vals_lt",
@@ -128,6 +137,8 @@ TABLE_TYPE_STYLES = {
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
 }
+
+REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
 
 SEVERITY_LEVEL_COLORS = {
     "warning": "#AAAAAA",

@@ -21,17 +21,20 @@ from great_tables import GT, html, loc, style, google_font, from_column, vals
 from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
     CHECK_MARK_SPAN,
+    COMPARISON_OPERATORS,
     COMPATIBLE_DTYPES,
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
     METHOD_CATEGORY_MAP,
+    REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
     SEVERITY_LEVEL_COLORS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals
+from pointblank._constants_autobriefs import AUTOBRIEFS_TEXT
+from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals, ColumnLiteral
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Thresholds,
@@ -1543,7 +1546,9 @@ class _ValidationInfo:
     label
         A label for the validation step. Unused.
     brief
-        A brief description of the validation step. Unused.
+        A brief description of the validation step.
+    autobrief
+        An automatically-generated brief for the validation step.
     active
         Whether the validation step is active.
     all_passed
@@ -1591,6 +1596,7 @@ class _ValidationInfo:
     actions: Actions | None = None
     label: str | None = None
     brief: str | None = None
+    autobrief: str | None = None
     active: bool | None = None
     # Interrogation results
     eval_error: bool | None = None
@@ -1665,6 +1671,17 @@ class Validate:
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no default actions
         will be set.
+    lang
+        The language to use for automatic creation of briefs (short descriptions for each validation
+        step). By default, `None` will create English (`"en"`) text. Other options include French
+        (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
+        (`"tr"`), Chinese (`"zh"`), Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish
+        (`"sv"`), and Dutch (`"nl"`).
+    locale
+        An optional locale ID to use for formatting values in the reporting table according the
+        locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
+        French (France). More simply, this can be a language identifier without a designation of
+        territory, like `"es"` for Spanish.
 
     Returns
     -------
@@ -1768,6 +1785,8 @@ class Validate:
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
     actions: Actions | None = None
+    lang: str | None = None
+    locale: str | None = None
 
     def __post_init__(self):
 
@@ -1776,6 +1795,13 @@ class Validate:
 
         # Normalize the thresholds value (if any) to a Thresholds object
         self.thresholds = _normalize_thresholds_creation(self.thresholds)
+
+        # Normalize the reporting language identifier and error if invalid
+        self.lang = _normalize_reporting_language(lang=self.lang)
+
+        # Set the `locale` to the `lang` value if `locale` isn't set
+        if self.locale is None:
+            self.locale = self.lang
 
         # TODO: Add functionality to obtain the column names and types from the table
         self.col_names = None
@@ -1798,6 +1824,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -1838,6 +1865,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1947,6 +1977,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -1962,6 +1993,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2002,6 +2034,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2110,6 +2145,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2125,6 +2161,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2165,6 +2202,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2272,6 +2312,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2287,6 +2328,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2327,6 +2369,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2432,6 +2477,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2447,6 +2493,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2487,6 +2534,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2596,6 +2646,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2611,6 +2662,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2651,6 +2703,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2760,6 +2815,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2777,6 +2833,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2826,6 +2883,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2948,6 +3008,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -2965,6 +3026,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3014,6 +3076,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3139,6 +3204,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3153,6 +3219,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3186,6 +3253,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3287,6 +3357,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3301,6 +3372,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3334,6 +3406,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
 
@@ -3434,6 +3509,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3447,6 +3523,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3477,6 +3554,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3574,6 +3654,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3587,6 +3668,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3617,6 +3699,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3714,6 +3799,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3729,6 +3815,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3765,6 +3852,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3867,6 +3957,7 @@ class Validate:
                 pre=pre,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -3880,6 +3971,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3911,6 +4003,9 @@ class Validate:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3985,6 +4080,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -3997,6 +4093,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4024,6 +4121,9 @@ class Validate:
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4122,6 +4222,7 @@ class Validate:
                 values=None,
                 thresholds=thresholds,
                 actions=actions,
+                brief=brief,
                 active=active,
             )
 
@@ -4135,6 +4236,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4165,6 +4267,9 @@ class Validate:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4259,6 +4364,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4277,6 +4383,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4328,6 +4435,9 @@ class Validate:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4430,6 +4540,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4444,6 +4555,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4480,6 +4592,9 @@ class Validate:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4553,6 +4668,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4567,6 +4683,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
+        brief: str | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4603,6 +4720,9 @@ class Validate:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. If not provided, a brief will be
+            automatically generated.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4676,6 +4796,7 @@ class Validate:
             pre=pre,
             thresholds=thresholds,
             actions=actions,
+            brief=brief,
             active=active,
         )
 
@@ -4820,6 +4941,26 @@ class Validate:
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
 
+            assertion_type = validation.assertion_type
+            column = validation.column
+            value = validation.values
+            inclusive = validation.inclusive
+            na_pass = validation.na_pass
+            threshold = validation.thresholds
+
+            assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
+            assertion_category = METHOD_CATEGORY_MAP[assertion_method]
+            compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
+
+            # Generate the autobrief description for the validation step; it's important to perform
+            # that here since text components like the column and the value(s) have been resolved
+            # at this point
+            autobrief = _create_autobrief(
+                assertion_type=assertion_type, lang=self.lang, column=column, values=value
+            )
+
+            validation.autobrief = autobrief
+
             # Skip the validation step if it is not active but still record the time of processing
             if not validation.active:
                 end_time = datetime.datetime.now(datetime.timezone.utc)
@@ -4879,17 +5020,6 @@ class Validate:
                 elif isinstance(validation.pre, Callable):
 
                     data_tbl_step = validation.pre(data_tbl_step)
-
-            assertion_type = validation.assertion_type
-            column = validation.column
-            value = validation.values
-            inclusive = validation.inclusive
-            na_pass = validation.na_pass
-            threshold = validation.thresholds
-
-            assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
-            assertion_category = METHOD_CATEGORY_MAP[assertion_method]
-            compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
 
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
@@ -7511,6 +7641,299 @@ class Validate:
             for validation in self.validation_info
             if validation.i in i
         }
+
+
+def _normalize_reporting_language(lang: str | None) -> str:
+
+    if lang is None:
+        return "en"
+
+    if lang.lower() not in REPORTING_LANGUAGES:
+
+        raise ValueError(
+            f"The text '{lang}' doesn't correspond to a Pointblank reporting language."
+        )
+
+    return lang.lower()
+
+
+def _create_autobrief(
+    assertion_type: str, lang: str, column: str | None, values: str | None
+) -> str:
+
+    if assertion_type in [
+        "col_vals_gt",
+        "col_vals_ge",
+        "col_vals_lt",
+        "col_vals_le",
+        "col_vals_eq",
+        "col_vals_ne",
+    ]:
+        return _create_autobrief_comparison(
+            assertion_type=assertion_type, lang=lang, column=column, values=values
+        )
+
+    if assertion_type == "col_vals_between":
+        return _create_autobrief_between(
+            lang=lang, column=column, value_1=values[0], value_2=values[1]
+        )
+
+    if assertion_type == "col_vals_outside":
+        return _create_autobrief_between(
+            lang=lang, column=column, value_1=values[0], value_2=values[1], not_=True
+        )
+
+    if assertion_type == "col_vals_in_set":
+        return _create_autobrief_set(lang=lang, column=column, values=values)
+
+    if assertion_type == "col_vals_not_in_set":
+        return _create_autobrief_set(lang=lang, column=column, values=values, not_=True)
+
+    if assertion_type == "col_vals_null":
+        return _create_autobrief_null(lang=lang, column=column)
+
+    if assertion_type == "col_vals_not_null":
+        return _create_autobrief_null(lang=lang, column=column, not_=True)
+
+    if assertion_type == "col_vals_regex":
+        return _create_autobrief_regex(lang=lang, column=column, pattern=values)
+
+    if assertion_type == "col_vals_expr":
+        return _create_autobrief_expr(lang=lang)
+
+    if assertion_type == "col_exists":
+        return _create_autobrief_col_exists(lang=lang, column=column)
+
+    if assertion_type == "col_schema_match":
+        return _create_autobrief_col_schema_match(lang=lang)
+
+    if assertion_type == "rows_distinct":
+        return _create_autobrief_rows_distinct(lang=lang, columns_subset=column)
+
+    if assertion_type == "row_count_match":
+        return _create_autobrief_row_count_match(lang=lang, value=values)
+
+    if assertion_type == "col_count_match":
+        return _create_autobrief_col_count_match(lang=lang, value=values)
+
+    return None
+
+
+def _create_autobrief_comparison(
+    assertion_type: str, lang: str, column: str | None, values: str | None
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    operator = COMPARISON_OPERATORS[assertion_type]
+
+    column_text = _prep_column_text(column=column)
+
+    values_text = _prep_values_text(values=values, lang=lang, limit=3)
+
+    compare_expectation_text = AUTOBRIEFS_TEXT["compare_expectation_text"][lang]
+
+    autobrief = compare_expectation_text.format(
+        column_text=column_text,
+        column_computed_text=column_computed_text,
+        operator=operator,
+        values_text=values_text,
+    )
+
+    return autobrief
+
+
+def _create_autobrief_between(
+    lang: str, column: str | None, value_1: str, value_2: str, not_: bool = False
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    value_1_text = _prep_values_text(values=value_1, lang=lang, limit=3)
+    value_2_text = _prep_values_text(values=value_2, lang=lang, limit=3)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["between_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            value_1=value_1_text,
+            value_2=value_2_text,
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_between_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            value_1=value_1_text,
+            value_2=value_2_text,
+        )
+
+    return autobrief
+
+
+def _create_autobrief_set(
+    lang: str, column: str | None, values: list[any], not_: bool = False
+) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    values_text = _prep_values_text(values=values, lang=lang, limit=3)
+
+    column_text = _prep_column_text(column=column)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["in_set_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            values_text=values_text,
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_in_set_expectation_text"][lang].format(
+            column_text=column_text,
+            column_computed_text=column_computed_text,
+            values_text=values_text,
+        )
+
+    return autobrief
+
+
+def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    if not not_:
+        autobrief = AUTOBRIEFS_TEXT["null_expectation_text"][lang].format(
+            column_text=column_text, column_computed_text=column_computed_text
+        )
+    else:
+        autobrief = AUTOBRIEFS_TEXT["not_null_expectation_text"][lang].format(
+            column_text=column_text, column_computed_text=column_computed_text
+        )
+
+    return autobrief
+
+
+def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
+
+    # For now `column_computed_text` is an empty string
+    column_computed_text = ""
+
+    column_text = _prep_column_text(column=column)
+
+    autobrief = AUTOBRIEFS_TEXT["regex_expectation_text"][lang].format(
+        column_text=column_text,
+        column_computed_text=column_computed_text,
+        values_text=pattern,
+    )
+
+    return autobrief
+
+
+def _create_autobrief_expr(lang: str) -> str:
+
+    autobrief = AUTOBRIEFS_TEXT["col_vals_expr_expectation_text"][lang]
+
+    return autobrief
+
+
+def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
+
+    column_text = _prep_column_text(column=column)
+
+    autobrief = AUTOBRIEFS_TEXT["col_exists_expectation_text"][lang].format(column_text=column_text)
+
+    return autobrief
+
+
+def _create_autobrief_col_schema_match(lang: str) -> str:
+
+    autobrief = AUTOBRIEFS_TEXT["col_schema_match_expectation_text"][lang]
+
+    return autobrief
+
+
+def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None) -> str:
+
+    if columns_subset is None:
+
+        autobrief = AUTOBRIEFS_TEXT["all_row_distinct_expectation_text"][lang]
+
+    else:
+
+        column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
+
+        autobrief = AUTOBRIEFS_TEXT["across_row_distinct_expectation_text"][lang].format(
+            column_text=column_text
+        )
+
+    return autobrief
+
+
+def _create_autobrief_row_count_match(lang: str, value: int) -> str:
+
+    values_text = _prep_values_text(value["count"], lang=lang)
+
+    autobrief = AUTOBRIEFS_TEXT["row_count_match_n_expectation_text"][lang].format(
+        values_text=values_text
+    )
+
+    return autobrief
+
+
+def _create_autobrief_col_count_match(lang: str, value: int) -> str:
+
+    values_text = _prep_values_text(value["count"], lang=lang)
+
+    autobrief = AUTOBRIEFS_TEXT["col_count_match_n_expectation_text"][lang].format(
+        values_text=values_text
+    )
+
+    return autobrief
+
+
+def _prep_column_text(column: list[str]) -> str:
+    return "`" + str(column[0]) + "`"
+
+
+def _prep_values_text(
+    values: str | int | float | list[str | int | float],
+    lang: str,
+    limit: int = 3,
+) -> str:
+
+    if isinstance(values, ColumnLiteral):
+        return f"`{values}`"
+
+    if isinstance(values, (str, int, float)):
+        values = [values]
+
+    length_values = len(values)
+
+    if length_values == 0:
+        return ""
+
+    if length_values > limit:
+        num_omitted = length_values - limit
+
+        values_str = ", ".join([f"`{value}`" for value in values[:limit]])
+
+        additional_text = AUTOBRIEFS_TEXT["values_text"][lang]
+
+        additional_str = additional_text.format(num_omitted=num_omitted)
+
+        values_str = f"{values_str}, {additional_str}"
+
+    else:
+        values_str = ", ".join([f"`{value}`" for value in values])
+
+    return values_str
 
 
 def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
