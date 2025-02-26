@@ -11,7 +11,7 @@ format:
     grid:
       sidebar-width: 200px
       body-width: 900px
-      margin-width: 300px
+      margin-width: 200px
       gutter-width: 1.5rem
 
 filters:
