@@ -111,5 +111,5 @@ message being printed to the console).
 This is an example where actions can be defined locally for an individual validation step. The
 global threshold setting applied to all three validation steps but the step-level action only
 applied to step 3. You are free to mix and match both threshold and action settings at the global
-level (i.e., set in `Validate`) or at the step level. The only thing to be aware of is that local
-settings of either take precedence.
+level (i.e., set in `Validate`) or at the step level. The only thing to be aware of is that
+step-level settings of thresholds and actions take precedence.
