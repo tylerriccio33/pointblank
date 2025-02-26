@@ -1,0 +1,115 @@
+---
+title: Actions
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
+Actions are combined with thresholds and they allow you easily write text to the console or
+execute custom functions. As an example, when testing a column for values that should always be
+greater than `2` with `col_vals_gt()` you might want some text emitted to the console when any
+failing test units are found.
+
+Let's look at an example on how this works in practice. The following validation plan contains a
+single step (using `col_vals_gt()`) where the `thresholds=` and `actions=` parameters are set.
+
+```{python}
+import pointblank as pb
+
+validation_1 = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_gt(
+        columns="c",
+        value=2,
+        thresholds=pb.Thresholds(warning=1, error=5),
+        actions=pb.Actions(warning="WARNING: failing test found.")
+    )
+    .interrogate()
+)
+
+validation_1
+```
+
+The code uses `thresholds=pb.Thresholds(warning=1, error=5)` to set a 'warning' threshold of `1` and
+an 'error' threshold of `5` failing test units. The results part of the validation table shows that:
+
+- The `FAIL` column shows that 3 tests units have failed
+- The `W` column (short for 'warning') shows a filled gray circle indicating it's reached its
+threshold level
+- The `E` ('error') column shows an open yellow circle indicating it's below the threshold
+level
+
+More importantly, the text `"WARNING: failing test found."` has been emitted. Here it appears above
+the validation table and that's because the action is executed eagerly during interrogation
+(before the report has even been generated).
+
+So, an action is executed for a particular condition (e.g., 'warning') within a validation step if
+these three things are true:
+
+1. there is a threshold set for that condition (either globally, or as part of that step)
+2. there is an associated action set for the condition (again, either set globally or within the
+step)
+3. during interrogation, the threshold value for the condition was exceeded by the number or
+proportion of failing test units
+
+There is a lot of flexibility for setting both thresholds and actions and everything here is
+considered optional. Put another way, you can set various thresholds and various actions as needed
+and the interrogation phase will determine whether all the requirements are met for executing
+an action.
+
+## Ways to Express Actions: Text or Custom Functions
+
+There are a few options in how to define the actions:
+
+1. **String**: A message to be displayed in the console.
+2. **Callable**: A function to be called (which could do virtually anything).
+3. **List of Strings/Callables**: For execution of multiple messages or functions.
+
+The actions are executed at interrogation time when the threshold level assigned to the action
+is exceeded by the number or proportion of failing test units. When providing a string, it will
+simply be printed to the console. A callable will also be executed at the time of interrogation.
+If providing a list of strings or callables, each item in the list will be executed in order.
+Such a list can contain a mix of strings and callables.
+
+Here's an example where we use a custom function as part of an action:
+
+```{python}
+def dq_issue():
+    from datetime import datetime
+
+    print(f"Data quality issue found ({datetime.now()}).")
+
+validation = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+    )
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .col_vals_gt(columns="item_revenue", value=0.05)
+    .col_vals_gt(
+        columns="session_duration",
+        value=15,
+        actions=pb.Actions(warning=dq_issue),
+    )
+    .interrogate()
+)
+
+validation
+```
+
+In this case, the 'warning' action is set to call the user's `dq_issue()` function. This action is
+only executed when the 'warning' threshold is exceeded in step 3. Because all three thresholds are
+exceeded in that step, the 'warning' action of executing the function occurs (resulting in a
+message being printed to the console).
+
+This is an example where actions can be defined locally for an individual validation step. The
+global threshold setting applied to all three validation steps but the step-level action only
+applied to step 3. You are free to mix and match both threshold and action settings at the global
+level (i.e., set in `Validate`) or at the step level. The only thing to be aware of is that local
+settings of either take precedence.

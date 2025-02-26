@@ -48,6 +48,7 @@ website:
       contents:
         - get-started/index.qmd
         - get-started/thresholds.qmd
+        - get-started/actions.qmd
 
 html-table-processing: none
 
