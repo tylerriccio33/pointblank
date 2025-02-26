@@ -389,11 +389,7 @@ class Actions:
     ```{python}
     def dq_issue(type: str):
         from datetime import datetime
-
-        print(
-            f"\033[93mData quality issue found with {type} \033[0m"
-            f"\033[94m({datetime.now()})\033[0m."
-        )
+        print(f"Data quality issue found with {type} ({datetime.now()}).")
 
     validation = (
         pb.Validate(
