@@ -345,8 +345,41 @@ class Actions:
     If providing a list of strings or callables, each item in the list will be executed in order.
     Such a list can contain a mix of strings and callables.
 
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_footer=False)
+    ```
 
+    Let's define both threshold values and actions for a data validation workflow. We'll set these
+    thresholds and actions globally for all validation steps. In this specific example, the only
+    actions we'll define are for the 'critical' level:
 
+    ```{python}
+    import pointblank as pb
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(critical="Major data quality issue found."),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(columns="session_duration", value=15)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Because we set the 'critical' action to display `"Major data quality issue found."` in the
+    console, this message will be displayed if the number of failing test units exceeds the
+    'critical' threshold (set to 15% of the total number of test units). In step 3 of the validation
+    workflow, the 'critical' threshold is exceeded, so the message is displayed in the console.
     """
 
     warning: str | Callable | list[str | Callable] | None = None
