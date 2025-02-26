@@ -410,11 +410,11 @@ class Actions:
     validation
     ```
 
-    In this case, the 'warning' action is set to call the `dq_issue()` function with the argument
-    `"session duration column"`. This action is only executed when the 'warning' threshold is
-    exceeded in the 'session_duration' column. Because all three thresholds are exceeded in step
-    3, the 'warning' action of executing the function occurs (resulting in a message being printed
-    to the console).
+    In this case, the 'warning' action is set to call the `dq_issue()` function. This action is
+    only executed when the 'warning' threshold is exceeded in the 'session_duration' column. Because
+    all three thresholds are exceeded in step 3, the 'warning' action of executing the function
+    occurs (resulting in a message being printed to the console). If actions were set for the other
+    two threshold levels, they would also be executed.
     """
 
     warning: str | Callable | list[str | Callable] | None = None
