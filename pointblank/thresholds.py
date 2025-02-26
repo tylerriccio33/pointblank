@@ -380,6 +380,40 @@ class Actions:
     console, this message will be displayed if the number of failing test units exceeds the
     'critical' threshold (set to 15% of the total number of test units). In step 3 of the validation
     workflow, the 'critical' threshold is exceeded, so the message is displayed in the console.
+
+    Actions can be defined locally for individual validation steps, which will override any global
+    actions set at the beginning of the validation workflow. Here's a variation of the above example
+    where we set global threshold values but assign an action only for an individual validation
+    step:
+
+    ```{python}
+    def dq_issue(type: str):
+        from datetime import datetime
+        print(f"Data quality issue found with {type} ({datetime.now()}).")
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(
+            columns="session_duration",
+            value=15,
+            actions=pb.Actions(warning=dq_issue(type="session duration column")),
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In this case, the 'warning' action is set to call the `dq_issue()` function with the argument
+    `"session duration column"`. This action is only executed when the 'warning' threshold is
+    exceeded in the 'session_duration' column. Because all three thresholds are exceeded in step
+    3, the 'warning' action of executing the function occurs (resulting in a message being printed
+    to the console).
     """
 
     warning: str | Callable | list[str | Callable] | None = None
