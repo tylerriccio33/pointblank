@@ -26,10 +26,12 @@ interlinks:
       url: https://docs.python.org/3/
 
 website:
-  title: pointblank
+  title: Pointblank
+  search:
+    show-item-context: true
+  page-navigation: true
   site-url: https://posit-dev.github.io/pointblank/
   description: "Find out if your data is what you think it is"
-  page-navigation: true
   navbar:
     left:
       - text: Get Started
@@ -41,6 +43,11 @@ website:
     right:
       - icon: github
         href: https://github.com/posit-dev/pointblank
+  sidebar:
+      id: get-started
+      contents:
+        - get-started/index.qmd
+        - get-started/thresholds.qmd
 
 html-table-processing: none
 
