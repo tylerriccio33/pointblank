@@ -51,26 +51,20 @@ class Thresholds:
     of failing test units exceeds 10% of the total number of test units:
 
     ```{python}
-    thresholds = pb.Thresholds(warning=0.1)
-
-    thresholds
+    thresholds_1 = pb.Thresholds(warning=0.1)
     ```
 
     You can also set thresholds for the 'error' and 'critical' levels:
 
     ```{python}
-    thresholds = pb.Thresholds(warning=0.1, error=0.2, critical=0.05)
-
-    thresholds
+    thresholds_2 = pb.Thresholds(warning=0.1, error=0.2, critical=0.05)
     ```
 
     Thresholds can also be set as absolute counts. Here's an example where the 'warning' level is
     set to `5` failing test units:
 
     ```{python}
-    thresholds = pb.Thresholds(warning=5)
-
-    thresholds
+    thresholds_3 = pb.Thresholds(warning=5)
     ```
 
     The `thresholds` object can be used to set global thresholds for all validation steps. Or, you
