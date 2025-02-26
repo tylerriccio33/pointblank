@@ -4,37 +4,49 @@ jupyter: python3
 html-table-processing: none
 ---
 
-::::: {.callout}
-This is a work in progress. And some of this article is just an outline for now.
-:::
+Thresholds enable you to signal failure at different severity levels. They also allow for the
+triggering of custom actions. For example, when testing a column for Null/missing values with
+`col_vals_not_null()` you might want to write something to the console when there are at least 20%
+missing values in the column.
 
-Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
-will be able to trigger custom actions. For example, when testing a column for null/missing values
-with `col_vals_not_null()` you might want a warning on any missing values an elevated flag where
-there are 10% missing values in the column.
+Let's start with the basics though. Here's an example of a simple validation where threshold values
+are set at the `col_vals_not_null()` step without any corresponding actions.
 
 ```{python}
 import pointblank as pb
 
 validation_1 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_not_null(columns="c", thresholds=(1, 0.1))
+    .col_vals_not_null(
+        columns="c", thresholds=(1, 0.2)
+    )
     .interrogate()
 )
 
 validation_1
 ```
 
-The code uses `thresholds=(1, 0.1)` to set a 'warning' threshold of `1` and an 'error' threshold of
-`0.1` (which is 10%) failing test units. Notice these pieces in the validation table:
+The code uses `thresholds=(1, 0.2)` to set a 'warning' threshold of `1` and an 'error' threshold of
+`0.2` (which is 20%) failing test units. You might notice the following in the validation table:
 
 - The `FAIL` column shows that 2 tests units have failed
-- The `W` column (short for 'warning') shows a filled yellow circle indicating it's reached the
+- The `W` column (short for 'warning') shows a filled gray circle indicating it's reached its
 threshold level
-- The `E` column (for 'error' level) shows an open red circle indicating it's below the threshold
+- The `E` ('error') column shows an open yellow circle indicating it's below the threshold
 level
 
 The one final threshold, `C` ('critical'), wasn't set so appears on the validation table as a dash.
+
+## Two Types of Threshold Values: Proportional and Absolute
+
+Threshold values can be specified in two ways:
+
+- proportional: a decimal value like 0.1 is taken to mean 10% of all test units failed
+- absolute: a whole number represents a fixed number of test units failed
+
+Threshold values act as cutoffs and are inclusive. So, any value of failing test units greater than
+or equal to the threshold value will result in exceeding the threshold. So if a threshold is defined
+with a value of `5`, then 5 failing test units will result in an exceedence.
 
 ## Using the `Validation(thresholds=)` Argument
 
@@ -57,50 +69,57 @@ validation_2
 In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the `thresholds=` value
 set in the `Validate()` call. Now, if you want to override these global threshold values for a given
 validation step, you can always use the `threshold=` argument when calling a validation method (the
-argument is present in every validation method).
+argument is present within every validation method).
 
 ## Ways to Define Thresholds
 
+There are more than a few ways to set threshold levels. We provide this flexibility because it's
+often useful to have simple shorthand methods for such a common task.
 
-### Using a Tuple
+### Using a Tuple or a Single Value
 
-The fastest way to define a threshold is to use a tuple with entries for 'warning', 'error', and
-'critical' levels.
+The fastest way to define a threshold is to use a tuple with positional entries for the 'warning',
+'error', and 'critical' levels.
 
 ```python
-# (warning, error, critical)
-thresholds = (1, 2, 3)
-
-pb.Validate(data=..., thresholds=thresholds)
+thresholds_tuple = (1, 0.1, 0.25) # (warning, error, critical)
 ```
 
-Note that a shorter tuple or even single values are also allowed:
+Note that a shorter tuple is also allowed:
 
-- `(1, 2)`: 'warning' state at 1 failing test unit, `error` state at 2 failing test units
-- `1` or `(1, )`: 'warning' state at 1 failing test unit
+- `(1, )`: 'warning' state at 1 failing test unit
+- `(1, 0.1)`: 'warning' state at 1 failing test unit, `error` state at 10% failing test units
 
-### The `Threshold` Class
+You can even use a scalar value (float between `0` and `1` or an integer). That single value
+represents the threshold value for the 'warning' level:
 
+```python
+thresholds_single = 1
+```
 
-## Threshold Cutoff Values
+While using a tuple or a scalar can be very succinct, a problem that arises is that the ordering of
+values always begins at the 'warning' level. This means you cannot define a threshold level for just
+the 'error' level, for example. This is fine for many cases, however, there are other ways to
+express thresholds without these constraints.
 
-Threshold values can be specified in two ways:
+### Using the `Thresholds` Class
 
-- percentage: a decimal value like 0.1 to mean 10% test units failed
-- number: a fixed number of test units failed
+Using the `Thresholds` class lets you define the threshold levels using the `warning=`, `error=`,
+and `critical=` arguments. And unlike the method of setting thresholds with a tuple, any of the
+threshold levels can be unset. Here's an example where you might want to set the 'error' and
+'critical' levels but not the 'warning' level:
 
-Threshold cutoffs are inclusive so any value of failing test units greater than or equal to the
-cutoff will result in triggering the threshold. So if a threshold is defined with a cutoff value of
-`5`, then 5 failing test units will result in threshold.
+```python
+thresholds_class = pb.Thresholds(error=0.3, critical=0.5)
+```
 
-## Triggering Actions
+### Using a Dictionary to Set Thresholds
 
-This is not currently implemented.
+A specially-crafted dictionary is acceptable as input to any `thresholds=` argument. You need to
+ensure that the keys are named using either `"warning"`, `"error"`, or `"critical"`. Any combination
+of keys is fine, but be careful to use only the aforementioned names (otherwise, you'll get a
+`ValueError`). Here's an example that sets the 'warning' and 'critical' levels:
 
-
-## Use Case: Stopping on any Failures
-
-
-## Use Case: Global tolerance bands
-
-
+```python
+thresholds_dict = {"warning": 1, "critical": 0.1}
+```
