@@ -82,16 +82,20 @@ data quality with failure thresholds.
 
 ## Understanding Test Units
 
-Each validation step will execute a separate validation test on the target table. For example, the
-`col_vals_lt()` validation tests that each value in a column is less than a specified number. A key
-thing that's reported is the number of test units that pass or fail a validation step.
+Each validation step will execute a type of validation test on the target table. For example, a
+`col_vals_lt()` validation step can test that each value in a column is less than a specified
+number. The key finding that's reported as a result of this test is the number of test units that
+pass or fail.
 
-Test units are dependent on the test being run. The `col_vals_*` tests each value in a column, so
-each value will be a test unit (and the number of test units is the number of rows in the target
-table).
+Test units are dependent on the test being run. The collection of `col_vals_*` validation methods
+will test each and every value in a particular column, so each value will be a test unit (and the
+number of test units is the number of rows in the target table). Some validation methods like
+`col_exists()` or `row_count_match()` have only a single test unit since they aren't testing
+individual values but rather if a single condition is true or false.
 
-This matters because you can set thresholds that signal 'warning', 'error', and 'critical' flags
-based the proportion or number of failing test units.
+Knowing about the numbers of test units across validation methods matters because you have the
+option to set thresholds (that can signal 'warning', 'error', and 'critical' flags) based on either
+the relative proportion or absolute number of failing test units.
 
 Here's a simple example that uses a single `col_vals_lt()` step along with thresholds set in the
 `thresholds=` argument of the validation method.
@@ -110,10 +114,10 @@ The code uses `thresholds=(2, 4)` to set a 'warning' threshold of `2` and an `er
 `4`. If you look at the validation report table, we can see:
 
 - the `FAIL` column shows that 2 tests units have failed
-- the `W` column (short for 'warning') shows a filled yellow circle indicating those failing test
+- the `W` column (short for 'warning') shows a filled gray circle indicating those failing test
 units reached that threshold value
-- the `E` column (short for 'error') shows an open red circle indicating that the number of failing
-test units is below that threshold
+- the `E` column (short for 'error') shows an open yellow circle indicating that the number of
+failing test units is below that threshold
 
 The one final threshold, `C` (for 'critical'), wasn't set so it appears on the validation table as a
 long dash.
@@ -126,7 +130,7 @@ and acting on thresholds in detail.
 Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
 will be able to trigger custom actions (should those actions be defined).
 
-Here's an example where we test if a certain column has Null/missing values with
+Here's an example where we test if a certain column has null/missing values with
 `col_vals_not_null()`. This is a case where we want a warning on *any* null values and a flag at a
 greater severity level when there are 20% or more null values in the column.
 
