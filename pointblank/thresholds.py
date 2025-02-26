@@ -329,6 +329,24 @@ class Actions:
         class (to set actions for meeting different threshold levels globally) or when defining
         validation steps like [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that actions
         are scoped to individual validation steps, overriding any globally set actions).
+
+    Types of Actions
+    ----------------
+    Actions can be defined in different ways:
+
+    1. **String**: A message to be displayed when the threshold level is met or exceeded.
+    2. **Callable**: A function that is called when the threshold level is met or exceeded.
+    3. **List of Strings/Callables**: Multiple messages or functions to be called when the threshold
+       level is met or exceeded.
+
+    The actions are executed at interrogation time when the threshold level assigned to the action
+    is exceeded by the number or proportion of failing test units. When providing a string, it will
+    simply be printed to the console. A callable will also be executed at the time of interrogation.
+    If providing a list of strings or callables, each item in the list will be executed in order.
+    Such a list can contain a mix of strings and callables.
+
+
+
     """
 
     warning: str | Callable | list[str | Callable] | None = None
