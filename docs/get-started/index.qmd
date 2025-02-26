@@ -3,7 +3,7 @@ title: Intro
 jupyter: python3
 html-table-processing: none
 ---
- ```{python}
+```{python}
 #| echo: false
 #| output: false
 import pointblank as pb
