@@ -387,9 +387,10 @@ class Actions:
     step:
 
     ```{python}
-    def dq_issue(type: str):
+    def dq_issue():
         from datetime import datetime
-        print(f"Data quality issue found with {type} ({datetime.now()}).")
+
+        print(f"Data quality issue found ({datetime.now()}).")
 
     validation = (
         pb.Validate(
@@ -401,7 +402,7 @@ class Actions:
         .col_vals_gt(
             columns="session_duration",
             value=15,
-            actions=pb.Actions(warning=dq_issue(type="the `session_duration` column")),
+            actions=pb.Actions(warning=dq_issue),
         )
         .interrogate()
     )
