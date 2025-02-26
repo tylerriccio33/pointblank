@@ -43,7 +43,7 @@ While simple in principle, there's a lot of useful information packed into this 
 
 Here's a diagram that describes a few of the important parts of the validation table:
 
-![](/assets/pointblank-validation-table.png){width=100%}
+![](/assets/validation-table-diagram.png){width=100%}
 
 There are three things that should be noted here:
 
