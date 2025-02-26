@@ -17,7 +17,9 @@ import pointblank as pb
 
 validation = (
     pb.Validate( # Use pb.Validate to start
-        data=pb.load_dataset(dataset="small_table", tbl_type="polars")
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
+        tbl_name="small_table",
+        label="A starter validation"
     )
     .col_vals_gt(columns="d", value=1000)       # STEP 1 |
     .col_vals_le(columns="c", value=5)          # STEP 2 | <-- Build up a validation plan
@@ -33,7 +35,9 @@ import pointblank as pb
 
 validation = (
     pb.Validate( # Use pb.Validate to start
-        data=pb.load_dataset(dataset="small_table", tbl_type="polars")
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
+        tbl_name="small_table",
+        label="A starter validation"
     )
     .col_vals_gt(columns="d", value=1000)       # STEP 1 |
     .col_vals_le(columns="c", value=5)          # STEP 2 | <-- Build up a validation plan
