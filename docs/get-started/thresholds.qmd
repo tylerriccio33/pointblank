@@ -4,6 +4,13 @@ jupyter: python3
 html-table-processing: none
 ---
 
+ ```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
 Thresholds enable you to signal failure at different severity levels. They also allow for the
 triggering of custom actions. For example, when testing a column for Null/missing values with
 `col_vals_not_null()` you might want to write something to the console when there are at least 20%

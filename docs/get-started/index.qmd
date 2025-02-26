@@ -3,6 +3,12 @@ title: Intro
 jupyter: python3
 html-table-processing: none
 ---
+ ```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
 
 The Pointblank library is all about assessing the state of data quality in a table. You provide the
 validation rules and the library will dutifully interrogate the data and provide useful reporting.
@@ -20,7 +26,7 @@ This is a validation report table that is produced from a validation of a Polars
 import pointblank as pb
 
 validation_1 = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table"), label="Example Validation")
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
     .col_vals_in_set(columns="f", set=["low", "mid", "high"])
