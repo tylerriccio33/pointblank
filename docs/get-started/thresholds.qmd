@@ -12,12 +12,16 @@ pb.config(report_incl_footer=False)
 ```
 
 Thresholds enable you to signal failure at different severity levels. They also allow for the
-triggering of custom actions. For example, when testing a column for Null/missing values with
-`col_vals_not_null()` you might want to write something to the console when there are at least 20%
-missing values in the column.
+triggering of custom actions, a topic which is covered in the next section. For instance you might
+be testing a column for null/missing values. When doing so, you'd want to know when there are at
+least 10% missing values in the column. Alternatively, it could be the case that even a single
+missing value is critical to your work. Threshold settings in Pointblank give you the flexibility to
+devise data-failure signaling to whatever tolerances are important to you.
 
 Let's start with the basics though. Here's an example of a simple validation where threshold values
-are set at the `col_vals_not_null()` step without any corresponding actions.
+are set in the [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
+validation step (this type of validation expects that there are no null/missing values in a
+particular column):
 
 ```{python}
 import pointblank as pb
@@ -73,10 +77,13 @@ validation_2 = (
 validation_2
 ```
 
-In this, both the `col_vals_not_null()` and `col_vals_gt()` steps will use the `thresholds=` value
-set in the `Validate()` call. Now, if you want to override these global threshold values for a given
-validation step, you can always use the `threshold=` argument when calling a validation method (the
-argument is present within every validation method).
+In this, both the [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
+and [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
+steps will use the `thresholds=` value set in the
+[`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) call. Now, if you want
+to override these global threshold values for a given validation step, you can always use the
+`threshold=` argument when calling a validation method (this argument is present within every
+validation method).
 
 ## Ways to Define Thresholds
 
@@ -111,10 +118,11 @@ express thresholds without these constraints.
 
 ### Using the `Thresholds` Class
 
-Using the `Thresholds` class lets you define the threshold levels using the `warning=`, `error=`,
-and `critical=` arguments. And unlike the method of setting thresholds with a tuple, any of the
-threshold levels can be unset. Here's an example where you might want to set the 'error' and
-'critical' levels but not the 'warning' level:
+Using the [`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) class
+lets you define the threshold levels using the `warning=`, `error=`, and `critical=` arguments. And
+unlike the method of setting thresholds with a tuple, any of the threshold levels can be unset.
+Here's an example where you might want to set the 'error' and 'critical' levels (leaving the
+'warning' level unset):
 
 ```python
 thresholds_class = pb.Thresholds(error=0.3, critical=0.5)
@@ -124,7 +132,7 @@ thresholds_class = pb.Thresholds(error=0.3, critical=0.5)
 
 A specially-crafted dictionary is acceptable as input to any `thresholds=` argument. You need to
 ensure that the keys are named using either `"warning"`, `"error"`, or `"critical"`. Any combination
-of keys is fine, but be careful to use only the aforementioned names (otherwise, you'll get a
+of keys is fine, but be careful to use only the aforementioned names (otherwise, you'll receive a
 `ValueError`). Here's an example that sets the 'warning' and 'critical' levels:
 
 ```python
