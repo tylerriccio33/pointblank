@@ -107,11 +107,7 @@ The `col_vals_outside()` validation method has the same set of parameters as `co
 
 ### Set Membership Validations
 
-Set membership validations check whether the values in a column are part of a specified set.
-
-####
-
-The `col_vals_in_set()` validation method checks if the values in a column are in a specified set.
+The set membership validation method `col_vals_in_set()` checks whether values in a column are part of a specified set. Here's an example where the expectation is that values in column `a` can only have numeric values in the set of `[1, 2, 3, 4, 5]`:
 
 ```{python}
 (
@@ -131,7 +127,7 @@ The above example operates on a numeric column. We can also perform a set member
 )
 ```
 
-The `col_vals_not_in_set()` does what you might expect, it checks whether values in a column are *not* part of a fixed set. Here's an example:
+The `col_vals_not_in_set()` does what you might expect, checking whether values in a column are *not* part of a fixed set. Here's an example of its use:
 
 ```{python}
 (
