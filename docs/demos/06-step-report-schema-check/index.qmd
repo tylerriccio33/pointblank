@@ -29,7 +29,11 @@ schema = pb.Schema(
 )
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"),
+        tbl_name="small_table",
+        label="Step report for a schema check"
+    )
     .col_schema_match(schema=schema)
     .interrogate()
 )
@@ -61,7 +65,11 @@ schema = pb.Schema(
 
 # Use the `col_schema_match()` validation method to perform a schema check
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"),
+        tbl_name="small_table",
+        label="Step report for a schema check"
+    )
     .col_schema_match(schema=schema)
     .interrogate()
 )

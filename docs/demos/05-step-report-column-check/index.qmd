@@ -16,7 +16,11 @@ A step report for column checks shows what went wrong.
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table"),
+        tbl_name="small_table",
+        label="Step reports for column data checks"
+    )
     .col_vals_ge(columns="c", value=4, na_pass=True)
     .col_vals_regex(columns="b", pattern=r"\d-[a-z]{3}-\d{3}")
     .interrogate()
@@ -39,7 +43,11 @@ validation.get_step_report(i=2)
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table"),
+        tbl_name="small_table",
+        label="Step reports for column data checks"
+    )
     .col_vals_ge(columns="c", value=4, na_pass=True)                # has failing test units
     .col_vals_regex(columns="b", pattern=r"\d-[a-z]{3}-\d{3}")      # no failing test units
     .interrogate()
