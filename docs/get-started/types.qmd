@@ -222,18 +222,20 @@ We can also adapt the `rows_distinct()` check to use a single column or a subset
 )
 ```
 
-### Checking Strings in a Columns with a Regular Expression
+### Checking Strings in a Column with a Regular Expression
 
 A regular expression (regex) validation via the `col_vals_regex()` validation method checks if values in a column match a specified pattern. Here's an example with two validation steps:
 
 ```{python}
-validation = (
+(
     pb.Validate(data=pb.load_dataset("small_table"))
     .col_vals_regex(columns="b", pattern=r"^\d-[a-z]{3}-\d{3}$")
     .col_vals_regex(columns="f", pattern=r"high|low|mid")
     .interrogate()
 )
 ```
+
+Both of these regular expression checks resulted in matches down columns `b` and `f`.
 
 ## More Information
 
