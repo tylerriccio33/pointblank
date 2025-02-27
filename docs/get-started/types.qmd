@@ -11,9 +11,9 @@ import pointblank as pb
 pb.config(report_incl_header=False, report_incl_footer=False)
 ```
 
-The collection of validation methods in Pointblank allow you to express all sorts of checks of your DataFrames and database tables.
-
-We'll use the `small_table` dataset for all of the examples shown here. Here's a preview of it:
+The collection of validation methods in Pointblank allow you to express all sorts of checks of your
+DataFrames and database tables. We'll use the `small_table` dataset for all of the examples shown
+here. Here's a preview of it:
 
 ```{python}
 # | echo: false
@@ -22,7 +22,9 @@ pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
 
 ### Column Value Comparison Checks
 
-Column value comparison checks work by comparing values in a column against a fixed value, or, values in an different column. Here are all the validation methods of this type and comparison checks they make:
+Column value comparison checks work by comparing values in a column against a fixed value, or,
+values in an different column. Here are all the validation methods of this type and comparison
+checks they make:
 
 - `col_vals_gt()` -- `>`
 - `col_vals_lt()` -- `<`
@@ -31,9 +33,12 @@ Column value comparison checks work by comparing values in a column against a fi
 - `col_vals_ge()` -- `>=`
 - `col_vals_le()` -- `<=`
 
-These types of checks are typically numeric checks, so the column supplied in `columns=` is numeric along with the value or column referenced in `value=`.
+These types of checks are typically numeric checks, so the column supplied in `columns=` is numeric
+along with the value or column referenced in `value=`.
 
-Here's an example using `col_vals_gt()`, which checks if the values in a column are greater than a specified value.
+Here's an example using
+[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html), which
+checks if the values in a column are greater than a specified value.
 
 ```{python}
 (
@@ -43,7 +48,9 @@ Here's an example using `col_vals_gt()`, which checks if the values in a column 
 )
 ```
 
-If you're checking data in a column that contains null/`None`/`NA` values and you'd like to disregard those values (i.e., let them pass validation), you can use `na_pass=True`. The following example checks values in column `c` of `small_table`, which contains two `None` values:
+If you're checking data in a column that contains null/`None`/`NA` values and you'd like to
+disregard those values (i.e., let them pass validation), you can use `na_pass=True`. The following
+example checks values in column `c` of `small_table`, which contains two `None` values:
 
 ```{python}
 (
@@ -53,9 +60,12 @@ If you're checking data in a column that contains null/`None`/`NA` values and yo
 )
 ```
 
-In the above validation table we see that all test units passed. If we didn't use `na_pass=True` there would be 2 failing test units, one for each `None` value in the `c` column.
+In the above validation table we see that all test units passed. If we didn't use `na_pass=True`
+there would be 2 failing test units, one for each `None` value in the `c` column.
 
-It's possible to check against column values against values in an adjacent column. To do this, supply the `value=` argument with the column name within the `col()` helper function. Here's an example of that:
+It's possible to check against column values against values in an adjacent column. To do this,
+supply the `value=` argument with the column name within the `col()` helper function. Here's an
+example of that:
 
 ```{python}
 (
@@ -69,7 +79,10 @@ This validation checks that values in column `a` are less than values in column 
 
 ### Column Value Range Checks
 
-A range check determines whether values in a column are within a fixed range or a range that depends on values in adjacent columns. The `col_vals_between()` validation method makes this type of check possible. Here is an example of its use:
+A range check determines whether values in a column are within a fixed range or a range that depends
+on values in adjacent columns. The
+[`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
+validation method makes this type of check possible. Here is an example of its use:
 
 ```{python}
 (
@@ -79,9 +92,13 @@ A range check determines whether values in a column are within a fixed range or 
 )
 ```
 
-Note that in the validation report, we can see `[2, 10]` in the `VALUES` column. This notation with square brackets indicates that the bounds of the range are inclusive. If this is not what you want, the inclusivity of both bounds can be modified via the `inclusive=` parameter.
+Note that in the validation report, we can see `[2, 10]` in the `VALUES` column. This notation with
+square brackets indicates that the bounds of the range are inclusive. If this is not what you want,
+the inclusivity of both bounds can be modified via the `inclusive=` parameter.
 
-The `left=` and `right=` arguments can accept fixed values or references to other columns in the table via the `col()` helper function. In this example, we can illustrate three variations of this:
+The `left=` and `right=` arguments can accept fixed values or references to other columns in the
+table via the [`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function.
+In this example, we can illustrate three variations of this:
 
 ```{python}
 (
@@ -93,7 +110,9 @@ The `left=` and `right=` arguments can accept fixed values or references to othe
 )
 ```
 
-There is a related validation method that checks whether column values lie *outside* a range. This is called `col_vals_outside()`:
+There is a related validation method that checks whether column values lie *outside* a range. That
+one is called
+[`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html):
 
 ```{python}
 (
@@ -103,11 +122,19 @@ There is a related validation method that checks whether column values lie *outs
 )
 ```
 
-The `col_vals_outside()` validation method has the same set of parameters as `col_vals_between()`, the major difference is that any values found within the bounds will be considered as failing test units.
+The [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+validation method has the same set of parameters as
+[`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html),
+the major difference with the former is that any values found within the bounds will be considered
+as failing test units.
 
 ### Set Membership Validations
 
-The set membership validation method `col_vals_in_set()` checks whether values in a column are part of a specified set. Here's an example where the expectation is that values in column `a` can only have numeric values in the set of `[1, 2, 3, 4, 5]`:
+The set membership validation method
+[`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
+checks whether values in a column are part of a specified set. Here's an example where the
+expectation is that values in column `a` can only have numeric values in the set of
+`[1, 2, 3, 4, 5]`:
 
 ```{python}
 (
@@ -117,7 +144,8 @@ The set membership validation method `col_vals_in_set()` checks whether values i
 )
 ```
 
-The above example operates on a numeric column. We can also perform a set membership check on a string-based column. Here's an example that checks string values in the `f` column of `small_table`:
+The above example operates on a numeric column. We can also perform a set membership check on a
+string-based column. Here's an example that checks string values in the `f` column of `small_table`:
 
 ```{python}
 (
@@ -127,7 +155,9 @@ The above example operates on a numeric column. We can also perform a set member
 )
 ```
 
-The `col_vals_not_in_set()` does what you might expect, checking whether values in a column are *not* part of a fixed set. Here's an example of its use:
+The [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
+validation method does what you might expect, which is checking whether values in a column are
+*not* part of a fixed set. Here's an example of its use:
 
 ```{python}
 (
@@ -141,10 +171,11 @@ This validation passes completely because no values in `f` are `"small"` or `"la
 
 ### Checks for Missing Values
 
-Missing values validations check for the presence or absence of null/`None`/`NA` values in a column. The two validation methods of this type are:
+Missing values validations check for the presence or absence of null/`None`/`NA` values in a column.
+The two validation methods of this type are:
 
-- `col_vals_null()`
-- `col_vals_not_null()`
+- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
+- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
 
 Let's look at an example that checks that there should not be any missing values:
 
@@ -158,7 +189,12 @@ Let's look at an example that checks that there should not be any missing values
 
 ### Schema Validation
 
-Schema validation is performed with `col_schema_match()` and it checks whether the structure of a table matches an expected schema. It requires an expectation of the table schema and that can be generated with the `Schema` class. Here is a simple example that checks whether a schema checking only column names is a match on the target table.
+Schema validation is performed with
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+and it checks whether the structure of a table matches an expected schema. It requires an
+expectation of the table schema and that can be generated with the
+[`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class. Here is a simple
+example that checks whether a schema checking only column names is a match on the target table.
 
 ```{python}
 import pointblank as pb
@@ -172,15 +208,15 @@ schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 )
 ```
 
-Any `col_schema_match()` validation step will only have a single test unit. We can see in the above validation report that the column schema validation passed.
+Any `col_schema_match()` validation step will only have a single test unit. We can see in the above
+validation report that the column schema validation passed.
 
 ### Row and Column Count Validations
 
 Row and column count validations check the number of rows and columns in a table.
 
-#### `row_count_match()`
-
-Using `row_count_match()` checks whether the number of rows in a table matches a specified count.
+Using [`row_count_match()`](https://posit-dev.github.io/pointblank/reference/Validate.row_count_match.html)
+checks whether the number of rows in a table matches a specified count.
 
 ```{python}
 (
@@ -190,7 +226,8 @@ Using `row_count_match()` checks whether the number of rows in a table matches a
 )
 ```
 
-The `col_count_match()` validation method checks if the number of columns in a table matches a specified count.
+The [`col_count_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_count_match.html)
+validation method checks if the number of columns in a table matches a specified count.
 
 ```{python}
 (
@@ -202,7 +239,8 @@ The `col_count_match()` validation method checks if the number of columns in a t
 
 ### Distinct Row Validations
 
-We can check for duplicate rows in a table with `rows_distinct()`.
+We can check for duplicate rows in a table with
+[`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html).
 
 ```{python}
 (
@@ -212,7 +250,10 @@ We can check for duplicate rows in a table with `rows_distinct()`.
 )
 ```
 
-We can also adapt the `rows_distinct()` check to use a single column or a subset of columns. To do that, we need to use the `columns_subset=` parameter. Here's an example of that:
+We can also adapt the
+[`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)
+check to use a single column or a subset of columns. To do that, we need to use the
+`columns_subset=` parameter. Here's an example of that:
 
 ```{python}
 (
@@ -224,7 +265,10 @@ We can also adapt the `rows_distinct()` check to use a single column or a subset
 
 ### Checking Strings in a Column with a Regular Expression
 
-A regular expression (regex) validation via the `col_vals_regex()` validation method checks if values in a column match a specified pattern. Here's an example with two validation steps:
+A regular expression (regex) validation via the
+[`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
+validation method checks if values in a column match a specified pattern. Here's an example with
+two validation steps:
 
 ```{python}
 (
@@ -239,4 +283,6 @@ Both of these regular expression checks resulted in matches down columns `b` and
 
 ## More Information
 
-These are just a few examples of the many validation methods available in Pointblank. For more detailed information, check out the individual reference pages in the [API Reference](https://posit-dev.github.io/pointblank/reference/).
+These are just a few examples of the many validation methods available in Pointblank. For more
+detailed information, check out the individual reference pages in the
+[API Reference](https://posit-dev.github.io/pointblank/reference/).
