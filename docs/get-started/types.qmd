@@ -1,0 +1,244 @@
+---
+title: Validation Types
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_header=False, report_incl_footer=False)
+```
+
+The collection of validation methods in Pointblank allow you to express all sorts of checks of your DataFrames and database tables.
+
+We'll use the `small_table` dataset for all of the examples shown here. Here's a preview of it:
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
+```
+
+### Column Value Comparison Checks
+
+Column value comparison checks work by comparing values in a column against a fixed value, or, values in an different column. Here are all the validation methods of this type and comparison checks they make:
+
+- `col_vals_gt()` -- `>`
+- `col_vals_lt()` -- `<`
+- `col_vals_eq()` -- `==`
+- `col_vals_ne()` -- `!=`
+- `col_vals_ge()` -- `>=`
+- `col_vals_le()` -- `<=`
+
+These types of checks are typically numeric checks, so the column supplied in `columns=` is numeric along with the value or column referenced in `value=`.
+
+Here's an example using `col_vals_gt()`, which checks if the values in a column are greater than a specified value.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(columns="a", value=5)
+    .interrogate()
+)
+```
+
+If you're checking data in a column that contains null/`None`/`NA` values and you'd like to disregard those values (i.e., let them pass validation), you can use `na_pass=True`. The following example checks values in column `c` of `small_table`, which contains two `None` values:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_le(columns="c", value=10, na_pass=True)
+    .interrogate()
+)
+```
+
+In the above validation table we see that all test units passed. If we didn't use `na_pass=True` there would be 2 failing test units, one for each `None` value in the `c` column.
+
+It's possible to check against column values against values in an adjacent column. To do this, supply the `value=` argument with the column name within the `col()` helper function. Here's an example of that:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_lt(columns="a", value=pb.col("c"))
+    .interrogate()
+)
+```
+
+This validation checks that values in column `a` are less than values in column `c`.
+
+### Column Value Range Checks
+
+A range check determines whether values in a column are within a fixed range or a range that depends on values in adjacent columns. The `col_vals_between()` validation method makes this type of check possible. Here is an example of its use:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_between(columns="a", left=2, right=10)
+    .interrogate()
+)
+```
+
+Note that in the validation report, we can see `[2, 10]` in the `VALUES` column. This notation with square brackets indicates that the bounds of the range are inclusive. If this is not what you want, the inclusivity of both bounds can be modified via the `inclusive=` parameter.
+
+The `left=` and `right=` arguments can accept fixed values or references to other columns in the table via the `col()` helper function. In this example, we can illustrate three variations of this:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_between(columns="a", left=pb.col("c"), right=10)
+    .col_vals_between(columns="a", left=2, right=pb.col("d"))
+    .col_vals_between(columns="a", left=pb.col("c"), right=pb.col("d"))
+    .interrogate()
+)
+```
+
+There is a related validation method that checks whether column values lie *outside* a range. This is called `col_vals_outside()`:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_outside(columns="a", left=1, right=4)
+    .interrogate()
+)
+```
+
+The `col_vals_outside()` validation method has the same set of parameters as `col_vals_between()`, the major difference is that any values found within the bounds will be considered as failing test units.
+
+### Set Membership Validations
+
+Set membership validations check whether the values in a column are part of a specified set.
+
+####
+
+The `col_vals_in_set()` validation method checks if the values in a column are in a specified set.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_in_set(columns="a", set=[1, 2, 3, 4, 5])
+    .interrogate()
+)
+```
+
+The above example operates on a numeric column. We can also perform a set membership check on a string-based column. Here's an example that checks string values in the `f` column of `small_table`:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+    .interrogate()
+)
+```
+
+The `col_vals_not_in_set()` does what you might expect, it checks whether values in a column are *not* part of a fixed set. Here's an example:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_in_set(columns="f", set=["small", "large"])
+    .interrogate()
+)
+```
+
+This validation passes completely because no values in `f` are `"small"` or `"large"`.
+
+### Checks for Missing Values
+
+Missing values validations check for the presence or absence of null/`None`/`NA` values in a column. The two validation methods of this type are:
+
+- `col_vals_null()`
+- `col_vals_not_null()`
+
+Let's look at an example that checks that there should not be any missing values:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_not_null(columns="a")
+    .interrogate()
+)
+```
+
+### Schema Validation
+
+Schema validation is performed with `col_schema_match()` and it checks whether the structure of a table matches an expected schema. It requires an expectation of the table schema and that can be generated with the `Schema` class. Here is a simple example that checks whether a schema checking only column names is a match on the target table.
+
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
+
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_schema_match(schema=schema)
+    .interrogate()
+)
+```
+
+Any `col_schema_match()` validation step will only have a single test unit. We can see in the above validation report that the column schema validation passed.
+
+### Row and Column Count Validations
+
+Row and column count validations check the number of rows and columns in a table.
+
+#### `row_count_match()`
+
+Using `row_count_match()` checks whether the number of rows in a table matches a specified count.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .row_count_match(count=13)
+    .interrogate()
+)
+```
+
+The `col_count_match()` validation method checks if the number of columns in a table matches a specified count.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_count_match(count=8)
+    .interrogate()
+)
+```
+
+### Distinct Row Validations
+
+We can check for duplicate rows in a table with `rows_distinct()`.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .rows_distinct()
+    .interrogate()
+)
+```
+
+We can also adapt the `rows_distinct()` check to use a single column or a subset of columns. To do that, we need to use the `columns_subset=` parameter. Here's an example of that:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .rows_distinct(columns_subset="b")
+    .interrogate()
+)
+```
+
+### Checking Strings in a Columns with a Regular Expression
+
+A regular expression (regex) validation via the `col_vals_regex()` validation method checks if values in a column match a specified pattern. Here's an example with two validation steps:
+
+```{python}
+validation = (
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_regex(columns="b", pattern=r"^\d-[a-z]{3}-\d{3}$")
+    .col_vals_regex(columns="f", pattern=r"high|low|mid")
+    .interrogate()
+)
+```
+
+## More Information
+
+These are just a few examples of the many validation methods available in Pointblank. For more detailed information, check out the individual reference pages in the [API Reference](https://posit-dev.github.io/pointblank/reference/).
