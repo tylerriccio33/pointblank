@@ -11,13 +11,16 @@ import pointblank as pb
 pb.config(report_incl_footer=False)
 ```
 
-Actions are combined with thresholds and they allow you easily write text to the console or
-execute custom functions. As an example, when testing a column for values that should always be
-greater than `2` with `col_vals_gt()` you might want some text emitted to the console when any
-failing test units are found.
+Actions are meant to be combined with thresholds and they allow you easily write text to the console
+or execute custom functions. As an example, when testing a column for values that should always be
+greater than `2` you might want some text emitted to the console when any failing test units are
+found. To do that, you need to pair a threshold level with an associated action (and that action
+could take the form of a console message).
 
 Let's look at an example on how this works in practice. The following validation plan contains a
-single step (using `col_vals_gt()`) where the `thresholds=` and `actions=` parameters are set.
+single step (using
+[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)) where
+the `thresholds=` and `actions=` parameters are set:
 
 ```{python}
 import pointblank as pb
@@ -111,5 +114,6 @@ message being printed to the console).
 This is an example where actions can be defined locally for an individual validation step. The
 global threshold setting applied to all three validation steps but the step-level action only
 applied to step 3. You are free to mix and match both threshold and action settings at the global
-level (i.e., set in `Validate`) or at the step level. The only thing to be aware of is that
-step-level settings of thresholds and actions take precedence.
+level (i.e., set in the [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html)
+call) or at the step level. The key thing to be aware of is that step-level settings of thresholds
+and actions take precedence.
