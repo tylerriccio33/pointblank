@@ -10,11 +10,10 @@ import pointblank as pb
 pb.config(report_incl_footer=False)
 ```
 
-The Pointblank library is all about assessing the state of data quality in a table. You provide the
+The Pointblank library is all about assessing the state of data quality for a table. You provide the
 validation rules and the library will dutifully interrogate the data and provide useful reporting.
 We can use different types of tables like Polars and Pandas DataFrames, Parquet files, or various
-database tables (thanks to Ibis support). Let's walk through what table validation looks like in
-Pointblank.
+database tables. Let's walk through what data validation looks like in Pointblank.
 
 ## A Simple Validation Table
 
@@ -81,10 +80,12 @@ Note these three key pieces in the code:
 - the methods starting with `col_*` specify validation steps that run on specific columns
 - the `interrogate()` method executes the validation plan on the table
 
-This common pattern is used in a validation workflow, where `Validate()` and `interrogate()` bookend
-a validation plan generated through calling validation methods. And that's data validation with
-Pointblank in a nutshell! In the next section we'll go a bit further by introducing a means to gauge
-data quality with failure thresholds.
+This common pattern is used in a validation workflow, where
+[`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) and
+[`interrogate()`](https://posit-dev.github.io/pointblank/reference/Validate.interrogate.html)
+bookend a validation plan generated through calling validation methods. And that's data validation
+with Pointblank in a nutshell! In the next section we'll go a bit further by understanding how we
+can measure data quality with test units and failure thresholds.
 
 ## Understanding Test Units
 
@@ -99,11 +100,13 @@ number of test units is the number of rows in the target table). Some validation
 `col_exists()` or `row_count_match()` have only a single test unit since they aren't testing
 individual values but rather if a single condition is true or false.
 
+## Using Threshold Levels
+
 Knowing about the numbers of test units across validation methods matters because you have the
 option to set thresholds (that can signal 'warning', 'error', and 'critical' flags) based on either
 the relative proportion or absolute number of failing test units.
 
-Here's a simple example that uses a single `col_vals_lt()` step along with thresholds set in the
+Here's a simple example that uses a single validation step along with thresholds set in the
 `thresholds=` argument of the validation method.
 
 ```{python}
@@ -128,30 +131,8 @@ failing test units is below that threshold
 The one final threshold, `C` (for 'critical'), wasn't set so it appears on the validation table as a
 long dash.
 
-Thresholds let you take action at different levels of severity. The next section discusses setting
-and acting on thresholds in detail.
-
-## Using Threshold Levels
-
-Thresholds enable you to signal failure at different severity levels. In the near future, thresholds
-will be able to trigger custom actions (should those actions be defined).
-
-Here's an example where we test if a certain column has null/missing values with
-`col_vals_not_null()`. This is a case where we want a warning on *any* null values and a flag at a
-greater severity level when there are 20% or more null values in the column.
-
-```{python}
-validation_4 = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_not_null(columns="c", thresholds=(1, 0.2))
-    .interrogate()
-)
-
-validation_4
-```
-
-In this case, the `thresholds=` argument in the `cols_vals_not_null()` step was set to `(1, 0.2)`,
-indicating 1 failing test unit is set for 'warning' and a `0.2` fraction of all failing test units
-is set to 'error'.
-
-For more on thresholds, see the [Thresholds article](./thresholds.qmd).
+Setting thresholds is important since you might want some sort of signal for the discovery of errors
+in your data. How you set the particular threshold levels is highly dependent on your tolerance for
+data failures. The idea of thresholds and associated actions is central to how Pointblank works, so,
+the next two sections will deal with (1) a more in-depth treatment of thresholds, and (2) how to set
+actions for threshold exceedences.
