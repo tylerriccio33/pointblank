@@ -16,7 +16,11 @@ Splitting your data into 'pass' and 'fail' subsets.
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="pandas"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="pandas"),
+        tbl_name="small_table",
+        label="Sundering Data"
+    )
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
     .interrogate()
@@ -35,7 +39,11 @@ import pointblank as pb
 import polars as pl
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="pandas"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="pandas"),
+        tbl_name="small_table",
+        label="Sundering Data"
+    )
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
     .interrogate()
