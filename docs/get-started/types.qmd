@@ -279,7 +279,7 @@ two validation steps:
 )
 ```
 
-Both of these regular expression checks resulted in matches down columns `b` and `f`.
+Both of these regular expression checks resulted in complete matches down columns `b` and `f`.
 
 ## More Information
 
