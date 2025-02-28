@@ -21,15 +21,16 @@ common type (e.g., checking that numerical values are all positive) across a num
 Rather than define the same rules across multiple invocations of the same validation method (one for
 each column), we can simply map the validation rules across those columns.
 
-Let's start with the simple case of providing a list of columns to `columns=` before getting into
-the doing the same with column selector functions.
-
-All of the examples below will use the `game_revenue` dataset, here's a preview of it:
+We'll run through a number of examples below, and all of them will use the `game_revenue` dataset.
+Here's a preview of it:
 
 ```{python}
 # | echo: false
 pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=5, n_tail=5)
 ```
+
+Let's start with the simple case of providing a list of columns to `columns=` before getting into
+the doing the same with column selector functions.
 
 ## Using a List of Column Names
 
@@ -69,7 +70,7 @@ This is all to say that if you wanted the same validation rules but different th
 you would have to define two individual validation steps with only the `thresholds=` values
 differing.
 
-## Using Column Selectors
+## Using Pointblank's Column Selectors
 
 Pointblank includes a few column selector functions for use in `columns=`. If you're new to
 selectors what they do is resolve column names typically based on:
@@ -78,7 +79,10 @@ selectors what they do is resolve column names typically based on:
 - column position
 - column type
 
-Two common ones, [`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) and [`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html), resolve columns based on starting and ending text in column names.
+Two common ones,
+[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) and
+[`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html), resolve columns
+based on starting and ending text in column names.
 
 The `game_revenue` dataset has three columns starting with the text 'item': `item_type`,
 `item_name`, and `item_revenue`. Let's look at an example where we can succinctly express a
@@ -94,6 +98,56 @@ validation plan checking that these columns contain no missing values:
 
 As can be seen, three validation steps were created from the use of `columns=pb.starts_with("item")`
 because those three columns were found in the table.
+
+The complete list of column selectors includes:
+
+- [`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html)
+- [`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html)
+- [`contains()`](https://posit-dev.github.io/pointblank/reference/contains.html)
+- [`matches()`](https://posit-dev.github.io/pointblank/reference/matches.html)
+- [`everything()`](https://posit-dev.github.io/pointblank/reference/everything.html)
+- [`first_n()`](https://posit-dev.github.io/pointblank/reference/first_n.html)
+- [`last_n()`](https://posit-dev.github.io/pointblank/reference/last_n.html)
+
+and in the next section, we'll learn how they could actually be combined in interesting ways for
+more advanced column selection tasks.
+
+## Combining Column Selectors
+
+Column selector functions can be combined for extra column selection power. We need to use two
+things to make this possible: (1) the
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function, and (2)
+one or more logical operators for composing column selectors. Those operators are:
+
+- `&` (*and*)
+- `|` (*or*)
+- `-` (*difference*)
+- `~` (*not*)
+
+Taken together, if you wanted to select all columns except the first four, you would use this
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) expression:
+
+```{python}
+col_selection = pb.col(pb.everything() - pb.first_n(4))
+```
+
+The logic here is that [`everything()`](https://posit-dev.github.io/pointblank/reference/everything.html)
+selects every column and the `- pb.first_n(4)` part then removes the first four columns from that
+selection.
+
+Let's try using the `col_selection` object in a validation of the `game_revenue` table, checking
+multiple columns for missing values:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_not_null(columns=col_selection, thresholds=(1, 0.05, 0.1))
+    .interrogate()
+)
+```
+
+This column selection worked to select every column except for the first four, resulting in seven
+separate validation steps.
 
 ## Caveats for Using Column Selectors
 
