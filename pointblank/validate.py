@@ -1538,7 +1538,7 @@ class _ValidationInfo:
     na_pass
         Whether to pass test units that hold missing values.
     pre
-        A pre-processing function or lambda to apply to the data table for the validation step.
+        A preprocessing function or lambda to apply to the data table for the validation step.
     thresholds
         The threshold values for the validation.
     actions
@@ -1852,7 +1852,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2021,7 +2021,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2189,7 +2189,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2356,7 +2356,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2521,7 +2521,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2690,7 +2690,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2870,7 +2870,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3063,7 +3063,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3240,7 +3240,7 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3393,7 +3393,7 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3541,7 +3541,7 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3686,7 +3686,7 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3839,7 +3839,7 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -3990,7 +3990,7 @@ class Validate:
             be a Polars column expression or a Narwhals one. For a Pandas DataFrame, the expression
             should either be a lambda expression or a Narwhals column expression.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -4254,7 +4254,7 @@ class Validate:
             columns are supplied, the distinct comparison will be made over the combination of
             values in those columns.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -4422,7 +4422,7 @@ class Validate:
             substring matches are allowed, so a schema data type of `Int` would match a target table
             data type of `Int64`.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -4579,7 +4579,7 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the row
             count of the target table should not match the specified `count=` value.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -4707,7 +4707,7 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the
             column count of the target table should not match the specified `count=` value.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -4980,19 +4980,19 @@ class Validate:
             data_tbl_step = data_tbl
 
             # ------------------------------------------------
-            # Pre-processing stage
+            # Preprocessing stage
             # ------------------------------------------------
 
-            # Determine whether any pre-processing functions are to be applied to the table
+            # Determine whether any preprocessing functions are to be applied to the table
             if validation.pre is not None:
 
-                # Read the text of the pre-processing function
+                # Read the text of the preprocessing function
                 pre_text = _pre_processing_funcs_to_str(validation.pre)
 
-                # Determine if the pre-processing function is a lambda function; return a boolean
+                # Determine if the preprocessing function is a lambda function; return a boolean
                 is_lambda = re.match(r"^lambda", pre_text) is not None
 
-                # If the pre-processing function is a lambda function, then check if there is
+                # If the preprocessing function is a lambda function, then check if there is
                 # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
                 # to use a Narwhalified version of the table
                 if is_lambda:
@@ -5006,17 +5006,17 @@ class Validate:
                         # Convert the table to a Narwhals DataFrame
                         data_tbl_step = nw.from_native(data_tbl_step)
 
-                        # Apply the pre-processing function to the table
+                        # Apply the preprocessing function to the table
                         data_tbl_step = validation.pre(dfn=data_tbl_step)
 
                         # Convert the table back to its original format
                         data_tbl_step = nw.to_native(data_tbl_step)
 
                     else:
-                        # Apply the pre-processing function to the table
+                        # Apply the preprocessing function to the table
                         data_tbl_step = validation.pre(data_tbl_step)
 
-                # If the pre-processing function is a function, apply it to the table
+                # If the preprocessing function is a function, apply it to the table
                 elif isinstance(validation.pre, Callable):
 
                     data_tbl_step = validation.pre(data_tbl_step)
@@ -6364,7 +6364,7 @@ class Validate:
                 field: getattr(validation_info, field) for field in VALIDATION_REPORT_FIELDS
             }
 
-            # If pre-processing functions are included in the report, convert them to strings
+            # If preprocessing functions are included in the report, convert them to strings
             if "pre" in fields:
                 report_entry["pre"] = _pre_processing_funcs_to_str(report_entry["pre"])
 
@@ -6900,7 +6900,7 @@ class Validate:
         # Add the `tbl` entry
         # ------------------------------------------------
 
-        # Depending on if there was some pre-processing done, get the appropriate icon
+        # Depending on if there was some preprocessing done, get the appropriate icon
         # for the table processing status to be displayed in the report under the `tbl` column
 
         validation_info_dict["tbl"] = _transform_tbl_preprocessed(

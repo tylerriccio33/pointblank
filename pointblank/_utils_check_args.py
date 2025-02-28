@@ -106,7 +106,7 @@ def _check_pre(pre: Callable | None):
     Parameters
     ----------
     pre
-        The pre-processing function to apply to the table.
+        The preprocessing function to apply to the table.
 
     Raises
     ------

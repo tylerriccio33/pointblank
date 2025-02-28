@@ -22,7 +22,7 @@ ARG_DOCSTRINGS = {
         Should any encountered None, NA, or Null values be considered as passing test units? By
         default, this is `False`. Set to `True` to pass test units with missing values.""",
     "pre": """pre
-        A pre-processing function or lambda to apply to the data table for the validation step.""",
+        A preprocessing function or lambda to apply to the data table for the validation step.""",
     "thresholds": """thresholds
         Failure threshold levels so that the validation step can react accordingly when exceeding
         the set levels for different states ('warning', 'error', and 'critical'). This can be
