@@ -149,6 +149,54 @@ multiple columns for missing values:
 This column selection worked to select every column except for the first four, resulting in seven
 separate validation steps.
 
+## Even More Selectors: Narwhals Selectors
+
+While Pointblank offers a good selection of selectors, we built in support for the column selectors
+available in the [Narwhals](https://narwhals-dev.github.io/narwhals/) library. If you don't know
+Narwhals yet, it's a lightweight compatibility layer between dataframe libraries. The library is so
+good that we use it under the hood in Pointblank so that you can easily validate Pandas, Polars,
+PyArrow, cuDF, and Modin tables. The `narwhals.selectors` module contains the following column
+selector functions:
+
+- `matches()`
+- `by_dtype()`
+- `boolean()`
+- `categorical()`
+- `datetime()`
+- `numeric()`
+- `string()`
+
+We support the use of these selectors for any input DataFrame that supported by Narwhals (i.e.,
+is in the aforementioned list). Here's an example using the `numeric()` selector to select all
+numeric columns in `game_revenue`:
+
+```{python}
+import narwhals.selectors as ncs
+
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_gt(columns=ncs.numeric(), value=0)
+    .interrogate()
+)
+```
+
+Narwhals selectors can also use operators to combine multiple selectors. Here is an example of using
+the `string()` and `matches()` selectors together to select all string columns matching the text
+'item_':
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_not_null(columns=pb.col(ncs.string() & ncs.matches("item_")))
+    .interrogate()
+)
+```
+
+The combination of Narwhals column selectors as used in the above serves to constrain the set of
+columns resolved. And the same set of logical operators (`&`, `|`, `-`, `~`) can be used to compose
+Narwhals selectors within a [`col()`](https://posit-dev.github.io/pointblank/reference/col.html)
+expression.
+
 ## Caveats for Using Column Selectors
 
 Provided there is systematic column naming already in place, using column selectors like
