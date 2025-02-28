@@ -29,15 +29,16 @@ Here's a preview of it:
 pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=5, n_tail=5)
 ```
 
-Let's start with the simple case of providing a list of columns to `columns=` before getting into
-the doing the same with column selector functions.
+Let's start with the simpler case of providing a list of columns to `columns=` before getting into
+the resolving columns with column selector functions.
 
 ## Using a List of Column Names
 
-The `columns=` parameter (in every validation method that has that argument) can take a list of
-column names. In the `game_revenue` dataset there are two columns that contain numerical data:
-`item_revenue` and `session_duration`. We expect that data in both columns should be greater than
-`0`. Here's an example for how two validation steps can be created through the single use of
+The `columns=` parameter (in every validation method that has that argument) can accept a list of
+column names. In the `game_revenue` dataset, there are two columns that contain numerical data:
+`item_revenue` and `session_duration`. Suppose we expect that data in both columns should be greater
+than `0`, providing a list of those two columns will create two validation steps from a single
+invocation of
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html):
 
 ```{python}
@@ -48,11 +49,12 @@ column names. In the `game_revenue` dataset there are two columns that contain n
 )
 ```
 
-The validation report table indeed shows that two validation steps were created! The interrogation
-shows that all values in both those columns are greater than `0`.
+The validation report table indeed shows that two validation steps were created! Further to this,
+the interrogation results show that all values in the two columns are greater than `0`.
 
-It's important to note that all validation parameters are used across all generated steps. So if
-`thresholds=` were to be set, those threshold values would be cloned across multiple steps.
+It's important to note that all validation parameters are shared across all generated steps. So if
+`thresholds=` were to be set, those threshold values would be cloned and used in each every step
+generated (one step per column provided):
 
 ```{python}
 (
