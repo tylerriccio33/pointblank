@@ -250,8 +250,9 @@ All of these are `True` by default but modifying these settings can make for mor
 when absolute strictness isn't practical.
 
 Should you need to check for the presence of individual columns (regardless of type), the
-`col_exists()` validation method is useful. In this example, we check whether the `date` column is
-present in the table:
+[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html)
+validation method is useful. In this example, we check whether the `date` column is present in the
+table:
 
 ```{python}
 (
