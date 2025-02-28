@@ -1,4 +1,4 @@
-AUTOBRIEFS_TEXT = {
+EXPECT_FAIL_TEXT = {
     "precondition_text": {
         "en": "Precondition applied",
         "fr": "Condition préalable",

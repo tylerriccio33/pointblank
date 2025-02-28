@@ -33,7 +33,7 @@ from pointblank._constants import (
     SEVERITY_LEVEL_COLORS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank._constants_autobriefs import AUTOBRIEFS_TEXT
+from pointblank._constants_expect_fail import EXPECT_FAIL_TEXT
 from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals, ColumnLiteral
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
@@ -7732,7 +7732,7 @@ def _create_autobrief_comparison(
 
     values_text = _prep_values_text(values=values, lang=lang, limit=3)
 
-    compare_expectation_text = AUTOBRIEFS_TEXT["compare_expectation_text"][lang]
+    compare_expectation_text = EXPECT_FAIL_TEXT["compare_expectation_text"][lang]
 
     autobrief = compare_expectation_text.format(
         column_text=column_text,
@@ -7757,14 +7757,14 @@ def _create_autobrief_between(
     value_2_text = _prep_values_text(values=value_2, lang=lang, limit=3)
 
     if not not_:
-        autobrief = AUTOBRIEFS_TEXT["between_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["between_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
             value_1=value_1_text,
             value_2=value_2_text,
         )
     else:
-        autobrief = AUTOBRIEFS_TEXT["not_between_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["not_between_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
             value_1=value_1_text,
@@ -7786,13 +7786,13 @@ def _create_autobrief_set(
     column_text = _prep_column_text(column=column)
 
     if not not_:
-        autobrief = AUTOBRIEFS_TEXT["in_set_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["in_set_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
             values_text=values_text,
         )
     else:
-        autobrief = AUTOBRIEFS_TEXT["not_in_set_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["not_in_set_expectation_text"][lang].format(
             column_text=column_text,
             column_computed_text=column_computed_text,
             values_text=values_text,
@@ -7809,11 +7809,11 @@ def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) ->
     column_text = _prep_column_text(column=column)
 
     if not not_:
-        autobrief = AUTOBRIEFS_TEXT["null_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["null_expectation_text"][lang].format(
             column_text=column_text, column_computed_text=column_computed_text
         )
     else:
-        autobrief = AUTOBRIEFS_TEXT["not_null_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["not_null_expectation_text"][lang].format(
             column_text=column_text, column_computed_text=column_computed_text
         )
 
@@ -7827,7 +7827,7 @@ def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
 
     column_text = _prep_column_text(column=column)
 
-    autobrief = AUTOBRIEFS_TEXT["regex_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT["regex_expectation_text"][lang].format(
         column_text=column_text,
         column_computed_text=column_computed_text,
         values_text=pattern,
@@ -7838,7 +7838,7 @@ def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
 
 def _create_autobrief_expr(lang: str) -> str:
 
-    autobrief = AUTOBRIEFS_TEXT["col_vals_expr_expectation_text"][lang]
+    autobrief = EXPECT_FAIL_TEXT["col_vals_expr_expectation_text"][lang]
 
     return autobrief
 
@@ -7847,14 +7847,16 @@ def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
 
     column_text = _prep_column_text(column=column)
 
-    autobrief = AUTOBRIEFS_TEXT["col_exists_expectation_text"][lang].format(column_text=column_text)
+    autobrief = EXPECT_FAIL_TEXT["col_exists_expectation_text"][lang].format(
+        column_text=column_text
+    )
 
     return autobrief
 
 
 def _create_autobrief_col_schema_match(lang: str) -> str:
 
-    autobrief = AUTOBRIEFS_TEXT["col_schema_match_expectation_text"][lang]
+    autobrief = EXPECT_FAIL_TEXT["col_schema_match_expectation_text"][lang]
 
     return autobrief
 
@@ -7863,13 +7865,13 @@ def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None)
 
     if columns_subset is None:
 
-        autobrief = AUTOBRIEFS_TEXT["all_row_distinct_expectation_text"][lang]
+        autobrief = EXPECT_FAIL_TEXT["all_row_distinct_expectation_text"][lang]
 
     else:
 
         column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
 
-        autobrief = AUTOBRIEFS_TEXT["across_row_distinct_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT["across_row_distinct_expectation_text"][lang].format(
             column_text=column_text
         )
 
@@ -7880,7 +7882,7 @@ def _create_autobrief_row_count_match(lang: str, value: int) -> str:
 
     values_text = _prep_values_text(value["count"], lang=lang)
 
-    autobrief = AUTOBRIEFS_TEXT["row_count_match_n_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT["row_count_match_n_expectation_text"][lang].format(
         values_text=values_text
     )
 
@@ -7891,7 +7893,7 @@ def _create_autobrief_col_count_match(lang: str, value: int) -> str:
 
     values_text = _prep_values_text(value["count"], lang=lang)
 
-    autobrief = AUTOBRIEFS_TEXT["col_count_match_n_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT["col_count_match_n_expectation_text"][lang].format(
         values_text=values_text
     )
 
@@ -7924,7 +7926,7 @@ def _prep_values_text(
 
         values_str = ", ".join([f"`{value}`" for value in values[:limit]])
 
-        additional_text = AUTOBRIEFS_TEXT["values_text"][lang]
+        additional_text = EXPECT_FAIL_TEXT["values_text"][lang]
 
         additional_str = additional_text.format(num_omitted=num_omitted)
 
