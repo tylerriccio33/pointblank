@@ -50,6 +50,7 @@ website:
         - get-started/thresholds.qmd
         - get-started/actions.qmd
         - get-started/types.qmd
+        - get-started/columns.qmd
 
 html-table-processing: none
 
