@@ -26,15 +26,15 @@ Column value comparison checks work by comparing values in a column against a fi
 values in an different column. Here are all the validation methods of this type and comparison
 checks they make:
 
-- `col_vals_gt()` -- `>`
-- `col_vals_lt()` -- `<`
-- `col_vals_eq()` -- `==`
-- `col_vals_ne()` -- `!=`
-- `col_vals_ge()` -- `>=`
-- `col_vals_le()` -- `<=`
+- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html) -- `>`
+- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html) -- `<`
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html) -- `==`
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html) -- `!=`
+- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html) -- `>=`
+- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html) -- `<=`
 
-These types of checks are typically numeric checks, so the column supplied in `columns=` is numeric
-along with the value or column referenced in `value=`.
+These types of checks are typically numerical checks, so the column supplied in `columns=` will be
+numeric along with the value or column referenced in `value=`.
 
 Here's an example using
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html), which
@@ -187,18 +187,18 @@ Let's look at an example that checks that there should not be any missing values
 )
 ```
 
-### Schema Validation
+### Validation of Table Structure
 
-Schema validation is performed with
+Schema validation can be performed with the
 [`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
-and it checks whether the structure of a table matches an expected schema. It requires an
-expectation of the table schema and that can be generated with the
+validation method, and the goal is to check whether the structure of a table matches an expected
+schema. To define an expected table schema, we need to use the
 [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class. Here is a simple
-example that checks whether a schema checking only column names is a match on the target table.
+example that (1) prepares a schema consisting of column names, (2) using that `schema` object in a
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+validation step:
 
 ```{python}
-import pointblank as pb
-
 schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 
 (
@@ -208,8 +208,60 @@ schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 )
 ```
 
-Any `col_schema_match()` validation step will only have a single test unit. We can see in the above
+Any [`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+validation step will only have a single test unit (signifying pass or fail). We can see in the above
 validation report that the column schema validation passed.
+
+More often a schema will be defined using column names and column types. We can do that by using a
+list of tuples in the `columns=` parameter of
+[`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html). Here's an example of that
+approach in action:
+
+```{python}
+schema = pb.Schema(
+    columns=[
+        ("date_time", "Datetime(time_unit='us', time_zone=None)"),
+        ("date", "Date"),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Int64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", "String"),
+    ]
+)
+
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_schema_match(schema=schema)
+    .interrogate()
+)
+```
+
+The [`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+validation method has several boolean parameters for making the checks less stringent:
+
+- `complete=`
+- `in_order=`
+- `case_sensitive_colnames=`
+- `case_sensitive_dtypes=`
+
+All of these are `True` by default but modifying these settings can make for more convenient checks
+when absolute strictness isn't practical.
+
+Should you need to check for the presence of individual columns (regardless of type), the
+`col_exists()` validation method is useful. In this example, we check whether the `date` column is
+present in the table:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_exists(columns="date")
+    .interrogate()
+)
+```
+
+That column is present, so the single test unit of this validation step is a passing one.
 
 ### Row and Column Count Validations
 
