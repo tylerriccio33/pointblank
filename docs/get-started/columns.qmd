@@ -1,0 +1,130 @@
+---
+title: Defining Columns
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_header=False, report_incl_footer=False)
+```
+
+Most of the validation methods included in Pointblank perform column-level checks. As such, they
+provide the common argument `columns=`. The pluralization in the name indicates that multiple
+columns can be provided. And it goes further than that, as column selectors can be used in
+`columns=` to resolve columns.
+
+Why do this? It can often be the case that you'd want to perform a validation check of a certain
+common type (e.g., checking that numerical values are all positive) across a number of columns.
+Rather than define the same rules across multiple invocations of the same validation method (one for
+each column), we can simply map the validation rules across those columns.
+
+Let's start with the simple case of providing a list of columns to `columns=` before getting into
+the doing the same with column selector functions.
+
+All of the examples below will use the `game_revenue` dataset, here's a preview of it:
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=5, n_tail=5)
+```
+
+## Using a List of Column Names
+
+The `columns=` parameter (in every validation method that has that argument) can take a list of
+column names. In the `game_revenue` dataset there are two columns that contain numerical data:
+`item_revenue` and `session_duration`. We expect that data in both columns should be greater than
+`0`. Here's an example for how two validation steps can be created through the single use of
+[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html):
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_gt(columns=["item_revenue", "session_duration"], value=0)
+    .interrogate()
+)
+```
+
+The validation report table indeed shows that two validation steps were created! The interrogation
+shows that all values in both those columns are greater than `0`.
+
+It's important to note that all validation parameters are used across all generated steps. So if
+`thresholds=` were to be set, those threshold values would be cloned across multiple steps.
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_gt(
+        columns=["item_revenue", "session_duration"],
+        value=0,
+        thresholds=(0.1, 0.2, 0.3)
+    )
+    .interrogate()
+)
+```
+
+This is all to say that if you wanted the same validation rules but different threshold settings,
+you would have to define two individual validation steps with only the `thresholds=` values
+differing.
+
+## Using Column Selectors
+
+Pointblank includes a few column selector functions for use in `columns=`. If you're new to
+selectors what they do is resolve column names typically based on:
+
+- text patterns
+- column position
+- column type
+
+Two common ones, [`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) and [`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html), resolve columns based on starting and ending text in column names.
+
+The `game_revenue` dataset has three columns starting with the text 'item': `item_type`,
+`item_name`, and `item_revenue`. Let's look at an example where we can succinctly express a
+validation plan checking that these columns contain no missing values:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_not_null(columns=pb.starts_with("item"))
+    .interrogate()
+)
+```
+
+As can be seen, three validation steps were created from the use of `columns=pb.starts_with("item")`
+because those three columns were found in the table.
+
+## Caveats for Using Column Selectors
+
+Provided there is systematic column naming already in place, using column selectors like
+[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) can be very
+convenient. This is especially true as column counts become larger.
+
+A slight disadvantage to this approach is some uncertainty on whether those columns being checked
+actually exist. You might resolve less columns than anticipated or no columns at all due to errors
+in using the column selectors or through misunderstanding in the columns' naming conventions.
+
+Should the use of a column selector yield no columns the interrogation process itself won't fail,
+however the validation report table will strongly signal that there was an evaluation issue:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("game_revenue"))
+    .col_vals_not_null(columns=pb.starts_with("items"))
+    .interrogate()
+)
+```
+
+Aside from the validation step being tinted in red, the `EVAL` column will display an explosion (and
+there won't be any results). In practice, you would either correct the string supplied to
+[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) or take a
+different approach.
+
+Given the slight bit of uncertainty you get when using column selectors (rather than the explicit
+use of column names), it's good to also include validation steps that check for the existance of key
+column names with
+[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) (and
+checking the table schema itself with
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+is also worthwhile here).
