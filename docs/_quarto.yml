@@ -51,6 +51,7 @@ website:
         - get-started/actions.qmd
         - get-started/types.qmd
         - get-started/columns.qmd
+        - get-started/preprocessing.qmd
 
 html-table-processing: none
 
