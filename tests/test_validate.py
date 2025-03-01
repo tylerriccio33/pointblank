@@ -5,9 +5,9 @@ import sys
 import re
 from unittest.mock import patch
 import pytest
+import random
 import itertools
 from functools import partial
-import numpy as np
 import contextlib
 
 import pandas as pd
@@ -2669,9 +2669,7 @@ def test_row_count_match(request, tbl_fixture):
                             (98, 100, .95, True),
                          ])
 def test_row_count_tol(nrows : int, target_count: int, tol : float, should_pass : bool) -> None:
-
-    rng = np.random.default_rng()
-    data = pl.DataFrame({"foocol": rng.integers(0, 100, size = nrows)})
+    data = pl.DataFrame({"foocol": [random.random()] * nrows})
 
     catcher = contextlib.nullcontext if should_pass else partial(pytest.raises, AssertionError, match = "All tests did not pass")
 
