@@ -67,7 +67,7 @@ this:
 )
 ```
 
-Notice that in the `COLUMNS` and `VALUES` columns of the validation report the two column names are
+Notice that in the `COLUMNS` and `VALUES` columns of the validation report, the two column names are
 shown: `d` and `c`. A thing that could be surprising is that there are two failing test units, even
 though values in `d` are consistently larger than values in column `c`. The reason is that there are
 missing values (i.e., `None` values) in column `c` and any missing value in a comparison check will
@@ -79,7 +79,7 @@ and that could result in correspondingly more failing test units. The corrective
 `na_pass=True`. If you feel missing values (in either column) should be disregarded, this setting is
 a reasonable choice (and you could always use
 [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
-to perfrom missing value checks on these columns anyway).
+to perform missing value checks on these columns anyway).
 
 Let's take a quick look at the results when `na_pass=True` is used:
 
