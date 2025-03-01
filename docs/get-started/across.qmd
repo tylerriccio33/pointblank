@@ -1,0 +1,127 @@
+---
+title: Across Columns
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_header=False, report_incl_footer=False)
+```
+
+The previous section demonstrated the use of many validation methods. In all of the examples where
+column values are compared against another value, the value was always one that was fixed. These
+sorts of comparisons (e.g., are values in column `x` greater than or equal to zero?) are useful but
+sometimes you need more.
+
+For a more dynamic type of comparison check, you can also compare a column's values against those of
+another column. The name of the column is provided as the `value=` parameter (or `left=` and
+`right=` as needed in the
+[`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html) and
+[`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+validation methods).
+
+Let's see how this type of validation is made possible through a few examples using the
+`small_table` dataset shown below:
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
+```
+
+## Using `col()` to Specify a Values Column
+
+We know to use the `columns=` to supply the comparison column. Just to recap, if we wanted to check
+that every value in column `a` is greater than `2` then the validation is written something like
+this:
+
+```python
+...
+.col_vals_gt(columns="a", value=2, ...)
+...
+```
+
+What if you have two numerical columns and have good reason to compare `a` values against `x`
+values? This could be a check that expects every value in `a` is greater than every value in `x`.
+That would take the form:
+
+```python
+...
+.col_vals_gt(columns="a", value=pb.col("x"), ...)
+...
+```
+
+Using the [`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function here
+is key. It lets Pointblank know that you're not using a literal, fixed value for the `value=`.
+You're specifying a column. So long as you do this, there will be checks of every value `a` being
+greater than every adjacent value in `x`. Here's an example of this:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(columns="d", value=pb.col("c"))
+    .interrogate()
+)
+```
+
+The validation report table shows in `COLUMNS` and `VALUES` the two columns being compared: `d` and
+`c`. This is reassuring. One perhaps surprising thing is that there are two failing test units, even
+though values in `d` are consistently larger than values in column `c`. The reason is that there are
+missing values (i.e., `None` values) in column `c` and any missing value in a comparison check will
+result in a failing test unit.
+
+When doing a comparison against a fixed value, we only had to worry about missing values in the
+target column. When comparing across columns, there is potential for missing values in both columns
+and that could result in correspondingly more failing test units. The corrective here is the same in
+whichever case, and that is to use `na_pass=True`. If you feel missing values (in either column)
+should be disregarded, this setting is a reasonable choice (and you could always use
+[`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
+to perfrom missing value checks on these columns anyway).
+
+Let's take a quick look at the results when `na_pass=True` is used:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(columns="d", value=pb.col("c"), na_pass=True)
+    .interrogate()
+)
+```
+
+With that change, every test unit in that single step passes validation.
+
+The validation methods that accept a `col()` expression in their `value=` parameter include:
+
+- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
+- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
+- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
+- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
+
+## Using `col()` in Range Checks
+
+Two validation methods deal with checking values within and outside a range:
+
+- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
+- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+
+These validation methods both have `left=` and `right=` arguments. You can use a mix of literal
+values and `col()`-based expressions for these parameters. Here's an example where we check values
+in `d` to be in the range of lower-bound values in column `c` and a fixed upper-bound value of
+`10000`:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_between(columns="d", left=pb.col("c"), right=10_000, na_pass=True)
+    .interrogate()
+)
+```
+
+Observe that the range reported in the `VALUES` column is `[c, 10000]`. This is our assurance that
+the left bound is dependent on values in column `c` and that the right bound is fixed to a value of
+`10000`. All test units passed here as we were careful about missing values (using `na_pass=True`)
+as in the previous example.
