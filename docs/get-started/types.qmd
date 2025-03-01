@@ -28,10 +28,10 @@ checks they make:
 
 - [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html) -- `>`
 - [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html) -- `<`
-- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html) -- `==`
-- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html) -- `!=`
 - [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html) -- `>=`
 - [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html) -- `<=`
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html) -- `==`
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html) -- `!=`
 
 These types of checks are typically numerical checks, so the column supplied in `columns=` will be
 numeric along with the value or column referenced in `value=`.
