@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 import itertools
 from functools import partial
+import numpy as np
 import contextlib
 
 import pandas as pd
@@ -2660,6 +2661,25 @@ def test_row_count_match(request, tbl_fixture):
 
     assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
 
+@pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
+                         [
+                            (98, 100, .05, True),
+                            (104, 100, .05, True),
+                            (0, 100, .05, False),
+                            (98, 100, .95, True),
+                         ])
+def test_row_count_tol(nrows : int, target_count: int, tol : float, should_pass : bool) -> None:
+
+    rng = np.random.default_rng()
+    data = pl.DataFrame({"foocol": rng.integers(0, 100, size = nrows)})
+
+    catcher = contextlib.nullcontext if should_pass else partial(pytest.raises, AssertionError, match = "All tests did not pass")
+
+    with catcher():
+        Validate(data = data).row_count_match(
+            count = target_count,
+            tol = tol
+        ).interrogate().assert_passing()
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_count_match(request, tbl_fixture):

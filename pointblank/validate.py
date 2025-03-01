@@ -4551,6 +4551,7 @@ class Validate:
     def row_count_match(
         self,
         count: int | FrameT | Any,
+        tol: float = 0,
         inverse: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -4660,7 +4661,7 @@ class Validate:
             count = get_row_count(count)
 
         # Package up the `count=` and boolean params into a dictionary for later interrogation
-        values = {"count": count, "inverse": inverse}
+        values = {"count": count, "inverse": inverse, "tol": tol}
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -5158,6 +5159,7 @@ class Validate:
                     count=value["count"],
                     inverse=value["inverse"],
                     threshold=threshold,
+                    tol = value["tol"],
                     tbl_type=tbl_type,
                 ).get_test_results()
 
