@@ -11,7 +11,7 @@ import pointblank as pb
 pb.config(report_incl_header=False, report_incl_footer=False)
 ```
 
-The collection of validation methods in Pointblank allow you to express all sorts of checks of your
+The collection of validation methods in Pointblank allows you to express all sorts of checks on your
 DataFrames and database tables. We'll use the `small_table` dataset for all of the examples shown
 here. Here's a preview of it:
 
@@ -23,7 +23,7 @@ pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
 ### Column Value Comparison Checks
 
 Column value comparison checks work by comparing values in a column against a fixed value, or,
-values in an different column. Here are all the validation methods of this type and comparison
+values in a different column. Here are all the validation methods of this type and comparison
 checks they make:
 
 - [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html) -- `>`
@@ -60,7 +60,7 @@ example checks values in column `c` of `small_table`, which contains two `None` 
 )
 ```
 
-In the above validation table we see that all test units passed. If we didn't use `na_pass=True`
+In the above validation table, we see that all test units passed. If we didn't use `na_pass=True`
 there would be 2 failing test units, one for each `None` value in the `c` column.
 
 It's possible to check against column values against values in an adjacent column. To do this,
@@ -191,7 +191,7 @@ Let's look at an example that checks that there should not be any missing values
 
 Schema validation can be performed with the
 [`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
-validation method, and the goal is to check whether the structure of a table matches an expected
+validation method and the goal is to check whether the structure of a table matches an expected
 schema. To define an expected table schema, we need to use the
 [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class. Here is a simple
 example that (1) prepares a schema consisting of column names, (2) using that `schema` object in a
