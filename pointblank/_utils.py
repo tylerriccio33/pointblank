@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import inspect
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -11,6 +11,13 @@ from great_tables import GT
 from great_tables.gt import _get_column_of_values
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
+
+if TYPE_CHECKING:
+    from pointblank._typing import AbsoluteBounds, Tolerance
+
+def _derive_bounds(ref : int, tol : Tolerance) -> AbsoluteBounds:
+    """Validate the integrity of a tolerance value."""
+    raise
 
 
 def _get_tbl_type(data: FrameT | Any) -> str:

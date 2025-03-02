@@ -64,6 +64,7 @@ from pointblank._utils import (
     _is_lib_present,
     _is_value_a_df,
     _select_df_lib,
+    _derive_bounds
 )
 from pointblank._utils_check_args import (
     _check_column,
@@ -74,6 +75,11 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pointblank._typing import Tolerance, AbsoluteBounds
 
 __all__ = [
     "Validate",
@@ -4551,7 +4557,7 @@ class Validate:
     def row_count_match(
         self,
         count: int | FrameT | Any,
-        tol: float | tuple[int, int] = 0,
+        tol: Tolerance = 0,
         inverse: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -4700,6 +4706,7 @@ class Validate:
             count = get_row_count(count)
 
         # Check the integrity of tolerance
+        bounds: AbsoluteBounds = _derive_bounds(count)
         if isinstance(tol, tuple):
             for val in tol:
                 if not isinstance(val, int):
@@ -4720,7 +4727,7 @@ class Validate:
             raise TypeError(msg)
 
         # Package up the `count=` and boolean params into a dictionary for later interrogation
-        values = {"count": count, "inverse": inverse, "tol": tol}
+        values = {"count": count, "inverse": inverse, "abs_tol_bounds": abs_tol_bounds}
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
