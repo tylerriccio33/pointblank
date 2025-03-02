@@ -24,7 +24,7 @@ This is a validation report table that is produced from a validation of a Polars
 
 import pointblank as pb
 
-validation_1 = (
+validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"), label="Example Validation")
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
@@ -33,7 +33,7 @@ validation_1 = (
     .interrogate()
 )
 
-validation_1
+validation
 ```
 
 Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side
@@ -59,10 +59,10 @@ stakeholders.
 
 Here's the code that performs the validation on the Polars table.
 
-```{python}
+```python
 import pointblank as pb
 
-validation_2 = (
+validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
@@ -71,7 +71,7 @@ validation_2 = (
     .interrogate()
 )
 
-validation_2
+validation
 ```
 
 Note these three key pieces in the code:
@@ -110,13 +110,13 @@ Here's a simple example that uses a single validation step along with thresholds
 `thresholds=` argument of the validation method.
 
 ```{python}
-validation_3 = (
+validation_2 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(columns="a", value=7, thresholds=(2, 4))
     .interrogate()
 )
 
-validation_3
+validation_2
 ```
 
 The code uses `thresholds=(2, 4)` to set a 'warning' threshold of `2` and an `error` threshold of
@@ -128,8 +128,8 @@ units reached that threshold value
 - the `E` column (short for 'error') shows an open yellow circle indicating that the number of
 failing test units is below that threshold
 
-The one final threshold, `C` (for 'critical'), wasn't set so it appears on the validation table as a
-long dash.
+The one final threshold level, `C` (for 'critical'), wasn't set so it appears on the validation
+table as a long dash.
 
 Setting thresholds is important since you might want some sort of signal for the discovery of errors
 in your data. How you set the particular threshold levels is highly dependent on your tolerance for
