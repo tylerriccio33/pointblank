@@ -2677,6 +2677,32 @@ def test_invalid_row_count_tol(val : float | tuple[int, int], e: Exception, exc 
         Validate(data=data).row_count_match(count = 3, tol=val)
 
 
+def test_row_count_example_tol() -> None:
+    small_table = load_dataset("small_table")
+    smaller_small_table = small_table.sample(n = 12) # within the lower bound
+    (
+        Validate(data=smaller_small_table)
+        .row_count_match(count=13,tol=(2, 0)) # minus 2 but plus 0, ie. 11-13
+        .interrogate()
+        .assert_passing()
+    )
+
+    (
+            Validate(data=smaller_small_table)
+            .row_count_match(count=13,tol=.05) # .05% tolerance of 13
+            .interrogate()
+            .assert_passing()
+        )
+
+    even_smaller_table = small_table.sample(n = 2)
+    with pytest.raises(AssertionError):
+        (
+            Validate(data=even_smaller_table)
+            .row_count_match(count=13,tol=5) # plus or minus 5; this test will fail
+            .interrogate()
+            .assert_passing()
+        )
+
 @pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
                          [
                             (98, 100, .05, True),
