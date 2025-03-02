@@ -17,6 +17,8 @@ greater than `2` you might want some text emitted to the console when any failin
 found. To do that, you need to pair a threshold level with an associated action (and that action
 could take the form of a console message).
 
+## How Actions Work
+
 Let's look at an example on how this works in practice. The following validation plan contains a
 single step (using
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)) where
