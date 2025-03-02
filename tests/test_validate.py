@@ -2661,6 +2661,22 @@ def test_row_count_match(request, tbl_fixture):
 
     assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
 
+@pytest.mark.parametrize(('val','e', 'exc'),
+                         [
+                             ((-1, 5), ValueError, 'If passing a tuple to `tol`, both bounds should be positive. Each limit is'),
+                             ([100, 5], TypeError, '`tol` must be a tuple of limits'),
+                             ((5, -1), ValueError, 'If passing a tuple to `tol`, both bounds should be positive. Each limit is'),
+                             ((None, .05), TypeError, 'Each element passed to `tol` must be an integer if defining upper and lower'),
+                             (('fooval', 100), TypeError, 'Each element passed to `tol` must be an integer if defining upper and lower'),
+                             (-1, ValueError, 'Value passed to `tol` must be positive'),
+                         ])
+def test_invalid_row_count_tol(val : float | tuple[int, int], e: Exception, exc :str) -> None:
+    data = pl.DataFrame({"foocol": [1, 2, 3]})
+
+    with pytest.raises(expected_exception=e, match = exc):
+        Validate(data=data).row_count_match(count = 3, tol=val)
+
+
 @pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
                          [
                             (98, 100, .05, True),

@@ -4663,18 +4663,22 @@ class Validate:
         # Check the integrity of tolerance
         if isinstance(tol, tuple):
             for val in tol:
+                if not isinstance(val, int):
+                    msg = "Each element passed to `tol` must be an integer if defining upper and lower."
+                    raise TypeError(msg)
                 if val < 0:
                     msg = (
                         "If passing a tuple to `tol`, both bounds should be positive. Each limit is "
                         "subtracted from the target, ie. (5, 5) means plus or minus 5."
                     )
                     raise ValueError(msg)
-                if not isinstance(val, int):
-                    msg = "Each element passed to `tol` must be an integer if defining upper and lower."
-                    raise ValueError(msg)
-        elif tol < 0:
-            msg = "Value passed to `tol` must be positive."
-            raise ValueError(tol)
+        elif isinstance(tol, int | float):
+            if tol < 0:
+                msg = "Value passed to `tol` must be positive."
+                raise ValueError(msg)
+        else:
+            msg = f"`tol` must be a tuple of limits, int, or float, not {type(tol)!s}."
+            raise TypeError(msg)
 
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse, "tol": tol}
