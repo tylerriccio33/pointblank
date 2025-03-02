@@ -34,25 +34,25 @@ website:
   description: "Find out if your data is what you think it is"
   navbar:
     left:
-      - text: Get Started
-        file: get-started/index.qmd
+      - text: User Guide
+        file: user-guide/index.qmd
       - text: Examples
         file: demos/index.qmd
       - href: reference/index.qmd
-        text: Reference
+        text: API Reference
     right:
       - icon: github
         href: https://github.com/posit-dev/pointblank
   sidebar:
-      id: get-started
+      id: user-guide
       contents:
-        - get-started/index.qmd
-        - get-started/thresholds.qmd
-        - get-started/actions.qmd
-        - get-started/types.qmd
-        - get-started/columns.qmd
-        - get-started/across.qmd
-        - get-started/preprocessing.qmd
+        - user-guide/index.qmd
+        - user-guide/thresholds.qmd
+        - user-guide/actions.qmd
+        - user-guide/types.qmd
+        - user-guide/columns.qmd
+        - user-guide/across.qmd
+        - user-guide/preprocessing.qmd
 
 html-table-processing: none
 
