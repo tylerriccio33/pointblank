@@ -115,6 +115,32 @@ Please read over the
 [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) for
 information on how to get started.
 
+## Roadmap
+
+There is much to do to make Pointblank a dependable and useful tool for data validation. To that
+end, we have a roadmap that will serve as a guide for the development of the library. Here are some
+of the things we are working on or plan to work on in the near future:
+
+1. more validation methods to cover a wider range of data validation needs
+2. easy-to-use but powerful logging functionality
+3. messaging actions (e.g., Slack, emailing, etc.) to better react to threshold exceedences
+4. additional functionality for building more complex validations via LLMs (extension of ideas from
+   the current `DraftValidation` class)
+5. a feature for quickly obtaining summary information on any dataset (tying together existing and
+   future dataset summary-generation pieces)
+6. ensuring there are text/dict/JSON/HTML versions of all reports
+7. supporting the writing and reading YAML validation config files
+8. a cli utility for Pointblank that can be used to run validations from the command line
+9. complete testing of validations across all compatible backends (for certification of those
+   backends as fully supported)
+10. completion of the **User Guide** in the project website
+11. functionality for creating and publishing data dictionaries, which could: (a) use LLMs to more
+    quickly draft column-level descriptions, and (b) incorporate templating features to make it
+    easier to keep descriptions consistent and up to date
+
+If you have any ideas for features or improvements, don't hesitate to share them with us! We are
+always looking for ways to make Pointblank better.
+
 ## 📄 License
 
 Pointblank is licensed under the MIT license.
