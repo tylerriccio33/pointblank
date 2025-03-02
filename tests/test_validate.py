@@ -2664,11 +2664,14 @@ def test_row_count_match(request, tbl_fixture):
 @pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
                          [
                             (98, 100, .05, True),
-                            (104, 100, .05, True),
+                            (98, 100, 5, True),
+                            (104, 100, (5, 5), True),
                             (0, 100, .05, False),
+                            (0, 100, 5, False),
+                            (0, 100, (5, 5), False),
                             (98, 100, .95, True),
                          ])
-def test_row_count_tol(nrows : int, target_count: int, tol : float, should_pass : bool) -> None:
+def test_row_count_tol(nrows : int, target_count: int, tol : float | tuple[int, int], should_pass : bool) -> None:
     data = pl.DataFrame({"foocol": [random.random()] * nrows})
 
     catcher = contextlib.nullcontext if should_pass else partial(pytest.raises, AssertionError, match = "All tests did not pass")
