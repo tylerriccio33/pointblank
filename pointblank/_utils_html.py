@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from pointblank._utils import _format_to_integer_value
-
 from pointblank._constants import TABLE_TYPE_STYLES
+from pointblank._utils import _format_to_integer_value
 
 
 def _create_table_type_html(
     tbl_type: str | None, tbl_name: str | None, font_size: str = "smaller"
 ) -> str:
-
     if tbl_type is None:
         return ""
 
@@ -35,7 +33,6 @@ def _create_table_type_html(
 
 
 def _create_table_dims_html(columns: int, rows: int, font_size: str = "10px") -> str:
-
     rows_fmt = _format_to_integer_value(int(rows))
     columns_fmt = _format_to_integer_value(int(columns))
 

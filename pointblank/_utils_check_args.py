@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from typing import Callable
+
 import narwhals as nw
 
-from typing import Callable
-from pointblank.thresholds import Thresholds
 from pointblank.column import Column, ColumnSelector
+from pointblank.thresholds import Thresholds
 
 
 def _check_boolean_input(param: bool, param_name: str):
@@ -138,8 +139,7 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
     if isinstance(thresholds, (int, float)):
         if thresholds < 0:
             raise ValueError(
-                "If an int or float is supplied to `thresholds=` it must be a "
-                "non-negative value."
+                "If an int or float is supplied to `thresholds=` it must be a non-negative value."
             )
 
     if isinstance(thresholds, tuple):
@@ -157,7 +157,6 @@ def _check_thresholds(thresholds: int | float | tuple | dict | Thresholds | None
             )
 
     if isinstance(thresholds, dict):
-
         # Check keys for invalid entries and raise a ValueError if any are found
         invalid_keys = set(thresholds.keys()) - {"warning", "error", "critical"}
 

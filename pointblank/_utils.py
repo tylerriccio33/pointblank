@@ -1,27 +1,28 @@
 from __future__ import annotations
 
-import re
 import inspect
-
-from typing import Any, TYPE_CHECKING
+import re
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
-from narwhals.typing import FrameT
 from great_tables import GT
 from great_tables.gt import _get_column_of_values
+from narwhals.typing import FrameT
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
 if TYPE_CHECKING:
     from pointblank._typing import AbsoluteBounds, Tolerance
 
-def _derive_single_bound(ref: int, tol : int | float) -> int:
+
+def _derive_single_bound(ref: int, tol: int | float) -> int:
     """Derive a single bound using the reference."""
     if not isinstance(tol, float | int):
         raise TypeError("Tolerance must be a number or a tuple of numbers.")
     if tol < 0:
         raise ValueError("Tolerance must be non-negative.")
     return int(tol * ref) if tol < 1 else int(tol)
+
 
 def _derive_bounds(ref: int, tol: Tolerance) -> AbsoluteBounds:
     """Validate and extract the absolute bounds of the tolerance."""
@@ -33,13 +34,11 @@ def _derive_bounds(ref: int, tol: Tolerance) -> AbsoluteBounds:
 
 
 def _get_tbl_type(data: FrameT | Any) -> str:
-
     type_str = str(type(data))
 
     ibis_tbl = "ibis.expr.types.relations.Table" in type_str
 
     if not ibis_tbl:
-
         # TODO: in a later release of Narwhals, there will be a method for getting the namespace:
         # `get_native_namespace()`
         try:
@@ -69,14 +68,12 @@ def _get_tbl_type(data: FrameT | Any) -> str:
         # the original table type since it sometimes gets handled by duckdb
 
         if backend == "duckdb":
-
             try:
                 tbl_name = data.get_name()
             except AttributeError:  # pragma: no cover
                 tbl_name = None
 
             if tbl_name is not None:
-
                 if "memtable" in tbl_name:
                     return "memtable"
 
@@ -102,7 +99,6 @@ def _is_lib_present(lib_name: str) -> bool:
 
 
 def _check_any_df_lib(method_used: str) -> None:
-
     # Determine whether Pandas or Polars is available
     try:
         import pandas as pd
@@ -134,7 +130,6 @@ def _is_value_a_df(value: Any) -> bool:
 
 
 def _select_df_lib(preference: str = "polars") -> Any:
-
     # Determine whether Pandas is available
     try:
         import pandas as pd
@@ -166,7 +161,6 @@ def _select_df_lib(preference: str = "polars") -> Any:
 
 
 def _convert_to_narwhals(df: FrameT) -> nw.DataFrame:
-
     # Convert the DataFrame to a format that narwhals can work with
     return nw.from_native(df)
 
@@ -337,7 +331,6 @@ def _check_column_type(dfn: nw.DataFrame, column: str, allowed_types: list[str])
 def _column_test_prep(
     df: FrameT, column: str, allowed_types: list[str] | None, check_exists: bool = True
 ) -> nw.DataFrame:
-
     # Convert the DataFrame to a format that narwhals can work with.
     dfn = _convert_to_narwhals(df=df)
 
@@ -355,13 +348,11 @@ def _column_test_prep(
 def _column_subset_test_prep(
     df: FrameT, columns_subset: list[str] | None, check_exists: bool = True
 ) -> nw.DataFrame:
-
     # Convert the DataFrame to a format that narwhals can work with.
     dfn = _convert_to_narwhals(df=df)
 
     # Check whether all columns exist
     if check_exists and columns_subset:
-
         for column in columns_subset:
             _check_column_exists(dfn=dfn, column=column)
 
@@ -369,7 +360,6 @@ def _column_subset_test_prep(
 
 
 def _get_fn_name() -> str:
-
     # Get the current function name
     fn_name = inspect.currentframe().f_back.f_code.co_name
 
@@ -377,7 +367,6 @@ def _get_fn_name() -> str:
 
 
 def _get_assertion_from_fname() -> str:
-
     # Get the current function name
     func_name = inspect.currentframe().f_back.f_code.co_name
 
@@ -427,7 +416,6 @@ def get_api_details(module, exported_list):
     api_text = ""
 
     for fn in exported_list:
-
         # Split the attribute path to handle nested attributes
         parts = fn.split(".")
         obj = module
@@ -643,7 +631,6 @@ def _get_examples_text() -> str:
     ]
 
     for example_dir in example_dirs:
-
         link = f"https://posit-dev.github.io/pointblank/demos/{example_dir}/"
 
         # Read in the index.qmd file for each example

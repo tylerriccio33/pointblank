@@ -1,25 +1,26 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
-from typing import Any, TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
-from narwhals.typing import FrameT
 from narwhals.dependencies import is_pandas_dataframe, is_polars_dataframe
+from narwhals.typing import FrameT
 
+from pointblank._constants import IBIS_BACKENDS
 from pointblank._utils import (
-    _column_test_prep,
     _column_subset_test_prep,
+    _column_test_prep,
     _convert_to_narwhals,
     _get_tbl_type,
 )
-from pointblank.thresholds import _threshold_check
-from pointblank._constants import IBIS_BACKENDS
 from pointblank.column import Column, ColumnLiteral
 from pointblank.schema import Schema
+from pointblank.thresholds import _threshold_check
 
 if TYPE_CHECKING:
     from pointblank._typing import AbsoluteTolBounds
+
 
 @dataclass
 class Interrogator:
@@ -88,15 +89,12 @@ class Interrogator:
     tbl_type: str = "local"
 
     def gt(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, ColumnLiteral):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -112,7 +110,6 @@ class Interrogator:
                 )
 
             else:
-
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
@@ -155,15 +152,12 @@ class Interrogator:
         )
 
     def lt(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, Column):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -179,7 +173,6 @@ class Interrogator:
                 )
 
             else:
-
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
@@ -222,15 +215,12 @@ class Interrogator:
         )
 
     def eq(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, Column):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -246,7 +236,6 @@ class Interrogator:
                 )
 
             else:
-
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
@@ -263,7 +252,6 @@ class Interrogator:
         # Local backends (Narwhals) ---------------------------------
 
         if isinstance(self.compare, Column):
-
             compare_expr = _get_compare_expr_nw(compare=self.compare)
 
             tbl = self.x.with_columns(
@@ -280,7 +268,6 @@ class Interrogator:
             )
 
             if is_pandas_dataframe(tbl.to_native()):
-
                 tbl = tbl.with_columns(
                     pb_is_good_4=nw.col(self.column) - compare_expr,
                 )
@@ -292,7 +279,6 @@ class Interrogator:
                 )
 
             else:
-
                 tbl = tbl.with_columns(
                     pb_is_good_4=nw.col(self.column) == compare_expr,
                 )
@@ -336,15 +322,12 @@ class Interrogator:
             return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def ne(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, Column):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -386,9 +369,7 @@ class Interrogator:
         # If neither column has null values, we can proceed with the comparison
         # without too many complications
         if not ref_col_has_null_vals and not cmp_col_has_null_vals:
-
             if isinstance(self.compare, Column):
-
                 compare_expr = _get_compare_expr_nw(compare=self.compare)
 
                 return self.x.with_columns(
@@ -396,7 +377,6 @@ class Interrogator:
                 ).to_native()
 
             else:
-
                 return self.x.with_columns(
                     pb_is_good_=nw.col(self.column) != nw.lit(self.compare),
                 ).to_native()
@@ -406,21 +386,17 @@ class Interrogator:
         # to non-null values
 
         if isinstance(self.compare, Column):
-
             compare_expr = _get_compare_expr_nw(compare=self.compare)
 
             # CASE 1: the reference column has null values but the comparison column does not
             if ref_col_has_null_vals and not cmp_col_has_null_vals:
-
                 if is_pandas_dataframe(self.x.to_native()):
-
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column).is_null(),
                         pb_is_good_2=nw.lit(self.column) != nw.col(self.compare.name),
                     )
 
                 else:
-
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column).is_null(),
                         pb_is_good_2=nw.col(self.column) != nw.col(self.compare.name),
@@ -432,7 +408,6 @@ class Interrogator:
                     )
 
                 if is_polars_dataframe(self.x.to_native()):
-
                     # There may be Null values in the pb_is_good_2 column, change those to
                     # True if na_pass is True, False otherwise
 
@@ -443,7 +418,6 @@ class Interrogator:
                     )
 
                     if self.na_pass:
-
                         tbl = tbl.with_columns(
                             pb_is_good_2=(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
                         )
@@ -456,16 +430,13 @@ class Interrogator:
 
             # CASE 2: the comparison column has null values but the reference column does not
             elif not ref_col_has_null_vals and cmp_col_has_null_vals:
-
                 if is_pandas_dataframe(self.x.to_native()):
-
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column) != nw.lit(self.compare.name),
                         pb_is_good_2=nw.col(self.compare.name).is_null(),
                     )
 
                 else:
-
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column) != nw.col(self.compare.name),
                         pb_is_good_2=nw.col(self.compare.name).is_null(),
@@ -477,9 +448,7 @@ class Interrogator:
                     )
 
                 if is_polars_dataframe(self.x.to_native()):
-
                     if self.na_pass:
-
                         tbl = tbl.with_columns(
                             pb_is_good_1=(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
                         )
@@ -493,7 +462,6 @@ class Interrogator:
             # CASE 3: both columns have null values and there may potentially be cases where
             # there could even be null/null comparisons
             elif ref_col_has_null_vals and cmp_col_has_null_vals:
-
                 tbl = self.x.with_columns(
                     pb_is_good_1=nw.col(self.column).is_null(),
                     pb_is_good_2=nw.col(self.compare.name).is_null(),
@@ -508,9 +476,7 @@ class Interrogator:
                     )
 
                 if is_polars_dataframe(self.x.to_native()):
-
                     if self.na_pass:
-
                         tbl = tbl.with_columns(
                             pb_is_good_3=(
                                 nw.when(nw.col("pb_is_good_1") | nw.col("pb_is_good_2"))
@@ -526,10 +492,8 @@ class Interrogator:
                 )
 
         else:
-
             # Case where the reference column contains null values
             if ref_col_has_null_vals:
-
                 # Create individual cases for Pandas and Polars
 
                 if is_pandas_dataframe(self.x.to_native()):
@@ -550,7 +514,6 @@ class Interrogator:
                     )
 
                 elif is_polars_dataframe(self.x.to_native()):
-
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
                         pb_is_good_2=nw.lit(self.na_pass),  # Pass if any Null in val or compare
@@ -560,10 +523,8 @@ class Interrogator:
 
                     tbl = tbl.with_columns(
                         pb_is_good_=(
-                            (
-                                (nw.col("pb_is_good_1") & nw.col("pb_is_good_2"))
-                                | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1"))
-                            )
+                            (nw.col("pb_is_good_1") & nw.col("pb_is_good_2"))
+                            | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1"))
                         )
                     )
 
@@ -572,15 +533,12 @@ class Interrogator:
                     return tbl
 
     def ge(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, Column):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -637,15 +595,12 @@ class Interrogator:
         return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def le(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.compare, Column):
-
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -702,15 +657,12 @@ class Interrogator:
         )
 
     def between(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
-
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -766,7 +718,6 @@ class Interrogator:
                 ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
             else:
-
                 low_val = ibis.literal(self.low)
                 high_val = ibis.literal(self.high)
 
@@ -862,15 +813,12 @@ class Interrogator:
         return tbl
 
     def outside(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
-
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -882,7 +830,6 @@ class Interrogator:
                     high_val = ibis.literal(self.high)
 
                 if isinstance(self.low, Column) and isinstance(self.high, Column):
-
                     tbl = self.x.mutate(
                         pb_is_good_1=(
                             self.x[self.column].isnull()
@@ -1042,11 +989,9 @@ class Interrogator:
         return tbl
 
     def isin(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             return self.x.mutate(pb_is_good_=self.x[self.column].isin(self.set))
 
         # Local backends (Narwhals) ---------------------------------
@@ -1056,11 +1001,9 @@ class Interrogator:
         ).to_native()
 
     def notin(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             return self.x.mutate(pb_is_good_=self.x[self.column].notin(self.set))
 
         # Local backends (Narwhals) ---------------------------------
@@ -1074,11 +1017,9 @@ class Interrogator:
         )
 
     def regex(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             tbl = self.x.mutate(
@@ -1105,11 +1046,9 @@ class Interrogator:
         )
 
     def null(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             return self.x.mutate(
                 pb_is_good_=self.x[self.column].isnull(),
             )
@@ -1121,11 +1060,9 @@ class Interrogator:
         ).to_native()
 
     def not_null(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             return self.x.mutate(
                 pb_is_good_=~self.x[self.column].isnull(),
             )
@@ -1137,11 +1074,9 @@ class Interrogator:
         ).to_native()
 
     def rows_distinct(self) -> FrameT | Any:
-
         # Ibis backends ---------------------------------------------
 
         if self.tbl_type in IBIS_BACKENDS:
-
             import ibis
 
             tbl = self.x
@@ -1222,9 +1157,7 @@ class ColValsCompareOne:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1379,9 +1312,7 @@ class ColValsCompareTwo:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1477,9 +1408,7 @@ class ColValsCompareSet:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1556,9 +1485,7 @@ class ColValsRegex:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1625,9 +1552,7 @@ class ColValsExpr:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Check the type of expression provided
             if "narwhals" in str(type(self.expr)) and "expr" in str(type(self.expr)):
                 expression_type = "narwhals"
@@ -1642,7 +1567,6 @@ class ColValsExpr:
             df_lib_name = "polars" if "polars" in tbl_type else "pandas"
 
             if expression_type == "narwhals":
-
                 tbl_nw = _convert_to_narwhals(df=self.data_tbl)
                 tbl_nw = tbl_nw.with_columns(pb_is_good_=self.expr)
                 tbl = tbl_nw.to_native()
@@ -1651,11 +1575,9 @@ class ColValsExpr:
                 return self
 
             if df_lib_name == "polars" and expression_type == "polars":
-
                 self.test_unit_res = self.data_tbl.with_columns(pb_is_good_=self.expr)
 
             if df_lib_name == "pandas" and expression_type == "pandas":
-
                 self.test_unit_res = self.data_tbl.assign(pb_is_good_=self.expr)
 
             return self
@@ -1696,9 +1618,7 @@ class ColExistsHasType:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1710,7 +1630,6 @@ class ColExistsHasType:
             tbl = self.data_tbl
 
         if self.assertion_method == "exists":
-
             res = int(self.column in tbl.columns)
 
         self.test_unit_res = res
@@ -1748,9 +1667,7 @@ class RowsDistinct:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         if self.tbl_type == "local":
-
             # Convert the DataFrame to a format that narwhals can work with, and:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
@@ -1816,7 +1733,6 @@ class ColSchemaMatch:
     threshold: int
 
     def __post_init__(self):
-
         schema_expect = self.schema
         schema_actual = Schema(tbl=self.data_tbl)
 
@@ -1895,23 +1811,22 @@ class RowCountMatch:
     count: int
     inverse: bool
     threshold: int
-    abs_tol_bounds : AbsoluteTolBounds
+    abs_tol_bounds: AbsoluteTolBounds
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         from pointblank.validate import get_row_count
 
-        row_count :int = get_row_count(data=self.data_tbl)
+        row_count: int = get_row_count(data=self.data_tbl)
 
         lower_abs_limit, upper_abs_limit = self.abs_tol_bounds
         min_val: int = self.count - lower_abs_limit
         max_val: int = self.count + upper_abs_limit
 
         if self.inverse:
-            res : bool = not (row_count >= min_val and row_count <= max_val)
+            res: bool = not (row_count >= min_val and row_count <= max_val)
         else:
-            res : bool = row_count >= min_val and row_count <= max_val
+            res: bool = row_count >= min_val and row_count <= max_val
 
         self.test_unit_res = res
 
@@ -1951,7 +1866,6 @@ class ColCountMatch:
     tbl_type: str = "local"
 
     def __post_init__(self):
-
         from pointblank.validate import get_column_count
 
         if not self.inverse:
@@ -1975,9 +1889,7 @@ class NumberOfTestUnits:
     column: str
 
     def get_test_units(self, tbl_type: str) -> int:
-
         if tbl_type == "pandas" or tbl_type == "polars":
-
             # Convert the DataFrame to a format that narwhals can work with and:
             #  - check if the column exists
             dfn = _column_test_prep(
@@ -1987,7 +1899,6 @@ class NumberOfTestUnits:
             return len(dfn)
 
         if tbl_type in IBIS_BACKENDS:
-
             # Get the count of test units and convert to a native format
             # TODO: check whether pandas or polars is available
             return self.df.count().to_polars()

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from typing import Any
 
 import narwhals as nw
 from narwhals.typing import FrameT
-from typing import Any
 
 from pointblank._utils import _get_tbl_type, _select_df_lib
-
 
 __all__ = [
     "DataScan",
@@ -64,7 +63,6 @@ class DataScan:
     profile: dict = field(init=False)
 
     def __post_init__(self):
-
         # Determine if the data is a DataFrame that could be handled by Narwhals,
         # or an Ibis Table
         self.tbl_type = _get_tbl_type(data=self.data)
@@ -92,7 +90,6 @@ class DataScan:
             self.profile = self._generate_profile_ibis()
 
     def _generate_profile_ibis(self) -> dict:
-
         profile = {}
 
         if self.tbl_name:
@@ -120,7 +117,6 @@ class DataScan:
         column_dtypes = list(self.data.schema().items())
 
         for idx, column in enumerate(self.data.columns):
-
             if df_lib_use == "polars":
                 import polars as pl
 
@@ -130,7 +126,6 @@ class DataScan:
             col_data_no_null = self.data.drop_null().head(5)[column]
 
             if "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
-
                 if df_lib_use == "polars":
                     sample_data = col_data_no_null.to_polars().cast(pl.String).to_list()
                 else:
@@ -161,7 +156,6 @@ class DataScan:
                 }
 
             if "int" in dtype_str.lower() or "float" in dtype_str.lower():
-
                 if df_lib_use == "polars":
                     col_profile["statistics"]["numerical"] = {
                         "mean": col_data.mean().to_polars(),
@@ -191,21 +185,17 @@ class DataScan:
                     }
 
             elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
-
                 if df_lib_use == "polars":
-
                     col_profile["statistics"]["string"] = {
                         "mode": col_data.mode().to_polars(),
                     }
 
                 else:
-
                     col_profile["statistics"]["string"] = {
                         "mode": col_data.mode().to_pandas(),
                     }
 
             elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
-
                 if df_lib_use == "polars":
                     min_date = col_data.min().to_polars()
                     max_date = col_data.max().to_polars()
@@ -223,7 +213,6 @@ class DataScan:
         return profile
 
     def _generate_profile(self) -> dict:
-
         profile = {}
 
         if self.tbl_name:
@@ -238,7 +227,6 @@ class DataScan:
         )
 
         for column in self.data_alt.columns:
-
             col_data = self.data_alt[column]
             native_dtype = str(self.data[column].dtype)
 
@@ -281,7 +269,6 @@ class DataScan:
                 }
 
             elif "date" in str(col_data.dtype).lower():
-
                 min_date = str(col_data.min())
                 max_date = str(col_data.max())
 

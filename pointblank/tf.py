@@ -8,8 +8,8 @@ from pointblank._constants import COMPATIBLE_DTYPES
 from pointblank._constants_docs import ARG_DOCSTRINGS
 from pointblank._interrogation import (
     ColValsCompareOne,
-    ColValsCompareTwo,
     ColValsCompareSet,
+    ColValsCompareTwo,
 )
 from pointblank._utils import _get_assertion_from_fname
 
@@ -71,7 +71,6 @@ class TF:
     def col_vals_gt(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -92,7 +91,6 @@ class TF:
     def col_vals_lt(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -113,7 +111,6 @@ class TF:
     def col_vals_eq(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -134,7 +131,6 @@ class TF:
     def col_vals_ne(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -155,7 +151,6 @@ class TF:
     def col_vals_ge(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -176,7 +171,6 @@ class TF:
     def col_vals_le(
         data: FrameT, column: str, value: float | int, na_pass: bool = False, threshold: int = 1
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -203,7 +197,6 @@ class TF:
         na_pass: bool = False,
         threshold: int = 1,
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -232,7 +225,6 @@ class TF:
         na_pass: bool = False,
         threshold: int = 1,
     ) -> bool:
-
         assertion_method = _get_assertion_from_fname()
         compatible_types = COMPATIBLE_DTYPES.get(assertion_method, [])
 
@@ -258,7 +250,6 @@ class TF:
         set: list[float | int],
         threshold: int = 1,
     ) -> bool:
-
         compatible_types = COMPATIBLE_DTYPES.get("in_set", [])
 
         return ColValsCompareSet(
@@ -280,7 +271,6 @@ class TF:
         set: list[float | int],
         threshold: int = 1,
     ) -> bool:
-
         compatible_types = COMPATIBLE_DTYPES.get("not_in_set", [])
 
         return ColValsCompareSet(

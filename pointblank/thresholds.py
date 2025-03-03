@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable
 from dataclasses import dataclass, field
+from typing import Callable
 
 __all__ = ["Thresholds", "Actions"]
 
@@ -128,7 +128,6 @@ class Thresholds:
         return self.__repr__()
 
     def _get_threshold_value(self, level: str) -> float | int | None:
-
         # The threshold for a given level (warning, error, critical) is either:
         # 1. a fraction
         # 2. an absolute count
@@ -189,7 +188,6 @@ class Thresholds:
 
 
 def _convert_abs_count_to_fraction(value: int | None, test_units: int) -> float:
-
     # Using a integer value signifying the total number of 'test units' (in the
     # context of a validation), we convert an integer count (absolute) threshold
     # value to a fractional threshold value
@@ -236,7 +234,6 @@ def _normalize_thresholds_creation(
         thresholds = Thresholds(warning=thresholds)
 
     elif isinstance(thresholds, tuple):
-
         # The tuple should have 1-3 elements
         if len(thresholds) == 1:
             thresholds = Thresholds(warning=thresholds[0])
@@ -250,7 +247,6 @@ def _normalize_thresholds_creation(
             raise ValueError("The tuple should have 1-3 elements.")
 
     elif isinstance(thresholds, dict):
-
         # The dictionary should have keys for "warning", "error", and "critical"; it can omit
         # any of these keys
 

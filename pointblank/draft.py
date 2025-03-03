@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from importlib_resources import files
-
 from narwhals.typing import FrameT
-from typing import Any
 
 from pointblank._constants import MODEL_PROVIDERS
 from pointblank.datascan import DataScan
@@ -198,7 +197,6 @@ class DraftValidation:
     response: str = field(init=False)
 
     def __post_init__(self):
-
         # Check that the chatlas package is installed
         try:
             import chatlas  # noqa
@@ -283,7 +281,6 @@ class DraftValidation:
         )
 
         if provider == "anthropic":  # pragma: no cover
-
             # Check that the anthropic package is installed
             try:
                 import anthropic  # noqa
@@ -302,7 +299,6 @@ class DraftValidation:
             )
 
         if provider == "openai":  # pragma: no cover
-
             # Check that the openai package is installed
             try:
                 import openai  # noqa
@@ -321,7 +317,6 @@ class DraftValidation:
             )
 
         if provider == "ollama":  # pragma: no cover
-
             # Check that the openai package is installed
             try:
                 import openai  # noqa
@@ -339,7 +334,6 @@ class DraftValidation:
             )
 
         if provider == "bedrock":  # pragma: no cover
-
             from chatlas import ChatBedrockAnthropic  # pragma: no cover
 
             chat = ChatBedrockAnthropic(  # pragma: no cover

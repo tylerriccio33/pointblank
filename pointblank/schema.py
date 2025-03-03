@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import copy
-
 from dataclasses import dataclass
 
-from pointblank._utils import _get_tbl_type, _is_lib_present
 from pointblank._constants import IBIS_BACKENDS
+from pointblank._utils import _get_tbl_type, _is_lib_present
 
 __all__ = ["Schema"]
 
@@ -312,25 +311,21 @@ class Schema:
             raise ValueError("All elements of `columns` must be tuples.")
 
     def _collect_schema_from_table(self):
-
         # Determine if this table can be converted to a Narwhals DataFrame
         table_type = _get_tbl_type(self.tbl)
 
         # Collect column names and dtypes from the DataFrame and store as a list of tuples
         if table_type == "pandas":
-
             schema_dict = dict(self.tbl.dtypes)
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 
         elif table_type == "polars":
-
             schema_dict = dict(self.tbl.schema.items())
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 
         elif table_type in IBIS_BACKENDS:
-
             schema_dict = dict(self.tbl.schema().items())
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
@@ -384,7 +379,6 @@ class Schema:
         # Iteratively move through the columns in `this_column_list` and determine if the dtype of
         # the column in `this_column_list` is the same as the dtype in `other_column_list`
         for col in this_column_list:
-
             # Skip dtype checks if the tuple value of `col` only contains the column name
             # (i.e., is a single element tuple)
             if len(self.columns[this_column_list.index(col)]) == 1:
@@ -401,7 +395,6 @@ class Schema:
             dtype_matches = []
 
             for i in range(len(this_dtype)):
-
                 if not case_sensitive_dtypes:
                     this_dtype[i] = this_dtype[i].lower()
                     other_dtype = other_dtype.lower()
@@ -463,7 +456,6 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
-
                 # Skip dtype checks if the tuple value of `col` only contains the column name
                 # (i.e., is a single element tuple)
                 if len(self.columns[this_column_list.index(col)]) == 1:
@@ -486,7 +478,6 @@ class Schema:
                 dtype_matches = []
 
                 for i in range(len(this_dtype)):
-
                     if not case_sensitive_dtypes:
                         this_dtype[i] = this_dtype[i].lower()
                         other_dtype = other_dtype.lower()
@@ -544,7 +535,6 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
-
                 # Skip dtype checks if the tuple value of `col` only contains the column name
                 # (i.e., is a single element tuple)
                 if len(self.columns[this_column_list.index(col)]) == 1:
@@ -567,7 +557,6 @@ class Schema:
                 dtype_matches = []
 
                 for i in range(len(this_dtype)):
-
                     if not case_sensitive_dtypes:
                         this_dtype[i] = this_dtype[i].lower()
                         other_dtype = other_dtype.lower()
@@ -633,7 +622,6 @@ class Schema:
             if col not in other_column_list:
                 return False
             else:
-
                 # Skip dtype checks if the tuple value of `col` only contains the column name
                 # (i.e., is a single element tuple)
                 if len(self.columns[this_column_list.index(col)]) == 1:
@@ -700,7 +688,6 @@ class Schema:
         return [col[1] for col in self.columns]
 
     def get_schema_coerced(self, to: str | None = None) -> dict[str, str]:
-
         # If a table isn't provided, we cannot use this method
         if self.tbl is None:
             raise ValueError(
@@ -709,9 +696,7 @@ class Schema:
 
         # Pandas coercions
         if self.tbl_type == "pandas":
-
             if to == "polars":
-
                 # Check if Polars is available
                 if not _is_lib_present("polars"):
                     raise ImportError(
@@ -725,9 +710,7 @@ class Schema:
                 return new_schema
 
         if self.tbl_type == "polars":
-
             if to == "pandas":
-
                 # Check if Pandas is available
                 if not _is_lib_present("pandas"):
                     raise ImportError(
@@ -771,9 +754,7 @@ def _process_columns(
         A list of tuples containing column information.
     """
     if columns is not None:
-
         if isinstance(columns, list):
-
             if all(isinstance(col, str) for col in columns):
                 return [(col,) for col in columns]
             else:
@@ -799,7 +780,6 @@ def _schema_info_generate_colname_dict(
     dtype_multiple: bool,
     dtype_matched_pos: int,
 ) -> dict[str, any]:
-
     return {
         "colname_matched": colname_matched,
         "index_matched": index_matched,
@@ -968,7 +948,6 @@ def _get_schema_validation_info(
     tgt_colname_mapping = {col.lower(): col for col in tgt_colnames}
 
     if case_sensitive_colnames:
-
         # Which columns are in both the target table and the expected schema?
         columns_found = [col for col in exp_colnames if col in tgt_colnames]
 
@@ -979,7 +958,6 @@ def _get_schema_validation_info(
         columns_not_found = [col for col in tgt_colnames if col not in exp_colnames]
 
     else:
-
         # Convert expected column names to lowercase for case-insensitive comparison
         exp_colnames_lower = [col.lower() for col in exp_colnames]
 
@@ -1036,7 +1014,6 @@ def _get_schema_validation_info(
         # If the columns are matched in order, set `columns_matched_in_order` to True; do this
         # for case-sensitive and case-insensitive comparisons
         if case_sensitive_colnames:
-
             if columns_found == tgt_colnames_matched:
                 schema_info["columns_matched_in_order"] = True
 
@@ -1044,7 +1021,6 @@ def _get_schema_validation_info(
                 schema_info["columns_matched_any_order"] = True
 
         else:
-
             if [col.lower() for col in columns_found] == [
                 col.lower() for col in tgt_colnames_matched
             ]:
@@ -1060,13 +1036,11 @@ def _get_schema_validation_info(
     colname_dict = []
 
     for col in exp_colnames:
-
         #
         # Phase I: Determine if the column name is matched
         #
 
         if case_sensitive_colnames:
-
             # Does the column name have a match in the expected schema?
             colname_matched = col in columns_found
 
@@ -1076,7 +1050,6 @@ def _get_schema_validation_info(
             else:
                 matched_to = None
         else:
-
             # Does the column name have a match in the expected schema? A lowercase comparison
             # is used here to determine if the column name is matched
             colname_matched = col.lower() in columns_found
@@ -1114,7 +1087,6 @@ def _get_schema_validation_info(
         #
 
         if colname_matched and dtype_present:
-
             # Get the dtype of the column in the target table
             dtype_tgt = schema_tgt.columns[tgt_colnames.index(matched_to)][1]
 
@@ -1125,7 +1097,6 @@ def _get_schema_validation_info(
             # Iterate through the dtypes of the column in the expected schema and determine if
             # any of them match the dtype of the column in the target table
             for i in range(len(dtype_input)):
-
                 if not case_sensitive_dtypes:
                     dtype_input[i] = dtype_input[i].lower()
                     dtype_tgt = dtype_tgt.lower()
@@ -1152,7 +1123,6 @@ def _get_schema_validation_info(
                 dtype_matched_pos = None
 
         else:
-
             dtype_matched = False
             dtype_multiple = False
             dtype_matched_pos = None

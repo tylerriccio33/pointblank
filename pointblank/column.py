@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 import narwhals as nw
 from narwhals.typing import IntoDataFrame
-
-from dataclasses import dataclass
 
 __all__ = [
     "col",
@@ -161,7 +160,6 @@ class Column:
     exprs: ColumnSelector | ColumnSelectorNarwhals
 
     def resolve(self, columns: list[str], table: IntoDataFrame | None = None) -> list[str]:
-
         if isinstance(self.exprs, ColumnSelector):
             resolved_columns = self.exprs.resolve(columns)
             return [col for col in columns if col in resolved_columns]
