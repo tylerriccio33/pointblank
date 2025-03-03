@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import pathlib
@@ -180,7 +179,6 @@ def tbl_dates_times_text_sqlite():
 
 @pytest.fixture
 def tbl_pl_variable_names():
-
     return pl.DataFrame(
         {
             "word": ["apple", "banana"],
@@ -198,7 +196,6 @@ def tbl_pl_variable_names():
 
 @pytest.fixture
 def tbl_pd_variable_names():
-
     return pd.DataFrame(
         {
             "word": ["apple", "banana"],
@@ -245,7 +242,6 @@ def tbl_schema_tests():
 
 
 def test_normalize_reporting_language():
-
     assert _normalize_reporting_language(lang=None) == "en"
     assert _normalize_reporting_language(lang="en") == "en"
     assert _normalize_reporting_language(lang="IT") == "it"
@@ -257,7 +253,6 @@ def test_normalize_reporting_language():
 
 
 def test_validate_class():
-
     validate = Validate(tbl_pd)
 
     assert validate.data == tbl_pd
@@ -273,7 +268,6 @@ def test_validate_class():
 
 
 def test_validate_class_lang_locale():
-
     validate_1 = Validate(tbl_pd, lang="fr", locale="fr-CA")
 
     assert validate_1.lang == "fr"
@@ -290,7 +284,6 @@ def test_validate_class_lang_locale():
 
 
 def test_validation_info():
-
     v = _ValidationInfo(
         i=1,
         i_o=1,
@@ -351,7 +344,6 @@ def test_validation_info():
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_all_passing(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
@@ -383,7 +375,6 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_plan_and_interrogation(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Create a validation plan
@@ -540,7 +531,6 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_attr_getters(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
@@ -596,7 +586,6 @@ def test_validation_attr_getters(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_attr_getters_no_dict(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
@@ -636,7 +625,6 @@ def test_validation_attr_getters_no_dict(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_get_json_report(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
@@ -660,7 +648,6 @@ def test_get_json_report(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     report = (
@@ -676,7 +663,6 @@ def test_validation_report_interrogate_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     report = (
@@ -691,7 +677,6 @@ def test_validation_report_no_interrogate_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     report = (
@@ -715,7 +700,6 @@ def test_validation_report_use_fields_snap(request, tbl_fixture, snapshot):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_report_json_no_steps(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).get_json_report() == "[]"
@@ -724,7 +708,6 @@ def test_validation_report_json_no_steps(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_column_input(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Raise a ValueError when `columns=` is not a string
@@ -758,7 +741,6 @@ def test_validation_check_column_input(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_column_input_with_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that using `col(column_name)` in `columns=` is allowed and doesn't raise an error
@@ -779,7 +761,6 @@ def test_validation_check_column_input_with_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_na_pass_input(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Raise a ValueError when `na_pass=` is not a boolean
@@ -803,7 +784,6 @@ def test_validation_check_na_pass_input(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_thresholds_input(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that allowed forms for `thresholds=` don't raise an error
@@ -860,7 +840,6 @@ def test_validation_check_thresholds_input(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_active_input(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Raise a ValueError when `active=` is not a boolean
@@ -894,7 +873,6 @@ def test_validation_check_active_input(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_check_thresholds_inherit(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that the `thresholds=` argument is inherited from Validate, in those steps where
@@ -1063,7 +1041,6 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_autobriefs(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     schema = Schema(columns=["x", "y", "z"])
@@ -1269,7 +1246,6 @@ def test_validation_autobriefs(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that the `actions=` argument is inherited from Validate
@@ -1290,7 +1266,6 @@ def test_validation_actions_inherit_case(request, tbl_fixture, capsys):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_override_case(request, tbl_fixture, capsys):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Check that the `actions=` argument is *not* inherited from Validate
@@ -1311,7 +1286,6 @@ def test_validation_actions_override_case(request, tbl_fixture, capsys):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_multiple_actions_inherit(request, tbl_fixture, capsys):
-
     def notify():
         print("NOTIFIER")
 
@@ -1340,7 +1314,6 @@ def test_validation_actions_multiple_actions_inherit(request, tbl_fixture, capsy
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_multiple_actions_override(request, tbl_fixture, capsys):
-
     def notify():
         print("NOTIFIER")
 
@@ -1374,7 +1347,6 @@ def test_validation_actions_multiple_actions_override(request, tbl_fixture, caps
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_multiple_actions_step_only(request, tbl_fixture, capsys):
-
     def notify_step():
         print("NOTIFY STEP")
 
@@ -1404,7 +1376,6 @@ def test_validation_actions_multiple_actions_step_only(request, tbl_fixture, cap
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_inherit_none(request, tbl_fixture, capsys):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     (
@@ -1424,7 +1395,6 @@ def test_validation_actions_inherit_none(request, tbl_fixture, capsys):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_override_none(request, tbl_fixture, capsys):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     (
@@ -1444,7 +1414,6 @@ def test_validation_actions_override_none(request, tbl_fixture, capsys):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     (
@@ -1462,7 +1431,6 @@ def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
 
 
 def test_validation_with_preprocessing_pd(tbl_pd):
-
     v = (
         Validate(tbl_pd)
         .col_vals_eq(columns="z", value=8)
@@ -1475,7 +1443,6 @@ def test_validation_with_preprocessing_pd(tbl_pd):
 
 
 def test_validation_with_preprocessing_pd_use_nw(tbl_pd):
-
     v = (
         Validate(tbl_pd)
         .col_vals_eq(columns="z", value=8)
@@ -1488,7 +1455,6 @@ def test_validation_with_preprocessing_pd_use_nw(tbl_pd):
 
 
 def test_validation_with_preprocessing_with_fn_pd(tbl_pd):
-
     def multiply_z_by_two(df):
         return df.assign(z=df["z"] * 2)
 
@@ -1504,7 +1470,6 @@ def test_validation_with_preprocessing_with_fn_pd(tbl_pd):
 
 
 def test_validation_with_preprocessing_pl(tbl_pl):
-
     v = (
         Validate(tbl_pl)
         .col_vals_eq(columns="z", value=8)
@@ -1517,7 +1482,6 @@ def test_validation_with_preprocessing_pl(tbl_pl):
 
 
 def test_validation_with_preprocessing_pl_use_nw(tbl_pl):
-
     v = (
         Validate(tbl_pl)
         .col_vals_eq(columns="z", value=8)
@@ -1530,7 +1494,6 @@ def test_validation_with_preprocessing_pl_use_nw(tbl_pl):
 
 
 def test_validation_with_preprocessing_with_fn_pl(tbl_pl):
-
     def multiply_z_by_two(df):
         return df.with_columns(z=pl.col("z") * 2)
 
@@ -1547,7 +1510,6 @@ def test_validation_with_preprocessing_with_fn_pl(tbl_pl):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_gt(request, tbl_fixture):
-
     pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
 
     tbl = request.getfixturevalue(tbl_fixture)
@@ -1565,7 +1527,6 @@ def test_col_vals_gt(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_lt(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_lt(columns="x", value=10).interrogate()
@@ -1581,7 +1542,6 @@ def test_col_vals_lt(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_eq(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_eq(columns="z", value=8).interrogate()
@@ -1597,7 +1557,6 @@ def test_col_vals_eq(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_ne(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_ne(columns="z", value=7).interrogate()
@@ -1613,7 +1572,6 @@ def test_col_vals_ne(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_ge(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_ge(columns="x", value=1).interrogate()
@@ -1629,7 +1587,6 @@ def test_col_vals_ge(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_le(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_le(columns="x", value=4).interrogate()
@@ -1645,7 +1602,6 @@ def test_col_vals_le(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_between(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_between(columns="x", left=1, right=4).interrogate()
@@ -1713,7 +1669,6 @@ def test_col_vals_between(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_outside(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation_1 = Validate(tbl).col_vals_outside(columns="x", left=5, right=8).interrogate()
@@ -1799,7 +1754,6 @@ def test_col_vals_outside(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_in_set(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -1841,7 +1795,6 @@ def test_col_vals_in_set(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_vals_not_in_set(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -1883,7 +1836,6 @@ def test_col_vals_not_in_set(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_vals_regex(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -1910,7 +1862,6 @@ def test_col_vals_regex(request, tbl_fixture):
 
 
 def test_col_vals_expr_polars_tbl():
-
     df = load_dataset(tbl_type="polars")
 
     pl_expr = (pl.col("c") > pl.col("a")) & (pl.col("d") > pl.col("c"))
@@ -1932,7 +1883,6 @@ def test_col_vals_expr_polars_tbl():
 
 
 def test_col_vals_expr_pandas_tbl():
-
     df = load_dataset(tbl_type="pandas")
 
     pd_expr = lambda df: (df["c"] > df["a"]) & (df["d"] > df["c"])  # noqa
@@ -1955,7 +1905,6 @@ def test_col_vals_expr_pandas_tbl():
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_rows_distinct(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).rows_distinct().interrogate().n_passed(i=1, scalar=True) == 4
@@ -1995,7 +1944,6 @@ def test_rows_distinct(request, tbl_fixture):
 
 
 def test_col_schema_match():
-
     tbl = pl.DataFrame(
         {
             "a": ["apple", "banana", "cherry", "date"],
@@ -2654,7 +2602,6 @@ def test_col_schema_match():
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_row_count_match(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).row_count_match(count=4).interrogate().n_passed(i=1, scalar=True) == 1
@@ -2669,74 +2616,86 @@ def test_row_count_match(request, tbl_fixture):
 
     assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
 
-@pytest.mark.parametrize(('val','e', 'exc'),
-                         [
-                             ((-1, 5), ValueError, 'Tolerance must be non-negative'),
-                             ([100, 5], TypeError, 'Tolerance must be a number or a tuple of numbers'),
-                             ((5, -1), ValueError, 'Tolerance must be non-negative'),
-                             ((None, .05), TypeError, 'Tolerance must be a number or a tuple of numbers'),
-                             (('fooval', 100), TypeError, 'Tolerance must be a number or a tuple of numbers'),
-                             (-1, ValueError, 'Tolerance must be non-negative'),
-                         ])
-def test_invalid_row_count_tol(val: Any, e: Exception, exc :str) -> None:
+
+@pytest.mark.parametrize(
+    ("val", "e", "exc"),
+    [
+        ((-1, 5), ValueError, "Tolerance must be non-negative"),
+        ([100, 5], TypeError, "Tolerance must be a number or a tuple of numbers"),
+        ((5, -1), ValueError, "Tolerance must be non-negative"),
+        ((None, 0.05), TypeError, "Tolerance must be a number or a tuple of numbers"),
+        (("fooval", 100), TypeError, "Tolerance must be a number or a tuple of numbers"),
+        (-1, ValueError, "Tolerance must be non-negative"),
+    ],
+)
+def test_invalid_row_count_tol(val: Any, e: Exception, exc: str) -> None:
     data = pl.DataFrame({"foocol": [1, 2, 3]})
 
-    with pytest.raises(expected_exception=e, match = exc):
-        Validate(data=data).row_count_match(count = 3, tol=val)
+    with pytest.raises(expected_exception=e, match=exc):
+        Validate(data=data).row_count_match(count=3, tol=val)
 
 
 def test_row_count_example_tol() -> None:
     small_table = load_dataset("small_table")
-    smaller_small_table = small_table.sample(n = 12) # within the lower bound
+    smaller_small_table = small_table.sample(n=12)  # within the lower bound
     (
         Validate(data=smaller_small_table)
-        .row_count_match(count=13,tol=(2, 0)) # minus 2 but plus 0, ie. 11-13
+        .row_count_match(count=13, tol=(2, 0))  # minus 2 but plus 0, ie. 11-13
         .interrogate()
         .assert_passing()
     )
 
     (
         Validate(data=smaller_small_table)
-        .row_count_match(count=13,tol=.5) # .50% tolerance of 13
+        .row_count_match(count=13, tol=0.5)  # .50% tolerance of 13
         .interrogate()
         .assert_passing()
-        )
+    )
 
-    even_smaller_table = small_table.sample(n = 2)
+    even_smaller_table = small_table.sample(n=2)
     with pytest.raises(AssertionError):
         (
             Validate(data=even_smaller_table)
-            .row_count_match(count=13,tol=5) # plus or minus 5; this test will fail
+            .row_count_match(count=13, tol=5)  # plus or minus 5; this test will fail
             .interrogate()
             .assert_passing()
         )
 
+
 test_row_count_example_tol()
 
-@pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
-                         [
-                            (98, 100, .05, True),
-                            (98, 100, 5, True),
-                            (104, 100, (5, 5), True),
-                            (0, 100, .05, False),
-                            (0, 100, 5, False),
-                            (0, 100, (5, 5), False),
-                            (98, 100, .95, True),
-                         ])
-def test_row_count_tol(nrows : int, target_count: int, tol : float | tuple[int, int], should_pass : bool) -> None:
+
+@pytest.mark.parametrize(
+    ("nrows", "target_count", "tol", "should_pass"),
+    [
+        (98, 100, 0.05, True),
+        (98, 100, 5, True),
+        (104, 100, (5, 5), True),
+        (0, 100, 0.05, False),
+        (0, 100, 5, False),
+        (0, 100, (5, 5), False),
+        (98, 100, 0.95, True),
+    ],
+)
+def test_row_count_tol(
+    nrows: int, target_count: int, tol: float | tuple[int, int], should_pass: bool
+) -> None:
     data = pl.DataFrame({"foocol": [random.random()] * nrows})
 
-    catcher = contextlib.nullcontext if should_pass else partial(pytest.raises, AssertionError, match = "All tests did not pass")
+    catcher = (
+        contextlib.nullcontext
+        if should_pass
+        else partial(pytest.raises, AssertionError, match="The following assertions failed")
+    )
 
     with catcher():
-        Validate(data = data).row_count_match(
-            count = target_count,
-            tol = tol
+        Validate(data=data).row_count_match(
+            count=target_count, tol=tol
         ).interrogate().assert_passing()
+
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_count_match(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).col_count_match(count=3).interrogate().n_passed(i=1, scalar=True) == 1
@@ -2753,7 +2712,6 @@ def test_col_count_match(request, tbl_fixture):
 
 
 def test_col_schema_match_list_of_dtypes():
-
     tbl = pl.DataFrame(
         {
             "a": ["apple", "banana", "cherry", "date"],
@@ -3637,7 +3595,6 @@ def test_col_schema_match_list_of_dtypes():
 
 
 def test_col_schema_match_columns_only():
-
     tbl = pl.DataFrame(
         {
             "a": ["apple", "banana", "cherry", "date"],
@@ -4024,7 +3981,6 @@ def test_col_schema_match_columns_only():
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_validation_with_selector_helper_functions(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Create a large validation plan and interrogate the input table
@@ -4134,7 +4090,6 @@ def test_validation_with_selector_helper_functions(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_validation_with_single_selectors(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Use `starts_with()` selector
@@ -4244,7 +4199,6 @@ def test_validation_with_single_selectors(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_validation_with_single_selectors_across_validations(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # `col_vals_gt()`
@@ -4377,7 +4331,6 @@ def test_validation_with_single_selectors_across_validations(request, tbl_fixtur
 
 
 def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_names):
-
     # Create a validation plan and interrogate the input table
     v = (
         Validate(tbl_pl_variable_names)
@@ -4453,7 +4406,6 @@ def test_validation_with_selector_helper_functions_using_pre(tbl_pl_variable_nam
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_validation_with_selector_helper_functions_no_match(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Create a validation that evaluates with no issues in the first and third steps but has
@@ -4508,7 +4460,6 @@ def test_validation_with_selector_helper_functions_no_match(request, tbl_fixture
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_validation_with_selector_helper_functions_no_match_snap(request, tbl_fixture, snapshot):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Create a validation that evaluates with no issues in the first and third steps but has
@@ -4536,13 +4487,11 @@ def test_validation_with_selector_helper_functions_no_match_snap(request, tbl_fi
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_first_n(request, tbl_fixture):
-
     if tbl_fixture not in [
         "tbl_dates_times_text_parquet",
         "tbl_dates_times_text_duckdb",
         "tbl_dates_times_text_sqlite",
     ]:
-
         tbl = request.getfixturevalue(tbl_fixture)
 
         validation = (
@@ -4559,13 +4508,11 @@ def test_interrogate_first_n(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_interrogate_sample_n(request, tbl_fixture):
-
     if tbl_fixture not in [
         "tbl_dates_times_text_parquet",
         "tbl_dates_times_text_duckdb",
         "tbl_dates_times_text_sqlite",
     ]:
-
         tbl = request.getfixturevalue(tbl_fixture)
 
         validation = (
@@ -4598,7 +4545,6 @@ def test_interrogate_sample_n(request, tbl_fixture):
     ],
 )
 def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation = (
@@ -4615,7 +4561,6 @@ def test_interrogate_sample_frac(request, tbl_fixture, sample_frac, expected):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_dates_times_text_pd", "tbl_dates_times_text_pl"])
 def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation = (
@@ -4632,7 +4577,6 @@ def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_vals_null(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).col_vals_null(columns="text").interrogate().n_passed(i=1, scalar=True) == 1
@@ -4640,7 +4584,6 @@ def test_col_vals_null(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_vals_not_null(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -4651,7 +4594,6 @@ def test_col_vals_not_null(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_DATES_TIMES_TEXT_LIST)
 def test_col_exists(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Validate(tbl).col_exists(columns="text").interrogate().n_passed(i=1, scalar=True) == 1
@@ -4660,7 +4602,6 @@ def test_col_exists(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_types(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
@@ -4674,7 +4615,6 @@ def test_validation_types(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_interrogate_raise_on_get_first_and_sample(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     with pytest.raises(ValueError):
@@ -4686,7 +4626,6 @@ def test_interrogate_raise_on_get_first_and_sample(request, tbl_fixture):
 
 
 def test_get_data_extracts(tbl_missing_pd):
-
     validation = (
         Validate(tbl_missing_pd)
         .col_vals_gt(columns="x", value=1)
@@ -4714,7 +4653,6 @@ def test_get_data_extracts(tbl_missing_pd):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_interrogate_with_active_inactive(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation = (
@@ -4750,7 +4688,6 @@ def test_interrogate_with_active_inactive(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
 def test_get_sundered_data(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # This validation will:
@@ -4797,7 +4734,6 @@ def test_get_sundered_data(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
 def test_get_sundered_data_empty_frame(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Remove all rows from the table
@@ -4821,7 +4757,6 @@ def test_get_sundered_data_empty_frame(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
 def test_get_sundered_data_no_validation_steps(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     validation = Validate(tbl).interrogate()
@@ -4842,7 +4777,6 @@ def test_get_sundered_data_no_validation_steps(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl"])
 def test_get_sundered_data_mix_of_step_types(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # This sundering from this validation will effectively be the same as in the
@@ -4890,7 +4824,6 @@ def test_get_sundered_data_mix_of_step_types(request, tbl_fixture):
 
 
 def test_comprehensive_validation_report_html_snap(snapshot):
-
     validation = (
         Validate(
             data=load_dataset(),
@@ -4941,7 +4874,6 @@ def test_comprehensive_validation_report_html_snap(snapshot):
 
 
 def test_no_interrogation_validation_report_html_snap(snapshot):
-
     validation = (
         Validate(
             data=load_dataset(),
@@ -4983,7 +4915,6 @@ def test_no_interrogation_validation_report_html_snap(snapshot):
 
 
 def test_no_steps_validation_report_html_snap(snapshot):
-
     validation = Validate(
         data=load_dataset(),
         tbl_name="small_table",
@@ -4997,7 +4928,6 @@ def test_no_steps_validation_report_html_snap(snapshot):
 
 
 def test_no_steps_validation_report_html_with_interrogate():
-
     validation = Validate(
         data=load_dataset(),
         tbl_name="small_table",
@@ -5011,7 +4941,6 @@ def test_no_steps_validation_report_html_with_interrogate():
 
 
 def test_load_dataset():
-
     # Load the default dataset (`small_table`) and verify it's a Polars DataFrame
     tbl = load_dataset()
     assert isinstance(tbl, pl.DataFrame)
@@ -5038,7 +4967,6 @@ def test_load_dataset():
 
 
 def test_load_dataset_invalid():
-
     # A ValueError is raised when an invalid dataset name is provided
     with pytest.raises(ValueError):
         load_dataset(dataset="invalid_dataset")
@@ -5049,7 +4977,6 @@ def test_load_dataset_invalid():
 
 
 def test_load_dataset_no_pandas():
-
     # Mock the absence of the pandas library
     with patch.dict(sys.modules, {"pandas": None}):
         # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
@@ -5058,7 +4985,6 @@ def test_load_dataset_no_pandas():
 
 
 def test_load_dataset_no_polars():
-
     # Mock the absence of the polars library
     with patch.dict(sys.modules, {"polars": None}):
         # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
@@ -5067,7 +4993,6 @@ def test_load_dataset_no_polars():
 
 
 def test_process_title_text():
-
     assert _process_title_text(title=None, tbl_name=None) == ""
     assert _process_title_text(title=":default:", tbl_name=None) == _get_default_title_text()
     assert _process_title_text(title=":none:", tbl_name=None) == ""
@@ -5103,7 +5028,6 @@ def test_fmt_lg(input_value, expected_output):
 
 
 def test_create_table_time_html():
-
     datetime_0 = datetime(2021, 1, 1, 0, 0, 0, 0)
     datetime_1_min_later = datetime(2021, 1, 1, 0, 1, 0, 0)
 
@@ -5112,7 +5036,6 @@ def test_create_table_time_html():
 
 
 def test_create_table_type_html():
-
     # def _create_table_type_html(tbl_type: str | None, tbl_name: str | None)
 
     assert _create_table_type_html(tbl_type=None, tbl_name="tbl_name") == ""
@@ -5125,7 +5048,6 @@ def test_create_table_type_html():
 
 
 def test_pointblank_config_class():
-
     # Test the default configuration
     config = PointblankConfig()
 
@@ -5140,7 +5062,6 @@ def test_pointblank_config_class():
 
 
 def test_preview_no_fail_pd_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     preview(small_table)
@@ -5150,7 +5071,6 @@ def test_preview_no_fail_pd_table():
 
 
 def test_preview_no_fail_pl_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="polars")
 
     preview(small_table)
@@ -5160,7 +5080,6 @@ def test_preview_no_fail_pl_table():
 
 
 def test_preview_no_fail_duckdb_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
     preview(small_table)
@@ -5170,25 +5089,21 @@ def test_preview_no_fail_duckdb_table():
 
 
 def test_preview_large_head_tail_pd_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
     preview(small_table, n_head=10, n_tail=10)
 
 
 def test_preview_large_head_tail_pl_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="polars")
     preview(small_table, n_head=10, n_tail=10)
 
 
 def test_preview_large_head_tail_duckdb_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
     preview(small_table, n_head=10, n_tail=10)
 
 
 def test_preview_fails_head_tail_exceed_limit():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     with pytest.raises(ValueError):
@@ -5198,7 +5113,6 @@ def test_preview_fails_head_tail_exceed_limit():
 
 
 def test_preview_no_polars_duckdb_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
     # Mock the absence of the Polars library, which is the default library for making
@@ -5223,7 +5137,6 @@ def test_preview_no_polars_duckdb_table():
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_preview_with_columns_subset_no_fail(tbl_type):
-
     tbl = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
 
     preview(tbl, columns_subset="player_id")
@@ -5245,7 +5158,6 @@ def test_preview_with_columns_subset_no_fail(tbl_type):
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_preview_with_columns_subset_failing(tbl_type):
-
     tbl = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
 
     with pytest.raises(ValueError):
@@ -5259,7 +5171,6 @@ def test_preview_with_columns_subset_failing(tbl_type):
 
 
 def test_missing_vals_tbl_no_fail_pd_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
     missing_vals_tbl(small_table)
 
@@ -5271,7 +5182,6 @@ def test_missing_vals_tbl_no_fail_pd_table():
 
 
 def test_missing_vals_tbl_no_fail_pl_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="polars")
     missing_vals_tbl(small_table)
 
@@ -5283,7 +5193,6 @@ def test_missing_vals_tbl_no_fail_pl_table():
 
 
 def test_missing_vals_tbl_no_fail_duckdb_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
     missing_vals_tbl(small_table)
 
@@ -5295,40 +5204,32 @@ def test_missing_vals_tbl_no_fail_duckdb_table():
 
 
 def test_missing_vals_tbl_no_pandas():
-
     # Mock the absence of the pandas library
     with patch.dict(sys.modules, {"pandas": None}):
-
         # The function should not raise an error if a Polars table is provided
         small_table = load_dataset(dataset="small_table", tbl_type="polars")
         missing_vals_tbl(small_table)
 
 
 def test_missing_vals_tbl_no_polars():
-
     # Mock the absence of the polars library
     with patch.dict(sys.modules, {"polars": None}):
-
         # The function should not raise an error if a Pandas table is provided
         small_table = load_dataset(dataset="small_table", tbl_type="pandas")
         missing_vals_tbl(small_table)
 
 
 def test_missing_vals_tbl_using_ibis_no_pandas():
-
     # Mock the absence of the pandas library
     with patch.dict(sys.modules, {"pandas": None}):
-
         # The function should not raise an error if an Ibis backend table is provided
         small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
         missing_vals_tbl(small_table)
 
 
 def test_missing_vals_tbl_using_ibis_no_polars():
-
     # Mock the absence of the polars library
     with patch.dict(sys.modules, {"polars": None}):
-
         # The function should not raise an error if an Ibis backend table is provided
         small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
         missing_vals_tbl(small_table)
@@ -5336,7 +5237,6 @@ def test_missing_vals_tbl_using_ibis_no_polars():
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_get_column_count(tbl_type):
-
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
     game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
     nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
@@ -5347,7 +5247,6 @@ def test_get_column_count(tbl_type):
 
 
 def test_get_column_count_failing():
-
     with pytest.raises(ValueError):
         get_column_count(None)
     with pytest.raises(ValueError):
@@ -5356,7 +5255,6 @@ def test_get_column_count_failing():
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_get_row_count(tbl_type):
-
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
     game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
     nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
@@ -5367,7 +5265,6 @@ def test_get_row_count(tbl_type):
 
 
 def test_get_row_count_failing():
-
     with pytest.raises(ValueError):
         get_row_count(None)
     with pytest.raises(ValueError):
@@ -5375,7 +5272,6 @@ def test_get_row_count_failing():
 
 
 def test_get_row_count_no_polars_duckdb_table():
-
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
     # Mock the absence of the Polars library, which is the default library for making
@@ -5400,7 +5296,6 @@ def test_get_row_count_no_polars_duckdb_table():
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
 def test_get_step_report_no_fail(tbl_type):
-
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
 
     validation = (
@@ -5430,7 +5325,6 @@ def test_get_step_report_no_fail(tbl_type):
 
 
 def test_get_step_report_failing_inputs():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     validation = Validate(small_table).col_vals_gt(columns="a", value=0).interrogate()
@@ -5443,7 +5337,6 @@ def test_get_step_report_failing_inputs():
 
 
 def test_get_step_report_inactive_step():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     validation = Validate(small_table).col_vals_gt(columns="a", value=0, active=False).interrogate()
@@ -5452,7 +5345,6 @@ def test_get_step_report_inactive_step():
 
 
 def test_get_step_report_non_supported_steps():
-
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     validation = (
@@ -5480,7 +5372,6 @@ def test_get_step_report_non_supported_steps():
     ],
 )
 def test_get_step_report_schema_checks(schema):
-
     tbl = pl.DataFrame(
         {
             "a": ["apple", "banana", "cherry", "date"],
@@ -5528,15 +5419,15 @@ def assert_schema_cols(schema_info, expectations):
         expected_columns_unmatched,
     ) = expectations
 
-    assert (
-        schema_info["columns_found"] == expected_columns_found
-    ), f"Expected {expected_columns_found}, but got {schema_info['columns_found']}"
-    assert (
-        schema_info["columns_not_found"] == expected_columns_not_found
-    ), f"Expected {expected_columns_not_found}, but got {schema_info['columns_not_found']}"
-    assert (
-        schema_info["columns_unmatched"] == expected_columns_unmatched
-    ), f"Expected {expected_columns_unmatched}, but got {schema_info['columns_unmatched']}"
+    assert schema_info["columns_found"] == expected_columns_found, (
+        f"Expected {expected_columns_found}, but got {schema_info['columns_found']}"
+    )
+    assert schema_info["columns_not_found"] == expected_columns_not_found, (
+        f"Expected {expected_columns_not_found}, but got {schema_info['columns_not_found']}"
+    )
+    assert schema_info["columns_unmatched"] == expected_columns_unmatched, (
+        f"Expected {expected_columns_unmatched}, but got {schema_info['columns_unmatched']}"
+    )
 
 
 def assert_col_dtype_match(schema_info, column):
@@ -5602,7 +5493,6 @@ def schema_info_str(schema_info):
 
 
 def test_get_schema_validation_info(tbl_schema_tests, snapshot):
-
     # Note regarding the input in the `assert_schema_cols()` testing function
     #
     # The main input is a tuple of three lists:
@@ -6496,7 +6386,6 @@ def test_get_schema_validation_info(tbl_schema_tests, snapshot):
 
 
 def test_get_val_info(tbl_schema_tests):
-
     # 1. Schema matches completely and in order; dtypes all correct
     schema = Schema(
         columns=[
@@ -6518,7 +6407,6 @@ def test_get_val_info(tbl_schema_tests):
 
 
 def test_get_schema_step_report_01(tbl_schema_tests, snapshot):
-
     # 1. Schema matches completely and in order; dtypes all correct
     schema = Schema(
         columns=[
@@ -6549,7 +6437,6 @@ def test_get_schema_step_report_01(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_01_1(tbl_schema_tests, snapshot):
-
     # 1-1. Schema matches completely and in order; dtypes all correct
     # - use `complete=False` / `in_order=True`
     schema = Schema(
@@ -6581,7 +6468,6 @@ def test_get_schema_step_report_01_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_01_2(tbl_schema_tests, snapshot):
-
     # 1-2. Schema matches completely and in order; dtypes all correct
     # - use `complete=True` / `in_order=False`
     schema = Schema(
@@ -6613,7 +6499,6 @@ def test_get_schema_step_report_01_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_01_3(tbl_schema_tests, snapshot):
-
     # 1-3. Schema matches completely and in order; dtypes all correct
     # - use `complete=False` / `in_order=False`
     schema = Schema(
@@ -6645,7 +6530,6 @@ def test_get_schema_step_report_01_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_02(tbl_schema_tests, snapshot):
-
     # 2. Schema matches completely; option taken to match any of two different dtypes for column
     # "a", but all dtypes correct
     schema = Schema(
@@ -6677,7 +6561,6 @@ def test_get_schema_step_report_02(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_02_1(tbl_schema_tests, snapshot):
-
     # 2-1. Schema matches completely; option taken to match any of two different dtypes for column
     # "a", but all dtypes correct
     # - use `complete=False` / `in_order=True`
@@ -6710,7 +6593,6 @@ def test_get_schema_step_report_02_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_02_2(tbl_schema_tests, snapshot):
-
     # 2-2. Schema matches completely; option taken to match any of two different dtypes for column
     # "a", but all dtypes correct
     # - use `complete=True` / `in_order=False`
@@ -6743,7 +6625,6 @@ def test_get_schema_step_report_02_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_02_3(tbl_schema_tests, snapshot):
-
     # 2-3. Schema matches completely; option taken to match any of two different dtypes for column
     # "a", but all dtypes correct
     # - use `complete=False` / `in_order=False`
@@ -6776,7 +6657,6 @@ def test_get_schema_step_report_02_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_03(tbl_schema_tests, snapshot):
-
     # 3. Schema has all three columns accounted for but in an incorrect order; dtypes correct
     schema = Schema(
         columns=[
@@ -6807,7 +6687,6 @@ def test_get_schema_step_report_03(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_03_1(tbl_schema_tests, snapshot):
-
     # 3-1. Schema has all three columns accounted for but in an incorrect order; dtypes correct
     # - use `complete=False` / `in_order=True`
     schema = Schema(
@@ -6839,7 +6718,6 @@ def test_get_schema_step_report_03_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_03_2(tbl_schema_tests, snapshot):
-
     # 3-2. Schema has all three columns accounted for but in an incorrect order; dtypes correct
     # - use `complete=True` / `in_order=False`
     schema = Schema(
@@ -6871,7 +6749,6 @@ def test_get_schema_step_report_03_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_03_3(tbl_schema_tests, snapshot):
-
     # 3-3. Schema has all three columns accounted for but in an incorrect order; dtypes correct
     # - use `complete=False` / `in_order=False`
     schema = Schema(
@@ -6903,7 +6780,6 @@ def test_get_schema_step_report_03_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_04(tbl_schema_tests, snapshot):
-
     # 4. Schema has all three columns accounted for but in an incorrect order; option taken to match
     # any of two different dtypes for column "a", but all dtypes correct
     schema = Schema(
@@ -6934,7 +6810,6 @@ def test_get_schema_step_report_04(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_05(tbl_schema_tests, snapshot):
-
     # 5. Schema has all three columns matching, correct order; no dtypes provided
     schema = Schema(
         columns=[
@@ -6964,7 +6839,6 @@ def test_get_schema_step_report_05(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
-
     # 6. Schema has all three columns matching, correct order; incorrect dtypes
     schema = Schema(
         columns=[
@@ -6994,7 +6868,6 @@ def test_get_schema_step_report_06(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_07(tbl_schema_tests, snapshot):
-
     # 7. Schema has 2/3 columns matching, correct order; incorrect dtypes
     schema = Schema(
         columns=[
@@ -7023,7 +6896,6 @@ def test_get_schema_step_report_07(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_08(tbl_schema_tests, snapshot):
-
     # 8. Schema has 2/3 columns matching, incorrect order; incorrect dtypes
     schema = Schema(
         columns=[
@@ -7052,7 +6924,6 @@ def test_get_schema_step_report_08(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_09(tbl_schema_tests, snapshot):
-
     # 9. Schema has single column match; incorrect dtype
     schema = Schema(
         columns=[
@@ -7080,7 +6951,6 @@ def test_get_schema_step_report_09(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_10(tbl_schema_tests, snapshot):
-
     # 10. Schema is empty
     schema = Schema(columns=[])
 
@@ -7104,7 +6974,6 @@ def test_get_schema_step_report_10(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_11(tbl_schema_tests, snapshot):
-
     # 11. Schema has complete match of columns plus an additional, unmatched column
     schema = Schema(
         columns=[("a", ["String", "Int64"]), ("b", "Int64"), ("c", "Float64"), ("d", "String")]
@@ -7130,7 +6999,6 @@ def test_get_schema_step_report_11(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_12(tbl_schema_tests, snapshot):
-
     # 12. Schema has partial match of columns (in right order) plus an additional, unmatched column
     schema = Schema(columns=[("a", ["String", "Int64"]), ("c", "Float64"), ("d", "String")])
 
@@ -7154,7 +7022,6 @@ def test_get_schema_step_report_12(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_13(tbl_schema_tests, snapshot):
-
     # 13. Schema has no matches to any column names
     schema = Schema(
         columns=[
@@ -7184,7 +7051,6 @@ def test_get_schema_step_report_13(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_14(tbl_schema_tests, snapshot):
-
     # 14. Schema has all columns matching in case-insensitive manner, correct order; dtypes
     # all correct
     schema = Schema(
@@ -7215,7 +7081,6 @@ def test_get_schema_step_report_14(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_14_1(tbl_schema_tests, snapshot):
-
     # 14-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7245,7 +7110,6 @@ def test_get_schema_step_report_14_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_15(tbl_schema_tests, snapshot):
-
     # 15. Schema has all columns matching in case-insensitive manner, correct order; dtypes
     # all correct
     schema = Schema(
@@ -7276,7 +7140,6 @@ def test_get_schema_step_report_15(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_15_1(tbl_schema_tests, snapshot):
-
     # 15-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7306,7 +7169,6 @@ def test_get_schema_step_report_15_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_16(tbl_schema_tests, snapshot):
-
     # 16. Schema has 2/3 columns matching in case-insensitive manner, correct order; dtypes
     # all correct
     schema = Schema(
@@ -7336,7 +7198,6 @@ def test_get_schema_step_report_16(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_16_1(tbl_schema_tests, snapshot):
-
     # 16-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7365,7 +7226,6 @@ def test_get_schema_step_report_16_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_17(tbl_schema_tests, snapshot):
-
     # 17. Schema has 2/3 columns matching in case-insensitive manner, incorrect order; dtypes
     # all correct
     schema = Schema(
@@ -7395,7 +7255,6 @@ def test_get_schema_step_report_17(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_17_1(tbl_schema_tests, snapshot):
-
     # 17-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7424,7 +7283,6 @@ def test_get_schema_step_report_17_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_18(tbl_schema_tests, snapshot):
-
     # 18. Schema has one column matching in case-insensitive manner; dtype is correct
     schema = Schema(
         columns=[
@@ -7452,7 +7310,6 @@ def test_get_schema_step_report_18(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_18_1(tbl_schema_tests, snapshot):
-
     # 18-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7480,7 +7337,6 @@ def test_get_schema_step_report_18_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_19(tbl_schema_tests, snapshot):
-
     # 19. Schema has all three columns matching, correct order; dtypes don't match case of
     # actual dtypes
     schema = Schema(
@@ -7511,7 +7367,6 @@ def test_get_schema_step_report_19(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_19_1(tbl_schema_tests, snapshot):
-
     # 19-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -7541,7 +7396,6 @@ def test_get_schema_step_report_19_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_20(tbl_schema_tests, snapshot):
-
     # 20. Schema has all three columns matching, correct order; dtypes are substrings of
     # actual dtypes
     schema = Schema(
@@ -7572,7 +7426,6 @@ def test_get_schema_step_report_20(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_20_1(tbl_schema_tests, snapshot):
-
     # 20-1. Using `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7602,7 +7455,6 @@ def test_get_schema_step_report_20_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_21(tbl_schema_tests, snapshot):
-
     # 21. Schema has all three columns matching, correct order; dtypes are substrings of actual
     # dtypes where case doesn't match
     schema = Schema(
@@ -7633,7 +7485,6 @@ def test_get_schema_step_report_21(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_21_1(tbl_schema_tests, snapshot):
-
     # 21-1. Using `case_sensitive_dtypes=False`
     schema = Schema(
         columns=[
@@ -7663,7 +7514,6 @@ def test_get_schema_step_report_21_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_21_2(tbl_schema_tests, snapshot):
-
     # 21-2. Using `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7693,7 +7543,6 @@ def test_get_schema_step_report_21_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_21_3(tbl_schema_tests, snapshot):
-
     # 21-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7723,7 +7572,6 @@ def test_get_schema_step_report_21_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_22(tbl_schema_tests, snapshot):
-
     # 22. Schema has all 2/3 columns matching, missing one, correct order; dtypes don't match
     # case of actual dtypes
     schema = Schema(
@@ -7753,7 +7601,6 @@ def test_get_schema_step_report_22(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_22_1(tbl_schema_tests, snapshot):
-
     # 22-1. Using `case_sensitive_dtypes=False`
     schema = Schema(
         columns=[
@@ -7782,7 +7629,6 @@ def test_get_schema_step_report_22_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_23(tbl_schema_tests, snapshot):
-
     # 23. Schema has all 2/3 columns matching, missing one, correct order; dtypes are substrings
     # of actual dtypes
     schema = Schema(
@@ -7812,7 +7658,6 @@ def test_get_schema_step_report_23(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_23_1(tbl_schema_tests, snapshot):
-
     # 23-1. Using `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7841,7 +7686,6 @@ def test_get_schema_step_report_23_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_24(tbl_schema_tests, snapshot):
-
     # 24. Schema has all 2/3 columns matching, missing one, correct order; dtypes are substrings
     # of actual dtypes where case doesn't match
     schema = Schema(
@@ -7871,7 +7715,6 @@ def test_get_schema_step_report_24(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_24_1(tbl_schema_tests, snapshot):
-
     # 24-1. Using `case_sensitive_dtypes=False`
     schema = Schema(
         columns=[
@@ -7900,7 +7743,6 @@ def test_get_schema_step_report_24_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_24_2(tbl_schema_tests, snapshot):
-
     # 24-2. Using `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7929,7 +7771,6 @@ def test_get_schema_step_report_24_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_24_3(tbl_schema_tests, snapshot):
-
     # 24-3. Using `case_sensitive_dtypes=False` and `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -7958,7 +7799,6 @@ def test_get_schema_step_report_24_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25(tbl_schema_tests, snapshot):
-
     # 25. Schema has all 2/3 columns matching, missing one, an unmatched column, correct
     # order for the matching set; dtypes are substrings of actual dtypes where case doesn't match
     schema = Schema(
@@ -7989,7 +7829,6 @@ def test_get_schema_step_report_25(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25_1(tbl_schema_tests, snapshot):
-
     # 25-1. Using `case_sensitive_colnames=False`
     schema = Schema(
         columns=[
@@ -8019,7 +7858,6 @@ def test_get_schema_step_report_25_1(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25_2(tbl_schema_tests, snapshot):
-
     # 25-2. Using `case_sensitive_dtypes=False`
     schema = Schema(
         columns=[
@@ -8049,7 +7887,6 @@ def test_get_schema_step_report_25_2(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25_3(tbl_schema_tests, snapshot):
-
     # 25-3. Using `full_match_dtypes=False`
     schema = Schema(
         columns=[
@@ -8079,7 +7916,6 @@ def test_get_schema_step_report_25_3(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25_4(tbl_schema_tests, snapshot):
-
     # 25-4. Using `case_sensitive_colnames=False` and `case_sensitive_dtypes=False`
     schema = Schema(
         columns=[
@@ -8109,7 +7945,6 @@ def test_get_schema_step_report_25_4(tbl_schema_tests, snapshot):
 
 
 def test_get_schema_step_report_25_5(tbl_schema_tests, snapshot):
-
     # 25-5. Using `case_sensitive_colnames=False`, `case_sensitive_dtypes=False`, and
     # `full_match_dtypes=False`
     schema = Schema(
