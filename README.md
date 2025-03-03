@@ -15,6 +15,7 @@ _Find out if your data is what you think it is._
 [![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://posit-dev.github.io/pointblank/)
 
 [![Contributors](https://img.shields.io/github/contributors/posit-dev/pointblank)](https://github.com/posit-dev/pointblank/graphs/contributors)
+[![Discord](https://img.shields.io/discord/1086103944280952992?color=%237289da&label=Discord)](https://discord.com/invite/YH7CybCNCQ)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
 
 </div>
@@ -83,9 +84,7 @@ Here's a short list of what we think makes Pointblank a great tool for data vali
 - **Powerful**: You can make complex data validation rules with flexible options for composition
 
 There's a lot of [interesting examples](https://posit-dev.github.io/pointblank/demos/) you can
-check out in the documentation website. If you have any questions or would like to request a
-feature, you are always welcome to [create an issue](https://github.com/posit-dev/pointblank/issues)
-or [start a discussion](https://github.com/posit-dev/pointblank/discussions)!
+check out in the documentation website.
 
 ## Installation
 
@@ -95,8 +94,16 @@ You can install Pointblank using pip:
 pip install pointblank
 ```
 
+## Getting in Touch
+
 If you encounter a bug, have usage questions, or want to share ideas to make this package better,
 please feel free to file an [issue](https://github.com/posit-dev/pointblank/issues).
+
+Wanna talk about data validation in a more relaxed setting? Join our
+[_Discord server_](https://discord.com/invite/YH7CybCNCQ)! This is a great option for asking about
+the development of Pointblank, pitching ideas that may become features, and just sharing your ideas!
+
+[![Discord Server](https://img.shields.io/badge/Discord-Chat%20with%20us-blue?style=social&logo=discord&logoColor=purple)](https://discord.com/invite/YH7CybCNCQ)
 
 ## Code of Conduct
 
