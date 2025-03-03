@@ -1,22 +1,20 @@
 from __future__ import annotations
 
-from importlib_resources import files
-
-import copy
 import base64
-import commonmark
+import copy
 import datetime
 import inspect
 import json
 import re
-
 from dataclasses import dataclass
-from typing import Callable, Literal, Any
+from typing import TYPE_CHECKING, Any, Callable, Literal
 from zipfile import ZipFile
 
+import commonmark
 import narwhals as nw
+from great_tables import GT, from_column, google_font, html, loc, style, vals
+from importlib_resources import files
 from narwhals.typing import FrameT
-from great_tables import GT, html, loc, style, google_font, from_column, vals
 
 from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
@@ -28,58 +26,56 @@ from pointblank._constants import (
     METHOD_CATEGORY_MAP,
     REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
+    SEVERITY_LEVEL_COLORS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
-    SEVERITY_LEVEL_COLORS,
     VALIDATION_REPORT_FIELDS,
 )
 from pointblank._constants_expect_fail import EXPECT_FAIL_TEXT
-from pointblank.column import Column, col, ColumnSelector, ColumnSelectorNarwhals, ColumnLiteral
-from pointblank.schema import Schema, _get_schema_validation_info
-from pointblank.thresholds import (
-    Thresholds,
-    Actions,
-    _normalize_thresholds_creation,
-    _convert_abs_count_to_fraction,
-)
 from pointblank._interrogation import (
-    ColValsCompareOne,
-    ColValsCompareTwo,
-    ColValsCompareSet,
-    ColValsRegex,
-    ColValsExpr,
+    ColCountMatch,
     ColExistsHasType,
     ColSchemaMatch,
-    RowCountMatch,
-    ColCountMatch,
+    ColValsCompareOne,
+    ColValsCompareSet,
+    ColValsCompareTwo,
+    ColValsExpr,
+    ColValsRegex,
     NumberOfTestUnits,
+    RowCountMatch,
     RowsDistinct,
 )
 from pointblank._utils import (
     _check_any_df_lib,
     _check_invalid_fields,
+    _derive_bounds,
     _format_to_integer_value,
     _get_fn_name,
     _get_tbl_type,
     _is_lib_present,
     _is_value_a_df,
     _select_df_lib,
-    _derive_bounds
 )
 from pointblank._utils_check_args import (
-    _check_column,
-    _check_value_float_int,
-    _check_set_types,
-    _check_pre,
-    _check_thresholds,
     _check_boolean_input,
+    _check_column,
+    _check_pre,
+    _check_set_types,
+    _check_thresholds,
+    _check_value_float_int,
 )
-from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
-
-from typing import TYPE_CHECKING
+from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
+from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelectorNarwhals, col
+from pointblank.schema import Schema, _get_schema_validation_info
+from pointblank.thresholds import (
+    Actions,
+    Thresholds,
+    _convert_abs_count_to_fraction,
+    _normalize_thresholds_creation,
+)
 
 if TYPE_CHECKING:
-    from pointblank._typing import Tolerance, AbsoluteBounds
+    from pointblank._typing import AbsoluteBounds, Tolerance
 
 __all__ = [
     "Validate",
@@ -254,7 +250,6 @@ def load_dataset(
     data_path = files("pointblank.data") / f"{dataset}.zip"
 
     if tbl_type == "polars":
-
         if not _is_lib_present(lib_name="polars"):
             raise ImportError(
                 "The Polars library is not installed but is required when specifying "
@@ -266,7 +261,6 @@ def load_dataset(
         dataset = pl.read_csv(ZipFile(data_path).read(f"{dataset}.csv"), try_parse_dates=True)
 
     if tbl_type == "pandas":
-
         if not _is_lib_present(lib_name="pandas"):
             raise ImportError(
                 "The Pandas library is not installed but is required when specifying "
@@ -284,7 +278,6 @@ def load_dataset(
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
 
     if tbl_type == "duckdb":  # pragma: no cover
-
         if not _is_lib_present(lib_name="ibis"):
             raise ImportError(
                 "The Ibis library is not installed but is required when specifying "
@@ -297,7 +290,6 @@ def load_dataset(
 
         # Unzip the DuckDB dataset to a temporary directory
         with ZipFile(data_path, "r") as z:
-
             z.extractall(path="datasets")
 
             data_path = f"datasets/{dataset}.ddb"
@@ -479,7 +471,6 @@ def _generate_display_table(
     mark_missing_values: bool = True,
     row_number_list: list[int] | None = None,
 ) -> GT:
-
     # Make a copy of the data to avoid modifying the original
     data = copy.deepcopy(data)
 
@@ -526,7 +517,6 @@ def _generate_display_table(
 
     # If `columns_subset=` is not None, resolve the columns to display
     if columns_subset is not None:
-
         col_names = _get_column_names(data, ibis_tbl=ibis_tbl, df_lib_name_gt=df_lib_name_gt)
 
         resolved_columns = _validate_columns_subset(
@@ -549,7 +539,6 @@ def _generate_display_table(
     # - get the row numbers for the table
     # - convert the table to a Polars or Pandas DF
     if ibis_tbl:
-
         # Get the Schema of the table
         tbl_schema = Schema(tbl=data)
 
@@ -586,12 +575,10 @@ def _generate_display_table(
     # - subset the table to get the first and last n rows (if small, don't filter the table)
     # - get the row numbers for the table
     if pl_pb_tbl:
-
         # Get the Schema of the table
         tbl_schema = Schema(tbl=data)
 
         if tbl_type == "polars":
-
             n_rows = int(data.height)
 
             # If n_head + n_tail is greater than the row count, display the entire table
@@ -610,7 +597,6 @@ def _generate_display_table(
                     )
 
         if tbl_type == "pandas":
-
             n_rows = data.shape[0]
 
             # If n_head + n_tail is greater than the row count, display the entire table
@@ -657,7 +643,6 @@ def _generate_display_table(
     max_length_col_vals = []
 
     for column in col_dtype_dict.keys():
-
         # Select a single column of values
         data_col = data[[column]] if df_lib_name_gt == "pandas" else data.select([column])
 
@@ -699,20 +684,17 @@ def _generate_display_table(
 
     # Prepend a column that contains the row numbers if `show_row_numbers=True`
     if show_row_numbers or has_leading_row_num_col:
-
         if has_leading_row_num_col:
             row_number_list = data["_row_num_"].to_list()
 
         else:
             if df_lib_name_gt == "polars":
-
                 import polars as pl
 
                 row_number_series = pl.Series("_row_num_", row_number_list)
                 data = data.insert_column(0, row_number_series)
 
             if df_lib_name_gt == "pandas":
-
                 data.insert(0, "_row_num_", row_number_list)
 
         # Get the highest number in the `row_number_list` and calculate a width that will
@@ -797,14 +779,12 @@ def _generate_display_table(
             gt_tbl = gt_tbl.sub_missing(missing_text="NULL")
 
     if not full_dataset:
-
         gt_tbl = gt_tbl.tab_style(
             style=style.borders(sides="bottom", color="#6699CC80", style="solid", weight="2px"),
             locations=loc.body(rows=n_head - 1),
         )
 
     if show_row_numbers:
-
         gt_tbl = gt_tbl.tab_style(
             style=[
                 style.text(color="gray", font=google_font(name="IBM Plex Mono"), size="10px"),
@@ -929,14 +909,12 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     # - get 10 cut points for table preview, these are row numbers used as buckets for determining
     #   the proportion of missing values in each 'sector' in each column
     if ibis_tbl:
-
         # Get the column names from the table
         col_names = list(data.columns)
 
         # Use the `row_ranges` list of lists to query, for each column, the proportion of missing
         # values in each 'sector' of the table (a sector is a range of rows)
         if df_lib_name_gt == "polars":
-
             missing_vals = {
                 col: [
                     (
@@ -964,7 +942,6 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             }
 
         else:
-
             missing_vals = {
                 col: [
                     (
@@ -1007,14 +984,12 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             missing_val_counts = {col: data[col].isnull().sum().to_pandas() for col in data.columns}
 
     if pl_pb_tbl:
-
         # Get the column names from the table
         col_names = list(data.columns)
 
         # Iterate over the cut points and get the proportion of missing values in each 'sector'
         # for each column
         if "polars" in tbl_type:
-
             # Polars case
             missing_vals = {
                 col: [
@@ -1053,7 +1028,6 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
             missing_val_counts = {col: data[col].is_null().sum() for col in data.columns}
 
         if "pandas" in tbl_type:
-
             missing_vals = {
                 col: [
                     (
@@ -1094,14 +1068,12 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
     # From `missing_vals`, create the DataFrame with the missing value proportions
     if df_lib_name_gt == "polars":
-
         import polars as pl
 
         # Create a Polars DataFrame from the `missing_vals` dictionary
         missing_vals_df = pl.DataFrame(missing_vals)
 
     else:
-
         import pandas as pd
 
         # Create a Pandas DataFrame from the `missing_vals` dictionary
@@ -1229,7 +1201,6 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     #
 
     if df_lib_name_gt == "polars":
-
         import polars.selectors as cs
 
         missing_vals_tbl = missing_vals_tbl.tab_style(
@@ -1237,11 +1208,9 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
         )
 
     if df_lib_name_gt == "pandas":
-
         # For every column in the DataFrame, determine the indices of the rows where the value is 0
         # and use tab_style to fill the cell with a light blue color
         for col in missing_vals_df.columns:
-
             row_indices = list(missing_vals_df[missing_vals_df[col] == 0].index)
 
             missing_vals_tbl = missing_vals_tbl.tab_style(
@@ -1496,7 +1465,6 @@ def get_row_count(data: FrameT | Any) -> int:
     """
 
     if "ibis.expr.types.relations.Table" in str(type(data)):
-
         # Determine whether Pandas or Polars is available to get the row count
         _check_any_df_lib(method_used="get_row_count")
 
@@ -1795,7 +1763,6 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
-
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
 
@@ -1819,7 +1786,6 @@ class Validate:
         self.validation_info = []
 
     def _repr_html_(self) -> str:
-
         return self.get_tabular_report()._repr_html_()  # pragma: no cover
 
     def col_vals_gt(
@@ -1974,7 +1940,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -2142,7 +2107,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -2309,7 +2273,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -2474,7 +2437,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -2643,7 +2605,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -2812,7 +2773,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3004,7 +2964,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3200,7 +3159,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3355,7 +3313,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3507,7 +3464,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3653,7 +3609,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3798,7 +3753,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -3954,7 +3908,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -4221,7 +4174,6 @@ class Validate:
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
-
             val_info = _ValidationInfo(
                 assertion_type=assertion_type,
                 column=column,
@@ -4706,7 +4658,7 @@ class Validate:
             count = get_row_count(count)
 
         # Check the integrity of tolerance
-        bounds: AbsoluteBounds = _derive_bounds(ref = int(count), tol = tol)
+        bounds: AbsoluteBounds = _derive_bounds(ref=int(count), tol=tol)
 
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse, "abs_tol_bounds": bounds}
@@ -4983,7 +4935,6 @@ class Validate:
         self._evaluate_column_exprs(validation_info=self.validation_info)
 
         for validation in self.validation_info:
-
             # Set the `i` value for the validation step (this is 1-indexed)
             index_value = self.validation_info.index(validation) + 1
             validation.i = index_value
@@ -5034,7 +4985,6 @@ class Validate:
 
             # Determine whether any preprocessing functions are to be applied to the table
             if validation.pre is not None:
-
                 # Read the text of the preprocessing function
                 pre_text = _pre_processing_funcs_to_str(validation.pre)
 
@@ -5045,13 +4995,11 @@ class Validate:
                 # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
                 # to use a Narwhalified version of the table
                 if is_lambda:
-
                     # Get the signature of the lambda function
                     sig = inspect.signature(validation.pre)
 
                     # Check if the lambda function has a keyword argument called `dfn`
                     if "dfn" in sig.parameters:
-
                         # Convert the table to a Narwhals DataFrame
                         data_tbl_step = nw.from_native(data_tbl_step)
 
@@ -5067,7 +5015,6 @@ class Validate:
 
                 # If the preprocessing function is a function, apply it to the table
                 elif isinstance(validation.pre, Callable):
-
                     data_tbl_step = validation.pre(data_tbl_step)
 
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
@@ -5078,7 +5025,6 @@ class Validate:
                 tbl_type = "local"
 
             if assertion_category == "COMPARE_ONE":
-
                 results_tbl = ColValsCompareOne(
                     data_tbl=data_tbl_step,
                     column=column,
@@ -5091,7 +5037,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "COMPARE_TWO":
-
                 results_tbl = ColValsCompareTwo(
                     data_tbl=data_tbl_step,
                     column=column,
@@ -5106,7 +5051,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "COMPARE_SET":
-
                 inside = True if assertion_method == "in_set" else False
 
                 results_tbl = ColValsCompareSet(
@@ -5120,7 +5064,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "COMPARE_REGEX":
-
                 results_tbl = ColValsRegex(
                     data_tbl=data_tbl_step,
                     column=column,
@@ -5132,7 +5075,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "COMPARE_EXPR":
-
                 results_tbl = ColValsExpr(
                     data_tbl=data_tbl_step,
                     expr=value,
@@ -5141,7 +5083,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "ROWS_DISTINCT":
-
                 results_tbl = RowsDistinct(
                     data_tbl=data_tbl_step,
                     columns_subset=column,
@@ -5150,7 +5091,6 @@ class Validate:
                 ).get_test_results()
 
             if assertion_category == "COL_EXISTS_HAS_TYPE":
-
                 result_bool = ColExistsHasType(
                     data_tbl=data_tbl_step,
                     column=column,
@@ -5167,7 +5107,6 @@ class Validate:
                 results_tbl = None
 
             if assertion_category == "COL_SCHEMA_MATCH":
-
                 result_bool = ColSchemaMatch(
                     data_tbl=data_tbl_step,
                     schema=value["schema"],
@@ -5201,13 +5140,12 @@ class Validate:
                 results_tbl = None
 
             if assertion_category == "ROW_COUNT_MATCH":
-
                 result_bool = RowCountMatch(
                     data_tbl=data_tbl_step,
                     count=value["count"],
                     inverse=value["inverse"],
                     threshold=threshold,
-                    abs_tol_bounds = value["abs_tol_bounds"],
+                    abs_tol_bounds=value["abs_tol_bounds"],
                     tbl_type=tbl_type,
                 ).get_test_results()
 
@@ -5219,7 +5157,6 @@ class Validate:
                 results_tbl = None
 
             if assertion_category == "COL_COUNT_MATCH":
-
                 result_bool = ColCountMatch(
                     data_tbl=data_tbl_step,
                     count=value["count"],
@@ -5241,7 +5178,6 @@ class Validate:
                 "ROW_COUNT_MATCH",
                 "COL_COUNT_MATCH",
             ]:
-
                 # Extract the `pb_is_good_` column from the table as a results list
                 if tbl_type in IBIS_BACKENDS:
                     results_list = (
@@ -5293,13 +5229,11 @@ class Validate:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
-
                     #
                     # If step-level actions are set, prefer those over actions set globally
                     #
 
                     if validation.actions is not None:
-
                         # Action execution on the step level
                         action = validation.actions._get_action(level=level)
                         if action is None:
@@ -5314,7 +5248,6 @@ class Validate:
                                     act()
 
                     elif self.actions is not None:
-
                         # Action execution on the global level
                         action = self.actions._get_action(level=level)
                         if action is None:
@@ -5334,7 +5267,6 @@ class Validate:
                 and assertion_type in ROW_BASED_VALIDATION_TYPES
                 and tbl_type not in IBIS_BACKENDS
             ):
-
                 # Add row numbers to the results table
                 validation_extract_nw = (
                     nw.from_native(results_tbl)
@@ -5477,8 +5409,9 @@ class Validate:
 
         if not self.all_passed():
             failed_steps = [
-            (i, str(step.autobrief)) for i, step in enumerate(self.validation_info)
-            if step.n_failed > 0
+                (i, str(step.autobrief))
+                for i, step in enumerate(self.validation_info)
+                if step.n_failed > 0
             ]
             msg = "The following assertions failed:\n" + "\n".join(
                 [f"- Step {i + 1}: {autobrief}" for i, autobrief in failed_steps]
@@ -6402,14 +6335,12 @@ class Validate:
         if use_fields is None:
             fields = VALIDATION_REPORT_FIELDS
         else:
-
             # Ensure that the fields to use are valid
             _check_invalid_fields(use_fields, VALIDATION_REPORT_FIELDS)
 
             fields = use_fields
 
         if exclude_fields is not None:
-
             # Ensure that the fields to exclude are valid
             _check_invalid_fields(exclude_fields, VALIDATION_REPORT_FIELDS)
 
@@ -6536,7 +6467,6 @@ class Validate:
         validation_steps_i = [validation.assertion_type for validation in validation_info]
 
         if len(validation_steps_i) == 0:
-
             if type == "pass":
                 return self.data
             if type == "fail":
@@ -6552,7 +6482,6 @@ class Validate:
         # ensuring that the columns are named uniquely (e.g., `pb_is_good_1`, `pb_is_good_2`, ...)
         # and that the index is reset
         for i, validation in enumerate(validation_info):
-
             results_tbl = nw.from_native(validation.tbl_checked)
 
             # Add row numbers to the results table
@@ -6691,7 +6620,6 @@ class Validate:
         # If there are no steps, prepare a fairly empty table with a message indicating that there
         # are no validation steps
         if no_validation_steps:
-
             # Create the title text
             title_text = _get_title_text(
                 title=title, tbl_name=self.tbl_name, interrogation_performed=False
@@ -6851,7 +6779,6 @@ class Validate:
 
         # Iterate over the values in the `column` entry
         for i, column in enumerate(columns):
-
             if assertion_type[i] in [
                 "col_schema_match",
                 "row_count_match",
@@ -6890,7 +6817,6 @@ class Validate:
 
         # Iterate over the values in the `values` entry
         for i, value in enumerate(values):
-
             # If the assertion type is a comparison of one value then add the value as a string
             if assertion_type[i] in [
                 "col_vals_gt",
@@ -6930,7 +6856,6 @@ class Validate:
                 values_upd.append("COLUMN EXPR")
 
             elif assertion_type[i] in ["row_count_match", "col_count_match"]:
-
                 count = values[i]["count"]
                 inverse = values[i]["inverse"]
 
@@ -7073,7 +6998,6 @@ class Validate:
 
         # Iterate over the validation steps
         for i in range(len(validation_info_dict["type_upd"])):
-
             # If the extract for this step is `None`, then produce an em dash then go to the next
             # iteration
             if validation_info_dict["extract"][i] is None:
@@ -7531,7 +7455,6 @@ class Validate:
         #    return "No rows were extracted."
 
         if assertion_type in ROW_BASED_VALIDATION_TYPES:
-
             # Get the extracted data for the step
             extract = self.get_data_extracts(i=i, frame=True)
 
@@ -7550,7 +7473,6 @@ class Validate:
             )
 
         elif assertion_type == "col_schema_match":
-
             # Get the parameters for column-schema matching
             values_dict = validation_step["values"]
 
@@ -7559,14 +7481,12 @@ class Validate:
 
             # CASE I: where ordering of columns is required (`in_order=True`)
             if in_order:
-
                 step_report = _step_report_schema_in_order(
                     step=i, schema_info=val_info, debug_return_df=debug_return_df
                 )
 
             # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
-
                 step_report = _step_report_schema_any_order(
                     step=i, schema_info=val_info, debug_return_df=debug_return_df
                 )
@@ -7613,7 +7533,6 @@ class Validate:
 
         # Iterate over the validation steps
         for i, validation in enumerate(validation_info):
-
             # Get the column expression
             column_expr = validation.column
 
@@ -7625,7 +7544,6 @@ class Validate:
 
             # Evaluate the column expression
             try:
-
                 # Get the table for this step, it can either be:
                 # 1. the target table itself
                 # 2. the target table modified by a `pre` attribute
@@ -7659,7 +7577,6 @@ class Validate:
             # For each column resolved, create a new validation step and add it to the list of
             # expanded validation steps
             for column in columns_resolved:
-
                 new_validation = copy.deepcopy(validation)
 
                 new_validation.column = column
@@ -7702,12 +7619,10 @@ class Validate:
 
 
 def _normalize_reporting_language(lang: str | None) -> str:
-
     if lang is None:
         return "en"
 
     if lang.lower() not in REPORTING_LANGUAGES:
-
         raise ValueError(
             f"The text '{lang}' doesn't correspond to a Pointblank reporting language."
         )
@@ -7718,7 +7633,6 @@ def _normalize_reporting_language(lang: str | None) -> str:
 def _create_autobrief(
     assertion_type: str, lang: str, column: str | None, values: str | None
 ) -> str:
-
     if assertion_type in [
         "col_vals_gt",
         "col_vals_ge",
@@ -7780,7 +7694,6 @@ def _create_autobrief(
 def _create_autobrief_comparison(
     assertion_type: str, lang: str, column: str | None, values: str | None
 ) -> str:
-
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
 
@@ -7805,7 +7718,6 @@ def _create_autobrief_comparison(
 def _create_autobrief_between(
     lang: str, column: str | None, value_1: str, value_2: str, not_: bool = False
 ) -> str:
-
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
 
@@ -7835,7 +7747,6 @@ def _create_autobrief_between(
 def _create_autobrief_set(
     lang: str, column: str | None, values: list[any], not_: bool = False
 ) -> str:
-
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
 
@@ -7860,7 +7771,6 @@ def _create_autobrief_set(
 
 
 def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) -> str:
-
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
 
@@ -7879,7 +7789,6 @@ def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) ->
 
 
 def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
-
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
 
@@ -7895,14 +7804,12 @@ def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
 
 
 def _create_autobrief_expr(lang: str) -> str:
-
     autobrief = EXPECT_FAIL_TEXT["col_vals_expr_expectation_text"][lang]
 
     return autobrief
 
 
 def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
-
     column_text = _prep_column_text(column=column)
 
     autobrief = EXPECT_FAIL_TEXT["col_exists_expectation_text"][lang].format(
@@ -7913,20 +7820,16 @@ def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
 
 
 def _create_autobrief_col_schema_match(lang: str) -> str:
-
     autobrief = EXPECT_FAIL_TEXT["col_schema_match_expectation_text"][lang]
 
     return autobrief
 
 
 def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None) -> str:
-
     if columns_subset is None:
-
         autobrief = EXPECT_FAIL_TEXT["all_row_distinct_expectation_text"][lang]
 
     else:
-
         column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
 
         autobrief = EXPECT_FAIL_TEXT["across_row_distinct_expectation_text"][lang].format(
@@ -7937,7 +7840,6 @@ def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None)
 
 
 def _create_autobrief_row_count_match(lang: str, value: int) -> str:
-
     values_text = _prep_values_text(value["count"], lang=lang)
 
     autobrief = EXPECT_FAIL_TEXT["row_count_match_n_expectation_text"][lang].format(
@@ -7948,7 +7850,6 @@ def _create_autobrief_row_count_match(lang: str, value: int) -> str:
 
 
 def _create_autobrief_col_count_match(lang: str, value: int) -> str:
-
     values_text = _prep_values_text(value["count"], lang=lang)
 
     autobrief = EXPECT_FAIL_TEXT["col_count_match_n_expectation_text"][lang].format(
@@ -7967,7 +7868,6 @@ def _prep_values_text(
     lang: str,
     limit: int = 3,
 ) -> str:
-
     if isinstance(values, ColumnLiteral):
         return f"`{values}`"
 
@@ -8055,7 +7955,6 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
 
 
 def _get_assertion_icon(icon: list[str], length_val: int = 30) -> list[str]:
-
     # For each icon, get the assertion icon SVG test from SVG_ICONS_FOR_ASSERTION_TYPES dictionary
     icon_svg = [SVG_ICONS_FOR_ASSERTION_TYPES.get(icon) for icon in icon]
 
@@ -8067,7 +7966,6 @@ def _get_assertion_icon(icon: list[str], length_val: int = 30) -> list[str]:
 
 
 def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
-
     svg = re.sub(r'width="[0-9]*?px', f'width="{height_width}px', svg)
     svg = re.sub(r'height="[0-9]*?px', f'height="{height_width}px', svg)
 
@@ -8075,7 +7973,6 @@ def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[s
 
 
 def _get_title_text(title: str | None, tbl_name: str | None, interrogation_performed: bool) -> str:
-
     title = _process_title_text(title=title, tbl_name=tbl_name)
 
     if interrogation_performed:
@@ -8099,7 +7996,6 @@ def _get_title_text(title: str | None, tbl_name: str | None, interrogation_perfo
 
 
 def _process_title_text(title: str | None, tbl_name: str | None) -> str:
-
     if title is None:
         title_text = ""
     elif title == ":default:":
@@ -8122,7 +8018,6 @@ def _get_default_title_text() -> str:
 
 
 def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
-
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(pre))]
@@ -8141,7 +8036,6 @@ def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list
 
 
 def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
-
     # For each icon, get the SVG icon from the SVG_ICONS_FOR_TBL_STATUS dictionary
     icon_svg = [SVG_ICONS_FOR_TBL_STATUS.get(icon) for icon in icon]
 
@@ -8151,7 +8045,6 @@ def _get_preprocessed_table_icon(icon: list[str]) -> list[str]:
 def _transform_eval(
     n: list[int], interrogation_performed: bool, eval_error: list[bool], active: list[bool]
 ) -> list[str]:
-
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(n))]
@@ -8159,7 +8052,6 @@ def _transform_eval(
     symbol_list = []
 
     for i in range(len(n)):
-
         # If there was an evaluation error, then add a collision mark
         if eval_error[i]:
             symbol_list.append('<span style="color:#CF142B;">&#128165;</span>')
@@ -8179,7 +8071,6 @@ def _transform_eval(
 def _transform_test_units(
     test_units: list[int], interrogation_performed: bool, active: list[bool]
 ) -> list[str]:
-
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(test_units))]
@@ -8208,7 +8099,6 @@ def _transform_passed_failed(
     interrogation_performed: bool,
     active: list[bool],
 ) -> list[str]:
-
     if not interrogation_performed:
         return ["" for _ in range(len(n_passed_failed))]
 
@@ -8226,7 +8116,6 @@ def _transform_passed_failed(
 
 
 def _transform_w_s_n(values, color, interrogation_performed):
-
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(values))]
@@ -8238,7 +8127,9 @@ def _transform_w_s_n(values, color, interrogation_performed):
             else (
                 f'<span style="color: {color};">&#9679;</span>'
                 if value is True
-                else f'<span style="color: {color};">&cir;</span>' if value is False else value
+                else f'<span style="color: {color};">&cir;</span>'
+                if value is False
+                else value
             )
         )
         for value in values
@@ -8246,7 +8137,6 @@ def _transform_w_s_n(values, color, interrogation_performed):
 
 
 def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
-
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
 
@@ -8275,7 +8165,6 @@ def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
 
 
 def _pre_processing_funcs_to_str(pre: Callable) -> str | list[str]:
-
     if isinstance(pre, Callable):
         return _get_callable_source(fn=pre)
 
@@ -8294,7 +8183,6 @@ def _get_callable_source(fn: Callable) -> str:
 
 
 def _extract_pre_argument(source: str) -> str:
-
     # Find the start of the `pre` argument
     pre_start = source.find("pre=")
     if pre_start == -1:
@@ -8314,7 +8202,6 @@ def _extract_pre_argument(source: str) -> str:
 def _create_table_time_html(
     time_start: datetime.datetime | None, time_end: datetime.datetime | None
 ) -> str:
-
     if time_start is None:
         return ""
 
@@ -8351,9 +8238,7 @@ def _create_table_time_html(
 
 
 def _create_label_html(label: str | None, start_time: str) -> str:
-
     if label is None:
-
         # Remove the decimal and everything beyond that
         start_time = str(start_time).split(".")[0]
 
@@ -8371,7 +8256,6 @@ def _create_label_html(label: str | None, start_time: str) -> str:
 
 
 def _create_thresholds_html(thresholds: Thresholds) -> str:
-
     if thresholds == Thresholds():
         return ""
 
@@ -8446,7 +8330,6 @@ def _step_report_row_based(
     extract: any,
     tbl_preview: GT,
 ):
-
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
 
@@ -8485,7 +8368,6 @@ def _step_report_row_based(
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
 
     if all_passed:
-
         step_report = (
             tbl_preview.tab_header(
                 title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
@@ -8522,7 +8404,6 @@ def _step_report_row_based(
         )
 
     else:
-
         # Create a preview of the extracted data
         extract_tbl = _generate_display_table(
             data=extract,
@@ -8627,7 +8508,6 @@ def _step_report_schema_in_order(
     dtype_exp_correct = []
 
     for i in range(len(exp_columns_dict)):
-
         #
         # `col_name_exp` values
         #
@@ -8655,7 +8535,6 @@ def _step_report_schema_in_order(
         #
 
         if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
-
             dtype_exp.append("&mdash;")
 
         elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
@@ -8690,7 +8569,6 @@ def _step_report_schema_in_order(
                 dtype_exp.append(dtype)
 
             else:
-
                 # If the column name or index did not match (or if it did and none of the dtypes
                 # matched), then join the dtypes together with pipes with further decoration
 
@@ -8844,7 +8722,6 @@ def _step_report_schema_in_order(
     )
 
     if schema_length == "shorter":
-
         # Add background color to the missing column on the exp side
         step_report = step_report.tab_style(
             style=style.fill(color="#FFC1C159"),
@@ -8861,7 +8738,6 @@ def _step_report_schema_in_order(
         )
 
     if schema_length == "longer":
-
         # Add background color to the missing column on the target side
         step_report = step_report.tab_style(
             style=style.fill(color="#F3F3F3"),
@@ -8942,16 +8818,13 @@ def _step_report_schema_any_order(
         exp_columns_dict_keys.remove(colname_unmatched)
 
     for i in range(len(colnames_tgt)):
-
         # If there is no match in the expected column names, then the column name is not present
         # and we need to fill in the values with empty strings
 
         match_index = None
 
         for key in exp_columns_dict_keys:
-
             if colnames_tgt[i] in exp_columns_dict[key]["matched_to"]:
-
                 # Get the index of the key in the dictionary
                 match_index = exp_columns_dict_keys.index(key)
                 break
@@ -8987,15 +8860,12 @@ def _step_report_schema_any_order(
         #
 
         if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
-
             dtype_exp.append("")
 
         elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
-
             dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
 
             if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
-
                 pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
 
                 # Combine the dtypes together with pipes but underline the matched dtype in
@@ -9013,7 +8883,6 @@ def _step_report_schema_any_order(
                 dtype_exp.append(dtype)
 
             else:
-
                 dtype = " | ".join(dtype)
                 dtype_exp.append(dtype)
 
@@ -9048,7 +8917,6 @@ def _step_report_schema_any_order(
     # If there are unmatched columns in the expected schema, then create a separate DataFrame
     # for those entries and concatenate it with the `schema_combined` DataFrame
     if len(colnames_exp_unmatched) > 0:
-
         # Get the indices of the unmatched columns by comparing the `colnames_exp_unmatched`
         # against the schema order
         col_name_exp = []
@@ -9057,7 +8925,6 @@ def _step_report_schema_any_order(
         dtype_exp_correct = []
 
         for i in range(len(colnames_exp_unmatched)):
-
             #
             # `col_name_exp` values
             #
@@ -9076,15 +8943,12 @@ def _step_report_schema_any_order(
             #
 
             if not exp_columns_dict[column_name_exp_i]["dtype_present"]:
-
                 dtype_exp.append("")
 
             elif len(exp_columns_dict[column_name_exp_i]["dtype_input"]) > 1:
-
                 dtype = exp_columns_dict[column_name_exp_i]["dtype_input"]
 
                 if exp_columns_dict[column_name_exp_i]["dtype_matched_pos"] is not None:
-
                     pos = exp_columns_dict[column_name_exp_i]["dtype_matched_pos"]
 
                     # Combine the dtypes together with pipes but underline the matched dtype in
@@ -9102,7 +8966,6 @@ def _step_report_schema_any_order(
                     dtype_exp.append(dtype)
 
                 else:
-
                     dtype = " | ".join(dtype)
                     dtype_exp.append(dtype)
 
@@ -9124,7 +8987,6 @@ def _step_report_schema_any_order(
                 dtype_exp_correct.append(CROSS_MARK_SPAN)
 
         if len(columns_found) > 0:
-
             # Get the last index of the columns found
             last_index = columns_found[-1]
 
@@ -9272,7 +9134,6 @@ def _step_report_schema_any_order(
 
     # Add background color to signify limits of target table schema (on LHS side)
     if len(colnames_exp_unmatched) > 0:
-
         step_report = step_report.tab_style(
             style=style.fill(color="#F3F3F3"),
             locations=loc.body(
@@ -9303,7 +9164,6 @@ def _create_label_text_html(
     margin_right: str = "5px",
     margin_top: str = "2px",
 ) -> str:
-
     if strikethrough:
         strikethrough_rules = (
             f" text-decoration: line-through; text-decoration-color: {strikethrough_color};"
@@ -9321,7 +9181,6 @@ def _create_col_schema_match_params_html(
     case_sensitive_dtypes: bool = True,
     full_match_dtypes: bool = True,
 ) -> str:
-
     complete_text = _create_label_text_html(
         text="COMPLETE",
         strikethrough=not complete,
