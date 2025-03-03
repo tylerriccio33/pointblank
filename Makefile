@@ -7,7 +7,7 @@ test-update:
 	pytest --snapshot-update
 
 test-coverage:
-	pytest --cov=pointblank --cov-report=term
+	pytest --cov=pointblank --cov-report=term-missing
 
 lint: ## Run ruff formatter and linter
 	@uv run ruff format

@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 import pathlib
 
 import pprint
@@ -5,6 +8,7 @@ import sys
 import re
 from unittest.mock import patch
 import pytest
+import random
 import itertools
 from functools import partial
 import contextlib
@@ -46,6 +50,11 @@ from pointblank.column import (
     first_n,
     last_n,
 )
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 TBL_LIST = [
@@ -2660,6 +2669,70 @@ def test_row_count_match(request, tbl_fixture):
 
     assert Validate(tbl).row_count_match(count=tbl).interrogate().n_passed(i=1, scalar=True) == 1
 
+@pytest.mark.parametrize(('val','e', 'exc'),
+                         [
+                             ((-1, 5), ValueError, 'Tolerance must be non-negative'),
+                             ([100, 5], TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             ((5, -1), ValueError, 'Tolerance must be non-negative'),
+                             ((None, .05), TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             (('fooval', 100), TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             (-1, ValueError, 'Tolerance must be non-negative'),
+                         ])
+def test_invalid_row_count_tol(val: Any, e: Exception, exc :str) -> None:
+    data = pl.DataFrame({"foocol": [1, 2, 3]})
+
+    with pytest.raises(expected_exception=e, match = exc):
+        Validate(data=data).row_count_match(count = 3, tol=val)
+
+
+def test_row_count_example_tol() -> None:
+    small_table = load_dataset("small_table")
+    smaller_small_table = small_table.sample(n = 12) # within the lower bound
+    (
+        Validate(data=smaller_small_table)
+        .row_count_match(count=13,tol=(2, 0)) # minus 2 but plus 0, ie. 11-13
+        .interrogate()
+        .assert_passing()
+    )
+
+    (
+        Validate(data=smaller_small_table)
+        .row_count_match(count=13,tol=.5) # .50% tolerance of 13
+        .interrogate()
+        .assert_passing()
+        )
+
+    even_smaller_table = small_table.sample(n = 2)
+    with pytest.raises(AssertionError):
+        (
+            Validate(data=even_smaller_table)
+            .row_count_match(count=13,tol=5) # plus or minus 5; this test will fail
+            .interrogate()
+            .assert_passing()
+        )
+
+test_row_count_example_tol()
+
+@pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
+                         [
+                            (98, 100, .05, True),
+                            (98, 100, 5, True),
+                            (104, 100, (5, 5), True),
+                            (0, 100, .05, False),
+                            (0, 100, 5, False),
+                            (0, 100, (5, 5), False),
+                            (98, 100, .95, True),
+                         ])
+def test_row_count_tol(nrows : int, target_count: int, tol : float | tuple[int, int], should_pass : bool) -> None:
+    data = pl.DataFrame({"foocol": [random.random()] * nrows})
+
+    catcher = contextlib.nullcontext if should_pass else partial(pytest.raises, AssertionError, match = "All tests did not pass")
+
+    with catcher():
+        Validate(data = data).row_count_match(
+            count = target_count,
+            tol = tol
+        ).interrogate().assert_passing()
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_col_count_match(request, tbl_fixture):
