@@ -9,7 +9,6 @@ from pointblank.datascan import DataScan
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_datascan_class(tbl_type):
-
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset)
 
@@ -36,7 +35,6 @@ def test_datascan_class(tbl_type):
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_datascan_class_use_tbl_name(tbl_type):
-
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset, tbl_name="my_small_table")
 
@@ -45,7 +43,6 @@ def test_datascan_class_use_tbl_name(tbl_type):
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_datascan_no_fail(tbl_type):
-
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
     DataScan(data=small_table)
 
@@ -58,7 +55,6 @@ def test_datascan_no_fail(tbl_type):
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_datascan_dict_output(tbl_type):
-
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset)
 
@@ -72,7 +68,6 @@ def test_datascan_dict_output(tbl_type):
 
 
 def test_datascan_json_output():
-
     dataset = load_dataset(dataset="small_table")
     scanner = DataScan(data=dataset)
 
@@ -82,7 +77,6 @@ def test_datascan_json_output():
 
 
 def test_datascan_json_file_output(tmp_path):
-
     dataset = load_dataset(dataset="small_table")
     scanner = DataScan(data=dataset)
 
@@ -112,9 +106,7 @@ def test_datascan_class_raises():
 
 
 def test_datascan_ibis_table_no_polars():
-
     # Mock the absence of the Polars library
     with patch.dict(sys.modules, {"polars": None}):
-
         small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
         DataScan(data=small_table)

@@ -26,7 +26,6 @@ from pointblank.validate import (
     get_row_count,
     load_dataset,
     missing_vals_tbl,
-    _normalize_reporting_language,
     PointblankConfig,
     preview,
     Validate,
@@ -34,9 +33,12 @@ from pointblank.validate import (
     _create_table_type_html,
     _fmt_lg,
     _get_default_title_text,
+    _normalize_reporting_language,
     _process_title_text,
     _ValidationInfo,
 )
+
+
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.column import (

@@ -234,7 +234,6 @@ def test_convert_abs_count_to_fraction_type(value, test_units):
 
 
 def test_convert_abs_count_to_fraction_raises():
-
     with pytest.raises(ValueError):
         _convert_abs_count_to_fraction(value=-1, test_units=100)
     with pytest.raises(ValueError):
@@ -246,7 +245,6 @@ def test_convert_abs_count_to_fraction_raises():
 
 
 def test_normalize_thresholds_creation():
-
     # None should be equivalent to the default Thresholds object
     assert _normalize_thresholds_creation(thresholds=None) == Thresholds()
 
@@ -317,7 +315,6 @@ def test_normalize_thresholds_creation():
 
 
 def test_threshold_check():
-
     assert _threshold_check(failing_test_units=6, threshold=5) is False
     assert _threshold_check(failing_test_units=5, threshold=5) is False
     assert _threshold_check(failing_test_units=4, threshold=5) is True
@@ -326,7 +323,6 @@ def test_threshold_check():
 
 
 def test_actions_default():
-
     a = Actions()
 
     assert a.warning is None
@@ -341,7 +337,6 @@ def test_actions_repr():
 
 
 def test_actions_str_inputs():
-
     a = Actions(warning="bad", error="badder", critical="worst")
 
     assert a.warning == ["bad"]
@@ -350,7 +345,6 @@ def test_actions_str_inputs():
 
 
 def test_actions_callable_inputs():
-
     def warn():
         return "warning"
 
@@ -377,7 +371,6 @@ def test_actions_callable_inputs():
 
 
 def test_actions_list_inputs():
-
     def warn():
         return "warning function"
 

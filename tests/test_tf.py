@@ -24,7 +24,6 @@ def tbl_pl():
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_gt(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_gt(tbl, column="x", value=0, threshold=1)
@@ -47,7 +46,6 @@ def test_col_vals_gt(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_lt(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_lt(tbl, column="x", value=5, threshold=1)
@@ -67,7 +65,6 @@ def test_col_vals_lt(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_eq(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert not TF.col_vals_eq(tbl, column="x", value=8, threshold=1)
@@ -88,7 +85,6 @@ def test_col_vals_eq(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_ne(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_ne(tbl, column="x", value=5, threshold=1)
@@ -104,7 +100,6 @@ def test_col_vals_ne(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_ge(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_ge(tbl, column="x", value=0, threshold=1)
@@ -125,7 +120,6 @@ def test_col_vals_ge(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_le(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_le(tbl, column="x", value=5, threshold=1)
@@ -146,7 +140,6 @@ def test_col_vals_le(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_between(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_between(tbl, column="x", left=0, right=5, threshold=1)
@@ -173,7 +166,6 @@ def test_col_vals_between(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_outside(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert not TF.col_vals_outside(tbl, column="x", left=0, right=1)
@@ -203,7 +195,6 @@ def test_col_vals_outside(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_in_set(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_in_set(tbl, column="x", set=[1, 2, 3, 4], threshold=1)
@@ -220,7 +211,6 @@ def test_col_vals_in_set(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_not_in_set(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert TF.col_vals_not_in_set(tbl, column="x", set=[5, 6, 7, 8], threshold=1)

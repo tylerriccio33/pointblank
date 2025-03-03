@@ -67,7 +67,6 @@ COLUMN_LIST_DISTINCT = ["col_1", "col_2", "col_3", "pb_is_good_"]
     ],
 )
 def test_col_vals_compare_one(request, tbl_fixture, assertion_method):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     col_vals_compare_one = ColValsCompareOne(
@@ -96,7 +95,6 @@ def test_col_vals_compare_one(request, tbl_fixture, assertion_method):
 
 
 def test_col_vals_compare_one_invalid_assertion_method(tbl_pd):
-
     with pytest.raises(ValueError):
         ColValsCompareOne(
             data_tbl=tbl_pd,
@@ -119,7 +117,6 @@ def test_col_vals_compare_one_invalid_assertion_method(tbl_pd):
     ],
 )
 def test_col_vals_compare_two(request, tbl_fixture, assertion_method):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     col_vals_compare_two = ColValsCompareTwo(
@@ -150,7 +147,6 @@ def test_col_vals_compare_two(request, tbl_fixture, assertion_method):
 
 
 def test_col_vals_compare_two_invalid_assertion_method(tbl_pd):
-
     with pytest.raises(ValueError):
         ColValsCompareTwo(
             data_tbl=tbl_pd,
@@ -175,7 +171,6 @@ def test_col_vals_compare_two_invalid_assertion_method(tbl_pd):
     ],
 )
 def test_col_vals_compare_set(request, tbl_fixture, inside):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     col_vals_compare_set = ColValsCompareSet(
@@ -207,7 +202,6 @@ def test_col_vals_compare_set(request, tbl_fixture, inside):
     ["tbl_pd", "tbl_pl"],
 )
 def test_col_vals_regex(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     col_vals_regex = ColValsRegex(
@@ -242,7 +236,6 @@ def test_col_vals_regex(request, tbl_fixture):
     ],
 )
 def test_column_exists_has_type(request, tbl_fixture, assertion_method):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     col_exists_has_type = ColExistsHasType(
@@ -258,7 +251,6 @@ def test_column_exists_has_type(request, tbl_fixture, assertion_method):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd_distinct", "tbl_pl_distinct"])
 def test_rows_distinct(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     rows_distinct = RowsDistinct(

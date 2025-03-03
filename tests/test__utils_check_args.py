@@ -13,7 +13,6 @@ from pointblank.column import col, starts_with
 
 
 def test_check_boolean_input():
-
     assert _check_boolean_input(param=True, param_name="test") is None
 
     with pytest.raises(ValueError):
@@ -21,7 +20,6 @@ def test_check_boolean_input():
 
 
 def test_check_column():
-
     assert _check_column(column="test") is None
     assert _check_column(column=["one", "two", "three"]) is None
     assert _check_column(column=col(starts_with("test"))) is None
@@ -34,7 +32,6 @@ def test_check_column():
 
 
 def test_check_value_float_int():
-
     assert _check_value_float_int(value=1.0) is None
     assert _check_value_float_int(value=1) is None
 
@@ -45,7 +42,6 @@ def test_check_value_float_int():
 
 
 def test_check_set_types():
-
     assert _check_set_types(set=[1.0, 1, "test"]) is None
     assert _check_set_types(set=(1.0, 1, "test")) is None
     assert _check_set_types(set={1.0, 1, "test"}) is None
@@ -69,7 +65,6 @@ def test_check_pre():
 
 
 def test_check_thresholds():
-
     assert _check_thresholds(thresholds=1.0) is None
     assert _check_thresholds(thresholds=1) is None
     assert _check_thresholds(thresholds=(1.0, 2.0)) is None

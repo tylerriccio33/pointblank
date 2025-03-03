@@ -101,7 +101,6 @@ def tbl_multiple_types_pl():
     ["tbl_pd", "tbl_pl"],
 )
 def test_convert_to_narwhals(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -114,7 +113,6 @@ def test_convert_to_narwhals(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_double_convert_to_narwhals(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -128,7 +126,6 @@ def test_double_convert_to_narwhals(request, tbl_fixture):
     ["tbl_pd", "tbl_pl"],
 )
 def test_check_column_exists_no_error(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -143,7 +140,6 @@ def test_check_column_exists_no_error(request, tbl_fixture):
     ["tbl_missing_pd", "tbl_missing_pl"],
 )
 def test_check_column_exists_missing_values_no_error(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -154,7 +150,6 @@ def test_check_column_exists_missing_values_no_error(request, tbl_fixture):
 
 
 def test_is_numeric_dtype():
-
     assert _is_numeric_dtype(dtype="int")
     assert _is_numeric_dtype(dtype="float")
     assert _is_numeric_dtype(dtype="int64")
@@ -162,7 +157,6 @@ def test_is_numeric_dtype():
 
 
 def test_is_date_or_datetime_dtype():
-
     assert _is_date_or_datetime_dtype(dtype="datetime")
     assert _is_date_or_datetime_dtype(dtype="date")
     assert _is_date_or_datetime_dtype(dtype="datetime(time_unit='ns', time_zone=none)")
@@ -170,14 +164,12 @@ def test_is_date_or_datetime_dtype():
 
 
 def test_is_duration_dtype():
-
     assert _is_duration_dtype(dtype="duration")
     assert _is_duration_dtype(dtype="duration(time_unit='ns')")
     assert _is_duration_dtype(dtype="duration(time_unit='us')")
 
 
 def test_get_column_dtype_pd(tbl_multiple_types_pd):
-
     dfn = _convert_to_narwhals(tbl_multiple_types_pd)
 
     assert _get_column_dtype(dfn=dfn, column="int") == "int64"
@@ -196,7 +188,6 @@ def test_get_column_dtype_pd(tbl_multiple_types_pd):
 
 
 def test_get_column_dtype_pl(tbl_multiple_types_pl):
-
     dfn = _convert_to_narwhals(tbl_multiple_types_pl)
 
     assert _get_column_dtype(dfn=dfn, column="int") == "int64"
@@ -219,7 +210,6 @@ def test_get_column_dtype_pl(tbl_multiple_types_pl):
     ["tbl_multiple_types_pd", "tbl_multiple_types_pl"],
 )
 def test_check_column_type(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -254,7 +244,6 @@ def test_check_column_type(request, tbl_fixture):
     ["tbl_multiple_types_pd", "tbl_multiple_types_pl"],
 )
 def test_check_column_type_raises(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     dfn = _convert_to_narwhals(tbl)
@@ -337,7 +326,6 @@ def test_check_column_test_prep_raises(request, tbl_fixture):
 
 
 def test_format_to_integer_value():
-
     assert _format_to_integer_value(0) == "0"
     assert _format_to_integer_value(0.3) == "0"
     assert _format_to_integer_value(0.7) == "1"
@@ -356,7 +344,6 @@ def test_format_to_integer_value():
 
 
 def test_format_to_integer_value_error():
-
     with pytest.raises(TypeError):
         _format_to_integer_value([5])
 
@@ -365,7 +352,6 @@ def test_format_to_integer_value_error():
 
 
 def test_format_to_float_value():
-
     assert _format_to_float_value(0) == "0.00"
     assert _format_to_float_value(0, decimals=0) == "0"
     assert _format_to_float_value(0.3343) == "0.33"
@@ -381,7 +367,6 @@ def test_format_to_float_value():
 
 
 def test_format_to_float_value_error():
-
     with pytest.raises(TypeError):
         _format_to_float_value([5])
 
@@ -390,34 +375,27 @@ def test_format_to_float_value_error():
 
 
 def test_format_to_integer_float_no_df_lib():
-
     # Mock the absence of the both the Pandas and Polars libraries
     with patch.dict(sys.modules, {"pandas": None, "polars": None}):
-
         assert _format_to_integer_value(1000) == "1,000"
         assert _format_to_float_value(1000) == "1,000.00"
 
 
 def test_format_to_integer_float_only_polars():
-
     # Mock the absence of the Pandas library
     with patch.dict(sys.modules, {"pandas": None}):
-
         assert _format_to_integer_value(1000) == "1,000"
         assert _format_to_float_value(1000) == "1,000.00"
 
 
 def test_format_to_integer_float_only_pandas():
-
     # Mock the absence of the Polars library
     with patch.dict(sys.modules, {"polars": None}):
-
         assert _format_to_integer_value(1000) == "1,000"
         assert _format_to_float_value(1000) == "1,000.00"
 
 
 def test_get_fn_name():
-
     def get_name():
         return _get_fn_name()
 
@@ -425,7 +403,6 @@ def test_get_fn_name():
 
 
 def test_get_assertion_from_fname():
-
     def col_vals_gt():
         return _get_assertion_from_fname()
 
@@ -469,7 +446,6 @@ def test_get_assertion_from_fname():
 
 
 def test_check_invalid_fields():
-
     with pytest.raises(ValueError):
         _check_invalid_fields(
             fields=["invalid"], valid_fields=["numeric", "str", "bool", "datetime", "duration"]
@@ -483,7 +459,6 @@ def test_check_invalid_fields():
 
 
 def test_select_df_lib():
-
     # Mock the absence of the both the Pandas and Polars libraries
     with patch.dict(sys.modules, {"pandas": None, "polars": None}):
         # An ImportError is raised when the `pandas` and `polars` packages are not installed
@@ -508,21 +483,17 @@ def test_select_df_lib():
 
 
 def test_get_tbl_type():
-
     assert _get_tbl_type(pd.DataFrame()) == "pandas"
     assert _get_tbl_type(pl.DataFrame()) == "polars"
 
 
 def test_get_api_text():
-
     assert isinstance(_get_api_text(), str)
 
 
 def test_get_examples_text():
-
     assert isinstance(_get_examples_text(), str)
 
 
 def test_get_api_and_examples_text():
-
     assert isinstance(_get_api_and_examples_text(), str)

@@ -14,7 +14,6 @@ def test_draft_fail_no_chatlas():
 
 
 def test_draft_fail_invalid_provider():
-
     small_table = load_dataset(dataset="small_table")
 
     with pytest.raises(ValueError):

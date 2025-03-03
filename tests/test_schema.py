@@ -121,7 +121,6 @@ def test_schema_from_pl_table():
 
 
 def test_schema_from_parquet_table(tbl_parquet):
-
     schema = Schema(tbl=tbl_parquet)
 
     assert schema.columns == [
@@ -150,7 +149,6 @@ def test_schema_from_duckdb_table():
 
 
 def test_schema_from_sqlite_table(tbl_sqlite):
-
     schema = Schema(tbl=tbl_sqlite)
 
     assert schema.columns == [
@@ -350,7 +348,6 @@ def test_schema_coercion_pl_to_pd():
 
 
 def test_schema_coercion_raises_no_tbl():
-
     schema = Schema(columns=[("a", "int"), ("b", "str")])
 
     with pytest.raises(ValueError):
@@ -361,7 +358,6 @@ def test_schema_coercion_raises_no_tbl():
 
 
 def test_schema_coercion_raises_no_lib():
-
     schema_pd = Schema(tbl=load_dataset(dataset="small_table", tbl_type="pandas"))
     schema_pl = Schema(tbl=load_dataset(dataset="small_table", tbl_type="polars"))
 
@@ -383,7 +379,6 @@ def test_schema_coercion_raises_no_lib():
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_schema_input_errors(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     with pytest.raises(ValueError):

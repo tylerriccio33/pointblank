@@ -79,7 +79,6 @@ def tbl_memtable():
 
 @pytest.fixture
 def tbl_pl_variable_names():
-
     return pl.DataFrame(
         {
             "word": ["apple", "banana"],
@@ -97,7 +96,6 @@ def tbl_pl_variable_names():
 
 @pytest.fixture
 def tbl_pd_variable_names():
-
     return pd.DataFrame(
         {
             "word": ["apple", "banana"],
@@ -146,7 +144,6 @@ def test_col_function():
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_gt_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -202,7 +199,6 @@ def test_col_vals_gt_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_lt_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -265,7 +261,6 @@ def test_col_vals_lt_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_eq_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -342,7 +337,6 @@ def test_col_vals_eq_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_ne_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -447,7 +441,6 @@ def test_col_vals_ne_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_ge_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -517,7 +510,6 @@ def test_col_vals_ge_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_le_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -595,7 +587,6 @@ def test_col_vals_le_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_between_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -770,7 +761,6 @@ def test_col_vals_between_col(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd", "tbl_pl", "tbl_memtable"])
 def test_col_vals_outside_col(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -947,7 +937,6 @@ def test_col_vals_outside_col(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_selector_classes(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # StartsWith tests
@@ -1070,7 +1059,6 @@ def test_selector_classes(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_selector_helper_functions(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert col("not_present").resolve(columns=tbl.columns) == ["not_present"]
@@ -1215,7 +1203,6 @@ def test_selector_helper_functions(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_selector_set_ops_classes(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert Column(exprs=AndSelector(StartsWith("low"), EndsWith("floats"))).resolve(
@@ -1254,7 +1241,6 @@ def test_selector_set_ops_classes(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_selector_set_ops_functions(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert col(starts_with("low") & ends_with("floats")).resolve(columns=tbl.columns) == [
@@ -1351,7 +1337,6 @@ def test_selector_set_ops_functions(request, tbl_fixture):
     "tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names", "tbl_memtable_variable_names"]
 )
 def test_selector_set_ops_functions_complex(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert col(starts_with("low") & ends_with("floats") | contains("numbers")).resolve(
@@ -1393,7 +1378,6 @@ def test_selector_set_ops_functions_complex(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", ["tbl_pd_variable_names", "tbl_pl_variable_names"])
 def test_nw_selectors(request, tbl_fixture):
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     # Test with single Narwhals column selector
