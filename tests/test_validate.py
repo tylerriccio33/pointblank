@@ -37,8 +37,6 @@ from pointblank.validate import (
     _process_title_text,
     _ValidationInfo,
 )
-
-
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.column import (
