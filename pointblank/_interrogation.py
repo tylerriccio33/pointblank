@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -18,6 +18,8 @@ from pointblank._constants import IBIS_BACKENDS
 from pointblank.column import Column, ColumnLiteral
 from pointblank.schema import Schema
 
+if TYPE_CHECKING:
+    from pointblank._typing import AbsoluteTolBounds
 
 @dataclass
 class Interrogator:
@@ -1893,7 +1895,7 @@ class RowCountMatch:
     count: int
     inverse: bool
     threshold: int
-    tol : float | tuple[int, int] = 0
+    abs_tol_bounds : AbsoluteTolBounds
     tbl_type: str = "local"
 
     def __post_init__(self):
@@ -1902,17 +1904,9 @@ class RowCountMatch:
 
         row_count :int = get_row_count(data=self.data_tbl)
 
-        if isinstance(self.tol, tuple):
-            raw_lower_lim, raw_upper_lim = self.tol
-            min_val : int = self.count - raw_lower_lim
-            max_val : int = self.count + raw_upper_lim
-        else:
-            if self.tol > 1: # treat as literal row tolerance
-                tol_as_raw :int = self.tol
-            else:
-                tol_as_raw : int = round(self.tol * row_count)
-            min_val : int = round(self.count - tol_as_raw)
-            max_val : int = round(self.count + tol_as_raw)
+        lower_abs_limit, upper_abs_limit = self.abs_tol_bounds
+        min_val: int = self.count - lower_abs_limit
+        max_val: int = self.count + upper_abs_limit
 
         if self.inverse:
             res : bool = not (row_count >= min_val and row_count <= max_val)

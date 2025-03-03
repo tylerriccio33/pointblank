@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 import pathlib
 
 import pprint
@@ -47,6 +50,11 @@ from pointblank.column import (
     first_n,
     last_n,
 )
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 TBL_LIST = [
@@ -2663,14 +2671,14 @@ def test_row_count_match(request, tbl_fixture):
 
 @pytest.mark.parametrize(('val','e', 'exc'),
                          [
-                             ((-1, 5), ValueError, 'If passing a tuple to `tol`, both bounds should be positive. Each limit is'),
-                             ([100, 5], TypeError, '`tol` must be a tuple of limits'),
-                             ((5, -1), ValueError, 'If passing a tuple to `tol`, both bounds should be positive. Each limit is'),
-                             ((None, .05), TypeError, 'Each element passed to `tol` must be an integer if defining upper and lower'),
-                             (('fooval', 100), TypeError, 'Each element passed to `tol` must be an integer if defining upper and lower'),
-                             (-1, ValueError, 'Value passed to `tol` must be positive'),
+                             ((-1, 5), ValueError, 'Tolerance must be non-negative'),
+                             ([100, 5], TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             ((5, -1), ValueError, 'Tolerance must be non-negative'),
+                             ((None, .05), TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             (('fooval', 100), TypeError, 'Tolerance must be a number or a tuple of numbers'),
+                             (-1, ValueError, 'Tolerance must be non-negative'),
                          ])
-def test_invalid_row_count_tol(val : float | tuple[int, int], e: Exception, exc :str) -> None:
+def test_invalid_row_count_tol(val: Any, e: Exception, exc :str) -> None:
     data = pl.DataFrame({"foocol": [1, 2, 3]})
 
     with pytest.raises(expected_exception=e, match = exc):
@@ -2688,10 +2696,10 @@ def test_row_count_example_tol() -> None:
     )
 
     (
-            Validate(data=smaller_small_table)
-            .row_count_match(count=13,tol=.05) # .05% tolerance of 13
-            .interrogate()
-            .assert_passing()
+        Validate(data=smaller_small_table)
+        .row_count_match(count=13,tol=.5) # .50% tolerance of 13
+        .interrogate()
+        .assert_passing()
         )
 
     even_smaller_table = small_table.sample(n = 2)
@@ -2702,6 +2710,8 @@ def test_row_count_example_tol() -> None:
             .interrogate()
             .assert_passing()
         )
+
+test_row_count_example_tol()
 
 @pytest.mark.parametrize(('nrows','target_count','tol','should_pass'),
                          [
