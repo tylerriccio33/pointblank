@@ -64,6 +64,7 @@ from pointblank._utils import (
     _is_lib_present,
     _is_value_a_df,
     _select_df_lib,
+    _derive_bounds
 )
 from pointblank._utils_check_args import (
     _check_column,
@@ -74,6 +75,11 @@ from pointblank._utils_check_args import (
     _check_boolean_input,
 )
 from pointblank._utils_html import _create_table_type_html, _create_table_dims_html
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pointblank._typing import Tolerance, AbsoluteBounds
 
 __all__ = [
     "Validate",
@@ -4551,6 +4557,7 @@ class Validate:
     def row_count_match(
         self,
         count: int | FrameT | Any,
+        tol: Tolerance = 0,
         inverse: bool = False,
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
@@ -4575,6 +4582,14 @@ class Validate:
             The expected row count of the table. This can be an integer value, a Polars or Pandas
             DataFrame object, or an Ibis backend table. If a DataFrame/table is provided, the row
             count of that object will be used as the expected count.
+        tol
+            The tolerance allowable for the row count match. This can be specified as a single
+            numeric value (integer or float) or as a tuple of two integers representing the lower
+            and upper bounds of the tolerance range. If a single integer value (greater than 1) is
+            provided, it represents the absolute bounds of the tolerance, ie. plus or minus the value.
+            If a float value (between 0-1) is provided, it represents the relative tolerance, ie.
+            plus or minus the relative percentage of the target. If a tuple is provided, it represents
+            the lower and upper absolute bounds of the tolerance range. See the examples for more.
         inverse
             Should the validation step be inverted? If `True`, then the expectation is that the row
             count of the target table should not match the specified `count=` value.
@@ -4640,6 +4655,37 @@ class Validate:
 
         The validation table shows that the expectation value of `13` matches the actual count of
         rows in the target table. So, the single test unit passed.
+
+
+        Let's modify our example to show the different ways we can allow some tolerance to our validation
+        by using the `tol` argument.
+
+        ```{python}
+        smaller_small_table = small_table.sample(n = 12) # within the lower bound
+        validation = (
+            pb.Validate(data=smaller_small_table)
+            .row_count_match(count=13,tol=(2, 0)) # minus 2 but plus 0, ie. 11-13
+            .interrogate()
+        )
+
+        validation
+
+        validation = (
+            pb.Validate(data=smaller_small_table)
+            .row_count_match(count=13,tol=.05) # .05% tolerance of 13
+            .interrogate()
+        )
+
+        even_smaller_table = small_table.sample(n = 2)
+        validation = (
+            pb.Validate(data=even_smaller_table)
+            .row_count_match(count=13,tol=5) # plus or minus 5; this test will fail
+            .interrogate()
+        )
+
+        validation
+        ```
+
         """
 
         assertion_type = _get_fn_name()
@@ -4659,8 +4705,11 @@ class Validate:
         if _is_value_a_df(count) or "ibis.expr.types.relations.Table" in str(type(count)):
             count = get_row_count(count)
 
+        # Check the integrity of tolerance
+        bounds: AbsoluteBounds = _derive_bounds(ref = int(count), tol = tol)
+
         # Package up the `count=` and boolean params into a dictionary for later interrogation
-        values = {"count": count, "inverse": inverse}
+        values = {"count": count, "inverse": inverse, "abs_tol_bounds": bounds}
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -5158,6 +5207,7 @@ class Validate:
                     count=value["count"],
                     inverse=value["inverse"],
                     threshold=threshold,
+                    abs_tol_bounds = value["abs_tol_bounds"],
                     tbl_type=tbl_type,
                 ).get_test_results()
 

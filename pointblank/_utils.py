@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import inspect
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -11,6 +11,25 @@ from great_tables import GT
 from great_tables.gt import _get_column_of_values
 
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
+
+if TYPE_CHECKING:
+    from pointblank._typing import AbsoluteBounds, Tolerance
+
+def _derive_single_bound(ref: int, tol : int | float) -> int:
+    """Derive a single bound using the reference."""
+    if not isinstance(tol, float | int):
+        raise TypeError("Tolerance must be a number or a tuple of numbers.")
+    if tol < 0:
+        raise ValueError("Tolerance must be non-negative.")
+    return int(tol * ref) if tol < 1 else int(tol)
+
+def _derive_bounds(ref: int, tol: Tolerance) -> AbsoluteBounds:
+    """Validate and extract the absolute bounds of the tolerance."""
+    if isinstance(tol, tuple):
+        return tuple(_derive_single_bound(ref, t) for t in tol)
+
+    bound = _derive_single_bound(ref, tol)
+    return bound, bound
 
 
 def _get_tbl_type(data: FrameT | Any) -> str:

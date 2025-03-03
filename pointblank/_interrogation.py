@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import narwhals as nw
 from narwhals.typing import FrameT
@@ -18,6 +18,8 @@ from pointblank._constants import IBIS_BACKENDS
 from pointblank.column import Column, ColumnLiteral
 from pointblank.schema import Schema
 
+if TYPE_CHECKING:
+    from pointblank._typing import AbsoluteTolBounds
 
 @dataclass
 class Interrogator:
@@ -1893,16 +1895,23 @@ class RowCountMatch:
     count: int
     inverse: bool
     threshold: int
+    abs_tol_bounds : AbsoluteTolBounds
     tbl_type: str = "local"
 
     def __post_init__(self):
 
         from pointblank.validate import get_row_count
 
-        if not self.inverse:
-            res = get_row_count(data=self.data_tbl) == self.count
+        row_count :int = get_row_count(data=self.data_tbl)
+
+        lower_abs_limit, upper_abs_limit = self.abs_tol_bounds
+        min_val: int = self.count - lower_abs_limit
+        max_val: int = self.count + upper_abs_limit
+
+        if self.inverse:
+            res : bool = not (row_count >= min_val and row_count <= max_val)
         else:
-            res = get_row_count(data=self.data_tbl) != self.count
+            res : bool = row_count >= min_val and row_count <= max_val
 
         self.test_unit_res = res
 
