@@ -84,14 +84,16 @@ You can install Pointblank using pip:
 pip install pointblank
 ```
 
+## Getting in Touch
+
 If you encounter a bug, have usage questions, or want to share ideas to make this package better,
 please feel free to file an [issue](https://github.com/posit-dev/pointblank/issues).
 
-## Code of Conduct
+Wanna talk about data validation in a more relaxed setting? Join our
+[_Discord server_](https://discord.com/invite/YH7CybCNCQ)! This is a great option for asking about
+the development of Pointblank, pitching ideas that may become features, and just sharing your ideas!
 
-Please note that the Pointblank project is released with a
-[contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
-<br>By participating in this project you agree to abide by its terms.
+[![Discord Server](https://img.shields.io/badge/Discord-Chat%20with%20us-blue?style=social&logo=discord&logoColor=purple)](https://discord.com/invite/YH7CybCNCQ)
 
 ## Contributing to Pointblank
 
@@ -102,6 +104,38 @@ PRs with code changes). Just know that anything you can do to help would be very
 
 Please read over the [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md)
 for information on how to get started.
+
+## Roadmap
+
+There is much to do to make Pointblank a dependable and useful tool for data validation. To that
+end, we have a roadmap that will serve as a guide for the development of the library. Here are some
+of the things we are working on or plan to work on in the near future:
+
+1. more validation methods to cover a wider range of data validation needs
+2. easy-to-use but powerful logging functionality
+3. messaging actions (e.g., Slack, emailing, etc.) to better react to threshold exceedences
+4. additional functionality for building more complex validations via LLMs (extension of ideas from
+   the current `DraftValidation` class)
+5. a feature for quickly obtaining summary information on any dataset (tying together existing and
+   future dataset summary-generation pieces)
+6. ensuring there are text/dict/JSON/HTML versions of all reports
+7. supporting the writing and reading YAML validation config files
+8. a cli utility for Pointblank that can be used to run validations from the command line
+9. complete testing of validations across all compatible backends (for certification of those
+   backends as fully supported)
+10. completion of the **User Guide** in the project website
+11. functionality for creating and publishing data dictionaries, which could: (a) use LLMs to more
+    quickly draft column-level descriptions, and (b) incorporate templating features to make it
+    easier to keep descriptions consistent and up to date
+
+If you have any ideas for features or improvements, don't hesitate to share them with us! We are
+always looking for ways to make Pointblank better.
+
+## Code of Conduct
+
+Please note that the Pointblank project is released with a
+[contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+<br>By participating in this project you agree to abide by its terms.
 
 ## 📄 License
 

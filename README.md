@@ -105,12 +105,6 @@ the development of Pointblank, pitching ideas that may become features, and just
 
 [![Discord Server](https://img.shields.io/badge/Discord-Chat%20with%20us-blue?style=social&logo=discord&logoColor=purple)](https://discord.com/invite/YH7CybCNCQ)
 
-## Code of Conduct
-
-Please note that the Pointblank project is released with a
-[contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
-<br>By participating in this project you agree to abide by its terms.
-
 ## Contributing to Pointblank
 
 There are many ways to contribute to the ongoing development of Pointblank. Some contributions can
@@ -147,6 +141,12 @@ of the things we are working on or plan to work on in the near future:
 
 If you have any ideas for features or improvements, don't hesitate to share them with us! We are
 always looking for ways to make Pointblank better.
+
+## Code of Conduct
+
+Please note that the Pointblank project is released with a
+[contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+<br>By participating in this project you agree to abide by its terms.
 
 ## 📄 License
 
