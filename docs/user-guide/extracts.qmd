@@ -1,0 +1,125 @@
+---
+title: Data Extracts
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_header=False, report_incl_footer=False)
+```
+
+Data extracts consist of target table rows containing at least one cell that was found to be a
+failing test unit. Many of the validation methods check values down a column according to some rule
+(e.g., values are not null/None, values are greater than zero, etc.). So if any of those test units
+(which are really cells) failed during a validation step, the row is marked as failing for the
+purposes of data extract collection. This article will:
+
+- describe which validation methods collect data extracts
+- provide information on how you can access data extracts
+
+Data extracts can be useful after interrogation since they reveal which rows resulted in failures
+during interrogation. It is hoped that having quick access to entire rows of data with failing
+elements can be useful in uncovering the root causes of data quality issues.
+
+## The Validation Methods that Work with Data Extracts
+
+The following validation methods are row-based and will have rows extracted when there are failing
+test units:
+
+- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
+- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
+- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
+- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
+- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
+- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+- [`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
+- [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
+- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
+- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
+- [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
+
+An extracted row means that a test unit failed for that row in the validation step. The extracted
+rows are a subset of the original table and are useful for further analysis or understanding
+the nature of the failing test units.
+
+## Data Extracts as CSV Data in the Validation Report
+
+Data extracts are embedded within validation report tables. Let's look at an example, using the
+`small_table` dataset, where data extracts are collected in a single validation step due to failing
+test units:
+
+```{python}
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+    .col_vals_lt(columns="d", value=3000)
+    .interrogate()
+)
+
+validation
+```
+
+The single validation step checks whether values in `d` are less than `3000`. Within that column
+values range from `108.34` to `9999.99`, so it makes sense that we can see 4 failing test units
+in the `FAIL` column.
+
+If you look at the far right of the validation report you'll find there's a `CSV` button. Pressing
+it initiates the download of a CSV, and that CSV contains the data extract for this validation step.
+The `CSV` button only appears when:
+
+1. there is a non-zero number of failing test units
+2. the validation step is based on the use of a row-based validation method (the methods outlined
+above)
+
+Access to CSV data for the row-based errors is useful when the validation report is shared with
+other data quality stakeholders, since it is easily accessible and doesn't require futher use of
+Pointblank.
+
+## Using the `get_data_extracts()` Method to Collect
+
+Aside from the low-tech `CSV` buttons in validation report tables, we can more directly pull out the
+data extracts from the `validation` object created above. We do that with the
+[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
+method, supplying the step number (`1`) to the `i=` parameter:
+
+```{python}
+extract_1 = validation.get_data_extracts(i=1, frame=True)
+
+extract_1
+```
+
+The extracted table is of the same type (a Polars DataFrame) as the target table. We used
+[`load_dataset()`](https://posit-dev.github.io/pointblank/reference/load_dataset.html) with the
+`tbl_type="polars"` option to fetch the dataset in that form.
+
+Notice that the `frame=True` option was used above. What this does is return the table itself as
+normally the return type is a dictionary. This only works if what's provided to `i=` is a scalar
+integer (which is the case here).
+
+Also notice that within the DataFrame returned, we get all the columns of the original dataset
+(i.e., not just the column being checked in the validation step) plus an additional column:
+`_row_num_`. That column provides the 1-indexed row numbers from the original dataset. The
+combination of rows in their entirety plus row numbers is to provide more context on where data
+failures occurred.
+
+## Viewing Data Extracts with `preview()`
+
+To get a consistent HTML representation of any data extract (regardless of the table type), we can
+use the [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function:
+
+```{python}
+pb.preview(data=extract_1)
+```
+
+The view is optimized for readability, with column names and data types displayed in a compact
+format. Notice that the `_row_num_` column is now part of the table stub and doesn't steal focus
+from the table's original columns.
+
+The [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function is
+designed to provide the head and tail (5 rows each) of the table so very large extracts won't
+overflow the display.
+

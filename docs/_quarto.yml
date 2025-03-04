@@ -53,6 +53,7 @@ website:
         - user-guide/columns.qmd
         - user-guide/across.qmd
         - user-guide/preprocessing.qmd
+        - user-guide/extracts.qmd
 
 html-table-processing: none
 
