@@ -41,6 +41,8 @@ website:
       - href: reference/index.qmd
         text: API Reference
     right:
+      - icon: discord
+        href: https://discord.com/invite/YH7CybCNCQ
       - icon: github
         href: https://github.com/posit-dev/pointblank
   sidebar:
