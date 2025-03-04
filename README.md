@@ -130,7 +130,7 @@ of the things we are working on or plan to work on in the near future:
 5. a feature for quickly obtaining summary information on any dataset (tying together existing and
    future dataset summary-generation pieces)
 6. ensuring there are text/dict/JSON/HTML versions of all reports
-7. supporting the writing and reading YAML validation config files
+7. supporting the writing and reading of YAML validation config files
 8. a cli utility for Pointblank that can be used to run validations from the command line
 9. complete testing of validations across all compatible backends (for certification of those
    backends as fully supported)
