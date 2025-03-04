@@ -1,6 +1,7 @@
 <div align="center">
 
 <img src="images/pointblank_logo.svg" alt="Pointblank logo" width="350px"/>
+<a href="https://posit-dev.github.io/pointblank/"><img src="https://posit-dev.github.io/pointblank/assets/pointblank_logo.svg" width="75%"/></a>
 
 _Find out if your data is what you think it is._
 
