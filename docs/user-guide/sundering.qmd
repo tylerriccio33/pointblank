@@ -119,8 +119,9 @@ about the sundering process:
 - the absence of test-unit failures in a row across all validation steps means those rows are
 returned as the `"pass"` set, all others are placed in the `"fail"` set
 
-In validations where many validation steps are used, the more confident we can be about the rows
-returned in the `"pass"` set. But not all steps are considered in this splitting procedure.
+In validations where many validation steps are used, we can be more confident about the level of
+data quality for those rows returned in the `"pass"` set. But not every type of validation step is
+considered within this splitting procedure. The next section will explain the rules on that.
 
 ## The Validation Methods Considered When Sundering
 
