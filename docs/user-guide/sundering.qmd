@@ -1,0 +1,160 @@
+---
+title: Sundering Data
+jupyter: python3
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_header=False, report_incl_footer=False)
+```
+
+Sundering data? First off, let's get the correct meaning across here. Sundering is really just
+splitting, dividing, cutting into two pieces. And it's a useful thing we can do in Pointblank to any
+data that we are validating. When you interrogate the data, you learn about which rows have test
+failures within them. With more validation steps, we get an even better picture of this simply by
+virtue of more testing.
+
+Let's use the `small_table` in our examples to show just how sundering is done. Here's that table:
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
+```
+
+## A Simple Example Where Data is Torn Asunder
+
+We'll begin with a very simple validation plan, having only a single step. There *will be* failing
+test units here.
+
+```{python}
+validation = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_ge(columns="d", value=1000)
+    .interrogate()
+)
+
+validation
+```
+
+We see six failing test units in `FAIL` column of the above validation report table. There is a data
+extract (collection of failing rows) available. Let's use the
+[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
+method to have a look at it.
+
+```{python}
+validation.get_data_extracts(i=1, frame=True)
+```
+
+This is six rows of data that had failing test units in column `d`. Indeed we can see that all
+values in that column are less than `1000` (and we asserted that values should be greater than or
+equal to `1000`). This is the 'bad' data, if you will. Using the
+[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
+method, we get the 'good' part:
+
+```{python}
+validation.get_sundered_data()
+```
+
+This is a Polars DataFrame of seven rows. All values in `d` were passing test units (i.e., fulfilled
+the expectation outlined in the validation step) and, in many ways, this is like a 'good extract'.
+
+You can always collect the failing rows with
+[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
+by using the `type="fail"` option. Trying that here
+
+```{python}
+validation.get_sundered_data(type="fail")
+```
+
+gives us the same rows as in the DataFrame obtained from using
+`validation.get_data_extracts(i=1, frame=True)`. Two important things to know about
+`get_sundered_data()` is that the table rows returned from `type=pass` (the default) and `type=fail`
+are:
+
+- the sum of rows across these returned tables will be equal to that of the original table
+- the rows in each split table are mutually exclusive (i.e., you won't find the same row in both)
+
+You can think of sundered data as a filtered version of the original dataset based on validation
+results. While the simple example illustrates how this process works on a basic level, the value of
+the method is better seen in a slightly more complex example.
+
+## Using `get_sundered_data()` with a More Comprehensive Validation
+
+The previous example used exactly one valiation step. You're likely to use more than that in
+standard practice so let's see how
+[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
+works in those common situations. Here's a validation with three steps:
+
+```{python}
+validation_2 = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_ge(columns="d", value=1000)
+    .col_vals_not_null(columns="c")
+    .col_vals_gt(columns="a", value=2)
+    .interrogate()
+)
+
+validation_2
+```
+
+There are quite a few failures here across the three validation steps. In the `FAIL` column of the
+validation report table, there are 12 failing test units if we were to tally them up. So if the
+input table has 13 rows in total, does this mean there would be one row in the table returned by
+[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)?
+Not so:
+
+```{python}
+validation_2.get_sundered_data()
+```
+
+There are four rows. This is because the different validation steps tested values in different
+columns of the table. Some of the failing test units had to have occurred in more than once in
+certain rows. The rows that didn't have any failing test units across the three different tests
+(in three different columns) are the ones seen above. This brings us to the third important thing
+about the sundering process:
+
+- the absence of test-unit failures in a row across all validation steps means those rows are
+returned as the `"pass"` set, all others are placed in the `"fail"` set
+
+In validations where many validation steps are used, the more confident we can be about the rows
+returned in the `"pass"` set. But not all steps are considered in this splitting procedure.
+
+## The Validation Methods Considered When Sundering
+
+The sundering procedure relies on row-level validation types to be used. This makes sense as it's
+impossible to judge the quality of a row when using the
+[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html)
+validation method, for example. Luckily, we have many row-level validation methods; here's a list:
+
+- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
+- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
+- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
+- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
+- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
+- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+- [`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
+- [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
+- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
+- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
+- [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
+
+This is the same list of validation methods that are considered when creating data extracts.
+
+There are some additional caveats though. Even if using a validation method drawn from the set
+above, the validation step won't be used for sundering if:
+
+- the `active=` parameter for that step has been set to `False`
+- the `pre=` parameter has been used
+
+The first one makes intuitive sense (you decided to skip this validation step entirely), the second
+one requires some explanation. Using `pre=` allows you to modify the target table, there's no easy
+or practical way to compare rows in a mutated table compared to the original table (e.g., a mutation
+may drastically reduce the number of rows).
+
+So long as you're aware of the rules and limitations of sundering, you'll hopefully find it to be a
+simple and useful way to filter your input table on the basis of a validation plan.

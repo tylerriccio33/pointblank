@@ -54,6 +54,7 @@ website:
         - user-guide/across.qmd
         - user-guide/preprocessing.qmd
         - user-guide/extracts.qmd
+        - user-guide/sundering.qmd
 
 html-table-processing: none
 
