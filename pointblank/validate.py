@@ -6384,7 +6384,7 @@ class Validate:
         - of certain check types, where test units are cells checked row-by-row (e.g., the
         `col_vals_*()` methods)
         - `active=` is not set to `False`
-        - `pre=` has not been given an expression for modify the input table
+        - `pre=` has not been given an expression for modifying the input table
 
         So long as these conditions are met, the data will be split into two constituent tables: one
         with the rows that passed all validation steps and another with the rows that failed at
