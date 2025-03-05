@@ -34,6 +34,8 @@ from pointblank.validate import (
     _fmt_lg,
     _get_default_title_text,
     _normalize_reporting_language,
+    _process_action_str,
+    _process_brief,
     _process_title_text,
     _ValidationInfo,
 )
@@ -5076,6 +5078,52 @@ def test_load_dataset_no_polars():
         # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
         with pytest.raises(ImportError):
             load_dataset(tbl_type="polars")
+
+
+def test_process_brief():
+    assert _process_brief(brief=None, step=1, col="x") is None
+    assert _process_brief(brief="A brief", step=1, col="x") == "A brief"
+    assert _process_brief(brief="A brief for step {step}", step=1, col="x") == "A brief for step 1"
+    assert (
+        _process_brief(brief="Step {step}, Column {column}", step=1, col="x") == "Step 1, Column x"
+    )
+    assert _process_brief(brief="Step {i}, Column {col}", step=1, col="x") == "Step 1, Column x"
+    assert (
+        _process_brief(brief="Multiple Columns {col}", step=1, col=["x", "y"])
+        == "Multiple Columns x, y"
+    )
+
+
+def test_process_action_str():
+    datetime_val = str(datetime(2025, 1, 1, 0, 0, 0, 0))
+
+    partial_process_action_str = partial(
+        _process_action_str,
+        step=1,
+        col="x",
+        value=10,
+        type="col_vals_gt",
+        level="warning",
+        time=datetime_val,
+    )
+
+    assert partial_process_action_str(action_str="Action") == "Action"
+    assert (
+        partial_process_action_str(action_str="Action: {step} {column} {value}/{val}")
+        == "Action: 1 x 10/10"
+    )
+    assert partial_process_action_str(action_str="Action: {step} {type} {level} {time}") == (
+        f"Action: 1 col_vals_gt warning {datetime_val}"
+    )
+    assert partial_process_action_str(action_str="Action: {i} {assertion} {severity} {time}") == (
+        f"Action: 1 col_vals_gt warning {datetime_val}"
+    )
+    assert partial_process_action_str(action_str="Action: {i} {TYPE} {LEVEL} {time}") == (
+        f"Action: 1 COL_VALS_GT WARNING {datetime_val}"
+    )
+    assert partial_process_action_str(action_str="Action: {i} {ASSERTION} {SEVERITY} {time}") == (
+        f"Action: 1 COL_VALS_GT WARNING {datetime_val}"
+    )
 
 
 def test_process_title_text():
