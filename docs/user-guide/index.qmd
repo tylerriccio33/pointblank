@@ -76,9 +76,10 @@ validation
 
 Note these three key pieces in the code:
 
-- the `Validate(data=...)` argument takes a DataFrame or database table that you want to validate
-- the methods starting with `col_*` specify validation steps that run on specific columns
-- the `interrogate()` method executes the validation plan on the table
+- the `Validate(data=)` argument takes a DataFrame or database table that you want to validate
+- the methods starting with `col_vals_` specify validation steps that run on specific columns
+- the [`interrogate()`](https://posit-dev.github.io/pointblank/reference/Validate.interrogate.html)
+method executes the validation plan on the table
 
 This common pattern is used in a validation workflow, where
 [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) and
@@ -90,15 +91,17 @@ can measure data quality with test units and failure thresholds.
 ## Understanding Test Units
 
 Each validation step will execute a type of validation test on the target table. For example, a
-`col_vals_lt()` validation step can test that each value in a column is less than a specified
-number. The key finding that's reported as a result of this test is the number of test units that
-pass or fail.
+[`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
+validation step can test that each value in a column is less than a specified number. The key
+finding that's reported as a result of this test is the number of test units that pass or fail.
 
 Test units are dependent on the test being run. The collection of `col_vals_*` validation methods
 will test each and every value in a particular column, so each value will be a test unit (and the
 number of test units is the number of rows in the target table). Some validation methods like
-`col_exists()` or `row_count_match()` have only a single test unit since they aren't testing
-individual values but rather if a single condition is true or false.
+[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
+[`row_count_match()`](https://posit-dev.github.io/pointblank/reference/Validate.row_count_match.html)
+have only a single test unit since they aren't testing individual values but rather if the overall
+test passes or fails.
 
 ## Using Threshold Levels
 
@@ -134,5 +137,5 @@ table as a long dash.
 Setting thresholds is important since you might want some sort of signal for the discovery of errors
 in your data. How you set the particular threshold levels is highly dependent on your tolerance for
 data failures. The idea of thresholds and associated actions is central to how Pointblank works, so,
-the next two sections in the User Guide will deal with (1) a more in-depth treatment of thresholds,
-and (2) how to set actions for threshold exceedences.
+the next two sections in the **User Guide** will deal with (1) a more in-depth treatment of
+thresholds, and (2) how to set actions for threshold exceedences.
