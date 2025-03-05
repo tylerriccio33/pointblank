@@ -341,6 +341,28 @@ class Actions:
     If providing a list of strings or callables, each item in the list will be executed in order.
     Such a list can contain a mix of strings and callables.
 
+    String Templating
+    -----------------
+    When using a string as an action, you can include placeholders for the following variables:
+
+    - `{type}`: The validation step type where the action is executed (e.g., 'col_vals_gt',
+    'col_vals_lt', etc.)
+    - `{level}`: The threshold level where the action is executed ('warning', 'error', or
+    'critical')
+    - `{step}` or `{i}`: The step number in the validation workflow where the action is executed
+    - `{col}` or `{column}`: The column name where the action is executed
+    - `{val}` or `{value}`: An associated value for the validation method (e.g., the value to
+    compare against in a 'col_vals_gt' validation step)
+    - `{time}`: A datetime value for when the action was executed
+
+    The first two placeholders can also be used in uppercase (e.g., `{TYPE}` or `{LEVEL}`) and the
+    corresponding values will be displayed in uppercase. The placeholders are replaced with the
+    actual values during interrogation.
+
+    For example, the string `"{LEVEL}: '{type}' threshold exceeded for column {col}."` will be
+    displayed as `"WARNING: 'col_vals_gt' threshold exceeded for column a."` when the 'warning'
+    threshold is exceeded in a 'col_vals_gt' validation step involving column `a`.
+
     Examples
     --------
     ```{python}
@@ -361,7 +383,7 @@ class Actions:
         pb.Validate(
             data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
-            actions=pb.Actions(critical="Major data quality issue found."),
+            actions=pb.Actions(critical="Major data quality issue found in step {step}."),
         )
         .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
