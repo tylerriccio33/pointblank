@@ -3,9 +3,7 @@ project:
 
 format:
   html:
-    theme:
-      light: flatly
-      dark: darkly
+    theme: flatly
     css:
       - styles.css
       - reference/_styles-quartodoc.css
