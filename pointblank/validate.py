@@ -4952,6 +4952,10 @@ class Validate:
             assertion_category = METHOD_CATEGORY_MAP[assertion_method]
             compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
 
+            # Process the `brief` text for the validation step by including template variables to
+            # the user-supplied text
+            validation.brief = _process_brief(brief=validation.brief, step=validation.i, col=column)
+
             # Generate the autobrief description for the validation step; it's important to perform
             # that here since text components like the column and the value(s) have been resolved
             # at this point
@@ -7630,6 +7634,25 @@ def _normalize_reporting_language(lang: str | None) -> str:
         )
 
     return lang.lower()
+
+
+def _process_brief(brief: str | None, step: int, col: str | None) -> str:
+    # If there is no brief, return `None`
+    if brief is None:
+        return None
+
+    # If the brief contains a placeholder for the step number then replace with `step`;
+    # placeholders are: {step} and {i}
+    brief = brief.replace("{step}", str(step))
+    brief = brief.replace("{i}", str(step))
+
+    # If a `col` value is available for the validation step *and* the brief contains a placeholder
+    # for the column name then replace with `col`; placeholders are: {col} and {column}
+    if col is not None:
+        brief = brief.replace("{col}", col)
+        brief = brief.replace("{column}", col)
+
+    return brief
 
 
 def _create_autobrief(
