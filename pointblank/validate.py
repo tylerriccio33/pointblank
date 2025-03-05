@@ -1838,8 +1838,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2006,8 +2006,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2173,8 +2173,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2339,8 +2339,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2503,8 +2503,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2671,8 +2671,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2850,8 +2850,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3042,8 +3042,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3218,8 +3218,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3370,8 +3370,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
 
@@ -3517,8 +3517,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3661,8 +3661,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3813,8 +3813,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3963,8 +3963,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4081,8 +4081,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4226,8 +4226,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4394,8 +4394,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4560,8 +4560,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4722,8 +4722,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
