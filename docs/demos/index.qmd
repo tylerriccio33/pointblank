@@ -37,7 +37,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Starter Validation](./01-starter/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/starter_validation.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/01-starter/"><img style='padding-bottom: 10px;' src="img/starter_validation.png" width="100%"></img></a>
 <p style='text-align: center; padding-top: 10px;'>A validation with the basics.</p>
 </div>
 :::
@@ -47,7 +47,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Advanced Validation](./02-advanced/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/advanced_validation.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/02-advanced/"><img style='padding-bottom: 10px;' src="img/advanced_validation.png" width="100%"></img></a>
 <p style='text-align: center;'>A validation with a comprehensive set of rules.</p>
 </div>
 :::
@@ -57,7 +57,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Data Extracts](./03-data-extracts/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/data_extracts.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/03-data-extracts/"><img style='padding-bottom: 10px;' src="img/data_extracts.png" width="100%"></img></a>
 <p style='text-align: center;'>Pulling out data extracts that highlight rows with validation failures.</p>
 </div>
 :::
@@ -67,7 +67,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Sundered Data](./04-sundered-data/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/sundered_data.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/04-sundered-data/"><img style='padding-bottom: 10px;' src="img/sundered_data.png" width="100%"></img></a>
 <p style='text-align: center;'>Splitting your data into 'pass' and 'fail' subsets.</p>
 </div>
 :::
@@ -77,7 +77,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Step Reports for Column Data Checks](./05-step-report-column-check/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/step_report_column_values.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/05-step-report-column-check/"><img style='padding-bottom: 10px;' src="img/step_report_column_values.png" width="100%"></img></a>
 <p style='text-align: center;'>A step report for column checks shows what went wrong.</p>
 </div>
 :::
@@ -87,7 +87,7 @@ h3 a {
 <div style='padding-top: 20px; padding-bottom: 10px;'>
 [Step Report for a Schema Check](./06-step-report-schema-check/index.qmd)
 </div>
-<img style='padding-bottom: 10px;' src="img/step_report_column_schema.png" width="100%"></img>
+<a href="https://posit-dev.github.io/pointblank/demos/06-step-report-schema-check/"><img style='padding-bottom: 10px;' src="img/step_report_column_schema.png" width="100%"></img></a>
 <p style='text-align: center;'>When a schema doesn't match, a step report gives you the details.</p>
 </div>
 :::
