@@ -1838,8 +1838,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2006,8 +2006,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2173,8 +2173,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2339,8 +2339,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2503,8 +2503,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2671,8 +2671,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2850,8 +2850,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3042,8 +3042,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3218,8 +3218,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3370,8 +3370,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
 
@@ -3517,8 +3517,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3661,8 +3661,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3813,8 +3813,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3963,8 +3963,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4081,8 +4081,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4226,8 +4226,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4394,8 +4394,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4560,8 +4560,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4722,8 +4722,8 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. If not provided, a brief will be
-            automatically generated.
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4951,6 +4951,10 @@ class Validate:
             assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
             assertion_category = METHOD_CATEGORY_MAP[assertion_method]
             compatible_dtypes = COMPATIBLE_DTYPES.get(assertion_method, [])
+
+            # Process the `brief` text for the validation step by including template variables to
+            # the user-supplied text
+            validation.brief = _process_brief(brief=validation.brief, step=validation.i, col=column)
 
             # Generate the autobrief description for the validation step; it's important to perform
             # that here since text components like the column and the value(s) have been resolved
@@ -5236,6 +5240,8 @@ class Validate:
                     if validation.actions is not None:
                         # Action execution on the step level
                         action = validation.actions._get_action(level=level)
+
+                        # If there is no action set for this level, then continue to the next level
                         if action is None:
                             continue
 
@@ -5243,6 +5249,17 @@ class Validate:
                         if isinstance(action, list):
                             for act in action:
                                 if isinstance(act, str):
+                                    # Process the action string as it may contain template variables
+                                    act = _process_action_str(
+                                        action_str=act,
+                                        step=validation.i,
+                                        col=column,
+                                        value=value,
+                                        type=assertion_type,
+                                        time=str(start_time),
+                                        level=level,
+                                    )
+
                                     print(act)
                                 elif callable(act):
                                     act()
@@ -7630,6 +7647,78 @@ def _normalize_reporting_language(lang: str | None) -> str:
         )
 
     return lang.lower()
+
+
+def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
+    # If there is no brief, return `None`
+    if brief is None:
+        return None
+
+    # If the brief contains a placeholder for the step number then replace with `step`;
+    # placeholders are: {step} and {i}
+    brief = brief.replace("{step}", str(step))
+    brief = brief.replace("{i}", str(step))
+
+    # If a `col` value is available for the validation step *and* the brief contains a placeholder
+    # for the column name then replace with `col`; placeholders are: {col} and {column}
+    if col is not None:
+        # If a list of columns is provided, then join the columns into a comma-separated string
+        if isinstance(col, list):
+            col = ", ".join(col)
+
+        brief = brief.replace("{col}", col)
+        brief = brief.replace("{column}", col)
+
+    return brief
+
+
+def _process_action_str(
+    action_str: str,
+    step: int,
+    col: str | None,
+    value: any,
+    type: str,
+    level: str,
+    time: str,
+) -> str:
+    # If the action string contains a placeholder for the step number then replace with `step`;
+    # placeholders are: {step} and {i}
+    action_str = action_str.replace("{step}", str(step))
+    action_str = action_str.replace("{i}", str(step))
+
+    # If a `col` value is available for the validation step *and* the action string contains a
+    # placeholder for the column name then replace with `col`; placeholders are: {col} and {column}
+    if col is not None:
+        action_str = action_str.replace("{col}", col)
+        action_str = action_str.replace("{column}", col)
+
+    # If a `value` value is available for the validation step *and* the action string contains a
+    # placeholder for the value then replace with `value`; placeholders are: {value} and {val}
+    if value is not None:
+        action_str = action_str.replace("{value}", str(value))
+        action_str = action_str.replace("{val}", str(value))
+
+    # If the action string contains a `type` placeholder then replace with `type` either in
+    # lowercase or uppercase; placeholders for the lowercase form are {type} and {assertion}
+    # and for the uppercase form are {TYPE} and {ASSERTION}
+    action_str = action_str.replace("{type}", type)
+    action_str = action_str.replace("{assertion}", type)
+    action_str = action_str.replace("{TYPE}", type.upper())
+    action_str = action_str.replace("{ASSERTION}", type.upper())
+
+    # If the action string contains a `level` placeholder then replace with `level` either in
+    # lowercase or uppercase; placeholders for the lowercase form are {level} and {severity}
+    # and for the uppercase form are {LEVEL} and {SEVERITY}
+    action_str = action_str.replace("{level}", level)
+    action_str = action_str.replace("{severity}", level)
+    action_str = action_str.replace("{LEVEL}", level.upper())
+    action_str = action_str.replace("{SEVERITY}", level.upper())
+
+    # If the action string contains a `time` placeholder then replace with `time`;
+    # placeholder for this is {time}
+    action_str = action_str.replace("{time}", time)
+
+    return action_str
 
 
 def _create_autobrief(
