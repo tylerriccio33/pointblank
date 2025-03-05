@@ -5270,9 +5270,21 @@ class Validate:
                         if action is None:
                             continue
 
+                        # A list of actions is expected here, so iterate over them
                         if isinstance(action, list):
                             for act in action:
                                 if isinstance(act, str):
+                                    # Process the action string as it may contain template variables
+                                    act = _process_action_str(
+                                        action_str=act,
+                                        step=validation.i,
+                                        col=column,
+                                        value=value,
+                                        type=assertion_type,
+                                        time=str(start_time),
+                                        level=level,
+                                    )
+
                                     print(act)
                                 elif callable(act):
                                     act()
