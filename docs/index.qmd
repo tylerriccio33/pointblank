@@ -5,7 +5,7 @@ html-table-processing: none
 
 <div style="text-align: center;">
 
-![](/assets/pointblank_logo.svg){width=75%}
+![](/assets/pointblank_logo.svg){width=75%, border-color="#BEDFFE", border-style="solid", border-radius="10px"}
 
 _Find out if your data is what you think it is_
 
@@ -20,7 +20,7 @@ validation report table.
 Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the
 `Validate` class along with adding validation steps:
 
-```python
+```{python}
 import pointblank as pb
 
 validation = (
@@ -33,12 +33,6 @@ validation = (
 
 validation
 ```
-
-<div style="text-align: center;">
-
-![](/assets/pointblank-tabular-report.png){width=100%}
-
-</div>
 
 The rows in the validation report table correspond to each of the validation steps. One of the key
 concepts is that validation steps can be broken down into atomic test cases (test units), where each
