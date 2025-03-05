@@ -1040,6 +1040,92 @@ def test_validation_check_thresholds_inherit(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
+def test_validation_briefs(request, tbl_fixture):
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    schema = Schema(columns=["x", "y", "z"])
+    brief_text = "Check of column `{col}`. Step {step}"
+
+    # Perform every type of validation step and provide templated briefs for each
+    v = (
+        Validate(tbl)
+        .col_vals_gt(columns="x", value=0, brief=brief_text)
+        .col_vals_lt(columns="x", value=2, brief=brief_text)
+        .col_vals_eq(columns="z", value=4, brief=brief_text)
+        .col_vals_ne(columns="z", value=6, brief=brief_text)
+        .col_vals_ge(columns="z", value=8, brief=brief_text)
+        .col_vals_le(columns="z", value=10, brief=brief_text)
+        .col_vals_between(columns="x", left=0, right=5, brief=brief_text)
+        .col_vals_outside(columns="x", left=-5, right=0, brief=brief_text)
+        .col_vals_in_set(columns="x", set=[1, 2], brief=brief_text)
+        .col_vals_not_in_set(columns="x", set=[1, 2], brief=brief_text)
+        .col_vals_null(columns="x", brief=brief_text)
+        .col_vals_not_null(columns="x", brief=brief_text)
+        .col_exists(columns="x", brief=brief_text)
+        .rows_distinct(brief=brief_text)
+        .rows_distinct(columns_subset=["x", "y"], brief=brief_text)
+        .col_schema_match(schema=schema, brief=brief_text)
+        .row_count_match(count=5, brief=brief_text)
+        .col_count_match(count=3, brief=brief_text)
+        .interrogate()
+    )
+
+    # `col_vals_gt()`
+    assert v.validation_info[0].brief == "Check of column `x`. Step 1"
+
+    # `col_vals_lt()`
+    assert v.validation_info[1].brief == "Check of column `x`. Step 2"
+
+    # `col_vals_eq()`
+    assert v.validation_info[2].brief == "Check of column `z`. Step 3"
+
+    # `col_vals_ne()`
+    assert v.validation_info[3].brief == "Check of column `z`. Step 4"
+
+    # `col_vals_ge()`
+    assert v.validation_info[4].brief == "Check of column `z`. Step 5"
+
+    # `col_vals_le()`
+    assert v.validation_info[5].brief == "Check of column `z`. Step 6"
+
+    # `col_vals_between()`
+    assert v.validation_info[6].brief == "Check of column `x`. Step 7"
+
+    # `col_vals_outside()`
+    assert v.validation_info[7].brief == "Check of column `x`. Step 8"
+
+    # `col_vals_in_set()`
+    assert v.validation_info[8].brief == "Check of column `x`. Step 9"
+
+    # `col_vals_not_in_set()`
+    assert v.validation_info[9].brief == "Check of column `x`. Step 10"
+
+    # `col_vals_null()`
+    assert v.validation_info[10].brief == "Check of column `x`. Step 11"
+
+    # `col_vals_not_null()`
+    assert v.validation_info[11].brief == "Check of column `x`. Step 12"
+
+    # `col_exists()`
+    assert v.validation_info[12].brief == "Check of column `x`. Step 13"
+
+    # `rows_distinct()`
+    assert v.validation_info[13].brief == "Check of column `{col}`. Step 14"
+
+    # `rows_distinct()` - subset of columns
+    assert v.validation_info[14].brief == "Check of column `x, y`. Step 15"
+
+    # `col_schema_match()`
+    assert v.validation_info[15].brief == "Check of column `{col}`. Step 16"
+
+    # `row_count_match()`
+    assert v.validation_info[16].brief == "Check of column `{col}`. Step 17"
+
+    # `col_count_match()`
+    assert v.validation_info[17].brief == "Check of column `{col}`. Step 18"
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_LIST)
 def test_validation_autobriefs(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
