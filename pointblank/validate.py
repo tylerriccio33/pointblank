@@ -7649,7 +7649,7 @@ def _normalize_reporting_language(lang: str | None) -> str:
     return lang.lower()
 
 
-def _process_brief(brief: str | None, step: int, col: str | None) -> str:
+def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
         return None
@@ -7662,6 +7662,10 @@ def _process_brief(brief: str | None, step: int, col: str | None) -> str:
     # If a `col` value is available for the validation step *and* the brief contains a placeholder
     # for the column name then replace with `col`; placeholders are: {col} and {column}
     if col is not None:
+        # If a list of columns is provided, then join the columns into a comma-separated string
+        if isinstance(col, list):
+            col = ", ".join(col)
+
         brief = brief.replace("{col}", col)
         brief = brief.replace("{column}", col)
 
