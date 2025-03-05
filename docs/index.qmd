@@ -3,6 +3,13 @@ jupyter: python3
 html-table-processing: none
 ---
 
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
 <div style="text-align: center;">
 
 ![](/assets/pointblank_logo.svg){width=75%}
