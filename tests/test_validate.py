@@ -5442,6 +5442,7 @@ def test_get_step_report_no_fail(tbl_type):
         .col_vals_ge(columns="d", value=500)
         .col_vals_between(columns="a", left=2, right=10)
         .col_vals_outside(columns="a", left=7, right=20)
+        .col_vals_in_set(columns="a", set=[1, 2, 3, 4, 5])
         .col_vals_in_set(columns="f", set=["low", "mid", "high"])
         .col_vals_not_in_set(columns="f", set=["l", "mid", "m"])
         .col_vals_null(columns="b")

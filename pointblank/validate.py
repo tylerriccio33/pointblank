@@ -8458,7 +8458,7 @@ def _step_report_row_based(
         symbol_right = "&gt;" if inclusive[1] else "&ge;"
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}</code>"
     elif assertion_type == "col_vals_in_set":
-        elements = ", ".join(values)
+        elements = ", ".join(map(str, values))
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
     elif assertion_type == "col_vals_not_in_set":
         elements = ", ".join(values)
