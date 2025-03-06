@@ -60,7 +60,7 @@ def test_datascan_dict_output(tbl_type):
 
     assert isinstance(scanner.profile, dict)
 
-    scan_dict = scanner.get_profile()
+    scan_dict = scanner.to_dict()
 
     assert isinstance(scan_dict, dict)
 

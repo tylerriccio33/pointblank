@@ -33,7 +33,7 @@ class DataScan:
         - a sample of the data
         - statistics (if the column contains numbers, strings, or datetimes)
 
-    To obtain a dictionary representation of the summary, you can use the `get_profile()` method. To
+    To obtain a dictionary representation of the summary, you can use the `to_dict()` method. To
     get a JSON representation of the summary, you can use the `to_json()` method. To save the JSON
     text to a file, the `save_to_json()` method could be used.
 
@@ -281,7 +281,7 @@ class DataScan:
 
         return profile
 
-    def get_profile(self) -> dict:
+    def to_dict(self) -> dict:
         return self.profile
 
     def to_json(self) -> str:
