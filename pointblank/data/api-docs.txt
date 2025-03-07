@@ -11,7 +11,7 @@ failure thresholds (using the `Thresholds` class or through shorthands for this 
 `Validate` class has numerous methods for defining validation steps and for obtaining
 post-interrogation metrics and data.
 
-Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None) -> None
+Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None, lang: 'str | None' = None, locale: 'str | None' = None) -> None
 
     Workflow for defining a set of validations on a table and interrogating for results.
 
@@ -62,6 +62,17 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no default actions
         will be set.
+    lang
+        The language to use for automatic creation of briefs (short descriptions for each validation
+        step). By default, `None` will create English (`"en"`) text. Other options include French
+        (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
+        (`"tr"`), Chinese (`"zh"`), Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish
+        (`"sv"`), and Dutch (`"nl"`).
+    locale
+        An optional locale ID to use for formatting values in the reporting table according the
+        locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
+        French (France). More simply, this can be a language identifier without a designation of
+        territory, like `"es"` for Spanish.
 
     Returns
     -------
@@ -198,26 +209,20 @@ Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bo
     of failing test units exceeds 10% of the total number of test units:
 
     ```python
-    thresholds = pb.Thresholds(warning=0.1)
-
-    thresholds
+    thresholds_1 = pb.Thresholds(warning=0.1)
     ```
 
     You can also set thresholds for the 'error' and 'critical' levels:
 
     ```python
-    thresholds = pb.Thresholds(warning=0.1, error=0.2, critical=0.05)
-
-    thresholds
+    thresholds_2 = pb.Thresholds(warning=0.1, error=0.2, critical=0.05)
     ```
 
     Thresholds can also be set as absolute counts. Here's an example where the 'warning' level is
     set to `5` failing test units:
 
     ```python
-    thresholds = pb.Thresholds(warning=5)
-
-    thresholds
+    thresholds_3 = pb.Thresholds(warning=5)
     ```
 
     The `thresholds` object can be used to set global thresholds for all validation steps. Or, you
@@ -279,6 +284,107 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
         class (to set actions for meeting different threshold levels globally) or when defining
         validation steps like [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`) (so that actions
         are scoped to individual validation steps, overriding any globally set actions).
+
+    Types of Actions
+    ----------------
+    Actions can be defined in different ways:
+
+    1. **String**: A message to be displayed when the threshold level is met or exceeded.
+    2. **Callable**: A function that is called when the threshold level is met or exceeded.
+    3. **List of Strings/Callables**: Multiple messages or functions to be called when the threshold
+       level is met or exceeded.
+
+    The actions are executed at interrogation time when the threshold level assigned to the action
+    is exceeded by the number or proportion of failing test units. When providing a string, it will
+    simply be printed to the console. A callable will also be executed at the time of interrogation.
+    If providing a list of strings or callables, each item in the list will be executed in order.
+    Such a list can contain a mix of strings and callables.
+
+    String Templating
+    -----------------
+    When using a string as an action, you can include placeholders for the following variables:
+
+    - `{type}`: The validation step type where the action is executed (e.g., 'col_vals_gt',
+    'col_vals_lt', etc.)
+    - `{level}`: The threshold level where the action is executed ('warning', 'error', or
+    'critical')
+    - `{step}` or `{i}`: The step number in the validation workflow where the action is executed
+    - `{col}` or `{column}`: The column name where the action is executed
+    - `{val}` or `{value}`: An associated value for the validation method (e.g., the value to
+    compare against in a 'col_vals_gt' validation step)
+    - `{time}`: A datetime value for when the action was executed
+
+    The first two placeholders can also be used in uppercase (e.g., `{TYPE}` or `{LEVEL}`) and the
+    corresponding values will be displayed in uppercase. The placeholders are replaced with the
+    actual values during interrogation.
+
+    For example, the string `"{LEVEL}: '{type}' threshold exceeded for column {col}."` will be
+    displayed as `"WARNING: 'col_vals_gt' threshold exceeded for column a."` when the 'warning'
+    threshold is exceeded in a 'col_vals_gt' validation step involving column `a`.
+
+    Examples
+    --------
+    Let's define both threshold values and actions for a data validation workflow. We'll set these
+    thresholds and actions globally for all validation steps. In this specific example, the only
+    actions we'll define are for the 'critical' level:
+
+    ```python
+    import pointblank as pb
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(critical="Major data quality issue found in step {step}."),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(columns="session_duration", value=15)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Because we set the 'critical' action to display `"Major data quality issue found."` in the
+    console, this message will be displayed if the number of failing test units exceeds the
+    'critical' threshold (set to 15% of the total number of test units). In step 3 of the validation
+    workflow, the 'critical' threshold is exceeded, so the message is displayed in the console.
+
+    Actions can be defined locally for individual validation steps, which will override any global
+    actions set at the beginning of the validation workflow. Here's a variation of the above example
+    where we set global threshold values but assign an action only for an individual validation
+    step:
+
+    ```python
+    def dq_issue():
+        from datetime import datetime
+
+        print(f"Data quality issue found ({datetime.now()}).")
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(
+            columns="session_duration",
+            value=15,
+            actions=pb.Actions(warning=dq_issue),
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    In this case, the 'warning' action is set to call the `dq_issue()` function. This action is
+    only executed when the 'warning' threshold is exceeded in the 'session_duration' column. Because
+    all three thresholds are exceeded in step 3, the 'warning' action of executing the function
+    occurs (resulting in a message being printed to the console). If actions were set for the other
+    two threshold levels, they would also be executed.
 
 
 Schema(columns: 'str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None' = None, tbl: 'any | None' = None, **kwargs)
@@ -535,9 +641,9 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     starting point for validating a table. This can be useful when you have a new table and you
     want to get a sense of how to validate it (and adjustments could always be made later). The
     `DraftValidation` class uses the `chatlas` package to draft a validation plan for a given table
-    using an LLM from either the `"anthropic"`, `"openai"`, or `"bedrock"` provider. You can install
-    all requirements for the class by using an optional install of Pointblank via `pip install
-    pointblank[generate]`.
+    using an LLM from either the `"anthropic"`, `"openai"`, `"ollama"` or `"bedrock"` provider. You
+    can install all requirements for the class through an optional 'generate' install of Pointblank
+    via `pip install pointblank[generate]`.
 
     :::{.callout-warning}
     The `DraftValidation()` class is still experimental. Please report any issues you encounter in
@@ -551,7 +657,7 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     model
         The model to be used. This should be in the form of `provider:model` (e.g.,
         `"anthropic:claude-3-5-sonnet-latest"`). Supported providers are `"anthropic"`, `"openai"`,
-        and `"bedrock"` (Amazon Bedrock).
+        `"ollama"`, and `"bedrock"`.
     api_key
         The API key to be used for the model.
 
@@ -563,9 +669,15 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     Constructing the `model` Argument
     ---------------------------------
     The `model=` argument should be constructed using the provider and model name separated by a
-    colon. The provider can be either `"anthropic"` or `"openai"`. The model name should be the
-    specific model to be used. For example, model names are subject to change so consult the
-    provider's documentation for the most up-to-date model names.
+    colon (`provider:model`). The provider text can any of:
+
+    - `"anthropic"` (Anthropic)
+    - `"openai"` (OpenAI)
+    - `"ollama"` (Ollama)
+    - `"bedrock"` (Amazon Bedrock)
+
+    The model name should be the specific model to be used from the provider. Model names are
+    subject to change so consult the provider's documentation for the most up-to-date model names.
 
     Notes on Authentication
     -----------------------
@@ -605,13 +717,18 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     validation plan. As such, even very large tables can be used with the `DraftValidation` class
     since the contents of the table are not sent to the model provider.
 
+    The Amazon Bedrock is a special case since it is a self-hosted model and security controls are
+    in place to ensure that data is kept within the user's AWS environment. If using an Ollama
+    model all data is handled locally, though only a few models are capable enough to perform the
+    task of drafting a validation plan.
+
     Examples
     --------
     Let's look at how the `DraftValidation` class can be used to draft a validation plan for a
     table. The table to be used is `"nycflights"`, which is available here via the
     [`load_dataset()`](`pointblank.load_dataset`) function. The model to be used is
-    `"anthropic:claude-3-5-sonnet-latest"`. The example assumes that the API key is stored in an
-    `.env` file as `ANTHROPIC_API_KEY`.
+    `"anthropic:claude-3-5-sonnet-latest"` (which performs very well compared to other LLMs). The
+    example assumes that the API key is stored in an `.env` file as `ANTHROPIC_API_KEY`.
 
     ```python
     import pointblank as pb
@@ -655,7 +772,7 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     # The validation plan
     validation = (
         pb.Validate(
-            data=your_data,
+            data=your_data,  # Replace your_data with the actual data variable
             label="Draft Validation",
             thresholds=pb.Thresholds(warning=0.10, error=0.25, critical=0.35)
         )
@@ -688,8 +805,8 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     requirements of the table being validated.
 
     Note that the output does not know how the data was obtained, so it uses the placeholder
-    `your_data` in the `data=` argument of the `Validate` class. This should be replaced with the
-    actual data variable.
+    `your_data` in the `data=` argument of the `Validate` class. When adapted for use, this should
+    be replaced with the actual data variable.
 
 
 
@@ -699,7 +816,7 @@ Validation steps can be thought of as sequential validations on the target
 data. We call `Validate`'s validation methods to build up a validation plan: a collection of steps
 that, in the aggregate, provides good validation coverage.
 
-col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data greater than a fixed value or data in another column?
 
@@ -725,7 +842,7 @@ col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -738,6 +855,9 @@ col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -807,7 +927,7 @@ col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         - Row 3: `c` is `2` and `b` is `2`.
 
 
-col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data less than a fixed value or data in another column?
 
@@ -833,7 +953,7 @@ col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -846,6 +966,9 @@ col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -915,7 +1038,7 @@ col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         - Row 2: `b` is `1` and `c` is `1`.
 
 
-col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data greater than or equal to a fixed value or data in another column?
 
@@ -941,7 +1064,7 @@ col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -954,6 +1077,9 @@ col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1023,7 +1149,7 @@ col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         - Row 4: `b` is `3` and `c` is `4`.
 
 
-col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data less than or equal to a fixed value or data in another column?
 
@@ -1049,7 +1175,7 @@ col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1062,6 +1188,9 @@ col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1131,7 +1260,7 @@ col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         - Row 4: `c` is `3` and `b` is `2`.
 
 
-col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data equal to a fixed value or data in another column?
 
@@ -1157,7 +1286,7 @@ col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1170,6 +1299,9 @@ col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1237,7 +1369,7 @@ col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         - Row 5: `a` is `5` and `b` is `4`.
 
 
-col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Are column data not equal to a fixed value or data in another column?
 
@@ -1263,7 +1395,7 @@ col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1276,6 +1408,9 @@ col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1341,7 +1476,7 @@ col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
         0 and 4, where `a` is `5` and `b` is `5` in both cases (i.e., they are equal to each other).
 
 
-col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Do column data lie between two specified values or data in other columns?
 
@@ -1376,7 +1511,7 @@ col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | Col
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1389,6 +1524,9 @@ col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | Col
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1466,7 +1604,7 @@ col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | Col
         - Row 4: `b` is `8` but the bounds are `3` (`a`) and `7` (`c`).
 
 
-col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Do column data lie outside of two specified values or data in other columns?
 
@@ -1501,7 +1639,7 @@ col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | Col
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1514,6 +1652,9 @@ col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | Col
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1591,7 +1732,7 @@ col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | Col
         - Row 5: `b` is `6` and the bounds are `5` (`a`) and `7` (`c`).
 
 
-col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether column values are in a set of values.
 
@@ -1610,7 +1751,7 @@ col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | Colu
         set
             A list of values to compare against.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1623,6 +1764,9 @@ col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | Colu
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1686,7 +1830,7 @@ col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | Colu
         column `b` values of `8` and `1`, which are not in the set of `[2, 3, 4, 5, 6]`.
 
 
-col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether column values are not in a set of values.
 
@@ -1705,7 +1849,7 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
         set
             A list of values to compare against.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1718,6 +1862,9 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
 
@@ -1780,7 +1927,7 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
         column `b` values of `2` and `6`, both of which are in the set of `[2, 3, 4, 5, 6]`.
 
 
-col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether values in a column are NULL.
 
@@ -1796,7 +1943,7 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1809,6 +1956,9 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1871,7 +2021,7 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
         two non-Null values in column `b`.
 
 
-col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether values in a column are not NULL.
 
@@ -1887,7 +2037,7 @@ col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | Co
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1900,6 +2050,9 @@ col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | Co
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -1962,7 +2115,7 @@ col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | Co
         two Null values in column `b`.
 
 
-col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pattern: 'str', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pattern: 'str', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether column values match a regular expression pattern.
 
@@ -1984,7 +2137,7 @@ col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | Colum
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -1997,6 +2150,9 @@ col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | Colum
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2060,7 +2216,7 @@ col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | Colum
         string values of rows 1 and 2 in column `b`.
 
 
-col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate column values using a custom expression.
 
@@ -2077,7 +2233,7 @@ col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int
             be a Polars column expression or a Narwhals one. For a Pandas DataFrame, the expression
             should either be a lambda expression or a Narwhals column expression.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2090,6 +2246,9 @@ col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2138,7 +2297,7 @@ col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int
         by using `col_vals_expr()`. All test units passed, with no failing test units.
 
 
-col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether one or more columns exist in the table.
 
@@ -2164,6 +2323,9 @@ col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSel
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2227,7 +2389,7 @@ col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSel
         failing validation step (the check for column `c`, which doesn't exist).
 
 
-rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether rows in the table are distinct.
 
@@ -2243,7 +2405,7 @@ rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Calla
             columns are supplied, the distinct comparison will be made over the combination of
             values in those columns.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2256,6 +2418,9 @@ rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Calla
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2322,7 +2487,7 @@ rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Calla
         others.
 
 
-col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'bool' = True, case_sensitive_colnames: 'bool' = True, case_sensitive_dtypes: 'bool' = True, full_match_dtypes: 'bool' = True, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'bool' = True, case_sensitive_colnames: 'bool' = True, case_sensitive_dtypes: 'bool' = True, full_match_dtypes: 'bool' = True, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Do columns in the table (and their types) match a predefined schema?
 
@@ -2359,7 +2524,7 @@ col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'boo
             substring matches are allowed, so a schema data type of `Int` would match a target table
             data type of `Int64`.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2372,6 +2537,9 @@ col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'boo
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2435,7 +2603,7 @@ col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'boo
         since the table columns and their types match the schema.
 
 
-row_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+row_count_match(self, count: 'int | FrameT | Any', tol: 'Tolerance' = 0, inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether the row count of the table matches a specified count.
 
@@ -2453,11 +2621,19 @@ row_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
             The expected row count of the table. This can be an integer value, a Polars or Pandas
             DataFrame object, or an Ibis backend table. If a DataFrame/table is provided, the row
             count of that object will be used as the expected count.
+        tol
+            The tolerance allowable for the row count match. This can be specified as a single
+            numeric value (integer or float) or as a tuple of two integers representing the lower
+            and upper bounds of the tolerance range. If a single integer value (greater than 1) is
+            provided, it represents the absolute bounds of the tolerance, ie. plus or minus the value.
+            If a float value (between 0-1) is provided, it represents the relative tolerance, ie.
+            plus or minus the relative percentage of the target. If a tuple is provided, it represents
+            the lower and upper absolute bounds of the tolerance range. See the examples for more.
         inverse
             Should the validation step be inverted? If `True`, then the expectation is that the row
             count of the target table should not match the specified `count=` value.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2470,6 +2646,9 @@ row_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2502,7 +2681,38 @@ row_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
         rows in the target table. So, the single test unit passed.
 
 
-col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, active: 'bool' = True) -> 'Validate'
+        Let's modify our example to show the different ways we can allow some tolerance to our validation
+        by using the `tol` argument.
+
+        ```python
+        smaller_small_table = small_table.sample(n = 12) # within the lower bound
+        validation = (
+            pb.Validate(data=smaller_small_table)
+            .row_count_match(count=13,tol=(2, 0)) # minus 2 but plus 0, ie. 11-13
+            .interrogate()
+        )
+
+        validation
+
+        validation = (
+            pb.Validate(data=smaller_small_table)
+            .row_count_match(count=13,tol=.05) # .05% tolerance of 13
+            .interrogate()
+        )
+
+        even_smaller_table = small_table.sample(n = 2)
+        validation = (
+            pb.Validate(data=even_smaller_table)
+            .row_count_match(count=13,tol=5) # plus or minus 5; this test will fail
+            .interrogate()
+        )
+
+        validation
+        ```
+
+
+
+col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | None' = None, active: 'bool' = True) -> 'Validate'
 
         Validate whether the column count of the table matches a specified count.
 
@@ -2524,7 +2734,7 @@ col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
             Should the validation step be inverted? If `True`, then the expectation is that the
             column count of the target table should not match the specified `count=` value.
         pre
-            A optional pre-processing function or lambda to apply to the data table during
+            A optional preprocessing function or lambda to apply to the data table during
             interrogation.
         thresholds
             Optional failure threshold levels for the validation step(s), so that the interrogation
@@ -2537,6 +2747,9 @@ col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
+        brief
+            An optional brief description of the validation step. The templating elements `"{col}"`
+            and `"{step}"` can be used to insert the column name and step number, respectively.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4167,7 +4380,7 @@ get_sundered_data(self, type='pass') -> 'FrameT'
         - of certain check types, where test units are cells checked row-by-row (e.g., the
         `col_vals_*()` methods)
         - `active=` is not set to `False`
-        - `pre=` has not been given an expression for modify the input table
+        - `pre=` has not been given an expression for modifying the input table
 
         So long as these conditions are met, the data will be split into two constituent tables: one
         with the rows that passed all validation steps and another with the rows that failed at
@@ -5139,12 +5352,12 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
     - column-level information, including:
         - the column name
         - the column type
-        - the number of missing values
-        - the number of unique values
-        - a sample of the data
+        - measures of missingness and distinctness
+        - measures of negative, zero, and positive values (for numerical columns)
+        - a sample of the data (the first 5 values)
         - statistics (if the column contains numbers, strings, or datetimes)
 
-    To obtain a dictionary representation of the summary, you can use the `get_profile()` method. To
+    To obtain a dictionary representation of the summary, you can use the `to_dict()` method. To
     get a JSON representation of the summary, you can use the `to_json()` method. To save the JSON
     text to a file, the `save_to_json()` method could be used.
 
@@ -5159,6 +5372,63 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
         The data to scan and summarize.
     tbl_name
         Optionally, the name of the table could be provided as `tbl_name`.
+
+    Measures of Missingness and Distinctness
+    ----------------------------------------
+    For each column, the following measures are provided:
+
+    - `n_missing_values`: the number of missing values in the column
+    - `f_missing_values`: the fraction of missing values in the column
+    - `n_unique_values`: the number of unique values in the column
+    - `f_unique_values`: the fraction of unique values in the column
+
+    The fractions are calculated as the ratio of the measure to the total number of rows in the
+    dataset.
+
+    Counts and Fractions of Negative, Zero, and Positive Values
+    -----------------------------------------------------------
+    For numerical columns, the following measures are provided:
+
+    - `n_negative_values`: the number of negative values in the column
+    - `f_negative_values`: the fraction of negative values in the column
+    - `n_zero_values`: the number of zero values in the column
+    - `f_zero_values`: the fraction of zero values in the column
+    - `n_positive_values`: the number of positive values in the column
+    - `f_positive_values`: the fraction of positive values in the column
+
+    The fractions are calculated as the ratio of the measure to the total number of rows in the
+    dataset.
+
+    Statistics for Numerical Columns
+    --------------------------------
+    For numerical columns, the following descriptive statistics are provided:
+
+    - `mean`: the mean of the column
+    - `std_dev`: the standard deviation of the column
+
+    Additionally, the following quantiles are provided:
+
+    - `min`: the minimum value in the column
+    - `p05`: the 5th percentile of the column
+    - `q_1`: the first quartile of the column
+    - `med`: the median of the column
+    - `q_3`: the third quartile of the column
+    - `p95`: the 95th percentile of the column
+    - `max`: the maximum value in the column
+    - `iqr`: the interquartile range of the column
+
+    Statistics for String Columns
+    -----------------------------
+    For string columns, the following statistics are provided:
+
+    - `mode`: the mode of the column
+
+    Statistics for Datetime Columns
+    -------------------------------
+    For datetime columns, the following statistics are provided:
+
+    - `min_date`: the minimum date in the column
+    - `max_date`: the maximum date in the column
 
     Returns
     -------
@@ -5590,7 +5860,9 @@ import pointblank as pb
 
 validation = (
     pb.Validate( # Use pb.Validate to start
-        data=pb.load_dataset(dataset="small_table", tbl_type="polars")
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
+        tbl_name="small_table",
+        label="A starter validation"
     )
     .col_vals_gt(columns="d", value=1000)       # STEP 1 |
     .col_vals_le(columns="c", value=5)          # STEP 2 | <-- Build up a validation plan
@@ -5674,7 +5946,11 @@ import pointblank as pb
 import polars as pl
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="pandas"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="pandas"),
+        tbl_name="small_table",
+        label="Sundering Data"
+    )
     .col_vals_gt(columns="d", value=1000)
     .col_vals_le(columns="c", value=5)
     .interrogate()
@@ -5695,7 +5971,11 @@ A step report for column checks shows what went wrong
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table"),
+        tbl_name="small_table",
+        label="Step reports for column data checks"
+    )
     .col_vals_ge(columns="c", value=4, na_pass=True)                # has failing test units
     .col_vals_regex(columns="b", pattern=r"\d-[a-z]{3}-\d{3}")      # no failing test units
     .interrogate()
@@ -5735,7 +6015,11 @@ schema = pb.Schema(
 
 # Use the `col_schema_match()` validation method to perform a schema check
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"),
+        tbl_name="small_table",
+        label="Step report for a schema check"
+    )
     .col_schema_match(schema=schema)
     .interrogate()
 )
