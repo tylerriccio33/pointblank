@@ -29,9 +29,9 @@ class DataScan:
     - column-level information, including:
         - the column name
         - the column type
-        - the number of missing values
-        - the number of unique values
-        - a sample of the data
+        - measures of missingness and distinctness
+        - measures of negative, zero, and positive values (for numerical columns)
+        - a sample of the data (the first 5 values)
         - statistics (if the column contains numbers, strings, or datetimes)
 
     To obtain a dictionary representation of the summary, you can use the `to_dict()` method. To
@@ -49,6 +49,63 @@ class DataScan:
         The data to scan and summarize.
     tbl_name
         Optionally, the name of the table could be provided as `tbl_name`.
+
+    Measures of Missingness and Distinctness
+    ----------------------------------------
+    For each column, the following measures are provided:
+
+    - `n_missing_values`: the number of missing values in the column
+    - `f_missing_values`: the fraction of missing values in the column
+    - `n_unique_values`: the number of unique values in the column
+    - `f_unique_values`: the fraction of unique values in the column
+
+    The fractions are calculated as the ratio of the measure to the total number of rows in the
+    dataset.
+
+    Counts and Fractions of Negative, Zero, and Positive Values
+    -----------------------------------------------------------
+    For numerical columns, the following measures are provided:
+
+    - `n_negative_values`: the number of negative values in the column
+    - `f_negative_values`: the fraction of negative values in the column
+    - `n_zero_values`: the number of zero values in the column
+    - `f_zero_values`: the fraction of zero values in the column
+    - `n_positive_values`: the number of positive values in the column
+    - `f_positive_values`: the fraction of positive values in the column
+
+    The fractions are calculated as the ratio of the measure to the total number of rows in the
+    dataset.
+
+    Statistics for Numerical Columns
+    --------------------------------
+    For numerical columns, the following descriptive statistics are provided:
+
+    - `mean`: the mean of the column
+    - `std_dev`: the standard deviation of the column
+
+    Additionally, the following quantiles are provided:
+
+    - `min`: the minimum value in the column
+    - `p05`: the 5th percentile of the column
+    - `q_1`: the first quartile of the column
+    - `med`: the median of the column
+    - `q_3`: the third quartile of the column
+    - `p95`: the 95th percentile of the column
+    - `max`: the maximum value in the column
+    - `iqr`: the interquartile range of the column
+
+    Statistics for String Columns
+    -----------------------------
+    For string columns, the following statistics are provided:
+
+    - `mode`: the mode of the column
+
+    Statistics for Datetime Columns
+    -------------------------------
+    For datetime columns, the following statistics are provided:
+
+    - `min_date`: the minimum date in the column
+    - `max_date`: the maximum date in the column
 
     Returns
     -------
