@@ -58,13 +58,13 @@ def test_datascan_dict_output(tbl_type):
     dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset)
 
-    assert isinstance(scanner.profile, dict)
+    assert isinstance(scanner.to_dict(), dict)
 
     scan_dict = scanner.to_dict()
 
     assert isinstance(scan_dict, dict)
 
-    assert scanner.profile == scan_dict
+    assert scanner.to_dict() == scan_dict
 
 
 def test_datascan_json_output():

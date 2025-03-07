@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from math import floor, log10
 from typing import Any
 
 import narwhals as nw
@@ -84,10 +85,155 @@ class DataScan:
 
         # Generate the profile based on the `tbl_category` value
         if self.tbl_category == "dataframe":
-            self.profile = self._generate_profile()
+            self.profile = self._generate_profile_df()
 
         if self.tbl_category == "ibis":
             self.profile = self._generate_profile_ibis()
+
+    def _generate_profile_df(self) -> dict:
+        profile = {}
+
+        if self.tbl_name:
+            profile["tbl_name"] = self.tbl_name
+
+        row_count = self.data_alt.shape[0]
+        column_count = self.data_alt.shape[1]
+
+        profile.update(
+            {
+                "tbl_type": self.tbl_type,
+                "dimensions": {"rows": row_count, "columns": column_count},
+                "columns": [],
+            }
+        )
+
+        for column in self.data_alt.columns:
+            col_data = self.data_alt[column]
+            native_dtype = str(self.data[column].dtype)
+
+            if "date" in str(col_data.dtype).lower():
+                sample_data = col_data.drop_nulls().head(5).cast(nw.String).to_list()
+                sample_data = [str(x) for x in sample_data]
+            else:
+                sample_data = col_data.drop_nulls().head(5).to_list()
+
+            n_missing_vals = int(col_data.is_null().sum())
+            n_unique_vals = int(col_data.n_unique())
+
+            # If there are missing values, subtract 1 from the number of unique values
+            # to account for the missing value which shouldn't be included in the count
+            if (n_missing_vals > 0) and (n_unique_vals > 0):
+                n_unique_vals = n_unique_vals - 1
+
+            f_missing_vals = _round_to_sig_figs(n_missing_vals / row_count, 3)
+            f_unique_vals = _round_to_sig_figs(n_unique_vals / row_count, 3)
+
+            col_profile = {
+                "column_name": column,
+                "column_type": native_dtype,
+                "n_missing_values": n_missing_vals,
+                "f_missing_values": f_missing_vals,
+                "n_unique_values": n_unique_vals,
+                "f_unique_values": f_unique_vals,
+            }
+
+            if "int" in str(col_data.dtype).lower() or "float" in str(col_data.dtype).lower():
+                n_negative_vals = int(col_data.is_between(-1e26, -1e-26).sum())
+                f_negative_vals = _round_to_sig_figs(n_negative_vals / row_count, 3)
+
+                n_zero_vals = int(col_data.is_between(0, 0).sum())
+                f_zero_vals = _round_to_sig_figs(n_zero_vals / row_count, 3)
+
+                n_positive_vals = row_count - n_missing_vals - n_negative_vals - n_zero_vals
+                f_positive_vals = _round_to_sig_figs(n_positive_vals / row_count, 3)
+
+                col_profile_additional = {
+                    "n_negative_values": n_negative_vals,
+                    "f_negative_values": f_negative_vals,
+                    "n_zero_values": n_zero_vals,
+                    "f_zero_values": f_zero_vals,
+                    "n_positive_values": n_positive_vals,
+                    "f_positive_values": f_positive_vals,
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "numerical": {
+                            "descriptive": {
+                                "mean": round(float(col_data.mean()), 2),
+                                "std_dev": round(float(col_data.std()), 4),
+                            },
+                            "quantiles": {
+                                "min": float(col_data.min()),
+                                "p05": round(
+                                    float(col_data.quantile(0.05, interpolation="linear")), 2
+                                ),
+                                "q_1": round(
+                                    float(col_data.quantile(0.25, interpolation="linear")), 2
+                                ),
+                                "med": float(col_data.median()),
+                                "q_3": round(
+                                    float(col_data.quantile(0.75, interpolation="linear")), 2
+                                ),
+                                "p95": round(
+                                    float(col_data.quantile(0.95, interpolation="linear")), 2
+                                ),
+                                "max": float(col_data.max()),
+                                "iqr": round(
+                                    float(col_data.quantile(0.75, interpolation="linear"))
+                                    - float(col_data.quantile(0.25, interpolation="linear")),
+                                    2,
+                                ),
+                            },
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
+            elif (
+                "string" in str(col_data.dtype).lower()
+                or "categorical" in str(col_data.dtype).lower()
+            ):
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                mode = col_data.mode()
+
+                col_profile_stats = {
+                    "statistics": {
+                        "string": {
+                            "mode": mode[0],
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
+            elif "date" in str(col_data.dtype).lower():
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                min_date = str(col_data.min())
+                max_date = str(col_data.max())
+
+                col_profile_stats = {
+                    "statistics": {
+                        "datetime": {
+                            "min": min_date,
+                            "max": max_date,
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
+            profile["columns"].append(col_profile)
+
+        return profile
 
     def _generate_profile_ibis(self) -> dict:
         profile = {}
@@ -97,10 +243,13 @@ class DataScan:
 
         from pointblank.validate import get_row_count
 
+        row_count = get_row_count(data=self.data)
+        column_count = len(self.data.columns)
+
         profile.update(
             {
                 "tbl_type": self.tbl_type,
-                "dimensions": {"rows": get_row_count(self.data), "columns": len(self.data.columns)},
+                "dimensions": {"rows": row_count, "columns": column_count},
                 "columns": [],
             }
         )
@@ -117,9 +266,6 @@ class DataScan:
         column_dtypes = list(self.data.schema().items())
 
         for idx, column in enumerate(self.data.columns):
-            if df_lib_use == "polars":
-                import polars as pl
-
             dtype_str = str(column_dtypes[idx][1])
 
             col_data = self.data[column]
@@ -127,6 +273,8 @@ class DataScan:
 
             if "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
                 if df_lib_use == "polars":
+                    import polars as pl
+
                     sample_data = col_data_no_null.to_polars().cast(pl.String).to_list()
                 else:
                     sample_data = col_data_no_null.to_pandas().astype(str).to_list()
@@ -136,146 +284,120 @@ class DataScan:
                 else:
                     sample_data = col_data_no_null.to_pandas().to_list()
 
-            if df_lib_use == "polars":
-                col_profile = {
-                    "column_name": column,
-                    "column_type": dtype_str,
-                    "missing_values": col_data.isnull().sum().to_polars(),
-                    "unique_values": col_data.nunique().to_polars(),
-                    "sample_data": sample_data,
-                    "statistics": {},
-                }
-            else:
-                col_profile = {
-                    "column_name": column,
-                    "column_type": dtype_str,
-                    "missing_values": col_data.isnull().sum().to_pandas(),
-                    "unique_values": col_data.nunique().to_pandas(),
-                    "sample_data": sample_data,
-                    "statistics": {},
-                }
+            n_missing_vals = int(_to_df_lib(col_data.isnull().sum(), df_lib=df_lib_use))
+            n_unique_vals = int(_to_df_lib(col_data.nunique(), df_lib=df_lib_use))
 
-            if "int" in dtype_str.lower() or "float" in dtype_str.lower():
-                if df_lib_use == "polars":
-                    col_profile["statistics"]["numerical"] = {
-                        "mean": col_data.mean().to_polars(),
-                        "median": col_data.median().to_polars(),
-                        "std_dev": col_data.std().to_polars(),
-                        "min": col_data.min().to_polars(),
-                        "max": col_data.max().to_polars(),
-                        "percentiles": {
-                            "25th": col_data.approx_quantile(0.25).to_polars(),
-                            "50th": col_data.approx_quantile(0.50).to_polars(),
-                            "75th": col_data.approx_quantile(0.75).to_polars(),
-                        },
-                    }
+            # If there are missing values, subtract 1 from the number of unique values
+            # to account for the missing value which shouldn't be included in the count
+            if (n_missing_vals > 0) and (n_unique_vals > 0):
+                n_unique_vals = n_unique_vals - 1
 
-                else:
-                    col_profile["statistics"]["numerical"] = {
-                        "mean": col_data.mean().to_pandas(),
-                        "median": col_data.median().to_pandas(),
-                        "std_dev": col_data.std().to_pandas(),
-                        "min": col_data.min().to_pandas(),
-                        "max": col_data.max().to_pandas(),
-                        "percentiles": {
-                            "25th": col_data.approx_quantile(0.25).to_pandas(),
-                            "50th": col_data.approx_quantile(0.50).to_pandas(),
-                            "75th": col_data.approx_quantile(0.75).to_pandas(),
-                        },
-                    }
-
-            elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
-                if df_lib_use == "polars":
-                    col_profile["statistics"]["string"] = {
-                        "mode": col_data.mode().to_polars(),
-                    }
-
-                else:
-                    col_profile["statistics"]["string"] = {
-                        "mode": col_data.mode().to_pandas(),
-                    }
-
-            elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
-                if df_lib_use == "polars":
-                    min_date = col_data.min().to_polars()
-                    max_date = col_data.max().to_polars()
-                else:
-                    min_date = col_data.min().to_pandas()
-                    max_date = col_data.max().to_pandas()
-
-                col_profile["statistics"]["datetime"] = {
-                    "min_date": str(min_date),
-                    "max_date": str(max_date),
-                }
-
-            profile["columns"].append(col_profile)
-
-        return profile
-
-    def _generate_profile(self) -> dict:
-        profile = {}
-
-        if self.tbl_name:
-            profile["tbl_name"] = self.tbl_name
-
-        profile.update(
-            {
-                "tbl_type": self.tbl_type,
-                "dimensions": {"rows": self.data_alt.shape[0], "columns": self.data_alt.shape[1]},
-                "columns": [],
-            }
-        )
-
-        for column in self.data_alt.columns:
-            col_data = self.data_alt[column]
-            native_dtype = str(self.data[column].dtype)
-
-            if "date" in str(col_data.dtype).lower():
-                sample_data = col_data.drop_nulls().head(5).cast(nw.String).to_list()
-                sample_data = [str(x) for x in sample_data]
-            else:
-                sample_data = col_data.drop_nulls().head(5).to_list()
+            f_missing_vals = _round_to_sig_figs(n_missing_vals / row_count, 3)
+            f_unique_vals = _round_to_sig_figs(n_unique_vals / row_count, 3)
 
             col_profile = {
                 "column_name": column,
-                "column_type": native_dtype,
-                "missing_values": int(col_data.is_null().sum()),
-                "unique_values": col_data.n_unique(),
-                "sample_data": sample_data,
-                "statistics": {},
+                "column_type": dtype_str,
+                "n_missing_values": n_missing_vals,
+                "f_missing_values": f_missing_vals,
+                "n_unique_values": n_unique_vals,
+                "f_unique_values": f_unique_vals,
             }
 
-            if "int" in str(col_data.dtype).lower() or "float" in str(col_data.dtype).lower():
-                col_profile["statistics"]["numerical"] = {
-                    "mean": float(col_data.mean()),
-                    "median": float(col_data.median()),
-                    "std_dev": float(col_data.std()),
-                    "min": float(col_data.min()),
-                    "max": float(col_data.max()),
-                    "percentiles": {
-                        "25th": float(col_data.quantile(0.25, interpolation="nearest")),
-                        "50th": float(col_data.quantile(0.50, interpolation="nearest")),
-                        "75th": float(col_data.quantile(0.75, interpolation="nearest")),
-                    },
-                }
+            if "int" in dtype_str.lower() or "float" in dtype_str.lower():
+                n_negative_vals = int(
+                    _to_df_lib(col_data.between(-1e26, -1e-26).sum(), df_lib=df_lib_use)
+                )
+                f_negative_vals = _round_to_sig_figs(n_negative_vals / row_count, 3)
 
-            elif (
-                "string" in str(col_data.dtype).lower()
-                or "categorical" in str(col_data.dtype).lower()
-            ):
-                mode = col_data.mode()
-                col_profile["statistics"]["string"] = {
-                    "mode": mode[0],
-                }
+                n_zero_vals = int(_to_df_lib(col_data.between(0, 0).sum(), df_lib=df_lib_use))
+                f_zero_vals = _round_to_sig_figs(n_zero_vals / row_count, 3)
 
-            elif "date" in str(col_data.dtype).lower():
-                min_date = str(col_data.min())
-                max_date = str(col_data.max())
+                n_positive_vals = row_count - n_missing_vals - n_negative_vals - n_zero_vals
+                f_positive_vals = _round_to_sig_figs(n_positive_vals / row_count, 3)
 
-                col_profile["statistics"]["datetime"] = {
-                    "min_date": min_date,
-                    "max_date": max_date,
+                col_profile_additional = {
+                    "n_negative_values": n_negative_vals,
+                    "f_negative_values": f_negative_vals,
+                    "n_zero_values": n_zero_vals,
+                    "f_zero_values": f_zero_vals,
+                    "n_positive_values": n_positive_vals,
+                    "f_positive_values": f_positive_vals,
+                    "sample_data": sample_data,
                 }
+                col_profile.update(col_profile_additional)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "numerical": {
+                            "descriptive": {
+                                "mean": round(_to_df_lib(col_data.mean(), df_lib=df_lib_use), 2),
+                                "std_dev": round(_to_df_lib(col_data.std(), df_lib=df_lib_use), 4),
+                            },
+                            "quantiles": {
+                                "min": _to_df_lib(col_data.min(), df_lib=df_lib_use),
+                                "p05": round(
+                                    _to_df_lib(col_data.approx_quantile(0.05), df_lib=df_lib_use),
+                                    2,
+                                ),
+                                "q_1": round(
+                                    _to_df_lib(col_data.approx_quantile(0.25), df_lib=df_lib_use),
+                                    2,
+                                ),
+                                "med": _to_df_lib(col_data.median(), df_lib=df_lib_use),
+                                "q_3": round(
+                                    _to_df_lib(col_data.approx_quantile(0.75), df_lib=df_lib_use),
+                                    2,
+                                ),
+                                "p95": round(
+                                    _to_df_lib(col_data.approx_quantile(0.95), df_lib=df_lib_use),
+                                    2,
+                                ),
+                                "max": _to_df_lib(col_data.max(), df_lib=df_lib_use),
+                                "iqr": round(
+                                    _to_df_lib(col_data.quantile(0.75), df_lib=df_lib_use)
+                                    - _to_df_lib(col_data.quantile(0.25), df_lib=df_lib_use),
+                                    2,
+                                ),
+                            },
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
+            elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "string": {
+                            "mode": _to_df_lib(col_data.mode(), df_lib=df_lib_use),
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
+            elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                min_date = _to_df_lib(col_data.min(), df_lib=df_lib_use)
+                max_date = _to_df_lib(col_data.max(), df_lib=df_lib_use)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "datetime": {
+                            "min_date": str(min_date),
+                            "max_date": str(max_date),
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
 
             profile["columns"].append(col_profile)
 
@@ -301,3 +423,16 @@ class DataScan:
     def save_to_json(self, output_file: str):
         with open(output_file, "w") as f:
             json.dump(self.profile, f, indent=4)
+
+
+def _to_df_lib(expr: any, df_lib: str) -> any:
+    if df_lib == "polars":
+        return expr.to_polars()
+    else:
+        return expr.to_pandas()
+
+
+def _round_to_sig_figs(value: float, sig_figs: int) -> float:
+    if value == 0:
+        return 0
+    return round(value, sig_figs - int(floor(log10(abs(value)))) - 1)
