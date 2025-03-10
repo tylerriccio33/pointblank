@@ -50,15 +50,21 @@ website:
   sidebar:
       id: user-guide
       contents:
-        - user-guide/index.qmd
-        - user-guide/thresholds.qmd
-        - user-guide/actions.qmd
-        - user-guide/types.qmd
-        - user-guide/columns.qmd
-        - user-guide/across.qmd
-        - user-guide/preprocessing.qmd
-        - user-guide/extracts.qmd
-        - user-guide/sundering.qmd
+        - section: "Getting Started"
+          contents:
+            - user-guide/index.qmd
+            - user-guide/thresholds.qmd
+            - user-guide/actions.qmd
+        - section: "Defining Validation Steps"
+          contents:
+            - user-guide/types.qmd
+            - user-guide/columns.qmd
+            - user-guide/across.qmd
+            - user-guide/preprocessing.qmd
+        - section: "Post-Interrogation Ops"
+          contents:
+            - user-guide/extracts.qmd
+            - user-guide/sundering.qmd
 
 html-table-processing: none
 
