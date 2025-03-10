@@ -9,10 +9,10 @@ format:
       - reference/_styles-quartodoc.css
     toc: true
     grid:
-      sidebar-width: 200px
+      sidebar-width: 225px
       body-width: 950px
-      margin-width: 200px
-      gutter-width: 1.5rem
+      margin-width: 225px
+      gutter-width: 1rem
 
 filters:
   - interlinks
