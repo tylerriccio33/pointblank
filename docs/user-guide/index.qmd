@@ -138,4 +138,4 @@ Setting thresholds is important since you might want some sort of signal for the
 in your data. How you set the particular threshold levels is highly dependent on your tolerance for
 data failures. The idea of thresholds and associated actions is central to how Pointblank works, so,
 the next two sections in the **User Guide** will deal with (1) a more in-depth treatment of
-thresholds, and (2) how to set actions for threshold exceedences.
+thresholds, and (2) how to set actions for threshold exceedances.

@@ -124,7 +124,7 @@ of the things we are working on or plan to work on in the near future:
 
 1. more validation methods to cover a wider range of data validation needs
 2. easy-to-use but powerful logging functionality
-3. messaging actions (e.g., Slack, emailing, etc.) to better react to threshold exceedences
+3. messaging actions (e.g., Slack, emailing, etc.) to better react to threshold exceedances
 4. additional functionality for building more complex validations via LLMs (extension of ideas from
    the current `DraftValidation` class)
 5. a feature for quickly obtaining summary information on any dataset (tying together existing and

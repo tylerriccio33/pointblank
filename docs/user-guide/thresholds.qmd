@@ -57,7 +57,7 @@ Threshold values can be specified in two ways:
 
 Threshold values act as cutoffs and are inclusive. So, any value of failing test units greater than
 or equal to the threshold value will result in exceeding the threshold. So if a threshold is defined
-with a value of `5`, then 5 failing test units will result in an exceedence.
+with a value of `5`, then 5 failing test units will result in an exceedance.
 
 ## Using the `Validation(thresholds=)` Argument
 
