@@ -9,7 +9,7 @@ format:
       - reference/_styles-quartodoc.css
     toc: true
     grid:
-      sidebar-width: 225px
+      sidebar-width: 270px
       body-width: 950px
       margin-width: 225px
       gutter-width: 1rem
