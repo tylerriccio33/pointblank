@@ -187,8 +187,6 @@ Let's look at an example that checks that there should not be any missing values
 )
 ```
 
-No missing values found here!
-
 Column `a` has no missing values and the above validation proves this.
 
 ### Validation of Table Structure
