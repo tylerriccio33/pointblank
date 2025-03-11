@@ -7,6 +7,7 @@ import inspect
 import json
 import re
 from dataclasses import dataclass
+from importlib.metadata import version
 from typing import TYPE_CHECKING, Any, Callable, Literal
 from zipfile import ZipFile
 
@@ -793,6 +794,10 @@ def _generate_display_table(
             locations=loc.body(columns="_row_num_"),
         )
 
+    # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+    if version("great_tables") >= "0.17.0":
+        gt_tbl = gt_tbl.tab_options(quarto_disable_processing=True)
+
     return gt_tbl
 
 
@@ -1217,6 +1222,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
                 style=style.fill(color="lightblue"),
                 locations=loc.body(columns=col, rows=row_indices),
             )
+
+    # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+    if version("great_tables") >= "0.17.0":
+        missing_vals_tbl = missing_vals_tbl.tab_options(quarto_disable_processing=True)
 
     return missing_vals_tbl
 
@@ -6777,6 +6786,10 @@ class Validate:
             if incl_header:
                 gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
 
+            # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+            if version("great_tables") >= "0.17.0":
+                gt_tbl = gt_tbl.tab_options(quarto_disable_processing=True)
+
             return gt_tbl
 
         # Convert the `validation_info` object to a dictionary
@@ -7344,6 +7357,10 @@ class Validate:
                     columns="columns_upd", rows=[i for i, error in enumerate(eval_error) if error]
                 ),
             )
+
+        # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+        if version("great_tables") >= "0.17.0":
+            gt_tbl = gt_tbl.tab_options(quarto_disable_processing=True)
 
         return gt_tbl
 
@@ -8860,6 +8877,10 @@ def _step_report_schema_in_order(
             locations=loc.body(rows=len(colnames_tgt) - 1),
         )
 
+    # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+    if version("great_tables") >= "0.17.0":
+        step_report = step_report.tab_options(quarto_disable_processing=True)
+
     return step_report
 
 
@@ -9248,6 +9269,10 @@ def _step_report_schema_any_order(
                 rows=pl.col("index_target").is_null(),
             ),
         )
+
+    # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+    if version("great_tables") >= "0.17.0":
+        step_report = step_report.tab_options(quarto_disable_processing=True)
 
     return step_report
 
