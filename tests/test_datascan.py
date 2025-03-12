@@ -6,7 +6,7 @@ from unittest.mock import patch
 from great_tables import GT
 
 from pointblank.validate import load_dataset
-from pointblank.datascan import DataScan
+from pointblank.datascan import DataScan, col_summary_tbl
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
@@ -125,6 +125,13 @@ def test_datascan_tabular_output_nycflights(tbl_type):
     tabular_output = scanner.get_tabular_report()
 
     assert isinstance(tabular_output, GT)
+
+
+def test_col_summary_tbl():
+    dataset = load_dataset(dataset="small_table")
+    col_summary = col_summary_tbl(dataset)
+
+    assert isinstance(col_summary, GT)
 
 
 def test_datascan_class_raises():
