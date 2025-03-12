@@ -6,6 +6,9 @@ from math import floor, log10
 from typing import Any
 
 import narwhals as nw
+from great_tables import GT, google_font, loc, style
+from great_tables._formats import _format_number_compactly
+from great_tables.vals import fmt_number, fmt_scientific
 from narwhals.typing import FrameT
 
 from pointblank._utils import _get_tbl_type, _select_df_lib
@@ -164,7 +167,7 @@ class DataScan:
             }
         )
 
-        for column in self.data_alt.columns:
+        for idx, column in enumerate(self.data_alt.columns):
             col_data = self.data_alt[column]
             native_dtype = str(self.data[column].dtype)
 
@@ -188,6 +191,7 @@ class DataScan:
             col_profile = {
                 "column_name": column,
                 "column_type": native_dtype,
+                "column_number": idx + 1,
                 "n_missing_values": n_missing_vals,
                 "f_missing_values": f_missing_vals,
                 "n_unique_values": n_unique_vals,
@@ -355,6 +359,7 @@ class DataScan:
             col_profile = {
                 "column_name": column,
                 "column_type": dtype_str,
+                "column_number": idx + 1,
                 "n_missing_values": n_missing_vals,
                 "f_missing_values": f_missing_vals,
                 "n_unique_values": n_unique_vals,
@@ -471,6 +476,96 @@ class DataScan:
         # If the column is not found, return None
         return None
 
+    def get_tabular_report(self) -> GT:
+        # Iterate over the columns and get the column data for each column
+        column_data = self.profile["columns"]
+
+        stats_list = []
+
+        for col in column_data:
+            # If the `col` dictionary is not referring to a numeric column, skip it
+            if "statistics" in col and "numerical" in col["statistics"]:
+                col_dict = _process_numerical_column_data(col)
+            else:
+                continue
+
+            stats_list.append(col_dict)
+
+        import polars as pl
+
+        stats_df = pl.DataFrame(stats_list)
+
+        # TODO: use compact style of formatting numbers depending on the magnitude of the number
+
+        stat_columns = [
+            "missing_vals",
+            "unique_vals",
+            "mean",
+            "std_dev",
+            "min",
+            "p05",
+            "q_1",
+            "med",
+            "q_3",
+            "p95",
+            "max",
+            "iqr",
+        ]
+
+        # TODO: Ensure width is 905px in total
+
+        gt_tbl = (
+            GT(stats_df)
+            .tab_header(title="Column Level Summary")
+            .cols_align(align="right", columns=stat_columns)
+            .opt_table_font(font=google_font("IBM Plex Sans"))
+            .opt_align_table_header(align="left")
+            .tab_style(
+                style=style.text(font=google_font("IBM Plex Mono")),
+                locations=loc.body(),
+            )
+            .tab_style(
+                style=style.text(size="10px"),
+                locations=loc.body(columns=stat_columns),
+            )
+            .tab_style(
+                style=style.text(size="12px"),
+                locations=loc.body(columns="column_name"),
+            )
+            .cols_label(
+                column_name="Column",
+                missing_vals="NAs",
+                unique_vals="Uniq.",
+                mean="Mean",
+                std_dev="S.D.",
+                min="Min",
+                p05="P05",
+                q_1="Q1",
+                med="Med",
+                q_3="Q3",
+                p95="P95",
+                max="Max",
+                iqr="IQR",
+            )
+            .cols_width(
+                column_name="200px",
+                missing_vals="50px",
+                unique_vals="50px",
+                mean="50px",
+                std_dev="50px",
+                min="50px",
+                p05="50px",
+                q_1="50px",
+                med="50px",
+                q_3="50px",
+                p95="50px",
+                max="50px",
+                iqr="50px",  # 800 px total
+            )
+        )
+
+        return gt_tbl
+
     def to_dict(self) -> dict:
         return self.profile
 
@@ -493,3 +588,95 @@ def _round_to_sig_figs(value: float, sig_figs: int) -> float:
     if value == 0:
         return 0
     return round(value, sig_figs - int(floor(log10(abs(value)))) - 1)
+
+
+def _compact_integer_fmt(value: float | int) -> str:
+    formatted = _format_number_compactly(
+        value=value,
+        decimals=2,
+        n_sigfig=2,
+        drop_trailing_zeros=False,
+        drop_trailing_dec_mark=False,
+        use_seps=True,
+        sep_mark=",",
+        dec_mark=".",
+        force_sign=False,
+    )
+
+    return formatted
+
+
+def _compact_decimal_fmt(value: float | int) -> str:
+    if value == 0:
+        formatted = "0.00"
+    elif abs(value) < 1 and abs(value) >= 0.01:
+        formatted = fmt_number(value, decimals=2)[0]
+    elif abs(value) < 0.01:
+        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
+    elif abs(value) >= 1 and abs(value) < 1000:
+        formatted = fmt_number(value, n_sigfig=3)[0]
+    elif abs(value) >= 1000 and abs(value) < 10_000:
+        formatted = fmt_number(value, decimals=0, use_seps=False)[0]
+    else:
+        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
+
+    return formatted
+
+
+def _process_numerical_column_data(column_data: dict) -> dict:
+    column_name = column_data["column_name"]
+    column_type = column_data["column_type"]
+
+    column_name_and_type = (
+        f"<span style='font-size: 13px;'>{column_name}</span><br>"
+        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+    )
+
+    # Get the Missing and Unique value counts and fractions
+    missing_vals = column_data["n_missing_values"]
+    unique_vals = column_data["n_unique_values"]
+    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+
+    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+    # Get the descriptive and quantile statistics
+    descriptive_stats = column_data["statistics"]["numerical"]["descriptive"]
+    quantile_stats = column_data["statistics"]["numerical"]["quantiles"]
+
+    # If the descriptive and quantile stats are all integerlike, then round all
+    # values to the nearest integer
+    integerlike = []
+
+    # Get all values from the descriptive and quantile stats into a single list
+    descriptive_stats_vals = [v[1] for v in descriptive_stats.items()]
+    quantile_stats_vals = [v[1] for v in quantile_stats.items()]
+    stats_values = descriptive_stats_vals + quantile_stats_vals
+
+    for val in stats_values:
+        # Check if a stat value is a number and then if it is intergerlike
+        if not isinstance(val, (int, float)):
+            continue
+        else:
+            integerlike.append(val % 1 == 0)
+
+    stats_vals_integerlike = all(integerlike)
+
+    # Format the descriptive and quantile statistics with the compact number format
+    for key, value in descriptive_stats.items():
+        descriptive_stats[key] = _compact_decimal_fmt(value)
+
+    for key, value in quantile_stats.items():
+        quantile_stats[key] = _compact_decimal_fmt(value)
+
+    # Create a single dictionary with the statistics for the column
+    stats_dict = {
+        "column_name": column_name_and_type,
+        "missing_vals": missing_vals_str,
+        "unique_vals": unique_vals_str,
+        **descriptive_stats,
+        **quantile_stats,
+    }
+
+    return stats_dict
