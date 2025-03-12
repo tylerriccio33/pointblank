@@ -799,7 +799,6 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
     quantile_stats = column_data["statistics"][key]["quantiles"]
 
     # Get all values from the descriptive and quantile stats into a single list
-    descriptive_stats_vals = [v[1] for v in descriptive_stats.items()]
     quantile_stats_vals = [v[1] for v in quantile_stats.items()]
 
     # Determine if the quantile stats are all integerlike
