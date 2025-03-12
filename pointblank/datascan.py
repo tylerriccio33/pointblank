@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from importlib.metadata import version
 from math import floor, log10
 from typing import Any
 
@@ -719,6 +720,10 @@ class DataScan:
                 iqr="50px",  # 875 px total
             )
         )
+
+        # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
+        if version("great_tables") >= "0.17.0":
+            gt_tbl = gt_tbl.tab_options(quarto_disable_processing=True)
 
         return gt_tbl
 
