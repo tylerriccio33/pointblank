@@ -6,12 +6,13 @@ from math import floor, log10
 from typing import Any
 
 import narwhals as nw
-from great_tables import GT, google_font, loc, style
+from great_tables import GT, google_font, html, loc, style
 from great_tables._formats import _format_number_compactly
 from great_tables.vals import fmt_number, fmt_scientific
 from narwhals.typing import FrameT
 
 from pointblank._utils import _get_tbl_type, _select_df_lib
+from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 
 __all__ = [
     "DataScan",
@@ -569,13 +570,15 @@ class DataScan:
         return None
 
     def get_tabular_report(self) -> GT:
-        # Iterate over the columns and get the column data for each column
         column_data = self.profile["columns"]
 
         stats_list = []
 
+        n_rows = self.profile["dimensions"]["rows"]
+        n_columns = self.profile["dimensions"]["columns"]
+
+        # Iterate over each column's data and obtain a dictionary of statistics for each column
         for col in column_data:
-            # If the `col` dictionary is not referring to a numeric column, skip it
             if "statistics" in col and (
                 "numerical" in col["statistics"] or "string_lengths" in col["statistics"]
             ):
@@ -606,11 +609,28 @@ class DataScan:
             "iqr",
         ]
 
+        # Create the label, table type, and thresholds HTML fragments
+        table_type_html = _create_table_type_html(
+            tbl_type=self.tbl_type, tbl_name=None, font_size="10px"
+        )
+
+        tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
+
+        # Compose the subtitle HTML fragment
+        combined_title = (
+            "<div>"
+            '<div style="padding-top: 0; padding-bottom: 7px;">'
+            f"{table_type_html}"
+            f"{tbl_dims_html}"
+            "</div>"
+            "</div>"
+        )
+
         # TODO: Ensure width is 905px in total
 
         gt_tbl = (
             GT(stats_df)
-            .tab_header(title="Column Level Summary")
+            .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=stat_columns)
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
@@ -623,6 +643,10 @@ class DataScan:
                 locations=loc.body(columns=stat_columns),
             )
             .tab_style(
+                style=style.text(size="14px"),
+                locations=loc.body(columns="column_number"),
+            )
+            .tab_style(
                 style=style.text(size="12px"),
                 locations=loc.body(columns="column_name"),
             )
@@ -631,6 +655,7 @@ class DataScan:
                 locations=loc.body(columns="min"),
             )
             .cols_label(
+                column_number="",
                 column_name="Column",
                 missing_vals="NAs",
                 unique_vals="Uniq.",
@@ -646,6 +671,7 @@ class DataScan:
                 iqr="IQR",
             )
             .cols_width(
+                column_number="40px",
                 column_name="200px",
                 missing_vals="50px",
                 unique_vals="50px",
@@ -658,7 +684,7 @@ class DataScan:
                 q_3="50px",
                 p95="50px",
                 max="50px",
-                iqr="50px",  # 800 px total
+                iqr="50px",  # 840 px total
             )
         )
 
@@ -722,12 +748,13 @@ def _compact_decimal_fmt(value: float | int) -> str:
 
 
 def _process_numerical_string_column_data(column_data: dict) -> dict:
+    column_number = column_data["column_number"]
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
 
     column_name_and_type = (
-        f"<span style='font-size: 13px;'>{column_name}</span><br>"
-        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
     )
 
     # Determine if the column is a numerical or string column
@@ -776,6 +803,7 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
+        "column_number": column_number,
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
@@ -787,12 +815,13 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
 
 
 def _process_datetime_column_data(column_data: dict) -> dict:
+    column_number = column_data["column_number"]
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
 
     column_name_and_type = (
-        f"<span style='font-size: 13px;'>{column_name}</span><br>"
-        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
     )
 
     # Get the Missing and Unique value counts and fractions
@@ -813,6 +842,7 @@ def _process_datetime_column_data(column_data: dict) -> dict:
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
+        "column_number": column_number,
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
@@ -832,12 +862,13 @@ def _process_datetime_column_data(column_data: dict) -> dict:
 
 
 def _process_other_column_data(column_data: dict) -> dict:
+    column_number = column_data["column_number"]
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
 
     column_name_and_type = (
-        f"<span style='font-size: 13px;'>{column_name}</span><br>"
-        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
     )
 
     # Get the Missing and Unique value counts and fractions
@@ -851,6 +882,7 @@ def _process_other_column_data(column_data: dict) -> dict:
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
+        "column_number": column_number,
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
