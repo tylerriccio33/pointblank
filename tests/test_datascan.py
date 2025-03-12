@@ -3,8 +3,10 @@ import sys
 
 from unittest.mock import patch
 
+from great_tables import GT
+
 from pointblank.validate import load_dataset
-from pointblank.datascan import DataScan
+from pointblank.datascan import DataScan, col_summary_tbl
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
@@ -67,8 +69,9 @@ def test_datascan_dict_output(tbl_type):
     assert scanner.to_dict() == scan_dict
 
 
-def test_datascan_json_output():
-    dataset = load_dataset(dataset="small_table")
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_datascan_json_output(tbl_type):
+    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
     scanner = DataScan(data=dataset)
 
     profile_json = scanner.to_json()
@@ -92,6 +95,43 @@ def test_datascan_json_file_output(tmp_path):
         file_content = f.read()
 
     assert profile_json == file_content
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_datascan_tabular_output_small_table(tbl_type):
+    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
+    scanner = DataScan(data=dataset)
+
+    tabular_output = scanner.get_tabular_report()
+
+    assert isinstance(tabular_output, GT)
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_datascan_tabular_output_game_revenue(tbl_type):
+    dataset = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
+    scanner = DataScan(data=dataset)
+
+    tabular_output = scanner.get_tabular_report()
+
+    assert isinstance(tabular_output, GT)
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_datascan_tabular_output_nycflights(tbl_type):
+    dataset = load_dataset(dataset="nycflights", tbl_type=tbl_type)
+    scanner = DataScan(data=dataset)
+
+    tabular_output = scanner.get_tabular_report()
+
+    assert isinstance(tabular_output, GT)
+
+
+def test_col_summary_tbl():
+    dataset = load_dataset(dataset="small_table")
+    col_summary = col_summary_tbl(dataset)
+
+    assert isinstance(col_summary, GT)
 
 
 def test_datascan_class_raises():

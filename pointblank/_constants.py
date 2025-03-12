@@ -407,3 +407,66 @@ SVG_ICONS_FOR_TBL_STATUS = {
     </g>
 </svg>""",
 }
+
+
+SVG_ICONS_FOR_DATA_TYPES = {
+    "numeric": """<svg width="24px" viewBox="0 0 180 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: #FFFFFF; display: block; vertical-align: middle; margin: auto; padding-top: 0.5px;">
+    <title>numeric</title>
+    <g id="icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="numeric" transform="translate(4.000000, 4.339342)">
+            <rect id="square" stroke="#640177" stroke-width="4" fill="#A400CF" x="2" y="2" width="168" height="168" rx="8"></rect>
+            <g id="N" transform="translate(49.664000, 39.864000)" fill="#FFFFFF" fill-rule="nonzero">
+                <polygon points="28.116 48.576 19.272 30.096 18.876 30.096 18.876 92.136 0 92.136 0 0 21.912 0 47.124 43.56 55.968 62.04 56.364 62.04 56.364 0 75.24 0 75.24 92.136 53.328 92.136"></polygon>
+            </g>
+        </g>
+    </g>
+</svg>""",
+    "string": """<svg width="24px" viewBox="0 0 180 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: #FFFFFF; display: block; vertical-align: middle; margin: auto; padding-top: 0.5px;">
+    <title>string</title>
+    <g id="icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="string" transform="translate(4.000000, 4.500000)">
+            <rect id="square" stroke="#9A8700" stroke-width="4" fill="#CFB600" x="2" y="2" width="168" height="168" rx="8"></rect>
+            <g id="S" transform="translate(49.516000, 38.280000)" fill="#FFFFFF" fill-rule="nonzero">
+                <path d="M34.98,95.304 C26.884,95.304 20.02,93.918 14.388,91.146 C8.756,88.374 3.96,84.788 0,80.388 L13.2,67.056 C19.448,74.096 27.148,77.616 36.3,77.616 C41.228,77.616 44.88,76.604 47.256,74.58 C49.632,72.556 50.82,69.872 50.82,66.528 C50.82,63.976 50.116,61.842 48.708,60.126 C47.3,58.41 44.44,57.244 40.128,56.628 L31.02,55.44 C21.252,54.208 14.102,51.26 9.57,46.596 C5.038,41.932 2.772,35.728 2.772,27.984 C2.772,23.848 3.564,20.064 5.148,16.632 C6.732,13.2 8.998,10.252 11.946,7.788 C14.894,5.324 18.502,3.41 22.77,2.046 C27.038,0.682 31.9,0 37.356,0 C44.308,0 50.424,1.1 55.704,3.3 C60.984,5.5 65.516,8.712 69.3,12.936 L55.968,26.4 C53.768,23.848 51.106,21.758 47.982,20.13 C44.858,18.502 40.92,17.688 36.168,17.688 C31.68,17.688 28.336,18.48 26.136,20.064 C23.936,21.648 22.836,23.848 22.836,26.664 C22.836,29.832 23.694,32.12 25.41,33.528 C27.126,34.936 29.92,35.948 33.792,36.564 L42.9,38.016 C52.404,39.512 59.444,42.438 64.02,46.794 C68.596,51.15 70.884,57.332 70.884,65.34 C70.884,69.74 70.092,73.788 68.508,77.484 C66.924,81.18 64.614,84.348 61.578,86.988 C58.542,89.628 54.78,91.674 50.292,93.126 C45.804,94.578 40.7,95.304 34.98,95.304 Z"></path>
+            </g>
+        </g>
+    </g>
+</svg>""",
+    "date": """<svg width="24px" viewBox="0 0 180 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: #FFFFFF; display: block; vertical-align: middle; margin: auto; padding-top: 0.5px;">
+    <title>date</title>
+    <g id="icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="date" transform="translate(4.000000, 4.339342)">
+            <rect id="square" stroke="#007D00" stroke-width="4" fill="#2CCF00" x="2" y="2" width="168" height="168" rx="8"></rect>
+            <g id="D" transform="translate(49.664000, 39.864000)" fill="#FFFFFF" fill-rule="nonzero">
+                <path d="M0,0 L34.716,0 C40.788,0 46.332,0.968 51.348,2.904 C56.364,4.84 60.632,7.722 64.152,11.55 C67.672,15.378 70.4,20.174 72.336,25.938 C74.272,31.702 75.24,38.412 75.24,46.068 C75.24,53.724 74.272,60.434 72.336,66.198 C70.4,71.962 67.672,76.758 64.152,80.586 C60.632,84.414 56.364,87.296 51.348,89.232 C46.332,91.168 40.788,92.136 34.716,92.136 L0,92.136 L0,0 Z M34.716,74.316 C40.7,74.316 45.408,72.644 48.84,69.3 C52.272,65.956 53.988,60.588 53.988,53.196 L53.988,38.94 C53.988,31.548 52.272,26.18 48.84,22.836 C45.408,19.492 40.7,17.82 34.716,17.82 L20.064,17.82 L20.064,74.316 L34.716,74.316 Z"></path>
+            </g>
+        </g>
+    </g>
+</svg>""",
+    "boolean": """<svg width="24px" viewBox="0 0 180 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: #FFFFFF; display: block; vertical-align: middle; margin: auto; padding-top: 0.5px;">
+    <title>boolean</title>
+    <g id="icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="boolean" transform="translate(4.000000, 4.339342)">
+            <rect id="square" stroke="#9C3E00" stroke-width="4" fill="#CF6100" x="2" y="2" width="168" height="168" rx="8"></rect>
+            <g id="T" transform="translate(32.322000, 29.972000)" fill="#FFFFFF" fill-rule="nonzero">
+                <polygon points="29.326 11.61 29.326 60.028 16.254 60.028 16.254 11.61 0 11.61 0 0 45.58 0 45.58 11.61"></polygon>
+            </g>
+            <g id="F" transform="translate(99.122000, 81.972000)" fill="#FFFFFF" fill-rule="nonzero">
+                <polygon points="0 60.028 0 0 39.818 0 39.818 11.61 13.072 11.61 13.072 23.908 35.862 23.908 35.862 35.432 13.072 35.432 13.072 60.028"></polygon>
+            </g>
+            <rect id="line" stroke="#FFFFFF" fill="#FFFFFF" transform="translate(82.022437, 84.377940) rotate(-315.000000) translate(-82.022437, -84.377940) " x="78.0224369" y="25.37794" width="8" height="118"></rect>
+        </g>
+    </g>
+</svg>""",
+    "object": """<svg width="24px" viewBox="0 0 180 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: #FFFFFF; display: block; vertical-align: middle; margin: auto; padding-top: 0.5px;">
+    <title>object</title>
+    <g id="icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="object" transform="translate(4.000000, 4.339342)">
+            <rect id="square" stroke="#131313" stroke-width="4" fill="#646464" x="2" y="2" width="168" height="168" rx="8"></rect>
+            <g id="O" transform="translate(46.100000, 38.280000)" fill="#FFFFFF" fill-rule="nonzero">
+                <path d="M40.524,95.304 C34.452,95.304 28.908,94.292 23.892,92.268 C18.876,90.244 14.608,87.23 11.088,83.226 C7.568,79.222 4.84,74.25 2.904,68.31 C0.968,62.37 0,55.484 0,47.652 C0,39.82 0.968,32.934 2.904,26.994 C4.84,21.054 7.568,16.082 11.088,12.078 C14.608,8.074 18.876,5.06 23.892,3.036 C28.908,1.012 34.452,0 40.524,0 C46.596,0 52.14,1.012 57.156,3.036 C62.172,5.06 66.44,8.074 69.96,12.078 C73.48,16.082 76.208,21.054 78.144,26.994 C80.08,32.934 81.048,39.82 81.048,47.652 C81.048,55.484 80.08,62.37 78.144,68.31 C76.208,74.25 73.48,79.222 69.96,83.226 C66.44,87.23 62.172,90.244 57.156,92.268 C52.14,94.292 46.596,95.304 40.524,95.304 Z M40.524,77.484 C46.596,77.484 51.326,75.504 54.714,71.544 C58.102,67.584 59.796,61.908 59.796,54.516 L59.796,40.788 C59.796,33.396 58.102,27.72 54.714,23.76 C51.326,19.8 46.596,17.82 40.524,17.82 C34.452,17.82 29.722,19.8 26.334,23.76 C22.946,27.72 21.252,33.396 21.252,40.788 L21.252,54.516 C21.252,61.908 22.946,67.584 26.334,71.544 C29.722,75.504 34.452,77.484 40.524,77.484 Z"></path>
+            </g>
+        </g>
+    </g>
+</svg>""",
+}

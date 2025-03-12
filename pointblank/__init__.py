@@ -19,7 +19,7 @@ from pointblank.column import (
     matches,
     starts_with,
 )
-from pointblank.datascan import DataScan
+from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank.draft import DraftValidation
 from pointblank.schema import Schema
 from pointblank.tf import TF
@@ -43,6 +43,7 @@ __all__ = [
     "DataScan",
     "DraftValidation",
     "col",
+    "col_summary_tbl",
     "starts_with",
     "ends_with",
     "contains",
