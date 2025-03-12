@@ -14,9 +14,7 @@ from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank._utils import _get_tbl_type, _select_df_lib
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 
-__all__ = [
-    "DataScan",
-]
+__all__ = ["DataScan", "col_summary_tbl"]
 
 
 @dataclass
@@ -80,9 +78,12 @@ class DataScan:
     The fractions are calculated as the ratio of the measure to the total number of rows in the
     dataset.
 
-    Statistics for Numerical Columns
-    --------------------------------
-    For numerical columns, the following descriptive statistics are provided:
+    Statistics for Numerical and String Columns
+    -------------------------------------------
+    For numerical and string columns, several statistical measures are provided. Please note that
+    for string columms, the statistics are based on the lengths of the strings in the column.
+
+    The following descriptive statistics are provided:
 
     - `mean`: the mean of the column
     - `std_dev`: the standard deviation of the column
@@ -98,18 +99,12 @@ class DataScan:
     - `max`: the maximum value in the column
     - `iqr`: the interquartile range of the column
 
-    Statistics for String Columns
-    -----------------------------
-    For string columns, the following statistics are provided:
+    Statistics for Date and Datetime Columns
+    ----------------------------------------
+    For date/datetime columns, the following statistics are provided:
 
-    - `mode`: the mode of the column
-
-    Statistics for Datetime Columns
-    -------------------------------
-    For datetime columns, the following statistics are provided:
-
-    - `min_date`: the minimum date in the column
-    - `max_date`: the maximum date in the column
+    - `min`: the minimum date/datetime in the column
+    - `max`: the maximum date/datetime in the column
 
     Returns
     -------
@@ -592,7 +587,19 @@ class DataScan:
 
             stats_list.append(col_dict)
 
-        import polars as pl
+        # Determine which DataFrame library is available and construct the DataFrame
+        # based on the available library
+        df_lib = _select_df_lib(preference="polars")
+        df_lib_str = str(df_lib)
+
+        if "polars" in df_lib_str:
+            import polars as pl
+
+            stats_df = pl.DataFrame(stats_list)
+        else:
+            import pandas as pd
+
+            stats_df = pd.DataFrame(stats_list)
 
         stats_df = pl.DataFrame(stats_list)
 
@@ -724,6 +731,89 @@ class DataScan:
     def save_to_json(self, output_file: str):
         with open(output_file, "w") as f:
             json.dump(self.profile, f, indent=4)
+
+
+def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
+    """
+    Generate a column-level summary table of a dataset.
+
+    The `col_summary_tbl()` function generates a summary table of a dataset, focusing on providing
+    column-level information about the dataset. The summary includes the following information:
+
+    - the type of the table (e.g., `"polars"`, `"pandas"`, etc.)
+    - the number of rows and columns in the table
+    - column-level information, including:
+        - the column name
+        - the column type
+        - measures of missingness and distinctness
+        - descriptive stats and quantiles
+        - statistics for datetime columns
+
+    The summary table is returned as a GT object, which can be displayed in a notebook or saved to
+    an HTML file.
+
+    :::{.callout-warning}
+    The `col_summary_tbl()` function is still experimental. Please report any issues you encounter
+    in the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
+    :::
+
+    Parameters
+    ----------
+    data
+        The table to summarize, which could be a DataFrame object or an Ibis table object. Read the
+        *Supported Input Table Types* section for details on the supported table types.
+    tbl_name
+        Optionally, the name of the table could be provided as `tbl_name=`.
+
+    Returns
+    -------
+    GT
+        A GT object that displays the column-level summaries of the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `col_summary_tbl()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    It's easy to get a column-level summary of a table using the `col_summary_tbl()` function.
+    Here's an example using the `small_table` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
+
+    ```{python}
+    import pointblank as pb
+
+    small_table_polars = pb.load_dataset(dataset="small_table", tbl_type="polars")
+
+    pb.col_summary_tbl(small_table_polars)
+    ```
+
+    This table is a Polars DataFrame, but the `col_summary_tbl()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```{python}
+    small_table_duckdb = pb.load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    pb.col_summary_tbl(small_table_duckdb)
+    ```
+    """
+
+    scanner = DataScan(data=data, tbl_name=tbl_name)
+    return scanner.get_tabular_report()
 
 
 def _to_df_lib(expr: any, df_lib: str) -> any:
