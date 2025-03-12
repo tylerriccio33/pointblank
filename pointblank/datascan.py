@@ -573,18 +573,20 @@ class DataScan:
         column_data = self.profile["columns"]
 
         stats_list = []
+        datetime_row_list = []
 
         n_rows = self.profile["dimensions"]["rows"]
         n_columns = self.profile["dimensions"]["columns"]
 
         # Iterate over each column's data and obtain a dictionary of statistics for each column
-        for col in column_data:
+        for idx, col in enumerate(column_data):
             if "statistics" in col and (
                 "numerical" in col["statistics"] or "string_lengths" in col["statistics"]
             ):
                 col_dict = _process_numerical_string_column_data(col)
             elif "statistics" in col and "datetime" in col["statistics"]:
                 col_dict = _process_datetime_column_data(col)
+                datetime_row_list.append(idx)
             else:
                 col_dict = _process_other_column_data(col)
 
@@ -653,6 +655,27 @@ class DataScan:
             .tab_style(
                 style=style.css("white-space: pre; overflow-x: visible;"),
                 locations=loc.body(columns="min"),
+            )
+            .tab_style(
+                style=style.borders(sides="left", color="#D3D3D3", style="solid"),
+                locations=loc.body(columns=["missing_vals", "mean", "iqr"]),
+            )
+            .tab_style(
+                style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
+                locations=loc.body(
+                    columns=["std_dev", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
+                ),
+            )
+            .tab_style(
+                style=style.borders(sides="left", style="none"),
+                locations=loc.body(
+                    columns=["p05", "q_1", "med", "q_3", "p95", "max"],
+                    rows=datetime_row_list,
+                ),
+            )
+            .tab_style(
+                style=style.fill(color="#FCFCFC"),
+                locations=loc.body(columns=["missing_vals", "unique_vals", "iqr"]),
             )
             .cols_label(
                 column_number="",
@@ -838,7 +861,7 @@ def _process_datetime_column_data(column_data: dict) -> dict:
     max_date = column_data["statistics"]["datetime"]["max_date"]
 
     # Format the dates so that they don't break across lines
-    min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;&nbsp;&nbsp;{min_date} &ndash; {max_date}</span>"
+    min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;{min_date} &ndash; {max_date}</span>"
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
