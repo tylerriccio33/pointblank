@@ -10,6 +10,7 @@ from great_tables import GT, google_font, html, loc, style
 from great_tables.vals import fmt_integer, fmt_number, fmt_scientific
 from narwhals.typing import FrameT
 
+from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank._utils import _get_tbl_type, _select_df_lib
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 
@@ -678,6 +679,7 @@ class DataScan:
             )
             .cols_label(
                 column_number="",
+                icon="",
                 column_name="Column",
                 missing_vals="NAs",
                 unique_vals="Uniq.",
@@ -694,6 +696,7 @@ class DataScan:
             )
             .cols_width(
                 column_number="40px",
+                icon="35px",
                 column_name="200px",
                 missing_vals="50px",
                 unique_vals="50px",
@@ -706,7 +709,7 @@ class DataScan:
                 q_3="50px",
                 p95="50px",
                 max="50px",
-                iqr="50px",  # 840 px total
+                iqr="50px",  # 875 px total
             )
         )
 
@@ -777,8 +780,10 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
     # Determine if the column is a numerical or string column
     if "numerical" in column_data["statistics"]:
         key = "numerical"
+        icon = "numeric"
     elif "string_lengths" in column_data["statistics"]:
         key = "string_lengths"
+        icon = "string"
 
     # Get the Missing and Unique value counts and fractions
     missing_vals = column_data["n_missing_values"]
@@ -793,39 +798,40 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
     descriptive_stats = column_data["statistics"][key]["descriptive"]
     quantile_stats = column_data["statistics"][key]["quantiles"]
 
-    # If the descriptive and quantile stats are all integerlike, then round all
-    # values to the nearest integer
-    integerlike = []
-
     # Get all values from the descriptive and quantile stats into a single list
     descriptive_stats_vals = [v[1] for v in descriptive_stats.items()]
     quantile_stats_vals = [v[1] for v in quantile_stats.items()]
-    stats_values = descriptive_stats_vals + quantile_stats_vals
 
-    for val in stats_values:
-        # Check if a stat value is a number and then if it is intergerlike
+    # Determine if the quantile stats are all integerlike
+    integerlike = []
+
+    # Determine if the quantile stats are integerlike
+    for val in quantile_stats_vals:
+        # Check if a quantile value is a number and then if it is intergerlike
         if not isinstance(val, (int, float)):
             continue
         else:
             integerlike.append(val % 1 == 0)
+    quantile_vals_integerlike = all(integerlike)
 
-    stats_vals_integerlike = all(integerlike)
-
-    if stats_vals_integerlike:
-        formatter = _compact_integer_fmt
+    # Determine the formatter to use for the quantile values
+    if quantile_vals_integerlike:
+        q_formatter = _compact_integer_fmt
     else:
-        formatter = _compact_decimal_fmt
+        q_formatter = _compact_decimal_fmt
 
-    # Format the descriptive and quantile statistics with the compact number format
+    # Format the descriptive statistics (mean and standard deviation)
     for key, value in descriptive_stats.items():
-        descriptive_stats[key] = formatter(value)
+        descriptive_stats[key] = _compact_decimal_fmt(value=value)
 
+    # Format the quantile statistics
     for key, value in quantile_stats.items():
-        quantile_stats[key] = formatter(value)
+        quantile_stats[key] = q_formatter(value=value)
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
         "column_number": column_number,
+        "icon": SVG_ICONS_FOR_DATA_TYPES[icon],
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
@@ -872,6 +878,7 @@ def _process_datetime_column_data(column_data: dict) -> dict:
     # Create a single dictionary with the statistics for the column
     stats_dict = {
         "column_number": column_number,
+        "icon": SVG_ICONS_FOR_DATA_TYPES["date"],
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
@@ -912,6 +919,7 @@ def _process_other_column_data(column_data: dict) -> dict:
     # Create a single dictionary with the statistics for the column
     stats_dict = {
         "column_number": column_number,
+        "icon": SVG_ICONS_FOR_DATA_TYPES["object"],
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
