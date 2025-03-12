@@ -7,8 +7,7 @@ from typing import Any
 
 import narwhals as nw
 from great_tables import GT, google_font, html, loc, style
-from great_tables._formats import _format_number_compactly
-from great_tables.vals import fmt_number, fmt_scientific
+from great_tables.vals import fmt_integer, fmt_number, fmt_scientific
 from narwhals.typing import FrameT
 
 from pointblank._utils import _get_tbl_type, _select_df_lib
@@ -738,17 +737,12 @@ def _round_to_sig_figs(value: float, sig_figs: int) -> float:
 
 
 def _compact_integer_fmt(value: float | int) -> str:
-    formatted = _format_number_compactly(
-        value=value,
-        decimals=2,
-        n_sigfig=2,
-        drop_trailing_zeros=False,
-        drop_trailing_dec_mark=False,
-        use_seps=True,
-        sep_mark=",",
-        dec_mark=".",
-        force_sign=False,
-    )
+    if value == 0:
+        formatted = "0"
+    elif abs(value) >= 1 and abs(value) < 10_000:
+        formatted = fmt_integer(value, use_seps=False)[0]
+    else:
+        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
 
     return formatted
 
@@ -817,12 +811,17 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
 
     stats_vals_integerlike = all(integerlike)
 
+    if stats_vals_integerlike:
+        formatter = _compact_integer_fmt
+    else:
+        formatter = _compact_decimal_fmt
+
     # Format the descriptive and quantile statistics with the compact number format
     for key, value in descriptive_stats.items():
-        descriptive_stats[key] = _compact_decimal_fmt(value)
+        descriptive_stats[key] = formatter(value)
 
     for key, value in quantile_stats.items():
-        quantile_stats[key] = _compact_decimal_fmt(value)
+        quantile_stats[key] = formatter(value)
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
