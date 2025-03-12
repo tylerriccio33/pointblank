@@ -171,6 +171,9 @@ class DataScan:
             col_data = self.data_alt[column]
             native_dtype = str(self.data[column].dtype)
 
+            #
+            # Collection of sample data
+            #
             if "date" in str(col_data.dtype).lower():
                 sample_data = col_data.drop_nulls().head(5).cast(nw.String).to_list()
                 sample_data = [str(x) for x in sample_data]
@@ -198,6 +201,9 @@ class DataScan:
                 "f_unique_values": f_unique_vals,
             }
 
+            #
+            # Numerical columns
+            #
             if "int" in str(col_data.dtype).lower() or "float" in str(col_data.dtype).lower():
                 n_negative_vals = int(col_data.is_between(-1e26, -1e-26).sum())
                 f_negative_vals = _round_to_sig_figs(n_negative_vals / row_count, 3)
@@ -253,6 +259,9 @@ class DataScan:
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # String columns
+            #
             elif (
                 "string" in str(col_data.dtype).lower()
                 or "categorical" in str(col_data.dtype).lower()
@@ -262,17 +271,35 @@ class DataScan:
                 }
                 col_profile.update(col_profile_additional)
 
-                mode = col_data.mode()
+                # Transform `col_data` to a column of string lengths
+                col_str_len_data = col_data.str.len_chars()
 
                 col_profile_stats = {
                     "statistics": {
-                        "string": {
-                            "mode": mode[0],
+                        "string_lengths": {
+                            "descriptive": {
+                                "mean": round(float(col_str_len_data.mean()), 2),
+                                "std_dev": round(float(col_str_len_data.std()), 4),
+                            },
+                            "quantiles": {
+                                "min": int(col_str_len_data.min()),
+                                "p05": int(col_str_len_data.quantile(0.05, interpolation="linear")),
+                                "q_1": int(col_str_len_data.quantile(0.25, interpolation="linear")),
+                                "med": int(col_str_len_data.median()),
+                                "q_3": int(col_str_len_data.quantile(0.75, interpolation="linear")),
+                                "p95": int(col_str_len_data.quantile(0.95, interpolation="linear")),
+                                "max": int(col_str_len_data.max()),
+                                "iqr": int(col_str_len_data.quantile(0.75, interpolation="linear"))
+                                - int(col_str_len_data.quantile(0.25, interpolation="linear")),
+                            },
                         }
                     }
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # Date and datetime columns
+            #
             elif "date" in str(col_data.dtype).lower():
                 col_profile_additional = {
                     "sample_data": sample_data,
@@ -332,6 +359,9 @@ class DataScan:
             col_data = self.data[column]
             col_data_no_null = self.data.drop_null().head(5)[column]
 
+            #
+            # Collection of sample data
+            #
             if "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
                 if df_lib_use == "polars":
                     import polars as pl
@@ -366,6 +396,9 @@ class DataScan:
                 "f_unique_values": f_unique_vals,
             }
 
+            #
+            # Numerical columns
+            #
             if "int" in dtype_str.lower() or "float" in dtype_str.lower():
                 n_negative_vals = int(
                     _to_df_lib(col_data.between(-1e26, -1e-26).sum(), df_lib=df_lib_use)
@@ -427,21 +460,80 @@ class DataScan:
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # String columns
+            #
             elif "string" in dtype_str.lower() or "char" in dtype_str.lower():
                 col_profile_additional = {
                     "sample_data": sample_data,
                 }
                 col_profile.update(col_profile_additional)
 
+                # Transform `col_data` to a column of string lengths
+                col_str_len_data = col_data.length()
+
                 col_profile_stats = {
                     "statistics": {
-                        "string": {
-                            "mode": _to_df_lib(col_data.mode(), df_lib=df_lib_use),
+                        "string_lengths": {
+                            "descriptive": {
+                                "mean": round(
+                                    float(_to_df_lib(col_str_len_data.mean(), df_lib=df_lib_use)), 2
+                                ),
+                                "std_dev": round(
+                                    float(_to_df_lib(col_str_len_data.std(), df_lib=df_lib_use)), 4
+                                ),
+                            },
+                            "quantiles": {
+                                "min": int(_to_df_lib(col_str_len_data.min(), df_lib=df_lib_use)),
+                                "p05": int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.05),
+                                        df_lib=df_lib_use,
+                                    )
+                                ),
+                                "q_1": int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.25),
+                                        df_lib=df_lib_use,
+                                    )
+                                ),
+                                "med": int(
+                                    _to_df_lib(col_str_len_data.median(), df_lib=df_lib_use)
+                                ),
+                                "q_3": int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.75),
+                                        df_lib=df_lib_use,
+                                    )
+                                ),
+                                "p95": int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.95),
+                                        df_lib=df_lib_use,
+                                    )
+                                ),
+                                "max": int(_to_df_lib(col_str_len_data.max(), df_lib=df_lib_use)),
+                                "iqr": int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.75),
+                                        df_lib=df_lib_use,
+                                    )
+                                )
+                                - int(
+                                    _to_df_lib(
+                                        col_str_len_data.approx_quantile(0.25),
+                                        df_lib=df_lib_use,
+                                    )
+                                ),
+                            },
                         }
                     }
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # Date and datetime columns
+            #
             elif "date" in dtype_str.lower() or "timestamp" in dtype_str.lower():
                 col_profile_additional = {
                     "sample_data": sample_data,
@@ -484,18 +576,20 @@ class DataScan:
 
         for col in column_data:
             # If the `col` dictionary is not referring to a numeric column, skip it
-            if "statistics" in col and "numerical" in col["statistics"]:
-                col_dict = _process_numerical_column_data(col)
+            if "statistics" in col and (
+                "numerical" in col["statistics"] or "string_lengths" in col["statistics"]
+            ):
+                col_dict = _process_numerical_string_column_data(col)
+            elif "statistics" in col and "datetime" in col["statistics"]:
+                col_dict = _process_datetime_column_data(col)
             else:
-                continue
+                col_dict = _process_other_column_data(col)
 
             stats_list.append(col_dict)
 
         import polars as pl
 
         stats_df = pl.DataFrame(stats_list)
-
-        # TODO: use compact style of formatting numbers depending on the magnitude of the number
 
         stat_columns = [
             "missing_vals",
@@ -531,6 +625,10 @@ class DataScan:
             .tab_style(
                 style=style.text(size="12px"),
                 locations=loc.body(columns="column_name"),
+            )
+            .tab_style(
+                style=style.css("white-space: pre; overflow-x: visible;"),
+                locations=loc.body(columns="min"),
             )
             .cols_label(
                 column_name="Column",
@@ -623,7 +721,7 @@ def _compact_decimal_fmt(value: float | int) -> str:
     return formatted
 
 
-def _process_numerical_column_data(column_data: dict) -> dict:
+def _process_numerical_string_column_data(column_data: dict) -> dict:
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
 
@@ -631,6 +729,12 @@ def _process_numerical_column_data(column_data: dict) -> dict:
         f"<span style='font-size: 13px;'>{column_name}</span><br>"
         f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
     )
+
+    # Determine if the column is a numerical or string column
+    if "numerical" in column_data["statistics"]:
+        key = "numerical"
+    elif "string_lengths" in column_data["statistics"]:
+        key = "string_lengths"
 
     # Get the Missing and Unique value counts and fractions
     missing_vals = column_data["n_missing_values"]
@@ -642,8 +746,8 @@ def _process_numerical_column_data(column_data: dict) -> dict:
     unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
 
     # Get the descriptive and quantile statistics
-    descriptive_stats = column_data["statistics"]["numerical"]["descriptive"]
-    quantile_stats = column_data["statistics"]["numerical"]["quantiles"]
+    descriptive_stats = column_data["statistics"][key]["descriptive"]
+    quantile_stats = column_data["statistics"][key]["quantiles"]
 
     # If the descriptive and quantile stats are all integerlike, then round all
     # values to the nearest integer
@@ -677,6 +781,89 @@ def _process_numerical_column_data(column_data: dict) -> dict:
         "unique_vals": unique_vals_str,
         **descriptive_stats,
         **quantile_stats,
+    }
+
+    return stats_dict
+
+
+def _process_datetime_column_data(column_data: dict) -> dict:
+    column_name = column_data["column_name"]
+    column_type = column_data["column_type"]
+
+    column_name_and_type = (
+        f"<span style='font-size: 13px;'>{column_name}</span><br>"
+        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+    )
+
+    # Get the Missing and Unique value counts and fractions
+    missing_vals = column_data["n_missing_values"]
+    unique_vals = column_data["n_unique_values"]
+    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+
+    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+    # Get the min and max date
+    min_date = column_data["statistics"]["datetime"]["min_date"]
+    max_date = column_data["statistics"]["datetime"]["max_date"]
+
+    # Format the dates so that they don't break across lines
+    min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;&nbsp;&nbsp;{min_date} &ndash; {max_date}</span>"
+
+    # Create a single dictionary with the statistics for the column
+    stats_dict = {
+        "column_name": column_name_and_type,
+        "missing_vals": missing_vals_str,
+        "unique_vals": unique_vals_str,
+        "mean": "&mdash;",
+        "std_dev": "&mdash;",
+        "min": min_max_date_str,
+        "p05": "",
+        "q_1": "",
+        "med": "",
+        "q_3": "",
+        "p95": "",
+        "max": "",
+        "iqr": "&mdash;",
+    }
+
+    return stats_dict
+
+
+def _process_other_column_data(column_data: dict) -> dict:
+    column_name = column_data["column_name"]
+    column_type = column_data["column_type"]
+
+    column_name_and_type = (
+        f"<span style='font-size: 13px;'>{column_name}</span><br>"
+        f"<span style='font-size: 11px; color: gray;'>{column_type}</span>"
+    )
+
+    # Get the Missing and Unique value counts and fractions
+    missing_vals = column_data["n_missing_values"]
+    unique_vals = column_data["n_unique_values"]
+    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+
+    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+    # Create a single dictionary with the statistics for the column
+    stats_dict = {
+        "column_name": column_name_and_type,
+        "missing_vals": missing_vals_str,
+        "unique_vals": unique_vals_str,
+        "mean": "&mdash;",
+        "std_dev": "&mdash;",
+        "min": "&mdash;",
+        "p05": "&mdash;",
+        "q_1": "&mdash;",
+        "med": "&mdash;",
+        "q_3": "&mdash;",
+        "p95": "&mdash;",
+        "max": "&mdash;",
+        "iqr": "&mdash;",
     }
 
     return stats_dict
