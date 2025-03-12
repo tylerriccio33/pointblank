@@ -546,8 +546,8 @@ class DataScan:
                 col_profile_stats = {
                     "statistics": {
                         "datetime": {
-                            "min_date": str(min_date),
-                            "max_date": str(max_date),
+                            "min": str(min_date),
+                            "max": str(max_date),
                         }
                     }
                 }
@@ -841,9 +841,16 @@ def _process_datetime_column_data(column_data: dict) -> dict:
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
 
+    long_column_type = len(column_type) > 22
+
+    if long_column_type:
+        column_type_style = "font-size: 7.5px; color: gray; margin-top: 3px; margin-bottom: 2px;"
+    else:
+        column_type_style = "font-size: 11px; color: gray;"
+
     column_name_and_type = (
         f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
+        f"<div style='{column_type_style}'>{column_type}</div>"
     )
 
     # Get the Missing and Unique value counts and fractions
@@ -856,8 +863,8 @@ def _process_datetime_column_data(column_data: dict) -> dict:
     unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
 
     # Get the min and max date
-    min_date = column_data["statistics"]["datetime"]["min_date"]
-    max_date = column_data["statistics"]["datetime"]["max_date"]
+    min_date = column_data["statistics"]["datetime"]["min"]
+    max_date = column_data["statistics"]["datetime"]["max"]
 
     # Format the dates so that they don't break across lines
     min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;{min_date} &ndash; {max_date}</span>"
