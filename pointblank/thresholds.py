@@ -304,7 +304,7 @@ class Actions:
     to different levels of severity when a threshold is reached. Those thresholds can be defined
     using the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions
     don't have to be defined for all threshold levels; if an action is not defined for a level in
-    exceedence, no action will be taken.
+    exceedance, no action will be taken.
 
     Parameters
     ----------

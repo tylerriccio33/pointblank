@@ -1,5 +1,5 @@
 ---
-title: Thresholds
+title: Setting Failure Thresholds
 jupyter: python3
 html-table-processing: none
 ---
@@ -27,10 +27,8 @@ particular column):
 import pointblank as pb
 
 validation_1 = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_not_null(
-        columns="c", thresholds=(1, 0.2)
-    )
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+    .col_vals_not_null(columns="c", thresholds=(1, 0.2))
     .interrogate()
 )
 
@@ -57,18 +55,21 @@ Threshold values can be specified in two ways:
 
 Threshold values act as cutoffs and are inclusive. So, any value of failing test units greater than
 or equal to the threshold value will result in exceeding the threshold. So if a threshold is defined
-with a value of `5`, then 5 failing test units will result in an exceedence.
+with a value of `5`, then 5 failing test units will result in an exceedance.
 
 ## Using the `Validation(thresholds=)` Argument
 
-We can also define thresholds globally. This means that every validation step will re-use the same
-set of threshold values.
+We can also define thresholds globally (within the `Validate` call). This means that every
+validation step will re-use the same set of threshold values.
 
 ```python
 import pointblank as pb
 
 validation_2 = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"), thresholds=(1, 0.1))
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
+        thresholds=(1, 0.1)
+    )
     .col_vals_not_null(columns="a")
     .col_vals_gt(columns="b", value=2)
     .interrogate()
@@ -82,7 +83,7 @@ and [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.
 steps will use the `thresholds=` value set in the
 [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) call. Now, if you want
 to override these global threshold values for a given validation step, you can always use the
-`threshold=` argument when calling a validation method (this argument is present within every
+`thresholds=` argument when calling a validation method (this argument is present within every
 validation method).
 
 ## Ways to Define Thresholds
@@ -120,7 +121,7 @@ express thresholds without these constraints.
 
 Using the [`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) class
 lets you define the threshold levels using the `warning=`, `error=`, and `critical=` arguments. And
-unlike the method of setting thresholds with a tuple, any of the threshold levels can be unset.
+unlike the method of setting thresholds with a tuple, any of the threshold levels can be left unset.
 Here's an example where you might want to set the 'error' and 'critical' levels (leaving the
 'warning' level unset):
 

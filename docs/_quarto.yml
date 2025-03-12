@@ -9,10 +9,10 @@ format:
       - reference/_styles-quartodoc.css
     toc: true
     grid:
-      sidebar-width: 200px
+      sidebar-width: 270px
       body-width: 950px
-      margin-width: 200px
-      gutter-width: 1.5rem
+      margin-width: 225px
+      gutter-width: 1rem
 
 filters:
   - interlinks
@@ -27,6 +27,7 @@ interlinks:
 
 website:
   title: Pointblank
+  google-analytics: "G-XSFKYZM9GW"
   search:
     show-item-context: true
   page-navigation: true
@@ -49,15 +50,21 @@ website:
   sidebar:
       id: user-guide
       contents:
-        - user-guide/index.qmd
-        - user-guide/thresholds.qmd
-        - user-guide/actions.qmd
-        - user-guide/types.qmd
-        - user-guide/columns.qmd
-        - user-guide/across.qmd
-        - user-guide/preprocessing.qmd
-        - user-guide/extracts.qmd
-        - user-guide/sundering.qmd
+        - section: "Getting Started"
+          contents:
+            - user-guide/index.qmd
+            - user-guide/thresholds.qmd
+            - user-guide/actions.qmd
+        - section: "Defining Validation Steps"
+          contents:
+            - user-guide/types.qmd
+            - user-guide/columns.qmd
+            - user-guide/across.qmd
+            - user-guide/preprocessing.qmd
+        - section: "Post-Interrogation Ops"
+          contents:
+            - user-guide/extracts.qmd
+            - user-guide/sundering.qmd
 
 html-table-processing: none
 

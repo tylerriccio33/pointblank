@@ -167,7 +167,7 @@ validation method does what you might expect, which is checking whether values i
 )
 ```
 
-This validation passes completely because no values in `f` are `"small"` or `"large"`.
+This validation fails completely because no values in `f` are `"small"` or `"large"`.
 
 ### Checks for Missing Values
 
@@ -186,6 +186,8 @@ Let's look at an example that checks that there should not be any missing values
     .interrogate()
 )
 ```
+
+Column `a` has no missing values and the above validation proves this.
 
 ### Validation of Table Structure
 
@@ -290,6 +292,9 @@ validation method checks if the number of columns in a table matches a specified
 )
 ```
 
+Expectations on column and row counts can be useful in certain situations and they align nicely with
+schema checks.
+
 ### Distinct Row Validations
 
 We can check for duplicate rows in a table with
@@ -315,6 +320,8 @@ check to use a single column or a subset of columns. To do that, we need to use 
     .interrogate()
 )
 ```
+
+In both validations (with entire rows or the partial case), a duplicate was found.
 
 ### Checking Strings in a Column with a Regular Expression
 

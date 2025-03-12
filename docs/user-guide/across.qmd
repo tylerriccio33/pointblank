@@ -1,5 +1,5 @@
 ---
-title: Across Columns
+title: Comparing Values Across Columns
 jupyter: python3
 html-table-processing: none
 ---

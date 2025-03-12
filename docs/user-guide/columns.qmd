@@ -1,5 +1,5 @@
 ---
-title: Defining Columns
+title: Applying Rules Across Columns
 jupyter: python3
 html-table-processing: none
 ---
