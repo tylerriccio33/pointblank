@@ -861,17 +861,17 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
 
     small_table_polars = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
-    pb.col_summary_tbl(small_table_polars)
+    pb.col_summary_tbl(data=small_table_polars)
     ```
 
-    This table is a Polars DataFrame, but the `col_summary_tbl()` function works with any table
-    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
-    example using a DuckDB table handled by Ibis:
+    This table used above was a Polars DataFrame, but the `col_summary_tbl()` function works with
+    any table supported by `pointblank`, including Pandas DataFrames and Ibis backend tables.
+    Here's an example using a DuckDB table handled by Ibis:
 
     ```{python}
-    small_table_duckdb = pb.load_dataset(dataset="small_table", tbl_type="duckdb")
+    small_table_duckdb = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
 
-    pb.col_summary_tbl(small_table_duckdb)
+    pb.col_summary_tbl(data=small_table_duckdb, tbl_name="nycflights")
     ```
     """
 
