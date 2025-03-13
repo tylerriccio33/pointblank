@@ -622,6 +622,8 @@ class DataScan:
     def get_tabular_report(self) -> GT:
         column_data = self.profile["columns"]
 
+        tbl_name = self.tbl_name
+
         stats_list = []
         datetime_row_list = []
 
@@ -677,7 +679,7 @@ class DataScan:
 
         # Create the label, table type, and thresholds HTML fragments
         table_type_html = _create_table_type_html(
-            tbl_type=self.tbl_type, tbl_name=None, font_size="10px"
+            tbl_type=self.tbl_type, tbl_name=tbl_name, font_size="10px"
         )
 
         tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
