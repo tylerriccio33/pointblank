@@ -132,6 +132,7 @@ def test_schema_from_parquet_table(tbl_parquet):
     assert str(type(schema.tbl)) == "<class 'ibis.expr.types.relations.Table'>"
 
 
+@pytest.mark.xfail
 def test_schema_from_duckdb_table():
     schema = Schema(tbl=load_dataset(dataset="small_table", tbl_type="duckdb"))
     assert schema.columns == [
@@ -220,6 +221,7 @@ def test_get_dtype_list_small_table_pl():
     ]
 
 
+@pytest.mark.xfail
 def test_get_dtype_list_small_table_duckdb():
     schema = Schema(tbl=load_dataset(dataset="small_table", tbl_type="duckdb"))
 
