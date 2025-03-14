@@ -5,7 +5,7 @@ from pointblank._utils import _format_to_integer_value
 
 
 def _create_table_type_html(
-    tbl_type: str | None, tbl_name: str | None, font_size: str = "smaller"
+    tbl_type: str | None, tbl_name: str | None, font_size: str = "10px"
 ) -> str:
     if tbl_type is None:
         return ""
@@ -25,10 +25,10 @@ def _create_table_type_html(
     return (
         f"<span style='background-color: {style['background']}; color: {style['text']}; padding: 0.5em 0.5em; "
         f"position: inherit; text-transform: uppercase; margin: 5px 0px 5px 0px; border: solid 1px {style['background']}; "
-        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;'>{style['label']}</span>"
+        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: {font_size};'>{style['label']}</span>"
         f"<span style='background-color: none; color: #222222; padding: 0.5em 0.5em; "
         f"position: inherit; margin: 5px 10px 5px -4px; border: solid 1px {style['background']}; "
-        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: smaller;'>{tbl_name}</span>"
+        f"font-weight: bold; padding: 2px 15px 2px 15px; font-size: {font_size};'>{tbl_name}</span>"
     )
 
 

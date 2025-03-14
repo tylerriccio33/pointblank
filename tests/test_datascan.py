@@ -6,7 +6,13 @@ from unittest.mock import patch
 from great_tables import GT
 
 from pointblank.validate import load_dataset
-from pointblank.datascan import DataScan, col_summary_tbl
+from pointblank.datascan import (
+    DataScan,
+    col_summary_tbl,
+    _compact_0_1_fmt,
+    _compact_decimal_fmt,
+    _compact_integer_fmt,
+)
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
@@ -150,3 +156,47 @@ def test_datascan_ibis_table_no_polars():
     with patch.dict(sys.modules, {"polars": None}):
         small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
         DataScan(data=small_table)
+
+
+def test_compact_integer_fmt():
+    _compact_integer_fmt(value=0) == "0"
+    _compact_integer_fmt(value=0.4) == "0"
+    _compact_integer_fmt(value=0.6) == "1"
+    _compact_integer_fmt(value=1) == "1"
+    _compact_integer_fmt(value=43.91) == "44"
+    _compact_integer_fmt(value=226.1) == "226"
+    _compact_integer_fmt(value=4362.54) == "4363"
+    _compact_integer_fmt(value=15321.23) == "15321"
+
+
+def test_compact_decimal_fmt():
+    _compact_decimal_fmt(value=0) == "0.00"
+    _compact_decimal_fmt(value=1) == "1.00"
+    _compact_decimal_fmt(value=0.0) == "0.00"
+    _compact_decimal_fmt(value=1.0) == "1.00"
+    _compact_decimal_fmt(value=0.1) == "0.10"
+    _compact_decimal_fmt(value=0.5) == "0.50"
+    _compact_decimal_fmt(value=0.01) == "0.01"
+    _compact_decimal_fmt(value=0.009) == "9.00E-03"
+    _compact_decimal_fmt(value=0.000001) == "1.00E-06"
+    _compact_decimal_fmt(value=0.99) == "0.99"
+    _compact_decimal_fmt(value=1) == "1.00"
+    _compact_decimal_fmt(value=43.91) == "43.9"
+    _compact_decimal_fmt(value=226.1) == "226"
+    _compact_decimal_fmt(value=4362.54) == "4360"
+    _compact_decimal_fmt(value=15321.23) == "1.5E4"
+
+
+def test_compact_0_1_fmt():
+    _compact_0_1_fmt(value=0) == "0.0"
+    _compact_0_1_fmt(value=1) == "1.0"
+    _compact_0_1_fmt(value=0.0) == "0.0"
+    _compact_0_1_fmt(value=1.0) == "1.0"
+    _compact_0_1_fmt(value=0.1) == "0.1"
+    _compact_0_1_fmt(value=0.5) == "0.5"
+    _compact_0_1_fmt(value=0.01) == "0.01"
+    _compact_0_1_fmt(value=0.009) == "<0.01"
+    _compact_0_1_fmt(value=0.000001) == "<0.01"
+    _compact_0_1_fmt(value=0.99) == "0.99"
+    _compact_0_1_fmt(value=0.991) == ">0.99"
+    _compact_0_1_fmt(value=226.1) == "226"

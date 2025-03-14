@@ -316,6 +316,33 @@ class DataScan:
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # Boolean columns
+            #
+            elif "bool" in str(col_data.dtype).lower():
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                n_true_values = int(col_data.sum())
+                f_true_values = _round_to_sig_figs(n_true_values / row_count, 3)
+
+                n_false_values = row_count - n_missing_vals - n_true_values
+                f_false_values = _round_to_sig_figs(n_false_values / row_count, 3)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "boolean": {
+                            "n_true_values": n_true_values,
+                            "f_true_values": f_true_values,
+                            "n_false_values": n_false_values,
+                            "f_false_values": f_false_values,
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
             profile["columns"].append(col_profile)
 
         return profile
@@ -550,6 +577,33 @@ class DataScan:
                 }
                 col_profile.update(col_profile_stats)
 
+            #
+            # Boolean columns
+            #
+            elif "bool" in dtype_str.lower():
+                col_profile_additional = {
+                    "sample_data": sample_data,
+                }
+                col_profile.update(col_profile_additional)
+
+                n_true_values = _to_df_lib(col_data.cast(int).sum(), df_lib=df_lib)
+                f_true_values = _round_to_sig_figs(n_true_values / row_count, 3)
+
+                n_false_values = row_count - n_missing_vals - n_true_values
+                f_false_values = _round_to_sig_figs(n_false_values / row_count, 3)
+
+                col_profile_stats = {
+                    "statistics": {
+                        "boolean": {
+                            "n_true_values": n_true_values,
+                            "f_true_values": f_true_values,
+                            "n_false_values": n_false_values,
+                            "f_false_values": f_false_values,
+                        }
+                    }
+                }
+                col_profile.update(col_profile_stats)
+
             profile["columns"].append(col_profile)
 
         return profile
@@ -568,6 +622,8 @@ class DataScan:
     def get_tabular_report(self) -> GT:
         column_data = self.profile["columns"]
 
+        tbl_name = self.tbl_name
+
         stats_list = []
         datetime_row_list = []
 
@@ -583,6 +639,8 @@ class DataScan:
             elif "statistics" in col and "datetime" in col["statistics"]:
                 col_dict = _process_datetime_column_data(col)
                 datetime_row_list.append(idx)
+            elif "statistics" in col and "boolean" in col["statistics"]:
+                col_dict = _process_boolean_column_data(col)
             else:
                 col_dict = _process_other_column_data(col)
 
@@ -621,7 +679,7 @@ class DataScan:
 
         # Create the label, table type, and thresholds HTML fragments
         table_type_html = _create_table_type_html(
-            tbl_type=self.tbl_type, tbl_name=None, font_size="10px"
+            tbl_type=self.tbl_type, tbl_name=tbl_name, font_size="10px"
         )
 
         tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
@@ -803,17 +861,17 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
 
     small_table_polars = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
-    pb.col_summary_tbl(small_table_polars)
+    pb.col_summary_tbl(data=small_table_polars)
     ```
 
-    This table is a Polars DataFrame, but the `col_summary_tbl()` function works with any table
-    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
-    example using a DuckDB table handled by Ibis:
+    This table used above was a Polars DataFrame, but the `col_summary_tbl()` function works with
+    any table supported by `pointblank`, including Pandas DataFrames and Ibis backend tables.
+    Here's an example using a DuckDB table handled by Ibis:
 
     ```{python}
-    small_table_duckdb = pb.load_dataset(dataset="small_table", tbl_type="duckdb")
+    small_table_duckdb = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
 
-    pb.col_summary_tbl(small_table_duckdb)
+    pb.col_summary_tbl(data=small_table_duckdb, tbl_name="nycflights")
     ```
     """
 
@@ -858,6 +916,23 @@ def _compact_decimal_fmt(value: float | int) -> str:
         formatted = fmt_number(value, decimals=0, use_seps=False)[0]
     else:
         formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
+
+    return formatted
+
+
+def _compact_0_1_fmt(value: float | int) -> str:
+    if value == 0:
+        formatted = " 0.00"
+    elif value == 1:
+        formatted = " 1.00"
+    elif abs(value) < 1 and abs(value) >= 0.01:
+        formatted = " " + fmt_number(value, decimals=2)[0]
+    elif abs(value) < 0.01:
+        formatted = "<0.01"
+    elif abs(value) > 0.99:
+        formatted = ">0.99"
+    else:
+        formatted = fmt_number(value, n_sigfig=3)[0]
 
     return formatted
 
@@ -985,6 +1060,55 @@ def _process_datetime_column_data(column_data: dict) -> dict:
         "q_3": "",
         "p95": "",
         "max": "",
+        "iqr": "&mdash;",
+    }
+
+    return stats_dict
+
+
+def _process_boolean_column_data(column_data: dict) -> dict:
+    column_number = column_data["column_number"]
+    column_name = column_data["column_name"]
+    column_type = column_data["column_type"]
+
+    column_name_and_type = (
+        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
+    )
+
+    # Get the Missing and Unique value counts and fractions
+    missing_vals = column_data["n_missing_values"]
+    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+
+    # Get the fractions of True and False values
+    f_true_values = column_data["statistics"]["boolean"]["f_true_values"]
+    f_false_values = column_data["statistics"]["boolean"]["f_false_values"]
+
+    true_vals_frac_fmt = _compact_0_1_fmt(f_true_values)
+    false_vals_frac_fmt = _compact_0_1_fmt(f_false_values)
+
+    # Create an HTML string that combines fractions for the True and False values
+    true_false_vals_str = f"<span style='font-weight: bold;'>T</span>{true_vals_frac_fmt}<br><span style='font-weight: bold;'>F</span>{false_vals_frac_fmt}"
+
+    # unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+    # Create a single dictionary with the statistics for the column
+    stats_dict = {
+        "column_number": column_number,
+        "icon": SVG_ICONS_FOR_DATA_TYPES["boolean"],
+        "column_name": column_name_and_type,
+        "missing_vals": missing_vals_str,
+        "unique_vals": true_false_vals_str,
+        "mean": "&mdash;",
+        "std_dev": "&mdash;",
+        "min": "&mdash;",
+        "p05": "&mdash;",
+        "q_1": "&mdash;",
+        "med": "&mdash;",
+        "q_3": "&mdash;",
+        "p95": "&mdash;",
+        "max": "&mdash;",
         "iqr": "&mdash;",
     }
 
