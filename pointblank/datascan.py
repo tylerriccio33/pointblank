@@ -1037,27 +1037,6 @@ def _process_string_column_data(column_data: dict) -> dict:
     descriptive_stats = column_data["statistics"]["string_lengths"]["descriptive"]
     quantile_stats = column_data["statistics"]["string_lengths"]["quantiles"]
 
-    # Get all values from the descriptive and quantile stats into a single list
-    quantile_stats_vals = [v[1] for v in quantile_stats.items()]
-
-    # Determine if the quantile stats are all integerlike
-    integerlike = []
-
-    # Determine if the quantile stats are integerlike
-    for val in quantile_stats_vals:
-        # Check if a quantile value is a number and then if it is intergerlike
-        if not isinstance(val, (int, float)):
-            continue
-        else:
-            integerlike.append(val % 1 == 0)
-    quantile_vals_integerlike = all(integerlike)
-
-    # Determine the formatter to use for the quantile values
-    if quantile_vals_integerlike:
-        q_formatter = _compact_integer_fmt
-    else:
-        q_formatter = _compact_decimal_fmt
-
     # Format the descriptive statistics (mean and standard deviation)
     for key, value in descriptive_stats.items():
         formatted_val = _compact_decimal_fmt(value=value)
@@ -1069,7 +1048,7 @@ def _process_string_column_data(column_data: dict) -> dict:
 
     # Format the quantile statistics
     for key, value in quantile_stats.items():
-        formatted_val = q_formatter(value=value)
+        formatted_val = _compact_integer_fmt(value=value)
         quantile_stats[key] = (
             f'<div><div>{formatted_val}</div><div style="float: left; position: absolute;">'
             '<div title="string length measure" style="font-size: 7px; color: #999; '
