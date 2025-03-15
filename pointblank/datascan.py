@@ -632,10 +632,10 @@ class DataScan:
 
         # Iterate over each column's data and obtain a dictionary of statistics for each column
         for idx, col in enumerate(column_data):
-            if "statistics" in col and (
-                "numerical" in col["statistics"] or "string_lengths" in col["statistics"]
-            ):
-                col_dict = _process_numerical_string_column_data(col)
+            if "statistics" in col and "numerical" in col["statistics"]:
+                col_dict = _process_numerical_column_data(col)
+            elif "statistics" in col and "string_lengths" in col["statistics"]:
+                col_dict = _process_string_column_data(col)
             elif "statistics" in col and "datetime" in col["statistics"]:
                 col_dict = _process_datetime_column_data(col)
                 datetime_row_list.append(idx)
@@ -724,13 +724,11 @@ class DataScan:
             )
             .tab_style(
                 style=style.borders(sides="left", color="#D3D3D3", style="solid"),
-                locations=loc.body(columns=["missing_vals", "mean", "iqr"]),
+                locations=loc.body(columns=["missing_vals", "mean", "min", "iqr"]),
             )
             .tab_style(
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
-                locations=loc.body(
-                    columns=["std_dev", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
-                ),
+                locations=loc.body(columns=["std_dev", "p05", "q_1", "med", "q_3", "p95", "max"]),
             )
             .tab_style(
                 style=style.borders(sides="left", style="none"),
@@ -743,20 +741,31 @@ class DataScan:
                 style=style.fill(color="#FCFCFC"),
                 locations=loc.body(columns=["missing_vals", "unique_vals", "iqr"]),
             )
+            .tab_style(
+                style=style.text(align="center"), locations=loc.column_labels(columns=stat_columns)
+            )
             .cols_label(
                 column_number="",
                 icon="",
                 column_name="Column",
-                missing_vals="NAs",
-                unique_vals="Uniq.",
+                missing_vals="NA",
+                unique_vals="UQ",
                 mean="Mean",
-                std_dev="S.D.",
+                std_dev="SD",
                 min="Min",
-                p05="P05",
-                q_1="Q1",
+                p05=html(
+                    'P<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">5</span>'
+                ),
+                q_1=html(
+                    'Q<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">1</span>'
+                ),
                 med="Med",
-                q_3="Q3",
-                p95="P95",
+                q_3=html(
+                    'Q<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">3</span>'
+                ),
+                p95=html(
+                    'P<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">95</span>'
+                ),
                 max="Max",
                 iqr="IQR",
             )
@@ -910,10 +919,12 @@ def _compact_decimal_fmt(value: float | int) -> str:
         formatted = fmt_number(value, decimals=2)[0]
     elif abs(value) < 0.01:
         formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
-    elif abs(value) >= 1 and abs(value) < 1000:
+    elif abs(value) >= 1 and abs(value) < 10:
+        formatted = fmt_number(value, decimals=2, use_seps=False)[0]
+    elif abs(value) >= 10 and abs(value) < 1000:
         formatted = fmt_number(value, n_sigfig=3)[0]
     elif abs(value) >= 1000 and abs(value) < 10_000:
-        formatted = fmt_number(value, decimals=0, use_seps=False)[0]
+        formatted = fmt_number(value, n_sigfig=4, use_seps=False)[0]
     else:
         formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
 
@@ -937,7 +948,7 @@ def _compact_0_1_fmt(value: float | int) -> str:
     return formatted
 
 
-def _process_numerical_string_column_data(column_data: dict) -> dict:
+def _process_numerical_column_data(column_data: dict) -> dict:
     column_number = column_data["column_number"]
     column_name = column_data["column_name"]
     column_type = column_data["column_type"]
@@ -947,26 +958,18 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
         f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
     )
 
-    # Determine if the column is a numerical or string column
-    if "numerical" in column_data["statistics"]:
-        key = "numerical"
-        icon = "numeric"
-    elif "string_lengths" in column_data["statistics"]:
-        key = "string_lengths"
-        icon = "string"
-
     # Get the Missing and Unique value counts and fractions
     missing_vals = column_data["n_missing_values"]
     unique_vals = column_data["n_unique_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+    missing_vals_frac = _compact_0_1_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_0_1_fmt(column_data["f_unique_values"])
 
     missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
     unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
 
     # Get the descriptive and quantile statistics
-    descriptive_stats = column_data["statistics"][key]["descriptive"]
-    quantile_stats = column_data["statistics"][key]["quantiles"]
+    descriptive_stats = column_data["statistics"]["numerical"]["descriptive"]
+    quantile_stats = column_data["statistics"]["numerical"]["quantiles"]
 
     # Get all values from the descriptive and quantile stats into a single list
     quantile_stats_vals = [v[1] for v in quantile_stats.items()]
@@ -1000,12 +1003,74 @@ def _process_numerical_string_column_data(column_data: dict) -> dict:
     # Create a single dictionary with the statistics for the column
     stats_dict = {
         "column_number": column_number,
-        "icon": SVG_ICONS_FOR_DATA_TYPES[icon],
+        "icon": SVG_ICONS_FOR_DATA_TYPES["numeric"],
         "column_name": column_name_and_type,
         "missing_vals": missing_vals_str,
         "unique_vals": unique_vals_str,
         **descriptive_stats,
         **quantile_stats,
+    }
+
+    return stats_dict
+
+
+def _process_string_column_data(column_data: dict) -> dict:
+    column_number = column_data["column_number"]
+    column_name = column_data["column_name"]
+    column_type = column_data["column_type"]
+
+    column_name_and_type = (
+        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
+    )
+
+    # Get the Missing and Unique value counts and fractions
+    missing_vals = column_data["n_missing_values"]
+    unique_vals = column_data["n_unique_values"]
+    missing_vals_frac = _compact_0_1_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_0_1_fmt(column_data["f_unique_values"])
+
+    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+    # Get the descriptive and quantile statistics
+    descriptive_stats = column_data["statistics"]["string_lengths"]["descriptive"]
+    quantile_stats = column_data["statistics"]["string_lengths"]["quantiles"]
+
+    # Format the descriptive statistics (mean and standard deviation)
+    for key, value in descriptive_stats.items():
+        formatted_val = _compact_decimal_fmt(value=value)
+        descriptive_stats[key] = (
+            f'<div><div>{formatted_val}</div><div style="float: left; position: absolute;">'
+            '<div title="string length measure" style="font-size: 7px; color: #999; '
+            'font-style: italic; cursor: help;">SL</div></div></div>'
+        )
+
+    # Format the quantile statistics
+    for key, value in quantile_stats.items():
+        formatted_val = _compact_integer_fmt(value=value)
+        quantile_stats[key] = (
+            f'<div><div>{formatted_val}</div><div style="float: left; position: absolute;">'
+            '<div title="string length measure" style="font-size: 7px; color: #999; '
+            'font-style: italic; cursor: help;">SL</div></div></div>'
+        )
+
+    # Create a single dictionary with the statistics for the column
+    stats_dict = {
+        "column_number": column_number,
+        "icon": SVG_ICONS_FOR_DATA_TYPES["string"],
+        "column_name": column_name_and_type,
+        "missing_vals": missing_vals_str,
+        "unique_vals": unique_vals_str,
+        **descriptive_stats,
+        "min": quantile_stats["min"],
+        "p05": "&mdash;",
+        "q_1": "&mdash;",
+        "med": quantile_stats["med"],
+        "q_3": "&mdash;",
+        "p95": "&mdash;",
+        "max": quantile_stats["max"],
+        "iqr": "&mdash;",
     }
 
     return stats_dict
@@ -1031,8 +1096,8 @@ def _process_datetime_column_data(column_data: dict) -> dict:
     # Get the Missing and Unique value counts and fractions
     missing_vals = column_data["n_missing_values"]
     unique_vals = column_data["n_unique_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+    missing_vals_frac = _compact_0_1_fmt(column_data["f_missing_values"])
+    unique_vals_frac = _compact_0_1_fmt(column_data["f_unique_values"])
 
     missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
     unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
@@ -1076,9 +1141,9 @@ def _process_boolean_column_data(column_data: dict) -> dict:
         f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
     )
 
-    # Get the Missing and Unique value counts and fractions
+    # Get the missing value count and fraction
     missing_vals = column_data["n_missing_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+    missing_vals_frac = _compact_0_1_fmt(column_data["f_missing_values"])
     missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
 
     # Get the fractions of True and False values
@@ -1088,10 +1153,12 @@ def _process_boolean_column_data(column_data: dict) -> dict:
     true_vals_frac_fmt = _compact_0_1_fmt(f_true_values)
     false_vals_frac_fmt = _compact_0_1_fmt(f_false_values)
 
-    # Create an HTML string that combines fractions for the True and False values
-    true_false_vals_str = f"<span style='font-weight: bold;'>T</span>{true_vals_frac_fmt}<br><span style='font-weight: bold;'>F</span>{false_vals_frac_fmt}"
-
-    # unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+    # Create an HTML string that combines fractions for the True and False values; this will be
+    # used in the Unique Vals column of the report table
+    true_false_vals_str = (
+        f"<span style='font-weight: bold;'>T</span>{true_vals_frac_fmt}<br>"
+        f"<span style='font-weight: bold;'>F</span>{false_vals_frac_fmt}"
+    )
 
     # Create a single dictionary with the statistics for the column
     stats_dict = {
