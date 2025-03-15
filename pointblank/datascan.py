@@ -1070,7 +1070,7 @@ def _process_string_column_data(column_data: dict) -> dict:
         "q_3": "&mdash;",
         "p95": "&mdash;",
         "max": quantile_stats["max"],
-        "iqr": quantile_stats["iqr"],
+        "iqr": "&mdash;",
     }
 
     return stats_dict
