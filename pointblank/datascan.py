@@ -625,7 +625,12 @@ class DataScan:
 
     @property
     def summary_data(self) -> CompliantDataFrame:
-        return self._summary_data
+        try:
+            return self._summary_data
+        except AttributeError:
+            self._gen_stats_list()
+            self._summary_data_from_list()
+            return self._summary_data
 
     def _gen_stats_list(self) -> None:
         """Set the `stats_list` attribute."""
@@ -673,12 +678,7 @@ class DataScan:
         self._summary_data: CompliantDataFrame = pl.DataFrame(stats_df)
 
     def get_tabular_report(self) -> GT:
-        try:
-            summary_data = self.summary_data
-        except AttributeError:
-            self._gen_stats_list()  # TODO: Unify/clarify these in more elegant way
-            self._summary_data_from_list()
-            summary_data = self.summary_data
+        summary_data = self.summary_data
 
         n_rows = self.profile["dimensions"]["rows"]
         n_columns = self.profile["dimensions"]["columns"]
