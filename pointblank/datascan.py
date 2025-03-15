@@ -919,10 +919,12 @@ def _compact_decimal_fmt(value: float | int) -> str:
         formatted = fmt_number(value, decimals=2)[0]
     elif abs(value) < 0.01:
         formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
-    elif abs(value) >= 1 and abs(value) < 1000:
+    elif abs(value) >= 1 and abs(value) < 10:
+        formatted = fmt_number(value, decimals=2, use_seps=False)[0]
+    elif abs(value) >= 10 and abs(value) < 1000:
         formatted = fmt_number(value, n_sigfig=3)[0]
     elif abs(value) >= 1000 and abs(value) < 10_000:
-        formatted = fmt_number(value, decimals=0, use_seps=False)[0]
+        formatted = fmt_number(value, n_sigfig=4, use_seps=False)[0]
     else:
         formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
 
