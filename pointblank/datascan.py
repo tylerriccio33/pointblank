@@ -724,13 +724,11 @@ class DataScan:
             )
             .tab_style(
                 style=style.borders(sides="left", color="#D3D3D3", style="solid"),
-                locations=loc.body(columns=["missing_vals", "mean", "iqr"]),
+                locations=loc.body(columns=["missing_vals", "mean", "min", "iqr"]),
             )
             .tab_style(
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
-                locations=loc.body(
-                    columns=["std_dev", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
-                ),
+                locations=loc.body(columns=["std_dev", "p05", "q_1", "med", "q_3", "p95", "max"]),
             )
             .tab_style(
                 style=style.borders(sides="left", style="none"),
@@ -755,11 +753,19 @@ class DataScan:
                 mean="Mean",
                 std_dev="SD",
                 min="Min",
-                p05="P05",
-                q_1="Q1",
+                p05=html(
+                    'P<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">5</span>'
+                ),
+                q_1=html(
+                    'Q<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">1</span>'
+                ),
                 med="Med",
-                q_3="Q3",
-                p95="P95",
+                q_3=html(
+                    'Q<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">3</span>'
+                ),
+                p95=html(
+                    'P<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">95</span>'
+                ),
                 max="Max",
                 iqr="IQR",
             )
