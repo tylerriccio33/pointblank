@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass, field
 from importlib.metadata import version
 from math import floor, log10
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 from great_tables import GT, google_font, html, loc, style
@@ -14,6 +14,10 @@ from narwhals.typing import FrameT
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank._utils import _get_tbl_type, _select_df_lib
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
+
+if TYPE_CHECKING:
+    from narwhals.typing import CompliantDataFrame
+
 
 __all__ = ["DataScan", "col_summary_tbl"]
 
@@ -619,16 +623,16 @@ class DataScan:
         # If the column is not found, return None
         return None
 
-    def get_tabular_report(self) -> GT:
-        column_data = self.profile["columns"]
+    @property
+    def summary_data(self) -> CompliantDataFrame:
+        return self._summary_data
 
-        tbl_name = self.tbl_name
+    def _gen_stats_list(self) -> None:
+        """Set the `stats_list` attribute."""
+        column_data = self.profile["columns"]
 
         stats_list = []
         datetime_row_list = []
-
-        n_rows = self.profile["dimensions"]["rows"]
-        n_columns = self.profile["dimensions"]["columns"]
 
         # Iterate over each column's data and obtain a dictionary of statistics for each column
         for idx, col in enumerate(column_data):
@@ -646,21 +650,38 @@ class DataScan:
 
             stats_list.append(col_dict)
 
+        self._stats_list = stats_list
+
+    def _summary_data_from_list(self) -> None:
+        """Set the `_summary_data` attribute from the raw stats list."""
+
         # Determine which DataFrame library is available and construct the DataFrame
         # based on the available library
         df_lib = _select_df_lib(preference="polars")
         df_lib_str = str(df_lib)
 
+        # TODO: this can probably be simplified
         if "polars" in df_lib_str:
             import polars as pl
 
-            stats_df = pl.DataFrame(stats_list)
+            stats_df: CompliantDataFrame = pl.DataFrame(self._stats_list)
         else:
             import pandas as pd
 
-            stats_df = pd.DataFrame(stats_list)
+            stats_df: CompliantDataFrame = pd.DataFrame(self._stats_list)
 
-        stats_df = pl.DataFrame(stats_list)
+        self._summary_data: CompliantDataFrame = pl.DataFrame(stats_df)
+
+    def get_tabular_report(self) -> GT:
+        try:
+            summary_data = self.summary_data
+        except AttributeError:
+            self._gen_stats_list()  # TODO: Unify/clarify these in more elegant way
+            self._summary_data_from_list()
+            summary_data = self.summary_data
+
+        n_rows = self.profile["dimensions"]["rows"]
+        n_columns = self.profile["dimensions"]["columns"]
 
         stat_columns = [
             "missing_vals",
@@ -679,7 +700,7 @@ class DataScan:
 
         # Create the label, table type, and thresholds HTML fragments
         table_type_html = _create_table_type_html(
-            tbl_type=self.tbl_type, tbl_name=tbl_name, font_size="10px"
+            tbl_type=self.tbl_type, tbl_name=self.tbl_name, font_size="10px"
         )
 
         tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
@@ -697,7 +718,7 @@ class DataScan:
         # TODO: Ensure width is 905px in total
 
         gt_tbl = (
-            GT(stats_df)
+            GT(self._summary_data)
             .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=stat_columns)
             .opt_table_font(font=google_font("IBM Plex Sans"))
@@ -736,7 +757,7 @@ class DataScan:
                 style=style.borders(sides="left", style="none"),
                 locations=loc.body(
                     columns=["p05", "q_1", "med", "q_3", "p95", "max"],
-                    rows=datetime_row_list,
+                    rows=self._stats_list,
                 ),
             )
             .tab_style(
