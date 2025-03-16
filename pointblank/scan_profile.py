@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NamedTuple
@@ -12,7 +14,8 @@ if TYPE_CHECKING:
     from narwhals.series import Series
 
 
-class _TypeMap(Enum):
+class _TypeMap(Enum):  # ! ordered
+    STRUCT = ("struct",)
     NUMERIC = ("int", "float")
     STRING = ("string", "categorical")
     DATE = ("date",)
@@ -20,12 +23,14 @@ class _TypeMap(Enum):
 
     @classmethod
     def fetch_prof_map(cls) -> dict[_TypeMap, type[ColumnProfile]]:
-        return {
+        default = defaultdict(lambda: ColumnProfile)
+        implemented_dict: dict[_TypeMap, type[ColumnProfile]] = {
             cls.BOOL: _BoolProfile,
             cls.NUMERIC: _NumericProfile,
             cls.STRING: _StringProfile,
             cls.DATE: _DateProfile,
         }
+        return default | implemented_dict
 
     @classmethod
     def fetch_profile(cls, dtype: Any) -> type[ColumnProfile]:
@@ -42,11 +47,13 @@ class _ColumnProfileABC(ABC):
     @abstractmethod
     def calc_stats(self, data: DataFrame) -> None: ...
 
+    @abstractmethod
+    def _proc_as_html(self) -> dict: ...  # TODO: type hint this
+
 
 @dataclass
 class ColumnProfile(_ColumnProfileABC):
     colname: str
-    colnumber: int
     coltype: str
     sample_data: Any | None = None
     f_unique_vals: float = -1
@@ -75,6 +82,8 @@ class ColumnProfile(_ColumnProfileABC):
         return {k: v for k, v in asdict(self).items() if not k.startswith("_")}
 
     def spawn_profile(self, _subprofile: type[ColumnProfile]) -> ColumnProfile:
+        if type[_subprofile] == type[ColumnProfile]:
+            return self  # spawn self if no subprofile
         attrs = self._fetch_public_attrs()
         return _subprofile(**attrs)
 
@@ -94,16 +103,58 @@ class ColumnProfile(_ColumnProfileABC):
         ## Assign stats directly from the data:
         for attr, series in res.items():
             public_name = attr[1:]
-            val: float = float(series.item())
+            val: float | None = None
+            with contextlib.suppress(TypeError, ValueError):
+                val: float = float(series.item())
             setattr(self, public_name, val)
 
         ## Post-hoc calculations:
         ## This is a space to make calculation off of the calculations
-        self.iqr = self.q_3 - self.q_1
+        try:
+            self.iqr = self.q_3 - self.q_1
+        except TypeError:  # if quartiles could not be calculated
+            self.iqr = None
 
     def calc_stats(self, data: DataFrame) -> None:  # pragma: no-cover
-        msg = "Statistics should be calculated from subclasses of `ColumnProfile`."
-        raise NotImplementedError(msg)
+        raise NotImplementedError
+
+    def _proc_as_html(self):  # pragma: no-cover
+        column_number = column_data["column_number"]
+        column_name = column_data["column_name"]
+        column_type = column_data["column_type"]
+
+        column_name_and_type = (
+            f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
+            f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
+        )
+
+        # Get the Missing and Unique value counts and fractions
+        missing_vals = column_data["n_missing_values"]
+        unique_vals = column_data["n_unique_values"]
+        missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
+        unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
+
+        missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
+        unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
+
+        # Create a single dictionary with the statistics for the column
+        return {
+            "column_number": column_number,
+            "icon": SVG_ICONS_FOR_DATA_TYPES["object"],
+            "column_name": column_name_and_type,
+            "missing_vals": missing_vals_str,
+            "unique_vals": unique_vals_str,
+            "mean": "&mdash;",
+            "std_dev": "&mdash;",
+            "min": "&mdash;",
+            "p05": "&mdash;",
+            "q_1": "&mdash;",
+            "med": "&mdash;",
+            "q_3": "&mdash;",
+            "p95": "&mdash;",
+            "max": "&mdash;",
+            "iqr": "&mdash;",
+        }
 
 
 class _DateProfile(ColumnProfile):
@@ -117,6 +168,9 @@ class _DateProfile(ColumnProfile):
         self.min = str(res["_min"].item())
         self.max = str(res["_max"].item())
 
+    def _proc_as_html(self):
+        raise NotImplementedError
+
 
 class _BoolProfile(ColumnProfile):
     ntrue: int = -1
@@ -127,6 +181,9 @@ class _BoolProfile(ColumnProfile):
         # TODO: document trivalence
         row_count = len(data)
         self.nfalse = row_count - self.ntrue
+
+    def _proc_as_html(self):
+        raise NotImplementedError
 
 
 class _StringProfile(ColumnProfile):
@@ -144,6 +201,9 @@ class _StringProfile(ColumnProfile):
     def calc_stats(self, data: DataFrame):
         col_str_len_data = data.select(nw.all().str.len_chars())
         self._calc_general_sats(col_str_len_data)
+
+    def _proc_as_html(self):
+        raise NotImplementedError
 
 
 class _NumericProfile(ColumnProfile):
@@ -166,6 +226,9 @@ class _NumericProfile(ColumnProfile):
 
     def calc_stats(self, data: DataFrame):
         self._calc_general_sats(data)
+
+    def _proc_as_html(self):
+        raise NotImplementedError
 
 
 class _DataProfile(NamedTuple):  # TODO: feels redundant
