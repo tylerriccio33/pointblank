@@ -100,12 +100,12 @@ since `hour` and `minute` are derived from `sched_dep_time` (and this lets us sp
 issues).
 
 We can also use column selectors within `columns_subset=`. Suppose we want to only see those columns
-that have `"dep"` in the name. To do that, we use the
+that have `"dep_"` or `"arr_"` in the name. To do that, we use the
 [`matches()`](https://posit-dev.github.io/pointblank/reference/matches.html) column selector
 function:
 
 ```{python}
-pb.preview(nycflights, columns_subset=pb.matches("dep"))
+pb.preview(nycflights, columns_subset=pb.matches("dep_|arr_"))
 ```
 
 Several selectors can be combined together through use of the
