@@ -92,7 +92,7 @@ ROW_BASED_VALIDATION_TYPES = [
     "col_vals_not_null",
 ]
 
-IBIS_BACKENDS = ["duckdb", "mysql", "postgres", "sqlite", "parquet", "memtable"]
+IBIS_BACKENDS = ["duckdb", "memtable", "mssql", "mysql", "parquet", "postgres", "sqlite"]
 
 VALIDATION_REPORT_FIELDS = [
     "i",
