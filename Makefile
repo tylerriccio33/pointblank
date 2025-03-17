@@ -1,7 +1,9 @@
 .PHONY: check
 
 test:
-	pytest --cov=pointblank --cov-report=xml
+	uv run pytest --cov=pointblank --cov-report=xml \
+		--randomly-seed=12301998
+
 
 test-update:
 	pytest --snapshot-update

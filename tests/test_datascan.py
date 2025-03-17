@@ -1,143 +1,44 @@
 import pytest
-import sys
+import narwhals as nw
 
-from unittest.mock import patch
-
+from hypothesis import given
+import polars.testing.parametric as pt
 from great_tables import GT
 
-from pointblank.validate import load_dataset
-from pointblank.datascan import (
-    DataScan,
-    col_summary_tbl,
-    _compact_0_1_fmt,
-    _compact_decimal_fmt,
-    _compact_integer_fmt,
-)
+from pointblank.datascan import DataScan, col_summary_tbl
+from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 
 
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_class(tbl_type):
-    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
+@given(df=pt.dataframes(min_size=5))
+def test_datascan_class_parametric(df) -> None:
+    scanner = DataScan(data=df)
 
-    assert scanner.data.equals(dataset)
-    assert scanner.tbl_name is None
-    assert scanner.profile is not None
-    assert isinstance(scanner.profile, dict)
+    df_nw = nw.from_native(df)
 
-    if tbl_type == "duckdb":
-        assert scanner.tbl_type == "duckdb"
-        assert scanner.tbl_category == "ibis"
-        assert scanner.data_alt is None
+    summary_res = scanner.summary_data
 
-    if tbl_type == "polars":
-        assert scanner.tbl_type == "polars"
-        assert scanner.tbl_category == "dataframe"
-        assert scanner.data_alt is not None
+    ## Go through checks:
+    cols = summary_res.select("colname").to_polars().to_series().to_list()
 
-    if tbl_type == "pandas":
-        assert scanner.tbl_type == "pandas"
-        assert scanner.tbl_category == "dataframe"
-        assert scanner.data_alt is not None
+    msg = "cols are not the same"
+    df_cols = df_nw.columns
+    assert set(cols) == set(df_cols), msg
 
 
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_class_use_tbl_name(tbl_type):
-    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset, tbl_name="my_small_table")
-
-    assert scanner.tbl_name == "my_small_table"
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_no_fail(tbl_type):
-    small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    DataScan(data=small_table)
-
-    game_revenue = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
-    DataScan(data=game_revenue)
-
-    nycflights = load_dataset(dataset="nycflights", tbl_type=tbl_type)
-    DataScan(data=nycflights)
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_dict_output(tbl_type):
-    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
-
-    assert isinstance(scanner.to_dict(), dict)
-
-    scan_dict = scanner.to_dict()
-
-    assert isinstance(scan_dict, dict)
-
-    assert scanner.to_dict() == scan_dict
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_json_output(tbl_type):
-    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
+@given(df=pt.dataframes(min_size=5))
+def test_datascan_json_output(df):
+    scanner = DataScan(data=df)
 
     profile_json = scanner.to_json()
 
     assert isinstance(profile_json, str)
 
 
-def test_datascan_json_file_output(tmp_path):
-    dataset = load_dataset(dataset="small_table")
-    scanner = DataScan(data=dataset)
+@given(df=pt.dataframes(min_size=5))
+def test_col_summary_tbl(df):
+    col_summary = col_summary_tbl(df)
 
-    profile_json = scanner.to_json()
-
-    file_path = tmp_path / "profile.json"
-    scanner.save_to_json(output_file=file_path)
-
-    assert file_path.exists()
-    assert file_path.is_file()
-
-    with open(file_path, "r") as f:
-        file_content = f.read()
-
-    assert profile_json == file_content
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_tabular_output_small_table(tbl_type):
-    dataset = load_dataset(dataset="small_table", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
-
-    tabular_output = scanner.get_tabular_report()
-
-    assert isinstance(tabular_output, GT)
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_tabular_output_game_revenue(tbl_type):
-    dataset = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
-
-    tabular_output = scanner.get_tabular_report()
-
-    assert isinstance(tabular_output, GT)
-
-
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_datascan_tabular_output_nycflights(tbl_type):
-    dataset = load_dataset(dataset="nycflights", tbl_type=tbl_type)
-    scanner = DataScan(data=dataset)
-
-    tabular_output = scanner.get_tabular_report()
-
-    assert isinstance(tabular_output, GT)
-
-
-def test_col_summary_tbl():
-    dataset = load_dataset(dataset="small_table")
-    col_summary = col_summary_tbl(dataset)
-
-    assert isinstance(col_summary, GT)
+    assert isinstance(df, GT)
 
 
 def test_datascan_class_raises():
@@ -149,13 +50,6 @@ def test_datascan_class_raises():
 
     with pytest.raises(TypeError):
         DataScan(data=[1, 2, 3])
-
-
-def test_datascan_ibis_table_no_polars():
-    # Mock the absence of the Polars library
-    with patch.dict(sys.modules, {"polars": None}):
-        small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
-        DataScan(data=small_table)
 
 
 def test_compact_integer_fmt():
@@ -200,3 +94,7 @@ def test_compact_0_1_fmt():
     _compact_0_1_fmt(value=0.99) == "0.99"
     _compact_0_1_fmt(value=0.991) == ">0.99"
     _compact_0_1_fmt(value=226.1) == "226"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

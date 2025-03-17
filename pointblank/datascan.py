@@ -4,16 +4,14 @@ import contextlib
 import json
 import warnings
 from importlib.metadata import version
-from math import floor, log10
 from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 from great_tables import GT, google_font, html, loc, style
-from great_tables.vals import fmt_integer, fmt_number, fmt_scientific
 from narwhals.typing import FrameT
 
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
-from pointblank._utils import _select_df_lib
+from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _round_to_sig_figs
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 from pointblank.scan_profile import ColumnProfile, _DataProfile, _TypeMap
 
@@ -21,7 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from narwhals.dataframe import DataFrame
-    from narwhals.typing import CompliantDataFrame, IntoDataFrame
+    from narwhals.typing import IntoDataFrame
 
 
 __all__ = ["DataScan", "col_summary_tbl"]
@@ -146,7 +144,12 @@ class DataScan:
 
         columns: list[str] = self.nw_data.columns
 
-        profile = _DataProfile(table_name=self.tbl_name, row_count=row_count, columns=columns)
+        profile = _DataProfile(
+            table_name=self.tbl_name,
+            row_count=row_count,
+            columns=columns,
+            implementation=self.nw_data.implementation,
+        )
 
         schema: Mapping[str, Any] = self.nw_data.schema
         for column in columns:
@@ -202,89 +205,18 @@ class DataScan:
         return None
 
     @property
-    def summary_data(self) -> CompliantDataFrame:
-        try:
-            return self._summary_data
-        except AttributeError:
-            self._gen_stats_list()
-            self._summary_data_from_list()
-            return self._summary_data
-
-    def _gen_stats_list(self) -> None:
-        """Set the `stats_list` attribute."""
-        column_profiles = self.profile.column_profiles
-
-        stats_list = []
-        datetime_row_list = []
-
-        # Iterate over each column's data and obtain a dictionary of statistics for each column
-        for idx, col in enumerate(column_profiles):
-            col_dict = col._proc_as_html()
-
-            # if "statistics" in col and (
-            #     "numerical" in col["statistics"] or "string_lengths" in col["statistics"]
-            # ):
-            #     col_dict = _process_numerical_string_column_data(col)
-            # elif "statistics" in col and "datetime" in col["statistics"]:
-            #     col_dict = _process_datetime_column_data(col)
-            #     datetime_row_list.append(idx)
-            # elif "statistics" in col and "boolean" in col["statistics"]:
-            #     col_dict = _process_boolean_column_data(col)
-            # else:
-            #     col_dict = _process_other_column_data(col)
-
-            stats_list.append(col_dict)
-
-        self._stats_list = stats_list
-
-    def _summary_data_from_list(self) -> None:
-        """Set the `_summary_data` attribute from the raw stats list."""
-        raise NotImplementedError
-
-        # Determine which DataFrame library is available and construct the DataFrame
-        # based on the available library
-        df_lib = _select_df_lib(preference="polars")
-        df_lib_str = str(df_lib)
-
-        # TODO: this can probably be simplified
-        if "polars" in df_lib_str:
-            import polars as pl
-
-            stats_df: CompliantDataFrame = pl.DataFrame(self._stats_list)
-        else:
-            import pandas as pd
-
-            stats_df: CompliantDataFrame = pd.DataFrame(self._stats_list)
-
-        self._summary_data: CompliantDataFrame = pl.DataFrame(stats_df)
+    def summary_data(self) -> DataFrame:  # TODO: Think this type hint is wrong
+        return self.profile.as_dataframe()
 
     def get_tabular_report(self) -> GT:
-        summary_data = self.summary_data
-
-        n_rows = self.profile["dimensions"]["rows"]
-        n_columns = self.profile["dimensions"]["columns"]
-
-        stat_columns = [
-            "missing_vals",
-            "unique_vals",
-            "mean",
-            "std_dev",
-            "min",
-            "p05",
-            "q_1",
-            "med",
-            "q_3",
-            "p95",
-            "max",
-            "iqr",
-        ]
-
         # Create the label, table type, and thresholds HTML fragments
         table_type_html = _create_table_type_html(
-            tbl_type=self.tbl_type, tbl_name=self.tbl_name, font_size="10px"
+            tbl_type=str(self.profile.implementation), tbl_name=self.tbl_name, font_size="10px"
         )
 
-        tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
+        tbl_dims_html = _create_table_dims_html(
+            columns=len(self.profile.columns), rows=self.profile.row_count, font_size="10px"
+        )
 
         # Compose the subtitle HTML fragment
         combined_title = (
@@ -296,10 +228,15 @@ class DataScan:
             "</div>"
         )
 
+        ## Construct HTML Rows:
+        stats_list: list[dict] = [col._proc_as_html() for col in self.profile.column_profiles]
+
+        raise NotImplementedError("construct using implementation")
+
         # TODO: Ensure width is 905px in total
 
         gt_tbl = (
-            GT(self._summary_data)
+            GT()
             .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=stat_columns)
             .opt_table_font(font=google_font("IBM Plex Sans"))
@@ -485,193 +422,6 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
 
     scanner = DataScan(data=data, tbl_name=tbl_name)
     return scanner.get_tabular_report()
-
-
-def _to_df_lib(expr: any, df_lib: str) -> any:
-    if df_lib == "polars":
-        return expr.to_polars()
-    else:
-        return expr.to_pandas()
-
-
-def _round_to_sig_figs(value: float, sig_figs: int) -> float:
-    if value == 0:
-        return 0
-    return round(value, sig_figs - int(floor(log10(abs(value)))) - 1)
-
-
-def _compact_integer_fmt(value: float | int) -> str:
-    if value == 0:
-        formatted = "0"
-    elif abs(value) >= 1 and abs(value) < 10_000:
-        formatted = fmt_integer(value, use_seps=False)[0]
-    else:
-        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
-
-    return formatted
-
-
-def _compact_decimal_fmt(value: float | int) -> str:
-    if value == 0:
-        formatted = "0.00"
-    elif abs(value) < 1 and abs(value) >= 0.01:
-        formatted = fmt_number(value, decimals=2)[0]
-    elif abs(value) < 0.01:
-        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
-    elif abs(value) >= 1 and abs(value) < 1000:
-        formatted = fmt_number(value, n_sigfig=3)[0]
-    elif abs(value) >= 1000 and abs(value) < 10_000:
-        formatted = fmt_number(value, decimals=0, use_seps=False)[0]
-    else:
-        formatted = fmt_scientific(value, decimals=1, exp_style="E1")[0]
-
-    return formatted
-
-
-def _compact_0_1_fmt(value: float | int) -> str:
-    if value == 0:
-        formatted = " 0.00"
-    elif value == 1:
-        formatted = " 1.00"
-    elif abs(value) < 1 and abs(value) >= 0.01:
-        formatted = " " + fmt_number(value, decimals=2)[0]
-    elif abs(value) < 0.01:
-        formatted = "<0.01"
-    elif abs(value) > 0.99:
-        formatted = ">0.99"
-    else:
-        formatted = fmt_number(value, n_sigfig=3)[0]
-
-    return formatted
-
-
-def _process_numerical_string_column_data(column_data: dict) -> dict:
-    column_number = column_data["column_number"]
-    column_name = column_data["column_name"]
-    column_type = column_data["column_type"]
-
-    column_name_and_type = (
-        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
-    )
-
-    # Determine if the column is a numerical or string column
-    if "numerical" in column_data["statistics"]:
-        key = "numerical"
-        icon = "numeric"
-    elif "string_lengths" in column_data["statistics"]:
-        key = "string_lengths"
-        icon = "string"
-
-    # Get the Missing and Unique value counts and fractions
-    missing_vals = column_data["n_missing_values"]
-    unique_vals = column_data["n_unique_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
-
-    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
-    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
-
-    # Get the descriptive and quantile statistics
-    descriptive_stats = column_data["statistics"][key]["descriptive"]
-    quantile_stats = column_data["statistics"][key]["quantiles"]
-
-    # Get all values from the descriptive and quantile stats into a single list
-    quantile_stats_vals = [v[1] for v in quantile_stats.items()]
-
-    # Determine if the quantile stats are all integerlike
-    integerlike = []
-
-    # Determine if the quantile stats are integerlike
-    for val in quantile_stats_vals:
-        # Check if a quantile value is a number and then if it is intergerlike
-        if not isinstance(val, (int, float)):
-            continue
-        else:
-            integerlike.append(val % 1 == 0)
-    quantile_vals_integerlike = all(integerlike)
-
-    # Determine the formatter to use for the quantile values
-    if quantile_vals_integerlike:
-        q_formatter = _compact_integer_fmt
-    else:
-        q_formatter = _compact_decimal_fmt
-
-    # Format the descriptive statistics (mean and standard deviation)
-    for key, value in descriptive_stats.items():
-        descriptive_stats[key] = _compact_decimal_fmt(value=value)
-
-    # Format the quantile statistics
-    for key, value in quantile_stats.items():
-        quantile_stats[key] = q_formatter(value=value)
-
-    # Create a single dictionary with the statistics for the column
-    stats_dict = {
-        "column_number": column_number,
-        "icon": SVG_ICONS_FOR_DATA_TYPES[icon],
-        "column_name": column_name_and_type,
-        "missing_vals": missing_vals_str,
-        "unique_vals": unique_vals_str,
-        **descriptive_stats,
-        **quantile_stats,
-    }
-
-    return stats_dict
-
-
-def _process_datetime_column_data(column_data: dict) -> dict:
-    column_number = column_data["column_number"]
-    column_name = column_data["column_name"]
-    column_type = column_data["column_type"]
-
-    long_column_type = len(column_type) > 22
-
-    if long_column_type:
-        column_type_style = "font-size: 7.5px; color: gray; margin-top: 3px; margin-bottom: 2px;"
-    else:
-        column_type_style = "font-size: 11px; color: gray;"
-
-    column_name_and_type = (
-        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-        f"<div style='{column_type_style}'>{column_type}</div>"
-    )
-
-    # Get the Missing and Unique value counts and fractions
-    missing_vals = column_data["n_missing_values"]
-    unique_vals = column_data["n_unique_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
-
-    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
-    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
-
-    # Get the min and max date
-    min_date = column_data["statistics"]["datetime"]["min"]
-    max_date = column_data["statistics"]["datetime"]["max"]
-
-    # Format the dates so that they don't break across lines
-    min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;{min_date} &ndash; {max_date}</span>"
-
-    # Create a single dictionary with the statistics for the column
-    stats_dict = {
-        "column_number": column_number,
-        "icon": SVG_ICONS_FOR_DATA_TYPES["date"],
-        "column_name": column_name_and_type,
-        "missing_vals": missing_vals_str,
-        "unique_vals": unique_vals_str,
-        "mean": "&mdash;",
-        "std_dev": "&mdash;",
-        "min": min_max_date_str,
-        "p05": "",
-        "q_1": "",
-        "med": "",
-        "q_3": "",
-        "p95": "",
-        "max": "",
-        "iqr": "&mdash;",
-    }
-
-    return stats_dict
 
 
 def _process_boolean_column_data(column_data: dict) -> dict:
