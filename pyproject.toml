@@ -49,6 +49,7 @@ pl = ["polars>=1.17.1"]
 generate = ["chatlas>=0.3.0", "anthropic[bedrock]>=0.45.2", "openai>=1.63.0"]
 duckdb = ["ibis-framework[duckdb]>=9.5.0"]
 mysql = ["ibis-framework[mysql]>=9.5.0"]
+mssql = ["ibis-framework[mssql]>=9.5.0"]
 postgres = ["ibis-framework[postgres]>=9.5.0"]
 sqlite = ["ibis-framework[sqlite]>=9.5.0"]
 docs = [
