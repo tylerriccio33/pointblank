@@ -61,10 +61,13 @@ website:
             - user-guide/columns.qmd
             - user-guide/across.qmd
             - user-guide/preprocessing.qmd
-        - section: "Post-Interrogation Ops"
+        - section: "Post Interrogation"
           contents:
             - user-guide/extracts.qmd
             - user-guide/sundering.qmd
+        - section: "Data Inspection"
+          contents:
+            - user-guide/preview.qmd
 
 html-table-processing: none
 
