@@ -516,6 +516,9 @@ def _generate_display_table(
         else:
             import pandas as pd
 
+    # Get the initial column count for the table
+    n_columns = len(data.columns)
+
     # If `columns_subset=` is not None, resolve the columns to display
     if columns_subset is not None:
         col_names = _get_column_names(data, ibis_tbl=ibis_tbl, df_lib_name_gt=df_lib_name_gt)
@@ -712,7 +715,7 @@ def _generate_display_table(
     # Create the label, table type, and thresholds HTML fragments
     table_type_html = _create_table_type_html(tbl_type=tbl_type, tbl_name=None, font_size="10px")
 
-    tbl_dims_html = _create_table_dims_html(columns=len(col_names), rows=n_rows, font_size="10px")
+    tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
 
     # Compose the subtitle HTML fragment
     combined_subtitle = (
