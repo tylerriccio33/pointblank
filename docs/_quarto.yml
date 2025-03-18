@@ -69,6 +69,7 @@ website:
           contents:
             - user-guide/preview.qmd
             - user-guide/col-summary-tbl.qmd
+            - user-guide/missing-vals-tbl.qmd
 
 html-table-processing: none
 
