@@ -608,17 +608,6 @@ class DataScan:
 
         return profile
 
-    def _get_column_data(self, column: str) -> dict | None:
-        column_data = self.profile["columns"]
-
-        # Find the column in the column data and return the
-        for col in column_data:
-            if col["column_name"] == column:
-                return col
-
-        # If the column is not found, return None
-        return None
-
     def get_tabular_report(self) -> GT:
         column_data = self.profile["columns"]
 
