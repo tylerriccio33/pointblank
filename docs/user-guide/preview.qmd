@@ -8,13 +8,12 @@ html-table-processing: none
 #| echo: false
 #| output: false
 import pointblank as pb
-pb.config(report_incl_header=False, report_incl_footer=False)
 ```
 
-In many cases, it's *good* to look at your data tables. Before validating a table, you'll likely want
-to inspect a portion of it before diving into the creation of data-quality rules. This is pretty
-easily done with Polars and Pandas DataFrames, however, it's not as easy with database tables and
-each table backend displays things differently.
+In many cases, it's *good* to look at your data tables. Before validating a table, you'll likely
+want to inspect a portion of it before diving into the creation of data-quality rules. This is
+pretty easily done with Polars and Pandas DataFrames, however, it's not as easy with database tables
+and each table backend displays things differently.
 
 To make this common task a little better, you can use the
 [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function in Pointblank.
@@ -28,6 +27,8 @@ Let's look at how [`preview()`](https://posit-dev.github.io/pointblank/reference
 works. It requires only a table and, for this first example, let's use the `nycflights` dataset:
 
 ```{python}
+import pointblank as pb
+
 nycflights = pb.load_dataset(dataset="nycflights", tbl_type="polars")
 pb.preview(nycflights)
 ```
