@@ -83,7 +83,7 @@ uniqueness (`UQ`) measures are accounted for here. The statistical measures are 
 lengths, so what happens is that all strings in a column are converted to those numeric values and a
 subset of stats values is presented. To avoid some understandable confusion when reading the table,
 the stats values in each of the cells with values are annotated with the text `"SL"`. It makes less
-sense to provide a full suite a quantile values so only the minimum (`Min`), median (`Med`), and
+sense to provide a full suite of quantile values so only the minimum (`Min`), median (`Med`), and
 maximum (`Max`) are provided.
 
 ## Date/Datetime Data and Boolean Data
