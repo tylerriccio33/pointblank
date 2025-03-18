@@ -24,8 +24,8 @@ output is consistent, no matter what type of data you're looking at.
 
 ## Viewing a Table with `preview()`
 
-Let's look at how preview works. It requires only a table and, for this first example, let's use the
-`nycflights` dataset:
+Let's look at how [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html)
+works. It requires only a table and, for this first example, let's use the `nycflights` dataset:
 
 ```{python}
 nycflights = pb.load_dataset(dataset="nycflights", tbl_type="polars")
