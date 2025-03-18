@@ -94,6 +94,23 @@ You can install Pointblank using pip:
 pip install pointblank
 ```
 
+If you don't have Polars or Pandas installed, you'll need to install one of them to use Pointblank.
+
+```bash
+pip install "pointblank[pl]" # Install Pointblank with Polars
+pip install "pointblank[pd]" # Install Pointblank with Pandas
+```
+
+To use Pointblank with DuckDB, MySQL, PostgreSQL, or SQLite, install Ibis with the appropriate
+backend:
+
+```bash
+pip install "pointblank[duckdb]"   # Install Pointblank with Ibis + DuckDB
+pip install "pointblank[mysql]"    # Install Pointblank with Ibis + MySQL
+pip install "pointblank[postgres]" # Install Pointblank with Ibis + PostgreSQL
+pip install "pointblank[sqlite]"   # Install Pointblank with Ibis + SQLite
+```
+
 ## Getting in Touch
 
 If you encounter a bug, have usage questions, or want to share ideas to make this package better,
