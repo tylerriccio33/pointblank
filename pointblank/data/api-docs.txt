@@ -5399,9 +5399,12 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
     The fractions are calculated as the ratio of the measure to the total number of rows in the
     dataset.
 
-    Statistics for Numerical Columns
-    --------------------------------
-    For numerical columns, the following descriptive statistics are provided:
+    Statistics for Numerical and String Columns
+    -------------------------------------------
+    For numerical and string columns, several statistical measures are provided. Please note that
+    for string columms, the statistics are based on the lengths of the strings in the column.
+
+    The following descriptive statistics are provided:
 
     - `mean`: the mean of the column
     - `std_dev`: the standard deviation of the column
@@ -5417,18 +5420,12 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
     - `max`: the maximum value in the column
     - `iqr`: the interquartile range of the column
 
-    Statistics for String Columns
-    -----------------------------
-    For string columns, the following statistics are provided:
+    Statistics for Date and Datetime Columns
+    ----------------------------------------
+    For date/datetime columns, the following statistics are provided:
 
-    - `mode`: the mode of the column
-
-    Statistics for Datetime Columns
-    -------------------------------
-    For datetime columns, the following statistics are provided:
-
-    - `min_date`: the minimum date in the column
-    - `max_date`: the maximum date in the column
+    - `min`: the minimum date/datetime in the column
+    - `max`: the maximum date/datetime in the column
 
     Returns
     -------
