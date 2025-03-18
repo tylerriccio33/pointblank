@@ -697,7 +697,7 @@ class DataScan:
         # TODO: Ensure width is 905px in total
 
         gt_tbl = (
-            GT(stats_df)
+            GT(stats_df, id="col_summary")
             .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=stat_columns)
             .opt_table_font(font=google_font("IBM Plex Sans"))
