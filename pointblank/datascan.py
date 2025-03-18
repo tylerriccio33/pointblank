@@ -925,15 +925,14 @@ def _compact_0_1_fmt(value: float | int) -> str:
         formatted = " 0.00"
     elif value == 1:
         formatted = " 1.00"
-    elif abs(value) < 1 and abs(value) >= 0.01:
-        formatted = " " + fmt_number(value, decimals=2)[0]
     elif abs(value) < 0.01:
         formatted = "<0.01"
-    elif abs(value) > 0.99:
+    elif abs(value) > 0.99 and abs(value) < 1.0:
         formatted = ">0.99"
+    elif abs(value) <= 0.99 and abs(value) >= 0.01:
+        formatted = " " + fmt_number(value, decimals=2)[0]
     else:
         formatted = fmt_number(value, n_sigfig=3)[0]
-
     return formatted
 
 
