@@ -35,7 +35,7 @@ small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 pb.col_summary_tbl(small_table)
 ```
 
-The header provides the type of table we're looking at (`POLARS`, since this is a Pandas DataFrame)
+The header provides the type of table we're looking at (`POLARS`, since this is a Polars DataFrame)
 and the table dimensions. The rest of the table focuses on the column-level summaries. As such, each
 row represents a summary of a column in the `small_table` dataset. There's a lot of information in
 this summary table to digest. Some of it is intuitive since this sort of table summarization isn't
