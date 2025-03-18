@@ -157,7 +157,7 @@ DataFrame with in lambda expression in `pre=`:
 data_original = pb.load_dataset("small_table")
 data_transformed = data_original.group_by("f").len(name="n")
 
-v = (
+validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
         tbl_name="small_table",
@@ -166,6 +166,8 @@ v = (
     .col_vals_ge(columns="n", value=3, pre=lambda x: data_transformed)
     .interrogate()
 )
+
+validation
 ```
 
 We can see from the validation report table that there are three test units. This corresponds to a
