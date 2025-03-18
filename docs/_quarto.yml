@@ -68,6 +68,7 @@ website:
         - section: "Data Inspection"
           contents:
             - user-guide/preview.qmd
+            - user-guide/col-summary-tbl.qmd
 
 html-table-processing: none
 
