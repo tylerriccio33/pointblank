@@ -145,7 +145,7 @@ column `a`, so we set up `columns=` and `value=` parameters in that way within t
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
 validation method call.
 
-## Swapping in Different DataFrames Just in Time
+## Swapping in a Totally Different DataFrame
 
 Let's now try to prepare the final validation scenario, checking that there are at least three
 instances of every categorical value in column `f` (which contains string values in the set of
