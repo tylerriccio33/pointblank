@@ -150,8 +150,16 @@ validation method call.
 Let's now try to prepare the final validation scenario, checking that there are at least three
 instances of every categorical value in column `f` (which contains string values in the set of
 `"low"`, `"mid"`, and `"high"`). This time, we'll prepare the transformed table (transformed by
-Polars expressions) outside of the Pointblank code. Then, we'll plug in the `data_transformed`
-DataFrame with in lambda expression in `pre=`:
+Polars expressions) outside of the Pointblank code.
+
+```{python}
+data_original = pb.load_dataset("small_table")
+data_transformed = data_original.group_by("f").len(name="n")
+
+data_transformed
+```
+
+Then, we'll plug in the `data_transformed` DataFrame with a lambda expression in `pre=`:
 
 ```{python}
 data_original = pb.load_dataset("small_table")
