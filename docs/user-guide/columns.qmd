@@ -42,6 +42,8 @@ invocation of
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html):
 
 ```{python}
+import pointblank as pb
+
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
     .col_vals_gt(columns=["item_revenue", "session_duration"], value=0)

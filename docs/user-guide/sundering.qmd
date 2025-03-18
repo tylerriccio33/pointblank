@@ -30,6 +30,8 @@ We'll begin with a very simple validation plan, having only a single step. There
 test units here.
 
 ```{python}
+import pointblank as pb
+
 validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_ge(columns="d", value=1000)
