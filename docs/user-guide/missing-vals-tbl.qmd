@@ -60,8 +60,6 @@ The `small_table` dataset has only 13 rows to it. Let's use that as a Pandas Dat
 [`missing_vals_tbl()`](https://posit-dev.github.io/pointblank/reference/missing_vals_tbl.html):
 
 ```{python}
-import pointblank as pb
-
 small_table = pb.load_dataset(dataset="small_table", tbl_type="pandas")
 pb.missing_vals_tbl(small_table)
 ```
@@ -74,8 +72,6 @@ The `game_revenue` dataset has *no* missing values. And this can be easily prove
 it:
 
 ```{python}
-import pointblank as pb
-
 game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
 pb.missing_vals_tbl(game_revenue)
 ```
