@@ -970,7 +970,7 @@ def _process_numerical_column_data(column_data: dict) -> dict:
     for val in quantile_stats_vals:
         # Check if a quantile value is a number and then if it is intergerlike
         if not isinstance(val, (int, float)):
-            continue
+            continue  # pragma: no cover
         else:
             integerlike.append(val % 1 == 0)
     quantile_vals_integerlike = all(integerlike)
