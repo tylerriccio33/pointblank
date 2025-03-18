@@ -140,6 +140,31 @@ def test_col_summary_tbl():
     assert isinstance(col_summary, GT)
 
 
+def test_col_summary_tbl_polars_categorical_column():
+    import polars as pl
+
+    log_levels = pl.Enum(["debug", "info", "warning", "error"])
+
+    df_pl = pl.DataFrame(
+        {
+            "level": ["debug", "info", "debug", "error"],
+            "message": [
+                "process id: 525",
+                "Service started correctly",
+                "startup time: 67ms",
+                "Cannot connect to DB!",
+            ],
+        },
+        schema_overrides={
+            "level": log_levels,
+        },
+    )
+
+    tabular_output = col_summary_tbl(df_pl)
+
+    assert isinstance(tabular_output, GT)
+
+
 def test_col_summary_tbl_pandas_snap(snapshot):
     dataset = load_dataset(dataset="small_table", tbl_type="pandas")
     col_summary_html = col_summary_tbl(dataset).as_raw_html()
