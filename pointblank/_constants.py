@@ -147,6 +147,7 @@ TABLE_TYPE_STYLES = {
     "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
+    "mssql": {"background": "#E2E2E2", "text": "#222222", "label": "MSSQL"},
 }
 
 REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
