@@ -47,10 +47,12 @@ requires-python = ">=3.10"
 pd = ["pandas>=2.2.3"]
 pl = ["polars>=1.17.1"]
 generate = ["chatlas>=0.3.0", "anthropic[bedrock]>=0.45.2", "openai>=1.63.0"]
+databricks = ["ibis-framework[databricks]>=9.5.0"]
 duckdb = ["ibis-framework[duckdb]>=9.5.0"]
 mysql = ["ibis-framework[mysql]>=9.5.0"]
 mssql = ["ibis-framework[mssql]>=9.5.0"]
 postgres = ["ibis-framework[postgres]>=9.5.0"]
+pyspark = ["ibis-framework[pyspark]>=9.5.0"]
 snowflake = ["ibis-framework[snowflake]>=9.5.0"]
 sqlite = ["ibis-framework[sqlite]>=9.5.0"]
 docs = [

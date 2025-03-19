@@ -93,12 +93,14 @@ ROW_BASED_VALIDATION_TYPES = [
 ]
 
 IBIS_BACKENDS = [
+    "databricks",
     "duckdb",
     "memtable",
     "mssql",
     "mysql",
     "parquet",
     "postgres",
+    "pyspark",
     "snowflake",
     "sqlite",
 ]
