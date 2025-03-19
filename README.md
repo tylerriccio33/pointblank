@@ -73,6 +73,8 @@ work with Polars and Pandas DataFrames. We also integrate with
 Parquet, and more! In doing all of this, we can provide an ergonomic and consistent API for
 validating tabular data from various sources.
 
+Note: if you want the validation report from the REPL, you have to run `validation.get_tabular_report().show()`.
+
 ## Features
 
 Here's a short list of what we think makes Pointblank a great tool for data validation:
