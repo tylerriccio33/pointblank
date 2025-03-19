@@ -151,6 +151,13 @@ class DataScan:
             implementation=self.nw_data.implementation,
         )
 
+        if self.nw_data.implementation == "POLARS":
+            import polars as pl
+
+            catcher = pl.exceptions.PanicException  # does not inheret from `Exception`
+        else:
+            catcher = Exception
+
         schema: Mapping[str, Any] = self.nw_data.schema
         for column in columns:
             col_data: DataFrame = self.nw_data.select(column)
@@ -172,7 +179,7 @@ class DataScan:
 
             try:
                 col_profile.n_unique_vals = col_data.is_unique().sum()  # set this before missing
-            except Exception as e:  # tendancy to introduce internal panics
+            except catcher as e:  # tendancy to introduce internal panics
                 msg = f"Could not calculate uniqueness and missing values: {e!s}"
                 warnings.warn(msg)
             else:
