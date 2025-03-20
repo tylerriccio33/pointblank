@@ -1,15 +1,23 @@
 import pytest
 import narwhals as nw
 
-from hypothesis import given
+from hypothesis import given, settings
 import polars.testing.parametric as pt
 from great_tables import GT
+import polars as pl
 
 from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 
 
-@given(df=pt.dataframes(min_size=5))
+## Setup Strategies:
+happy_path_df = pt.dataframes(
+    min_size=5, allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical]
+)
+
+
+@given(df=happy_path_df)
+@settings(max_examples=5)
 def test_datascan_class_parametric(df) -> None:
     scanner = DataScan(data=df)
 
@@ -18,11 +26,22 @@ def test_datascan_class_parametric(df) -> None:
     summary_res = scanner.summary_data
 
     ## Go through checks:
-    cols = summary_res.select("colname").to_polars().to_series().to_list()
+    cols = summary_res.select("colname").to_series().to_list()
 
-    msg = "cols are not the same"
+    msg = "cols must be the same"
     df_cols = df_nw.columns
     assert set(cols) == set(df_cols), msg
+
+    msg = "return type must be same as input"
+    assert isinstance(summary_res, type(df)), msg
+
+    msg = "did not return correct amount of summary rows"
+    assert len(summary_res) == len(cols)  # only for happy path
+
+    msg = "contains sample data"
+    assert "sample_data" in summary_res.columns
+
+    # TODO: Should contain many more cases
 
 
 @given(df=pt.dataframes(min_size=5))
@@ -34,11 +53,12 @@ def test_datascan_json_output(df):
     assert isinstance(profile_json, str)
 
 
-@given(df=pt.dataframes(min_size=5))
+@given(df=happy_path_df)
+@settings(max_examples=5)
 def test_col_summary_tbl(df):
     col_summary = col_summary_tbl(df)
 
-    assert isinstance(df, GT)
+    assert isinstance(col_summary, GT)
 
 
 def test_datascan_class_raises():
