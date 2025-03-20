@@ -646,7 +646,7 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     via `pip install pointblank[generate]`.
 
     :::{.callout-warning}
-    The `DraftValidation()` class is still experimental. Please report any issues you encounter in
+    The `DraftValidation` class is still experimental. Please report any issues you encounter in
     the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
     :::
 
@@ -5332,12 +5332,14 @@ critical(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
 
 ## The Utilities family
 
-The *Inspect* group contains functions that are helpful for getting to grips
-on a new data table. Use the `DataScan` class to get a quick overview of the data, `preview()` to
-see the first and last few rows of a table, `missing_vals_tbl()` to see where there are missing
-values in a table, and `get_column_count()`/`get_row_count()` to get the number of columns and rows
-in a table. Several datasets included in the package can be accessed via the `load_dataset()`
-function. Finally, the `config()` utility lets us set global configuration parameters.
+The *Inspection and Assistance* group contains functions that are helpful for
+getting to grips on a new data table. Use the `DataScan` class to get a quick overview of the data,
+`preview()` to see the first and last few rows of a table, `col_summary_tbl()` for a column-level
+summary of a table, `missing_vals_tbl()` to see where there are missing values in a table, and
+`get_column_count()`/`get_row_count()` to get the number of columns and rows in a table. Several
+datasets included in the package can be accessed via the `load_dataset()` function. Finally, the
+`config()` utility lets us set global configuration parameters. Want to chat with an assistant? Use
+the `assistant()` function to get help with Pointblank.
 
 DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
 
@@ -5557,6 +5559,77 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
       n_tail=2,
       columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
     )
+    ```
+
+
+col_summary_tbl(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> 'GT'
+
+    Generate a column-level summary table of a dataset.
+
+    The `col_summary_tbl()` function generates a summary table of a dataset, focusing on providing
+    column-level information about the dataset. The summary includes the following information:
+
+    - the type of the table (e.g., `"polars"`, `"pandas"`, etc.)
+    - the number of rows and columns in the table
+    - column-level information, including:
+        - the column name
+        - the column type
+        - measures of missingness and distinctness
+        - descriptive stats and quantiles
+        - statistics for datetime columns
+
+    The summary table is returned as a GT object, which can be displayed in a notebook or saved to
+    an HTML file.
+
+    :::{.callout-warning}
+    The `col_summary_tbl()` function is still experimental. Please report any issues you encounter
+    in the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
+    :::
+
+    Parameters
+    ----------
+    data
+        The table to summarize, which could be a DataFrame object or an Ibis table object. Read the
+        *Supported Input Table Types* section for details on the supported table types.
+    tbl_name
+        Optionally, the name of the table could be provided as `tbl_name=`.
+
+    Returns
+    -------
+    GT
+        A GT object that displays the column-level summaries of the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `col_summary_tbl()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    It's easy to get a column-level summary of a table using the `col_summary_tbl()` function.
+    Here's an example using the `small_table` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
+
+    This table used above was a Polars DataFrame, but the `col_summary_tbl()` function works with
+    any table supported by `pointblank`, including Pandas DataFrames and Ibis backend tables.
+    Here's an example using a DuckDB table handled by Ibis:
+
+    ```python
+    small_table_duckdb = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
+
+    pb.col_summary_tbl(data=small_table_duckdb, tbl_name="nycflights")
     ```
 
 
@@ -5840,6 +5913,136 @@ config(report_incl_header: 'bool' = True, report_incl_footer: 'bool' = True, pre
     -------
     PointblankConfig
         A `PointblankConfig` object with the specified configuration settings.
+
+
+assistant(model: 'str', data: 'FrameT | Any | None' = None, tbl_name: 'str | None' = None, api_key: 'str | None' = None, display: 'str | None' = None) -> 'None'
+
+    Chat with the PbA (Pointblank Assistant) about your data validation needs.
+
+    The `assistant()` function provides an interactive chat session with the PbA (Pointblank
+    Assistant) to help you with your data validation needs. The PbA can help you with constructing
+    validation plans, suggesting validation methods, and providing code snippets for using the
+    Pointblank Python package. Feel free to ask the PbA about any aspect of the Pointblank package
+    and it will do its best to assist you.
+
+    The PbA can also help you with constructing validation plans for your data tables. If you
+    provide a data table to the PbA, it will internally generate a JSON summary of the table and
+    use that information to suggest validation methods that can be used with the Pointblank package.
+    If using a Polars table as the data source, the PbA will be knowledgeable about the Polars API
+    and can smartly suggest validation steps that use aggregate measures with up-to-date Polars
+    methods.
+
+    The PbA can be used with models from the following providers:
+
+    - Anthropic
+    - OpenAI
+    - Ollama
+    - Amazon Bedrock
+
+    The PbA can be displayed in a browser (the default) or in the terminal. You can choose one or
+    the other by setting the `display=` parameter to `"browser"` or `"terminal"`.
+
+    :::{.callout-warning}
+    The `assistant()` function is still experimental. Please report any issues you encounter in
+    the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
+    :::
+
+    Parameters
+    ----------
+    model
+        The model to be used. This should be in the form of `provider:model` (e.g.,
+        `"anthropic:claude-3-5-sonnet-latest"`). Supported providers are `"anthropic"`, `"openai"`,
+        `"ollama"`, and `"bedrock"`.
+    data
+        An optional data table to focus on during discussion with the PbA, which could be a
+        DataFrame object or an Ibis table object. Read the *Supported Input Table Types* section for
+        details on the supported table types.
+    tbl_name : str, optional
+        The name of the data table. This is optional and is only used to provide a more detailed
+        prompt to the PbA.
+    api_key : str, optional
+        The API key to be used for the model.
+    display : str, optional
+        The display mode to use for the chat session. Supported values are `"browser"` and
+        `"terminal"`. If not provided, the default value is `"browser"`.
+
+    Returns
+    -------
+    None
+        Nothing is returned. Rather, you get an an interactive chat session with the PbA, which is
+        displayed in a browser or in the terminal.
+
+    Constructing the `model` Argument
+    ---------------------------------
+    The `model=` argument should be constructed using the provider and model name separated by a
+    colon (`provider:model`). The provider text can any of:
+
+    - `"anthropic"` (Anthropic)
+    - `"openai"` (OpenAI)
+    - `"ollama"` (Ollama)
+    - `"bedrock"` (Amazon Bedrock)
+
+    The model name should be the specific model to be used from the provider. Model names are
+    subject to change so consult the provider's documentation for the most up-to-date model names.
+
+    Notes on Authentication
+    -----------------------
+    Providing a valid API key as a string in the `api_key` argument is adequate for getting started
+    but you should consider using a more secure method for handling API keys.
+
+    One way to do this is to load the API key from an environent variable and retrieve it using the
+    `os` module (specifically the `os.getenv()` function). Places to store the API key might
+    include `.bashrc`, `.bash_profile`, `.zshrc`, or `.zsh_profile`.
+
+    Another solution is to store one or more model provider API keys in an `.env` file (in the root
+    of your project). If the API keys have correct names (e.g., `ANTHROPIC_API_KEY` or
+    `OPENAI_API_KEY`) then DraftValidation will automatically load the API key from the `.env` file
+    and there's no need to provide the `api_key` argument. An `.env` file might look like this:
+
+    ```plaintext
+    ANTHROPIC_API_KEY="your_anthropic_api_key_here"
+    OPENAI_API_KEY="your_openai_api_key_here"
+    ```
+
+    There's no need to have the `python-dotenv` package installed when using `.env` files in this
+    way.
+
+    Notes on Data Sent to the Model Provider
+    ----------------------------------------
+    If `data=` is provided then that data is sent to the model provider is a JSON summary of the
+    table. This data summary is generated internally by use of the `DataScan` class. The summary
+    includes the following information:
+
+    - the number of rows and columns in the table
+    - the type of dataset (e.g., Polars, DuckDB, Pandas, etc.)
+    - the column names and their types
+    - column level statistics such as the number of missing values, min, max, mean, and median, etc.
+    - a short list of data values in each column
+
+    The JSON summary is used to provide the model with the necessary information be knowledgable
+    about the data table. Compared to the size of the entire table, the JSON summary is quite small
+    and can be safely sent to the model provider.
+
+    The Amazon Bedrock provider is a special case since it is a self-hosted model and security
+    controls are in place to ensure that data is kept within the user's AWS environment. If using an
+    Ollama model all data is handled locally.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
+    requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
+    Pandas DataFrame, the availability of Ibis is not needed.
 
 
 
