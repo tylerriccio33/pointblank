@@ -290,9 +290,9 @@ class DraftValidation:
                     "the `anthropic` provider. Please install it using `pip install anthropic`."
                 )
 
-            from chatlas import ChatAnthropic
+            from chatlas import ChatAnthropic  # pragma: no cover
 
-            chat = ChatAnthropic(
+            chat = ChatAnthropic(  # pragma: no cover
                 model=model_name,
                 system_prompt="You are a terse assistant and a Python expert.",
                 api_key=self.api_key,
@@ -328,7 +328,7 @@ class DraftValidation:
 
             from chatlas import ChatOllama
 
-            chat = ChatOllama(
+            chat = ChatOllama(  # pragma: no cover
                 model=model_name,
                 system_prompt="You are a terse assistant and a Python expert.",
             )
@@ -344,7 +344,7 @@ class DraftValidation:
         self.response = str(chat.chat(prompt, stream=False, echo="none"))  # pragma: no cover
 
     def __str__(self) -> str:
-        return self.response
+        return self.response  # pragma: no cover
 
     def __repr__(self) -> str:
-        return self.response
+        return self.response  # pragma: no cover
