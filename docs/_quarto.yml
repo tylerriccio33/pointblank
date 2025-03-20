@@ -166,15 +166,17 @@ quartodoc:
         - name: Validate.warning
         - name: Validate.error
         - name: Validate.critical
-    - title: Inspect
+    - title: Inspection and Assistance
       desc: >
-        The *Inspect* group contains functions that are helpful for getting to grips on a new data
-        table. Use the `DataScan` class to get a quick overview of the data, `preview()` to see the
-        first and last few rows of a table, `col_summary_tbl()` for a column-level summary of a
-        table, `missing_vals_tbl()` to see where there are missing values in a table, and
-        `get_column_count()`/`get_row_count()` to get the number of columns and rows in a table.
-        Several datasets included in the package can be accessed via the `load_dataset()` function.
-        Finally, the `config()` utility lets us set global configuration parameters.
+        The *Inspection and Assistance* group contains functions that are helpful for getting to
+        grips on a new data table. Use the `DataScan` class to get a quick overview of the data,
+        `preview()` to see the first and last few rows of a table, `col_summary_tbl()` for a
+        column-level summary of a table, `missing_vals_tbl()` to see where there are missing values
+        in a table, and `get_column_count()`/`get_row_count()` to get the number of columns and rows
+        in a table. Several datasets included in the package can be accessed via the
+        `load_dataset()` function. Finally, the `config()` utility lets us set global configuration
+        parameters. Want to chat with an assistant? Use the `assistant()` function to get help with
+        Pointblank.
       contents:
         - name: DataScan
         - name: preview
@@ -184,3 +186,4 @@ quartodoc:
         - name: get_row_count
         - name: load_dataset
         - name: config
+        - name: assistant
