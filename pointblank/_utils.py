@@ -746,3 +746,14 @@ def _format_to_float_value(
     formatted_vals = _get_column_of_values(gt, column_name="x", context="html")
 
     return formatted_vals[0]
+
+
+def _pivot_to_dict(col_dict):
+    result_dict = {}
+    for col, sub_dict in col_dict.items():
+        for key, value in sub_dict.items():
+            # add columns fields not present
+            if key not in result_dict:
+                result_dict[key] = [None] * len(col_dict)
+            result_dict[key][list(col_dict.keys()).index(col)] = value
+    return result_dict
