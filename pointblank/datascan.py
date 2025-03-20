@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import contextlib
+import itertools
 import json
-import warnings
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any
 
@@ -10,10 +9,8 @@ import narwhals as nw
 from great_tables import GT, google_font, html, loc, style
 from narwhals.typing import FrameT
 
-from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
-from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _round_to_sig_figs
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
-from pointblank.scan_profile import ColumnProfile, _DataProfile, _TypeMap
+from pointblank.scan_profile import ColumnProfile, _DataProfile, _Metadata, _TypeMap
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -150,20 +147,14 @@ class DataScan:
             columns=columns,
             implementation=self.nw_data.implementation,
         )
-
-        if self.nw_data.implementation == "POLARS":
-            import polars as pl
-
-            catcher = pl.exceptions.PanicException  # does not inheret from `Exception`
-        else:
-            catcher = Exception
-
         schema: Mapping[str, Any] = self.nw_data.schema
         for column in columns:
             col_data: DataFrame = self.nw_data.select(column)
 
             ## Handle dtyping:
             native_dtype = schema[column]
+            if _TypeMap.is_illegal(native_dtype):
+                continue
             try:
                 prof: type[ColumnProfile] = _TypeMap.fetch_profile(native_dtype)
             except NotImplementedError:
@@ -177,43 +168,20 @@ class DataScan:
             raw_vals: list[Any] = col_data.drop_nulls().head(5).to_dict()[column].to_list()
             col_profile.sample_data = [str(x) for x in raw_vals]
 
-            try:
-                col_profile.n_unique_vals = col_data.is_unique().sum()  # set this before missing
-            except catcher as e:  # tendancy to introduce internal panics
-                msg = f"Could not calculate uniqueness and missing values: {e!s}"
-                warnings.warn(msg)
-            else:
-                col_profile.n_missing_vals = col_data.null_count().item()
-                # TODO: These should probably live on the class
-                col_profile.f_missing_vals = _round_to_sig_figs(
-                    col_profile.n_missing_vals / row_count, 3
-                )
-                col_profile.f_unique_vals = _round_to_sig_figs(
-                    col_profile.n_unique_vals / row_count, 3
-                )
+            # TODO: put this on the ColumnProfile
+            col_profile.n_unique_vals = col_data.is_unique().sum()  # set this before missing
+            col_profile.n_missing_vals = col_data.null_count().item()
 
             sub_profile: ColumnProfile = col_profile.spawn_profile(prof)
-            with contextlib.suppress(NotImplementedError):
-                sub_profile.calc_stats(col_data)
+            sub_profile.calc_stats(col_data)
 
             profile.column_profiles.append(sub_profile)
 
         return profile
 
-    def _get_column_data(self, column: str) -> dict | None:
-        column_data = self.profile["columns"]
-
-        # Find the column in the column data and return the
-        for col in column_data:
-            if col["column_name"] == column:
-                return col
-
-        # If the column is not found, return None
-        return None
-
     @property
     def summary_data(self) -> DataFrame:  # TODO: Think this type hint is wrong
-        return self.profile.as_dataframe()
+        return self.profile.as_dataframe().to_native()
 
     def get_tabular_report(self) -> GT:
         # Create the label, table type, and thresholds HTML fragments
@@ -235,93 +203,71 @@ class DataScan:
             "</div>"
         )
 
-        ## Construct HTML Rows:
-        stats_list: list[dict] = [col._proc_as_html() for col in self.profile.column_profiles]
+        metadata = _Metadata(
+            row_count=self.profile.row_count, implementation=self.profile.implementation
+        )
 
-        raise NotImplementedError("construct using implementation")
+        dataframes = []
+        for col in self.profile.column_profiles:
+            col_df = col.to_df_row(metadata=metadata)
+            dataframes.append(col_df)
+
+        concatted = nw.concat(dataframes, how="diagonal").to_native()
 
         # TODO: Ensure width is 905px in total
 
+        all_stat_cols = set(
+            itertools.chain.from_iterable(
+                profile.fetch_stat_cols() for profile in self.profile.column_profiles
+            )
+        )
+
         gt_tbl = (
-            GT()
+            GT(concatted)
             .tab_header(title=html(combined_title))
-            .cols_align(align="right", columns=stat_columns)
+            # .cols_align(align="right", columns=stat_columns)
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
             .tab_style(
                 style=style.text(font=google_font("IBM Plex Mono")),
                 locations=loc.body(),
             )
-            .tab_style(
-                style=style.text(size="10px"),
-                locations=loc.body(columns=stat_columns),
-            )
-            .tab_style(
-                style=style.text(size="14px"),
-                locations=loc.body(columns="column_number"),
-            )
+            .cols_move_to_start(["colname", "coltype", "icon"])
+            # .tab_style(
+            #     style=style.text(size="10px"),
+            #     locations=loc.body(columns=stat_columns),
+            # )
             .tab_style(
                 style=style.text(size="12px"),
-                locations=loc.body(columns="column_name"),
+                locations=loc.body(columns="colname"),
             )
-            .tab_style(
-                style=style.css("white-space: pre; overflow-x: visible;"),
-                locations=loc.body(columns="min"),
-            )
-            .tab_style(
-                style=style.borders(sides="left", color="#D3D3D3", style="solid"),
-                locations=loc.body(columns=["missing_vals", "mean", "iqr"]),
-            )
-            .tab_style(
-                style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
-                locations=loc.body(
-                    columns=["std_dev", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
-                ),
-            )
-            .tab_style(
-                style=style.borders(sides="left", style="none"),
-                locations=loc.body(
-                    columns=["p05", "q_1", "med", "q_3", "p95", "max"],
-                    rows=self._stats_list,
-                ),
-            )
-            .tab_style(
-                style=style.fill(color="#FCFCFC"),
-                locations=loc.body(columns=["missing_vals", "unique_vals", "iqr"]),
-            )
-            .cols_label(
-                column_number="",
-                icon="",
-                column_name="Column",
-                missing_vals="NAs",
-                unique_vals="Uniq.",
-                mean="Mean",
-                std_dev="S.D.",
-                min="Min",
-                p05="P05",
-                q_1="Q1",
-                med="Med",
-                q_3="Q3",
-                p95="P95",
-                max="Max",
-                iqr="IQR",
-            )
+            # .tab_style(
+            #     style=style.css("white-space: pre; overflow-x: visible;"),
+            #     locations=loc.body(columns="min"),
+            # )
+            # .tab_style(
+            #     style=style.borders(sides="left", color="#D3D3D3", style="solid"),
+            #     locations=loc.body(columns=["n_missing_vals", "mean", "iqr"]),
+            # )
+            # .tab_style(
+            #     style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
+            #     locations=loc.body(
+            #         columns=["std", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
+            #     ),
+            # )
+            # .tab_style(
+            #     style=style.borders(sides="left", style="none"),
+            #     locations=loc.body(
+            #         columns=["p05", "q_1", "med", "q_3", "p95", "max"],
+            #         rows=self._stats_list,
+            #     ),
+            # )
+            # .tab_style(
+            #     style=style.fill(color="#FCFCFC"),
+            #     locations=loc.body(columns=["n_missing_vals", "n_unique_vals", "iqr"]),
+            # )
             .cols_width(
-                column_number="40px",
-                icon="35px",
-                column_name="200px",
-                missing_vals="50px",
-                unique_vals="50px",
-                mean="50px",
-                std_dev="50px",
-                min="50px",
-                p05="50px",
-                q_1="50px",
-                med="50px",
-                q_3="50px",
-                p95="50px",
-                max="50px",
-                iqr="50px",  # 875 px total
+                icon="35px", colname="200px", **{stat_col: "50px" for stat_col in all_stat_cols}
             )
         )
 
@@ -332,6 +278,7 @@ class DataScan:
         return gt_tbl
 
     def to_dict(self) -> dict:
+        raise NotImplementedError
         return self.profile
 
     def to_json(self) -> str:
@@ -429,94 +376,3 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
 
     scanner = DataScan(data=data, tbl_name=tbl_name)
     return scanner.get_tabular_report()
-
-
-def _process_boolean_column_data(column_data: dict) -> dict:
-    column_number = column_data["column_number"]
-    column_name = column_data["column_name"]
-    column_type = column_data["column_type"]
-
-    column_name_and_type = (
-        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
-    )
-
-    # Get the Missing and Unique value counts and fractions
-    missing_vals = column_data["n_missing_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
-
-    # Get the fractions of True and False values
-    f_true_values = column_data["statistics"]["boolean"]["f_true_values"]
-    f_false_values = column_data["statistics"]["boolean"]["f_false_values"]
-
-    true_vals_frac_fmt = _compact_0_1_fmt(f_true_values)
-    false_vals_frac_fmt = _compact_0_1_fmt(f_false_values)
-
-    # Create an HTML string that combines fractions for the True and False values
-    true_false_vals_str = f"<span style='font-weight: bold;'>T</span>{true_vals_frac_fmt}<br><span style='font-weight: bold;'>F</span>{false_vals_frac_fmt}"
-
-    # unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
-
-    # Create a single dictionary with the statistics for the column
-    stats_dict = {
-        "column_number": column_number,
-        "icon": SVG_ICONS_FOR_DATA_TYPES["boolean"],
-        "column_name": column_name_and_type,
-        "missing_vals": missing_vals_str,
-        "unique_vals": true_false_vals_str,
-        "mean": "&mdash;",
-        "std_dev": "&mdash;",
-        "min": "&mdash;",
-        "p05": "&mdash;",
-        "q_1": "&mdash;",
-        "med": "&mdash;",
-        "q_3": "&mdash;",
-        "p95": "&mdash;",
-        "max": "&mdash;",
-        "iqr": "&mdash;",
-    }
-
-    return stats_dict
-
-
-def _process_other_column_data(column_data: dict) -> dict:
-    raise
-    column_number = column_data["column_number"]
-    column_name = column_data["column_name"]
-    column_type = column_data["column_type"]
-
-    column_name_and_type = (
-        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-        f"<div style='font-size: 11px; color: gray;'>{column_type}</div>"
-    )
-
-    # Get the Missing and Unique value counts and fractions
-    missing_vals = column_data["n_missing_values"]
-    unique_vals = column_data["n_unique_values"]
-    missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-    unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
-
-    missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
-    unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
-
-    # Create a single dictionary with the statistics for the column
-    stats_dict = {
-        "column_number": column_number,
-        "icon": SVG_ICONS_FOR_DATA_TYPES["object"],
-        "column_name": column_name_and_type,
-        "missing_vals": missing_vals_str,
-        "unique_vals": unique_vals_str,
-        "mean": "&mdash;",
-        "std_dev": "&mdash;",
-        "min": "&mdash;",
-        "p05": "&mdash;",
-        "q_1": "&mdash;",
-        "med": "&mdash;",
-        "q_3": "&mdash;",
-        "p95": "&mdash;",
-        "max": "&mdash;",
-        "iqr": "&mdash;",
-    }
-
-    return stats_dict
