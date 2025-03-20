@@ -5,24 +5,36 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import narwhals as nw
 
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
-from pointblank._datascan_utils import _compact_decimal_fmt, _compact_integer_fmt
+from pointblank._utils import _pivot_to_dict
 
 if TYPE_CHECKING:
     from narwhals.dataframe import DataFrame
     from narwhals.series import Series
 
 
+## Columns that pose risks for exceptions or don't have handlers
+ILLEGAL_TYPES = ("struct",)
+
+
+class _Metadata(TypedDict):
+    row_count: int
+    implementation: nw.Implementation
+
+
 class _TypeMap(Enum):  # ! ordered
-    STRUCT = ("struct",)
     NUMERIC = ("int", "float")
     STRING = ("string", "categorical")
     DATE = ("date",)
     BOOL = ("bool",)
+
+    @classmethod
+    def is_illegal(cls, dtype: Any) -> bool:
+        return any(ind for ind in ILLEGAL_TYPES if ind in str(dtype).lower())
 
     @classmethod
     def fetch_prof_map(cls) -> dict[_TypeMap, type[ColumnProfile]]:
@@ -45,13 +57,27 @@ class _TypeMap(Enum):  # ! ordered
                 return cls.fetch_prof_map()[_type]
         raise NotImplementedError  # pragma: no-cover
 
+    @classmethod
+    def fetch_icon(cls, _type: _TypeMap) -> str:
+        icon_map = {
+            cls.NUMERIC: "numeric",
+            cls.STRING: "string",
+            cls.DATE: "date",
+            cls.BOOL: "boolean",
+        }
+        try:
+            icon_key = icon_map[_type]
+        except KeyError:
+            icon_key = "object"
+        return SVG_ICONS_FOR_DATA_TYPES[icon_key]
+
 
 class _ColumnProfileABC(ABC):
-    @abstractmethod
-    def calc_stats(self, data: DataFrame) -> None: ...
+    @abstractmethod  # TODO: This should be a class variable
+    def fetch_stat_cols(self) -> tuple[str, ...]: ...
 
     @abstractmethod
-    def _proc_as_html(self) -> dict: ...  # TODO: type hint this
+    def calc_stats(self, data: DataFrame) -> None: ...
 
 
 @dataclass
@@ -59,6 +85,67 @@ class ColumnProfile(_ColumnProfileABC):
     colname: str
     coltype: str
     sample_data: Any | None = None
+    # TODO: Solve the -1 problem generally
+    # must exist in the initializer
+    _n_missing_vals: int = -1
+    _n_unique_vals: int = -1
+    # _type: _TypeMap | None = None  # TODO: This should be a class variable
+
+    def fetch_stat_cols(self) -> tuple[str, ...]:
+        return ("n_missing_vals", "n_unique_vals")
+
+    def to_df_row(self, metadata: _Metadata, *, format_html: bool = False):
+        all_stats = self._fetch_public_attrs()
+
+        # add properties
+        # TODO: this won't hold long term
+        props = {
+            "n_missing_vals": self.n_missing_vals,
+            "n_unique_vals": self.n_unique_vals,
+        }
+        all_stats.update(props)
+
+        # add icon
+        icon: str = _TypeMap.fetch_icon(self._type)
+
+        flat_stats = {k: v for k, v in all_stats.items() if k != "sample_data"} | {"icon": icon}
+
+        sample_data: str = ", ".join(all_stats["sample_data"])
+
+        # cast as primitive types:
+        primitive_types = (int, float, str, bool)
+        valid_stats = {}
+        for col, val in flat_stats.items():
+            if val is None:
+                continue  # None values have variable defaults which confuse the concat
+            is_primitive: bool = any(ind for ind in primitive_types if isinstance(val, ind))
+            if is_primitive:
+                valid_stats[col] = val
+                continue
+
+            # we can stringify these only.
+            # designed to avoid NaN, nan, inf, etc. which may be added later.
+            # these values will create inadvertent mixed types
+            if isinstance(val, nw.dtypes.DType):
+                valid_stats[col] = str(val)
+                continue
+
+            valid_stats[col] = val
+
+        df = nw.from_dict(data=flat_stats, backend=metadata["implementation"]).with_columns(
+            sample_data=nw.lit(sample_data),
+        )
+
+        if not format_html:
+            return df
+
+        raise
+
+    def calc_frac_missing_vals(self, row_count: int) -> float:
+        return self.n_missing_vals / row_count
+
+    def calc_frac_unique_vals(self, row_count: int) -> float:
+        return self.n_unique_vals / row_count
 
     @property
     def n_missing_vals(self) -> int:
@@ -83,7 +170,13 @@ class ColumnProfile(_ColumnProfileABC):
         # Get all attributes, including properties
         attrs = {}
         for k, v in vars(self.__class__).items():
-            if isinstance(v, property) and not k.startswith("_"):
+            if callable(v):
+                continue
+            if isinstance(v, property):
+                kprivate: str = "_" + k
+                attrs[kprivate] = getattr(self, k)
+                continue
+            if not k.startswith("_"):
                 attrs[k] = getattr(self, k)
         # Add non-private instance attributes
         attrs.update({k: v for k, v in vars(self).items() if not k.startswith("_")})
@@ -126,33 +219,15 @@ class ColumnProfile(_ColumnProfileABC):
     def calc_stats(self, data: DataFrame) -> None:  # pragma: no-cover
         raise NotImplementedError
 
-    def _proc_as_html(self):
-        missing_vals_str = f"{self.n_missing_vals}<br>{self.f_missing_vals}"
-        unique_vals_str = f"{self.n_unique_vals}<br>{self.f_unique_vals}"
-
-        # Create a single dictionary with the statistics for the column
-        # TODO: This should be declaritively typed
-        return {
-            "icon": SVG_ICONS_FOR_DATA_TYPES["object"],
-            "column_name": _fmt_col_header(self.colname, self.coltype),
-            "missing_vals": missing_vals_str,
-            "unique_vals": unique_vals_str,
-            "mean": "&mdash;",
-            "std_dev": "&mdash;",
-            "min": "&mdash;",
-            "p05": "&mdash;",
-            "q_1": "&mdash;",
-            "med": "&mdash;",
-            "q_3": "&mdash;",
-            "p95": "&mdash;",
-            "max": "&mdash;",
-            "iqr": "&mdash;",
-        }
-
 
 class _DateProfile(ColumnProfile):
     min: str | None = None
     max: str | None = None
+    _type: _TypeMap = _TypeMap.DATE
+
+    def fetch_stat_cols(self) -> tuple[str, ...]:
+        date_stats = ("min", "max")
+        return date_stats + super().fetch_stat_cols()
 
     def calc_stats(self, data: DataFrame):
         res = data.select(_min=nw.all().min(), _max=nw.all().max()).to_dict()
@@ -161,74 +236,21 @@ class _DateProfile(ColumnProfile):
         self.min = str(res["_min"].item())
         self.max = str(res["_max"].item())
 
-    def _proc_as_html(self):
-        column_number = column_data["column_number"]
-
-        column_name = column_data["column_name"]
-        column_type = column_data["column_type"]
-
-        long_column_type = len(column_type) > 22
-
-        if long_column_type:
-            column_type_style = (
-                "font-size: 7.5px; color: gray; margin-top: 3px; margin-bottom: 2px;"
-            )
-        else:
-            column_type_style = "font-size: 11px; color: gray;"
-
-        column_name_and_type = (
-            f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{column_name}</div>"
-            f"<div style='{column_type_style}'>{column_type}</div>"
-        )
-
-        # Get the Missing and Unique value counts and fractions
-        missing_vals = column_data["n_missing_values"]
-        unique_vals = column_data["n_unique_values"]
-        missing_vals_frac = _compact_decimal_fmt(column_data["f_missing_values"])
-        unique_vals_frac = _compact_decimal_fmt(column_data["f_unique_values"])
-
-        missing_vals_str = f"{missing_vals}<br>{missing_vals_frac}"
-        unique_vals_str = f"{unique_vals}<br>{unique_vals_frac}"
-
-        # Get the min and max date
-        min_date = column_data["statistics"]["datetime"]["min"]
-        max_date = column_data["statistics"]["datetime"]["max"]
-
-        # Format the dates so that they don't break across lines
-        min_max_date_str = f"<span style='text-align: left; white-space: nowrap; overflow-x: visible;'>&nbsp;{min_date} &ndash; {max_date}</span>"
-
-        # Create a single dictionary with the statistics for the column
-        return {
-            "column_number": column_number,
-            "icon": SVG_ICONS_FOR_DATA_TYPES["date"],
-            "column_name": column_name_and_type,
-            "missing_vals": missing_vals_str,
-            "unique_vals": unique_vals_str,
-            "mean": "&mdash;",
-            "std_dev": "&mdash;",
-            "min": min_max_date_str,
-            "p05": "",
-            "q_1": "",
-            "med": "",
-            "q_3": "",
-            "p95": "",
-            "max": "",
-            "iqr": "&mdash;",
-        }
-
 
 class _BoolProfile(ColumnProfile):
     ntrue: int = -1
     nfalse: int = -1
+    _type: _TypeMap = _TypeMap.BOOL
+
+    def fetch_stat_cols(self) -> tuple[str, ...]:
+        bool_stat_cols = ("ntrue", "nfalse")
+        return bool_stat_cols + super().fetch_stat_cols()
 
     def calc_stats(self, data: DataFrame):
         self.ntrue: int = int(data.select(nw.all().sum()).item())
         # TODO: document trivalence
         row_count = len(data)
         self.nfalse = row_count - self.ntrue
-
-    def _proc_as_html(self):
-        raise NotImplementedError
 
 
 class _StringProfile(ColumnProfile):
@@ -242,14 +264,16 @@ class _StringProfile(ColumnProfile):
     q_3: float = -1
     p95: float = -1
     iqr: float = -1
+    _type: _TypeMap = _TypeMap.STRING
+
+    def fetch_stat_cols(self) -> tuple[str, ...]:
+        str_stat_cols = ("mean", "std", "min", "max", "p05", "q_1", "med", "q_3", "p95", "iqr")
+        return super().fetch_stat_cols() + str_stat_cols
 
     def calc_stats(self, data: DataFrame):
         # cast as string to avoid ambiguity in cat/enum/etc.
         col_str_len_data = data.select(nw.all().cast(nw.String).str.len_chars())
         self._calc_general_sats(col_str_len_data)
-
-    def _proc_as_html(self):
-        raise NotImplementedError
 
 
 class _NumericProfile(ColumnProfile):
@@ -269,61 +293,31 @@ class _NumericProfile(ColumnProfile):
     q_3: float = -1
     p95: float = -1
     iqr: float = -1
+    _type: _TypeMap = _TypeMap.NUMERIC
+
+    def fetch_stat_cols(self):
+        numeric_stat_cols = (
+            "n_negative_vals",
+            "f_negative_vals",
+            "n_zero_vals",
+            "f_zero_vals",
+            "n_positive_vals",
+            "f_positive_vals",
+            "mean",
+            "std",
+            "min",
+            "max",
+            "p05",
+            "q_1",
+            "med",
+            "q_3",
+            "p95",
+            "iqr",
+        )
+        return super().fetch_stat_cols() + numeric_stat_cols
 
     def calc_stats(self, data: DataFrame):
         self._calc_general_sats(data)
-
-    def _proc_as_html(self):
-        icon = "numeric"  # TODO: should this be here
-
-        missing_vals_frac = _compact_decimal_fmt(self.f_missing_vals)
-        unique_vals_frac = _compact_decimal_fmt(self.f_unique_vals)
-
-        missing_vals_str = f"{self.n_missing_vals}<br>{missing_vals_frac}"
-        unique_vals_str = f"{self.n_unique_vals}<br>{unique_vals_frac}"
-
-        # Get the descriptive and quantile statistics
-        descriptive_stats = column_data["statistics"][key]["descriptive"]
-        quantile_stats = column_data["statistics"][key]["quantiles"]
-
-        # Get all values from the descriptive and quantile stats into a single list
-        quantile_stats_vals = [v[1] for v in quantile_stats.items()]
-
-        # Determine if the quantile stats are all integerlike
-        integerlike = []
-
-        # Determine if the quantile stats are integerlike
-        for val in quantile_stats_vals:
-            # Check if a quantile value is a number and then if it is intergerlike
-            if not isinstance(val, (int, float)):
-                continue
-            else:
-                integerlike.append(val % 1 == 0)
-        quantile_vals_integerlike = all(integerlike)
-
-        # Determine the formatter to use for the quantile values
-        if quantile_vals_integerlike:
-            q_formatter = _compact_integer_fmt
-        else:
-            q_formatter = _compact_decimal_fmt
-
-        # Format the descriptive statistics (mean and standard deviation)
-        for key, value in descriptive_stats.items():
-            descriptive_stats[key] = _compact_decimal_fmt(value=value)
-
-        # Format the quantile statistics
-        for key, value in quantile_stats.items():
-            quantile_stats[key] = q_formatter(value=value)
-
-        # Create a single dictionary with the statistics for the column
-        return {
-            "icon": SVG_ICONS_FOR_DATA_TYPES[icon],
-            "column_name": column_name_and_type,
-            "missing_vals": missing_vals_str,
-            "unique_vals": unique_vals_str,
-            **descriptive_stats,
-            **quantile_stats,
-        }
 
 
 class _DataProfile:  # TODO: feels redundant and weird
@@ -344,25 +338,14 @@ class _DataProfile:  # TODO: feels redundant and weird
         ## Convert list[dict] to dict[list]:
         ## We remove nested types like `sample_data`.
         ## We stringify all non-primitive types.
-        from collections import defaultdict
+
+        # TODO: I think this is overly complex
 
         col_dict = {col.colname: col._fetch_public_attrs() for col in self.column_profiles}
-        nested_types = ("sample_data",)
-        prim_types = (int, str, float)
-        for col in col_dict:
-            for nested_type in nested_types:
-                col_dict[col].pop(nested_type, None)
-            for key in list(col_dict[col].keys()):
-                if not isinstance(col_dict[col][key], prim_types):
-                    col_dict[col][key] = str(col_dict[col][key])
 
-        dict_of_lists = defaultdict(list)
-        for col_data in col_dict.values():
-            for key, value in col_data.items():
-                dict_of_lists[key].append(value)
-        dict_of_lists = dict(dict_of_lists)
+        result_dict = _pivot_to_dict(col_dict)
 
-        return nw.from_dict(dict_of_lists, backend=self.implementation)
+        return nw.from_dict(result_dict, backend=self.implementation)
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<_DataProfile(table_name={self.table_name}, row_count={self.row_count}, columns={self.columns})>"
