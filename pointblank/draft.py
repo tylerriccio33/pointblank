@@ -28,7 +28,7 @@ class DraftValidation:
     via `pip install pointblank[generate]`.
 
     :::{.callout-warning}
-    The `DraftValidation()` class is still experimental. Please report any issues you encounter in
+    The `DraftValidation` class is still experimental. Please report any issues you encounter in
     the [Pointblank issue tracker](https://github.com/posit-dev/pointblank/issues).
     :::
 
