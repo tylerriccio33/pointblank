@@ -148,6 +148,8 @@ TABLE_TYPE_STYLES = {
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
     "mssql": {"background": "#E2E2E2", "text": "#222222", "label": "MSSQL"},
+    "pyspark": {"background": "#E66F21", "text": "#FFFFFF", "label": "Spark DataFrame"},
+    "databricks": {"background": "#FF3621", "text": "#FFFFFF", "label": "Databricks"},
 }
 
 REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
