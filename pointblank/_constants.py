@@ -7,12 +7,12 @@ GENERAL_COLUMN_TYPES = [
 ]
 
 COMPATIBLE_DTYPES = {
-    "gt": ["numeric"],
-    "lt": ["numeric"],
-    "eq": ["numeric"],
-    "ne": ["numeric"],
-    "ge": ["numeric"],
-    "le": ["numeric"],
+    "gt": ["numeric", "datetime"],
+    "lt": ["numeric", "datetime"],
+    "eq": ["numeric", "datetime"],
+    "ne": ["numeric", "datetime"],
+    "ge": ["numeric", "datetime"],
+    "le": ["numeric", "datetime"],
     "between": ["numeric"],
     "outside": ["numeric"],
     "in_set": ["numeric", "str"],
