@@ -152,7 +152,22 @@ TABLE_TYPE_STYLES = {
     "databricks": {"background": "#FF3621", "text": "#FFFFFF", "label": "Databricks"},
 }
 
-REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
+REPORTING_LANGUAGES = [
+    "en",
+    "fr",
+    "de",
+    "it",
+    "es",
+    "pt",
+    "tr",
+    "zh-Hans",
+    "zh-Hant",
+    "ru",
+    "pl",
+    "da",
+    "sv",
+    "nl",
+]
 
 SEVERITY_LEVEL_COLORS = {
     "warning": "#AAAAAA",
