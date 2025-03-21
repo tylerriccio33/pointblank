@@ -66,8 +66,8 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
         The language to use for automatic creation of briefs (short descriptions for each validation
         step). By default, `None` will create English (`"en"`) text. Other options include French
         (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
-        (`"tr"`), Chinese (`"zh"`), Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish
-        (`"sv"`), and Dutch (`"nl"`).
+        (`"tr"`), Simplified Chinese (`"zh-Hans"`), Traditional Chinese (`"zh-Hant"`),
+        Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish (`"sv"`), and Dutch (`"nl"`).
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
