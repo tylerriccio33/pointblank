@@ -132,7 +132,7 @@ class ColumnProfile(_ColumnProfileABC):
 
             valid_stats[col] = val
 
-        df = nw.from_dict(data=flat_stats, backend=metadata["implementation"]).with_columns(
+        df = nw.from_dict(data=valid_stats, backend=metadata["implementation"]).with_columns(
             sample_data=nw.lit(sample_data),
         )
 

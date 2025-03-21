@@ -212,6 +212,7 @@ class DataScan:
             col_df = col.to_df_row(metadata=metadata)
             dataframes.append(col_df)
 
+        # TODO : Generic type this
         concatted = nw.concat(dataframes, how="diagonal").to_native()
 
         # TODO: Ensure width is 905px in total
@@ -221,6 +222,9 @@ class DataScan:
                 profile.fetch_stat_cols() for profile in self.profile.column_profiles
             )
         )
+
+        # find what stat cols were used in the analysis
+        present_stat_cols: set[str] = set(concatted.columns) & set(all_stat_cols)
 
         gt_tbl = (
             GT(concatted)
@@ -267,7 +271,7 @@ class DataScan:
             #     locations=loc.body(columns=["n_missing_vals", "n_unique_vals", "iqr"]),
             # )
             .cols_width(
-                icon="35px", colname="200px", **{stat_col: "50px" for stat_col in all_stat_cols}
+                icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
             )
         )
 
