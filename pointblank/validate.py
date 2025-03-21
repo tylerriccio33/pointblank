@@ -7987,14 +7987,19 @@ def _prep_column_text(column: list[str]) -> str:
 
 
 def _prep_values_text(
-    values: str | int | float | list[str | int | float],
+    values: str
+    | int
+    | float
+    | datetime.datetime
+    | datetime.date
+    | list[str | int | float | datetime.datetime | datetime.date],
     lang: str,
     limit: int = 3,
 ) -> str:
     if isinstance(values, ColumnLiteral):
         return f"`{values}`"
 
-    if isinstance(values, (str, int, float)):
+    if isinstance(values, (str, int, float, datetime.datetime, datetime.date)):
         values = [values]
 
     length_values = len(values)
@@ -8005,6 +8010,14 @@ def _prep_values_text(
     if length_values > limit:
         num_omitted = length_values - limit
 
+        # Format datetime objects as strings if present
+        formatted_values = []
+        for value in values[:limit]:
+            if isinstance(value, (datetime.datetime, datetime.date)):
+                formatted_values.append(f"`{value.isoformat()}`")
+            else:
+                formatted_values.append(f"`{value}`")
+
         values_str = ", ".join([f"`{value}`" for value in values[:limit]])
 
         additional_text = EXPECT_FAIL_TEXT["values_text"][lang]
@@ -8014,6 +8027,14 @@ def _prep_values_text(
         values_str = f"{values_str}, {additional_str}"
 
     else:
+        # Format datetime objects as strings if present
+        formatted_values = []
+        for value in values:
+            if isinstance(value, (datetime.datetime, datetime.date)):
+                formatted_values.append(f"`{value.isoformat()}`")
+            else:
+                formatted_values.append(f"`{value}`")
+
         values_str = ", ".join([f"`{value}`" for value in values])
 
     return values_str
