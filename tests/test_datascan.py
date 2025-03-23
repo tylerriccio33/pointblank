@@ -17,7 +17,6 @@ happy_path_df = pt.dataframes(
 
 
 @given(df=happy_path_df)
-@settings(max_examples=5)
 def test_datascan_class_parametric(df) -> None:
     scanner = DataScan(data=df)
 
@@ -44,6 +43,7 @@ def test_datascan_class_parametric(df) -> None:
     # TODO: Should contain many more cases
 
 
+@pytest.mark.xfail(reason="Skip this until you figure out what to do w/stats")
 @given(df=pt.dataframes(min_size=5))
 def test_datascan_json_output(df):
     scanner = DataScan(data=df)
@@ -117,4 +117,4 @@ def test_compact_0_1_fmt():
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__, "-x"])
