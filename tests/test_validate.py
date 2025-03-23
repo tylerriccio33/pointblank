@@ -5246,7 +5246,6 @@ def test_preview_fails_head_tail_exceed_limit():
     preview(small_table, n_head=100, n_tail=100, limit=300)
 
 
-@pytest.mark.skip("Possibly deprecated")
 def test_preview_no_polars_duckdb_table():
     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
@@ -5354,7 +5353,6 @@ def test_missing_vals_tbl_no_polars():
         missing_vals_tbl(small_table)
 
 
-@pytest.mark.skip(reason="Possibly depracated")
 def test_missing_vals_tbl_using_ibis_no_pandas():
     # Mock the absence of the pandas library
     with patch.dict(sys.modules, {"pandas": None}):
@@ -5363,7 +5361,6 @@ def test_missing_vals_tbl_using_ibis_no_pandas():
         missing_vals_tbl(small_table)
 
 
-@pytest.mark.skip(reason="Possibly depracated")
 def test_missing_vals_tbl_using_ibis_no_polars():
     # Mock the absence of the polars library
     with patch.dict(sys.modules, {"polars": None}):
@@ -8162,3 +8159,7 @@ def test_assert_passing_example() -> None:
     )
 
     passing_validation.assert_passing()
+
+
+if __name__ == "__main__":
+    test_missing_vals_tbl_no_polars()

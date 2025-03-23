@@ -110,7 +110,7 @@ class ColumnProfile(_ColumnProfileABC):
         if isinstance(value, Sequence):
             self._sample_data = value
             return
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def spawn_profile(self, _subprofile: type[ColumnProfile]) -> ColumnProfile:
         inst = _subprofile(coltype=self.coltype, colname=self.colname, statistics=self.statistics)
