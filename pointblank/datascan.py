@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import json
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any
@@ -10,13 +9,16 @@ from great_tables import GT, google_font, html, loc, style
 from narwhals.typing import FrameT
 
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
-from pointblank.scan_profile import ColumnProfile, _DataProfile, _Metadata, _TypeMap
+from pointblank.scan_profile import ColumnProfile, _DataProfile, _TypeMap
+from pointblank.scan_profile_stats import COLUMN_ORDER_REGISTRY
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from narwhals.dataframe import DataFrame
     from narwhals.typing import IntoDataFrame
+
+    from pointblank.scan_profile_stats import StatGroup
 
 
 __all__ = ["DataScan", "col_summary_tbl"]
@@ -168,9 +170,7 @@ class DataScan:
             raw_vals: list[Any] = col_data.drop_nulls().head(5).to_dict()[column].to_list()
             col_profile.sample_data = [str(x) for x in raw_vals]
 
-            # TODO: put this on the ColumnProfile
-            col_profile.n_unique_vals = col_data.is_unique().sum()  # set this before missing
-            col_profile.n_missing_vals = col_data.null_count().item()
+            col_profile.calc_stats(col_data)
 
             sub_profile: ColumnProfile = col_profile.spawn_profile(prof)
             sub_profile.calc_stats(col_data)
@@ -181,7 +181,7 @@ class DataScan:
 
     @property
     def summary_data(self) -> DataFrame:  # TODO: Think this type hint is wrong
-        return self.profile.as_dataframe().to_native()
+        return self.profile.as_dataframe()
 
     def get_tabular_report(self) -> GT:
         # Create the label, table type, and thresholds HTML fragments
@@ -203,73 +203,72 @@ class DataScan:
             "</div>"
         )
 
-        metadata = _Metadata(
-            row_count=self.profile.row_count, implementation=self.profile.implementation
-        )
-
-        dataframes = []
-        for col in self.profile.column_profiles:
-            col_df = col.to_df_row(metadata=metadata)
-            dataframes.append(col_df)
-
-        # TODO : Generic type this
-        concatted = nw.concat(dataframes, how="diagonal").to_native()
-
         # TODO: Ensure width is 905px in total
 
-        all_stat_cols = set(
-            itertools.chain.from_iterable(
-                profile.fetch_stat_cols() for profile in self.profile.column_profiles
-            )
-        )
+        data = self.profile.as_dataframe(format_html=True)
+        # TODO: Remove all null columns
 
         # find what stat cols were used in the analysis
-        present_stat_cols: set[str] = set(concatted.columns) & set(all_stat_cols)
+        non_stat_cols = ("icon", "colname", "coltype")  # TODO: need a better place for this
+        present_stat_cols: set[str] = set(data.columns) - set(non_stat_cols)
+
+        target_order: list[str] = list(non_stat_cols)
+        right_border_cols: list[str] = [non_stat_cols[-1]]
+        last_group: StatGroup = COLUMN_ORDER_REGISTRY[0].group
+        for col in COLUMN_ORDER_REGISTRY:
+            if col.name in present_stat_cols:
+                cur_group: StatGroup = col.group
+                target_order.append(col.name)
+
+                start_new_group: bool = last_group != cur_group
+                if start_new_group:
+                    last_col_added = target_order[-1]
+                    right_border_cols.append(last_col_added)
+
+        right_border_cols.append(target_order[-1])  # add border to last stat col
+
+        target_order.append("sample_data")
+
+        assert set(data.columns) == set(target_order), "Internal: fields calculated have no order."
 
         gt_tbl = (
-            GT(concatted)
+            GT(data)
             .tab_header(title=html(combined_title))
-            # .cols_align(align="right", columns=stat_columns)
+            .cols_align(align="right", columns=list(present_stat_cols))
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
             .tab_style(
                 style=style.text(font=google_font("IBM Plex Mono")),
                 locations=loc.body(),
             )
-            .cols_move_to_start(["colname", "coltype", "icon"])
-            # .tab_style(
-            #     style=style.text(size="10px"),
-            #     locations=loc.body(columns=stat_columns),
-            # )
+            ## Order
+            .cols_move_to_start(target_order)
+            ## Generic Styling
+            .tab_style(
+                style=style.text(size="10px"),
+                locations=loc.body(columns=list(present_stat_cols)),
+            )
             .tab_style(
                 style=style.text(size="12px"),
                 locations=loc.body(columns="colname"),
             )
-            # .tab_style(
-            #     style=style.css("white-space: pre; overflow-x: visible;"),
-            #     locations=loc.body(columns="min"),
-            # )
-            # .tab_style(
-            #     style=style.borders(sides="left", color="#D3D3D3", style="solid"),
-            #     locations=loc.body(columns=["n_missing_vals", "mean", "iqr"]),
-            # )
-            # .tab_style(
-            #     style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
-            #     locations=loc.body(
-            #         columns=["std", "min", "p05", "q_1", "med", "q_3", "p95", "max"]
-            #     ),
-            # )
-            # .tab_style(
-            #     style=style.borders(sides="left", style="none"),
-            #     locations=loc.body(
-            #         columns=["p05", "q_1", "med", "q_3", "p95", "max"],
-            #         rows=self._stats_list,
-            #     ),
-            # )
-            # .tab_style(
-            #     style=style.fill(color="#FCFCFC"),
-            #     locations=loc.body(columns=["n_missing_vals", "n_unique_vals", "iqr"]),
-            # )
+            ## Borders
+            .tab_style(
+                style=style.borders(sides="right", color="#D3D3D3", style="solid"),
+                locations=loc.body(columns=right_border_cols),
+            )
+            .tab_style(
+                style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
+                locations=loc.body(columns=list(present_stat_cols)),
+            )
+            .tab_style(
+                style=style.borders(sides="left", style="none"),
+                locations=loc.body(
+                    columns=["p05", "q_1", "median", "q_3", "p95", "max"],
+                    rows=list(present_stat_cols),
+                ),
+            )
+            ## Formatting
             .cols_width(
                 icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
             )
@@ -286,12 +285,9 @@ class DataScan:
         return self.profile
 
     def to_json(self) -> str:
-        profiles: list[dict] = []
-        for profile in self.profile.column_profiles:
-            attrs = profile._fetch_public_attrs()
-            profiles.append(attrs)
+        prof_dict = self.profile.as_dataframe().to_dict(as_series=False)
 
-        return json.dumps(profiles, indent=4, default=str)
+        return json.dumps(prof_dict, indent=4, default=str)
 
     def save_to_json(self, output_file: str):
         json_string: str = self.to_json()
