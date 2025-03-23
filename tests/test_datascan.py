@@ -22,7 +22,7 @@ def test_datascan_class_parametric(df) -> None:
 
     df_nw = nw.from_native(df)
 
-    summary_res = scanner.summary_data
+    summary_res = scanner.summary_data.to_native()
 
     ## Go through checks:
     cols = summary_res.select("colname").to_series().to_list()

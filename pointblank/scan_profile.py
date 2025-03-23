@@ -107,18 +107,12 @@ class ColumnProfile(_ColumnProfileABC):
     @sample_data.setter
     def sample_data(self, value: object) -> None:
         # TODO: type guard this
-        if value is None:
-            self._sample_data = []
-            return
         if isinstance(value, Sequence):
             self._sample_data = value
             return
         raise NotImplementedError
 
     def spawn_profile(self, _subprofile: type[ColumnProfile]) -> ColumnProfile:
-        # TODO: There might be an easier way to do this built in
-        if type[_subprofile] == type[ColumnProfile]:
-            return self  # spawn self if no subprofile
         inst = _subprofile(coltype=self.coltype, colname=self.colname, statistics=self.statistics)
         # instantiate non-initializing properties
         inst.sample_data = self.sample_data
@@ -256,17 +250,10 @@ class _DataProfile:  # TODO: feels redundant and weird
             stat_vals |= {"icon": _TypeMap.fetch_icon(prof._type)}
             cols.append(stat_vals)
 
-        try:
-            return self.implementation.to_native_namespace().DataFrame(cols)
-        except Exception:  # TODO: There's a better way to do this
-            raise NotImplementedError
+        # TODO: This is a bad way to do this
+        df_native = self.implementation.to_native_namespace().DataFrame(cols)
+
+        return nw.from_native(df_native)
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<_DataProfile(table_name={self.table_name}, row_count={self.row_count}, columns={self.columns})>"
-
-
-def _fmt_col_header(name: str, _type: str) -> str:
-    return (
-        f"<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>{name!s}</div>"
-        f"<div style='font-size: 11px; color: gray;'>{_type!s}</div>"
-    )

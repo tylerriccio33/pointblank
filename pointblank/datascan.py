@@ -231,8 +231,22 @@ class DataScan:
 
         assert set(data.columns) == set(target_order), "Internal: fields calculated have no order."
 
+        ## Final Formatting:
+        formatted_data = data.with_columns(
+            colname=nw.concat_str(
+                nw.lit(
+                    "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
+                ),
+                nw.col("colname"),
+                nw.lit("</div><div style='font-size: 11px; color: gray;'>"),
+                nw.col("coltype"),
+                nw.lit("</div>"),
+            )
+        ).to_native()
+
+        ## GT Table:
         gt_tbl = (
-            GT(data)
+            GT(formatted_data)
             .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=list(present_stat_cols))
             .opt_table_font(font=google_font("IBM Plex Sans"))
