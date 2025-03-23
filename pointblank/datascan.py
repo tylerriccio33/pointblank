@@ -277,10 +277,7 @@ class DataScan:
             )
             .tab_style(
                 style=style.borders(sides="left", style="none"),
-                locations=loc.body(
-                    columns=["p05", "q_1", "median", "q_3", "p95", "max"],
-                    rows=list(present_stat_cols),
-                ),
+                locations=loc.body(columns=list(present_stat_cols)),
             )
             ## Formatting
             .cols_width(
@@ -296,7 +293,6 @@ class DataScan:
 
     def to_dict(self) -> dict:
         raise NotImplementedError
-        return self.profile
 
     def to_json(self) -> str:
         prof_dict = self.profile.as_dataframe().to_dict(as_series=False)
