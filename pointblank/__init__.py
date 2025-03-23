@@ -9,6 +9,7 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
 
 # Import objects from the module
+from pointblank.assistant import assistant
 from pointblank.column import (
     col,
     contains,
@@ -35,6 +36,7 @@ from pointblank.validate import (
 )
 
 __all__ = [
+    "assistant",
     "TF",
     "Validate",
     "Thresholds",

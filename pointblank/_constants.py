@@ -7,12 +7,12 @@ GENERAL_COLUMN_TYPES = [
 ]
 
 COMPATIBLE_DTYPES = {
-    "gt": ["numeric"],
-    "lt": ["numeric"],
-    "eq": ["numeric"],
-    "ne": ["numeric"],
-    "ge": ["numeric"],
-    "le": ["numeric"],
+    "gt": ["numeric", "datetime"],
+    "lt": ["numeric", "datetime"],
+    "eq": ["numeric", "datetime"],
+    "ne": ["numeric", "datetime"],
+    "ge": ["numeric", "datetime"],
+    "le": ["numeric", "datetime"],
     "between": ["numeric"],
     "outside": ["numeric"],
     "in_set": ["numeric", "str"],
@@ -92,7 +92,18 @@ ROW_BASED_VALIDATION_TYPES = [
     "col_vals_not_null",
 ]
 
-IBIS_BACKENDS = ["duckdb", "mysql", "postgres", "sqlite", "parquet", "memtable"]
+IBIS_BACKENDS = [
+    "databricks",
+    "duckdb",
+    "memtable",
+    "mssql",
+    "mysql",
+    "parquet",
+    "postgres",
+    "pyspark",
+    "snowflake",
+    "sqlite",
+]
 
 VALIDATION_REPORT_FIELDS = [
     "i",
@@ -136,9 +147,27 @@ TABLE_TYPE_STYLES = {
     "sqlite": {"background": "#BACBEF", "text": "#222222", "label": "SQLite"},
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
+    "mssql": {"background": "#E2E2E2", "text": "#222222", "label": "MSSQL"},
+    "pyspark": {"background": "#E66F21", "text": "#FFFFFF", "label": "Spark DataFrame"},
+    "databricks": {"background": "#FF3621", "text": "#FFFFFF", "label": "Databricks"},
 }
 
-REPORTING_LANGUAGES = ["en", "fr", "de", "it", "es", "pt", "tr", "zh", "ru", "pl", "da", "sv", "nl"]
+REPORTING_LANGUAGES = [
+    "en",
+    "fr",
+    "de",
+    "it",
+    "es",
+    "pt",
+    "tr",
+    "zh-Hans",
+    "zh-Hant",
+    "ru",
+    "pl",
+    "da",
+    "sv",
+    "nl",
+]
 
 SEVERITY_LEVEL_COLORS = {
     "warning": "#AAAAAA",

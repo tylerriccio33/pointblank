@@ -145,19 +145,27 @@ column `a`, so we set up `columns=` and `value=` parameters in that way within t
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
 validation method call.
 
-## Swapping in Different DataFrames Just in Time
+## Swapping in a Totally Different DataFrame
 
 Let's now try to prepare the final validation scenario, checking that there are at least three
 instances of every categorical value in column `f` (which contains string values in the set of
 `"low"`, `"mid"`, and `"high"`). This time, we'll prepare the transformed table (transformed by
-Polars expressions) outside of the Pointblank code. Then, we'll plug in the `data_transformed`
-DataFrame with in lambda expression in `pre=`:
+Polars expressions) outside of the Pointblank code.
 
 ```{python}
 data_original = pb.load_dataset("small_table")
 data_transformed = data_original.group_by("f").len(name="n")
 
-v = (
+data_transformed
+```
+
+Then, we'll plug in the `data_transformed` DataFrame with a lambda expression in `pre=`:
+
+```{python}
+data_original = pb.load_dataset("small_table")
+data_transformed = data_original.group_by("f").len(name="n")
+
+validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
         tbl_name="small_table",
@@ -166,6 +174,8 @@ v = (
     .col_vals_ge(columns="n", value=3, pre=lambda x: data_transformed)
     .interrogate()
 )
+
+validation
 ```
 
 We can see from the validation report table that there are three test units. This corresponds to a

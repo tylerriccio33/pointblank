@@ -82,6 +82,11 @@ TBL_DATES_TIMES_TEXT_LIST = [
     "tbl_dates_times_text_sqlite",
 ]
 
+TBL_TRUE_DATES_TIMES_LIST = [
+    "tbl_true_dates_times_pd",
+    "tbl_true_dates_times_pl",
+]
+
 
 @pytest.fixture
 def tbl_pd():
@@ -105,6 +110,18 @@ def tbl_dates_times_text_pd():
 
 
 @pytest.fixture
+def tbl_true_dates_times_pd():
+    return pd.DataFrame(
+        {
+            "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
+            "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
+            "dttm_1": pd.to_datetime(["2021-01-01 02:30:00", "2021-02-01 02:30:00"]),
+            "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
+        }
+    )
+
+
+@pytest.fixture
 def tbl_pl():
     return pl.DataFrame({"x": [1, 2, 3, 4], "y": [4, 5, 6, 7], "z": [8, 8, 8, 8]})
 
@@ -122,6 +139,27 @@ def tbl_dates_times_text_pl():
             "dttm": ["2021-01-01 00:00:00", None, "2021-02-01 00:00:00"],
             "text": [None, "5-egh-163", "8-kdg-938"],
         }
+    )
+
+
+@pytest.fixture
+def tbl_true_dates_times_pl():
+    pl_df = pl.DataFrame(
+        {
+            "date_1": ["2021-01-01", "2021-02-01"],
+            "date_2": ["2021-02-01", "2021-03-01"],
+            "dttm_1": ["2021-01-01 02:30:00", "2021-02-01 02:30:00"],
+            "dttm_2": ["2021-02-01 03:30:00", "2021-03-01 03:30:00"],
+        }
+    )
+
+    return pl_df.with_columns(
+        [
+            pl.col("date_1").str.to_date(),
+            pl.col("date_2").str.to_date(),
+            pl.col("dttm_1").str.to_datetime(),
+            pl.col("dttm_2").str.to_datetime(),
+        ]
     )
 
 
@@ -4062,6 +4100,162 @@ def test_col_schema_match_columns_only():
         .interrogate()
         .n_passed(i=1, scalar=True)
         == 1
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
+def test_date_validation_across_cols(request, tbl_fixture):
+    # {
+    #     "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
+    #     "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
+    #     "dttm_1": pd.to_datetime(["2021-01-01 02:30:00", "2021-02-01 02:30:00"]),
+    #     "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
+    # }
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_gt(
+            columns="date_2",
+            value=col("date_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ge(
+            columns="date_2",
+            value=col("date_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_eq(
+            columns="date_2",
+            value=col("date_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ne(
+            columns="date_2",
+            value=col("date_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_lt(
+            columns="date_1",
+            value=col("date_2"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_le(
+            columns="date_1",
+            value=col("date_2"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
+def test_datetime_validation_across_cols(request, tbl_fixture):
+    # {
+    #     "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
+    #     "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
+    #     "dttm_1": pd.to_datetime(["2021-01-01 02:30:00", "2021-02-01 02:30:00"]),
+    #     "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
+    # }
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_gt(
+            columns="dttm_2",
+            value=col("dttm_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ge(
+            columns="dttm_2",
+            value=col("dttm_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_eq(
+            columns="dttm_2",
+            value=col("dttm_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ne(
+            columns="dttm_2",
+            value=col("dttm_1"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_lt(
+            columns="dttm_1",
+            value=col("dttm_2"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_le(
+            columns="dttm_1",
+            value=col("dttm_2"),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
     )
 
 

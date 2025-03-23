@@ -523,11 +523,13 @@ def _get_api_text() -> str:
     inspect_exported = [
         "DataScan",
         "preview",
+        "col_summary_tbl",
         "missing_vals_tbl",
         "get_column_count",
         "get_row_count",
         "load_dataset",
         "config",
+        "assistant",
     ]
 
     validate_desc = """When peforming data validation, you'll need the `Validate` class to get the
@@ -553,12 +555,14 @@ validation steps, (3) `interrogate()`. After interrogation of the data, we can v
 report table (by printing the object or using `get_tabular_report()`), extract key metrics, or we
 can split the data based on the validation results (with `get_sundered_data()`)."""
 
-    inspect_desc = """The *Inspect* group contains functions that are helpful for getting to grips
-on a new data table. Use the `DataScan` class to get a quick overview of the data, `preview()` to
-see the first and last few rows of a table, `missing_vals_tbl()` to see where there are missing
-values in a table, and `get_column_count()`/`get_row_count()` to get the number of columns and rows
-in a table. Several datasets included in the package can be accessed via the `load_dataset()`
-function. Finally, the `config()` utility lets us set global configuration parameters."""
+    inspect_desc = """The *Inspection and Assistance* group contains functions that are helpful for
+getting to grips on a new data table. Use the `DataScan` class to get a quick overview of the data,
+`preview()` to see the first and last few rows of a table, `col_summary_tbl()` for a column-level
+summary of a table, `missing_vals_tbl()` to see where there are missing values in a table, and
+`get_column_count()`/`get_row_count()` to get the number of columns and rows in a table. Several
+datasets included in the package can be accessed via the `load_dataset()` function. Finally, the
+`config()` utility lets us set global configuration parameters. Want to chat with an assistant? Use
+the `assistant()` function to get help with Pointblank."""
 
     #
     # Add headings (`*_desc` text) and API details for each family of functions/methods

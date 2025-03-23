@@ -122,5 +122,6 @@ docs/objects.json
 
 datasets/
 /*.parquet
+/*.csv
 .ruff_cache
 .swp

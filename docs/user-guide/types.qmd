@@ -41,6 +41,8 @@ Here's an example using
 checks if the values in a column are greater than a specified value.
 
 ```{python}
+import pointblank as pb
+
 (
     pb.Validate(data=pb.load_dataset("small_table"))
     .col_vals_gt(columns="a", value=5)

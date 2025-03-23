@@ -516,6 +516,9 @@ def _generate_display_table(
         else:
             import pandas as pd
 
+    # Get the initial column count for the table
+    n_columns = len(data.columns)
+
     # If `columns_subset=` is not None, resolve the columns to display
     if columns_subset is not None:
         col_names = _get_column_names(data, ibis_tbl=ibis_tbl, df_lib_name_gt=df_lib_name_gt)
@@ -712,7 +715,7 @@ def _generate_display_table(
     # Create the label, table type, and thresholds HTML fragments
     table_type_html = _create_table_type_html(tbl_type=tbl_type, tbl_name=None, font_size="10px")
 
-    tbl_dims_html = _create_table_dims_html(columns=len(col_names), rows=n_rows, font_size="10px")
+    tbl_dims_html = _create_table_dims_html(columns=n_columns, rows=n_rows, font_size="10px")
 
     # Compose the subtitle HTML fragment
     combined_subtitle = (
@@ -1658,8 +1661,8 @@ class Validate:
         The language to use for automatic creation of briefs (short descriptions for each validation
         step). By default, `None` will create English (`"en"`) text. Other options include French
         (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
-        (`"tr"`), Chinese (`"zh"`), Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish
-        (`"sv"`), and Dutch (`"nl"`).
+        (`"tr"`), Simplified Chinese (`"zh-Hans"`), Traditional Chinese (`"zh-Hant"`),
+        Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish (`"sv"`), and Dutch (`"nl"`).
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
@@ -7984,14 +7987,19 @@ def _prep_column_text(column: list[str]) -> str:
 
 
 def _prep_values_text(
-    values: str | int | float | list[str | int | float],
+    values: str
+    | int
+    | float
+    | datetime.datetime
+    | datetime.date
+    | list[str | int | float | datetime.datetime | datetime.date],
     lang: str,
     limit: int = 3,
 ) -> str:
     if isinstance(values, ColumnLiteral):
         return f"`{values}`"
 
-    if isinstance(values, (str, int, float)):
+    if isinstance(values, (str, int, float, datetime.datetime, datetime.date)):
         values = [values]
 
     length_values = len(values)
@@ -8002,6 +8010,14 @@ def _prep_values_text(
     if length_values > limit:
         num_omitted = length_values - limit
 
+        # Format datetime objects as strings if present
+        formatted_values = []
+        for value in values[:limit]:
+            if isinstance(value, (datetime.datetime, datetime.date)):
+                formatted_values.append(f"`{value.isoformat()}`")
+            else:
+                formatted_values.append(f"`{value}`")
+
         values_str = ", ".join([f"`{value}`" for value in values[:limit]])
 
         additional_text = EXPECT_FAIL_TEXT["values_text"][lang]
@@ -8011,6 +8027,14 @@ def _prep_values_text(
         values_str = f"{values_str}, {additional_str}"
 
     else:
+        # Format datetime objects as strings if present
+        formatted_values = []
+        for value in values:
+            if isinstance(value, (datetime.datetime, datetime.date)):
+                formatted_values.append(f"`{value.isoformat()}`")
+            else:
+                formatted_values.append(f"`{value}`")
+
         values_str = ", ".join([f"`{value}`" for value in values])
 
     return values_str
