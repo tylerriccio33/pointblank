@@ -123,3 +123,4 @@ docs/objects.json
 datasets/
 /*.parquet
 .ruff_cache
+.swp
