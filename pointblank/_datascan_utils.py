@@ -9,13 +9,6 @@ if TYPE_CHECKING:
     pass
 
 
-def _to_df_lib(expr: any, df_lib: str) -> any:
-    if df_lib == "polars":
-        return expr.to_polars()
-    else:
-        return expr.to_pandas()
-
-
 def _round_to_sig_figs(value: float, sig_figs: int) -> float:
     if value == 0:
         return 0
