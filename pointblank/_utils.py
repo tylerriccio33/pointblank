@@ -12,6 +12,8 @@ from narwhals.typing import FrameT
 from pointblank._constants import ASSERTION_TYPE_METHOD_MAP, GENERAL_COLUMN_TYPES
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from pointblank._typing import AbsoluteBounds, Tolerance
 
 
@@ -748,7 +750,7 @@ def _format_to_float_value(
     return formatted_vals[0]
 
 
-def _pivot_to_dict(col_dict):
+def _pivot_to_dict(col_dict: Mapping[str, Any]):  # TODO : Type hint and unit test
     result_dict = {}
     for col, sub_dict in col_dict.items():
         for key, value in sub_dict.items():
