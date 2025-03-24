@@ -85,6 +85,7 @@ TBL_DATES_TIMES_TEXT_LIST = [
 TBL_TRUE_DATES_TIMES_LIST = [
     "tbl_true_dates_times_pd",
     "tbl_true_dates_times_pl",
+    "tbl_true_dates_times_duckdb",
 ]
 
 
@@ -197,6 +198,12 @@ def tbl_missing_duckdb():
 def tbl_dates_times_text_duckdb():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_dates_times_text.ddb"
     return ibis.connect(f"duckdb://{file_path}").table("tbl_dates_times_text")
+
+
+@pytest.fixture
+def tbl_true_dates_times_duckdb():
+    file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_true_dates_times.ddb"
+    return ibis.connect(f"duckdb://{file_path}").table("tbl_true_dates_times")
 
 
 @pytest.fixture
@@ -4105,13 +4112,6 @@ def test_col_schema_match_columns_only():
 
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
 def test_date_validation_across_cols(request, tbl_fixture):
-    # {
-    #     "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
-    #     "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
-    #     "dttm_1": pd.to_datetime(["2021-01-01 02:30:00", "2021-02-01 02:30:00"]),
-    #     "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
-    # }
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
@@ -4183,13 +4183,6 @@ def test_date_validation_across_cols(request, tbl_fixture):
 
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
 def test_datetime_validation_across_cols(request, tbl_fixture):
-    # {
-    #     "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
-    #     "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
-    #     "dttm_1": pd.to_datetime(["2021-01-01 02:30:00", "2021-02-01 02:30:00"]),
-    #     "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
-    # }
-
     tbl = request.getfixturevalue(tbl_fixture)
 
     assert (
