@@ -543,6 +543,8 @@ def _generate_display_table(
     # - get the row numbers for the table
     # - convert the table to a Polars or Pandas DF
     if ibis_tbl:
+        import ibis
+
         # Get the Schema of the table
         tbl_schema = Schema(tbl=data)
 
@@ -559,12 +561,15 @@ def _generate_display_table(
                 row_number_list = range(1, n_rows + 1)
         else:
             # Get the first and last n rows of the table
+            # data_tail = covid_stats.filter([ibis.row_number() >= (n_rows - n_tail), ibis.row_number() <= n_rows])
             data_head = data.head(n_head)
-            row_numbers_head = range(1, n_head + 1)
-            data_tail = data[(n_rows - n_tail) : n_rows]
-            row_numbers_tail = range(n_rows - n_tail + 1, n_rows + 1)
+            data_tail = data.filter(
+                [ibis.row_number() >= (n_rows - n_tail), ibis.row_number() <= n_rows]
+            )
             data_subset = data_head.union(data_tail)
 
+            row_numbers_head = range(1, n_head + 1)
+            row_numbers_tail = range(n_rows - n_tail + 1, n_rows + 1)
             if row_number_list is None:
                 row_number_list = list(row_numbers_head) + list(row_numbers_tail)
 
