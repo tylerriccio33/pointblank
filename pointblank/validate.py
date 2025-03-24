@@ -560,8 +560,7 @@ def _generate_display_table(
             if row_number_list is None:
                 row_number_list = range(1, n_rows + 1)
         else:
-            # Get the first and last n rows of the table
-            # data_tail = covid_stats.filter([ibis.row_number() >= (n_rows - n_tail), ibis.row_number() <= n_rows])
+            # Get the first n and last n rows of the table
             data_head = data.head(n_head)
             data_tail = data.filter(
                 [ibis.row_number() >= (n_rows - n_tail), ibis.row_number() <= n_rows]
