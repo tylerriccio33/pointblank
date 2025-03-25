@@ -170,7 +170,7 @@ def get_action_metadata():
     - the action is passed as a bare function to the `Actions` object within the `Validate` object
     (placing it there ensures it's set as an action for every validation step)
     """
-    if hasattr(_action_context, "metadata"):
+    if hasattr(_action_context, "metadata"):  # pragma: no cover
         return _action_context.metadata  # pragma: no cover
     else:
         return None  # pragma: no cover
