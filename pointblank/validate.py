@@ -678,13 +678,36 @@ def _generate_display_table(
     length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
 
     # Comparing the length of the column names, the data types, and the max length of the
-    # column values, prefer the largest of these for the column widths (by column)
+    # column values, prefer the largest of these for the column widths (by column);
+    # the `7.8` factor is an approximation of the average width of a character in the
+    # monospace font chosen for the table
     col_widths = [
-        f"{round(min(max(7.8 * max_length_col_vals[i] + 10, 7.8 * length_col_names[i] + 10, 7.8 * length_data_types[i] + 10), max_col_width))}px"
+        round(
+            min(
+                max(
+                    7.8 * max_length_col_vals[i] + 10,  # 1. largest column value
+                    7.8 * length_col_names[i] + 10,  # 2. characters in column name
+                    7.8 * length_data_types[i] + 10,  # 3. characters in data type
+                ),
+                max_col_width,
+            )
+        )
         for i in range(len(col_dtype_dict.keys()))
     ]
 
-    # Set the column width to the `col_widths`` list
+    sum_col_widths = sum(col_widths)
+
+    # In situations where the sum of the column widths is less than the minimum width,
+    # divide up the remaining space between the columns
+    if sum_col_widths < min_tbl_width:
+        remaining_width = min_tbl_width - sum_col_widths
+        n_remaining_cols = len(col_widths)
+        col_widths = [width + remaining_width // n_remaining_cols for width in col_widths]
+
+    # Add the `px` suffix to each of the column widths, stringifying them
+    col_widths = [f"{width}px" for width in col_widths]
+
+    # Create a dictionary of column names and their corresponding widths
     col_width_dict = {k: v for k, v in zip(col_names, col_widths)}
 
     # For each of the values in the dictionary, prepend the column name to the data type
