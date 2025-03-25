@@ -7468,6 +7468,10 @@ class Validate:
         if i not in self._get_validation_dict(i=None, attr="i") and not debug_return_df:
             raise ValueError(f"Step {i} does not exist in the validation plan.")
 
+        # If limit is `0` or less, raise an error
+        if limit is not None and limit <= 0:
+            raise ValueError("The limit must be an integer value greater than 0.")
+
         # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
