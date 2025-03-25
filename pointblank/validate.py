@@ -466,6 +466,7 @@ def preview(
         limit=limit,
         show_row_numbers=show_row_numbers,
         max_col_width=max_col_width,
+        min_tbl_width=min_tbl_width,
         incl_header=incl_header,
         mark_missing_values=True,
     )
@@ -478,7 +479,8 @@ def _generate_display_table(
     n_tail: int = 5,
     limit: int | None = 50,
     show_row_numbers: bool = True,
-    max_col_width: int | None = 250,
+    max_col_width: int = 250,
+    min_tbl_width: int = 500,
     incl_header: bool = None,
     mark_missing_values: bool = True,
     row_number_list: list[int] | None = None,
