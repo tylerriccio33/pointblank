@@ -7371,12 +7371,12 @@ class Validate:
 
         return gt_tbl
 
-    def get_step_report(self, i: int) -> GT:
+    def get_step_report(self, i: int, limit: int | None = 10) -> GT:
         """
         Get a detailed report for a single validation step.
 
-        The `get_step_report()` method returns a report of what went well, or what failed
-        spectacularly, for a given validation step. The report includes a summary of the validation
+        The `get_step_report()` method returns a report of what went well---or what failed
+        spectacularly---for a given validation step. The report includes a summary of the validation
         step and a detailed breakdown of the interrogation results. The report is presented as a GT
         table object, which can be displayed in a notebook or exported to an HTML file.
 
@@ -7388,7 +7388,11 @@ class Validate:
         Parameters
         ----------
         i
-            The step number for which to get a detailed report.
+            The step number for which to get the report.
+        limit
+            The number of rows to display for those validation steps that check values in rows (the
+            `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
+            entirely by setting `limit=None`.
 
         Returns
         -------
@@ -7464,6 +7468,10 @@ class Validate:
         if i not in self._get_validation_dict(i=None, attr="i") and not debug_return_df:
             raise ValueError(f"Step {i} does not exist in the validation plan.")
 
+        # If limit is `0` or less, raise an error
+        if limit is not None and limit <= 0:
+            raise ValueError("The limit must be an integer value greater than 0.")
+
         # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
@@ -7525,6 +7533,7 @@ class Validate:
                 all_passed=all_passed,
                 extract=extract,
                 tbl_preview=tbl_preview,
+                limit=limit,
             )
 
         elif assertion_type == "col_schema_match":
@@ -8477,6 +8486,7 @@ def _step_report_row_based(
     all_passed: bool,
     extract: any,
     tbl_preview: GT,
+    limit: int | None,
 ):
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
@@ -8552,15 +8562,26 @@ def _step_report_row_based(
         )
 
     else:
+        if limit is None:
+            limit = extract_length
+
         # Create a preview of the extracted data
         extract_tbl = _generate_display_table(
             data=extract,
-            n_head=1000,
-            n_tail=1000,
-            limit=2000,
+            n_head=limit,
+            n_tail=0,
+            limit=limit,
             incl_header=False,
             mark_missing_values=False,
         )
+
+        if limit < extract_length:
+            extract_length_resolved = limit
+            extract_of_x_rows = "FIRST"
+
+        else:
+            extract_length_resolved = extract_length
+            extract_of_x_rows = "ALL"
 
         step_report = (
             extract_tbl.tab_header(
@@ -8573,8 +8594,8 @@ def _step_report_row_based(
                     f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
                     f"<strong>{n}</strong> TEST UNIT FAILURES "
                     f"IN COLUMN <strong>{column_position}</strong></div>"
-                    "<div style='padding-top: 10px;'>EXTRACT OF "
-                    f"<strong>{extract_length}</strong> ROWS WITH "
+                    f"<div style='padding-top: 10px;'>EXTRACT OF {extract_of_x_rows} "
+                    f"<strong>{extract_length_resolved}</strong> ROWS WITH "
                     "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
                     "</div></div>"
                 ),

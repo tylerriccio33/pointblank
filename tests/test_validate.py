@@ -5642,8 +5642,17 @@ def test_get_step_report_no_fail(tbl_type):
         .interrogate()
     )
 
+    # Test every step report and ensure it's a GT object
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
+
+    # Test with a limit of `2` for every step report
+    for i in range(1, 18):
+        assert isinstance(validation.get_step_report(i=i, limit=2), GT.GT)
+
+    # Test with `limit=None` for every step report
+    for i in range(1, 18):
+        assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
 
 
 def test_get_step_report_failing_inputs():
@@ -5657,13 +5666,19 @@ def test_get_step_report_failing_inputs():
     with pytest.raises(ValueError):
         validation.get_step_report(i=2)
 
+    with pytest.raises(ValueError):
+        validation.get_step_report(i=1, limit=0)
+
+    with pytest.raises(ValueError):
+        validation.get_step_report(i=1, limit=-5)
+
 
 def test_get_step_report_inactive_step():
     small_table = load_dataset(dataset="small_table", tbl_type="pandas")
 
     validation = Validate(small_table).col_vals_gt(columns="a", value=0, active=False).interrogate()
 
-    validation.get_step_report(i=1) == "This validation step is inactive."
+    assert validation.get_step_report(i=1) == "This validation step is inactive."
 
 
 def test_get_step_report_non_supported_steps():
