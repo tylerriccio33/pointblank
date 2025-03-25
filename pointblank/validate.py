@@ -7375,8 +7375,8 @@ class Validate:
         """
         Get a detailed report for a single validation step.
 
-        The `get_step_report()` method returns a report of what went well, or what failed
-        spectacularly, for a given validation step. The report includes a summary of the validation
+        The `get_step_report()` method returns a report of what went well---or what failed
+        spectacularly---for a given validation step. The report includes a summary of the validation
         step and a detailed breakdown of the interrogation results. The report is presented as a GT
         table object, which can be displayed in a notebook or exported to an HTML file.
 
@@ -7388,7 +7388,11 @@ class Validate:
         Parameters
         ----------
         i
-            The step number for which to get a detailed report.
+            The step number for which to get the report.
+        limit
+            The number of rows to display for those validation steps that check values in rows (the
+            `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
+            entirely by setting `limit=None`.
 
         Returns
         -------
