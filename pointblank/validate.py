@@ -171,9 +171,9 @@ def get_action_metadata():
     (placing it there ensures it's set as an action for every validation step)
     """
     if hasattr(_action_context, "metadata"):
-        return _action_context.metadata
+        return _action_context.metadata  # pragma: no cover
     else:
-        return None
+        return None  # pragma: no cover
 
 
 @dataclass
