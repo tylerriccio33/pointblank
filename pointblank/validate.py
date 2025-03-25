@@ -7371,7 +7371,7 @@ class Validate:
 
         return gt_tbl
 
-    def get_step_report(self, i: int) -> GT:
+    def get_step_report(self, i: int, limit: int | None = 10) -> GT:
         """
         Get a detailed report for a single validation step.
 
