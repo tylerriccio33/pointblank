@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import base64
+import contextlib
 import copy
 import datetime
 import inspect
 import json
 import re
+import threading
 from dataclasses import dataclass
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any, Callable, Literal
@@ -86,7 +88,34 @@ __all__ = [
     "missing_vals_tbl",
     "get_column_count",
     "get_row_count",
+    "get_action_metadata",
 ]
+
+# Create a thread-local storage for the metadata
+_action_context = threading.local()
+
+
+@contextlib.contextmanager
+def _action_context_manager(metadata):
+    """Context manager to store metadata during action execution."""
+    _action_context.metadata = metadata
+    try:
+        yield
+    finally:
+        # Clean up after execution
+        if hasattr(_action_context, "metadata"):
+            delattr(_action_context, "metadata")
+
+
+def get_action_metadata():
+    """Function to access the current action metadata.
+
+    This can be called by user functions to get the metadata for the current action.
+    """
+    if hasattr(_action_context, "metadata"):
+        return _action_context.metadata
+    else:
+        return None
 
 
 @dataclass
