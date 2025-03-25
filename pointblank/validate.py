@@ -312,6 +312,7 @@ def preview(
     limit: int = 50,
     show_row_numbers: bool = True,
     max_col_width: int = 250,
+    min_tbl_width: int = 500,
     incl_header: bool = None,
 ) -> GT:
     """
