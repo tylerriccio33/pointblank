@@ -8562,12 +8562,15 @@ def _step_report_row_based(
         )
 
     else:
+        if limit is None:
+            limit = extract_length
+
         # Create a preview of the extracted data
         extract_tbl = _generate_display_table(
             data=extract,
-            n_head=1000,
-            n_tail=1000,
-            limit=2000,
+            n_head=limit,
+            n_tail=0,
+            limit=limit,
             incl_header=False,
             mark_missing_values=False,
         )
