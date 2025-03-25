@@ -5343,7 +5343,19 @@ class Validate:
 
                                     print(act)
                                 elif callable(act):
-                                    act()
+                                    # Expose dictionary of values to the action function
+                                    metadata = {
+                                        "step": validation.i,
+                                        "column": column,
+                                        "value": value,
+                                        "type": assertion_type,
+                                        "time": str(start_time),
+                                        "level": level,
+                                    }
+
+                                    # Execute the action within the context manager
+                                    with _action_context_manager(metadata):
+                                        act()
 
                     elif self.actions is not None:
                         # Action execution on the global level
@@ -5368,7 +5380,19 @@ class Validate:
 
                                     print(act)
                                 elif callable(act):
-                                    act()
+                                    # Expose dictionary of values to the action function
+                                    metadata = {
+                                        "step": validation.i,
+                                        "column": column,
+                                        "value": value,
+                                        "type": assertion_type,
+                                        "time": str(start_time),
+                                        "level": level,
+                                    }
+
+                                    # Execute the action within the context manager
+                                    with _action_context_manager(metadata):
+                                        act()
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
