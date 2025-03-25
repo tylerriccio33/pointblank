@@ -176,6 +176,8 @@ SEVERITY_LEVEL_COLORS = {
     "green": "#4CA64C",
 }
 
+LOG_LEVELS_MAP = {"warning": 30, "error": 40, "critical": 50}
+
 CHECK_MARK_SPAN = "<span style='color: #4CA64C;'>&check;</span>"
 CROSS_MARK_SPAN = "<span style='color: #CF142B;'>&cross;</span>"
 
