@@ -7982,7 +7982,7 @@ def _create_autobrief(
 
 
 def _create_autobrief_comparison(
-    assertion_type: str, lang: str, column: str | None, values: str | None
+    assertion_type: str, lang: str, column: str | list[str] | None, values: str | None
 ) -> str:
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
@@ -8149,8 +8149,13 @@ def _create_autobrief_col_count_match(lang: str, value: int) -> str:
     return autobrief
 
 
-def _prep_column_text(column: list[str]) -> str:
-    return "`" + str(column[0]) + "`"
+def _prep_column_text(column: str | list[str]) -> str:
+    if isinstance(column, list):
+        return "`" + str(column[0]) + "`"
+    elif isinstance(column, str):
+        return "`" + column + "`"
+    else:
+        return ""
 
 
 def _prep_values_text(
