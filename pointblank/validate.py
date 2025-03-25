@@ -349,12 +349,14 @@ def preview(
         The number of rows to show from the end of the table. Set to `5` by default.
     limit
         The limit value for the sum of `n_head=` and `n_tail=` (the total number of rows shown).
-        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised.
+        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised. The default
+        value is `50`.
     show_row_numbers
         Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
-        in the full table.
+        in the input `data=` table. By default, this is set to `True`.
     max_col_width
-        The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
+        The maximum width of the columns (in pixels) before the text is truncated. The default value
+        is `250` (`"250px"`).
     incl_header
         Should the table include a header with the table type and table dimensions? Set to `True` by
         default.
