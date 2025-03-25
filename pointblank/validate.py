@@ -8575,6 +8575,14 @@ def _step_report_row_based(
             mark_missing_values=False,
         )
 
+        if limit < extract_length:
+            extract_length_resolved = limit
+            extract_of_x_rows = "FIRST"
+
+        else:
+            extract_length_resolved = extract_length
+            extract_of_x_rows = "ALL"
+
         step_report = (
             extract_tbl.tab_header(
                 title=f"Report for Validation Step {i}",
@@ -8586,8 +8594,8 @@ def _step_report_row_based(
                     f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
                     f"<strong>{n}</strong> TEST UNIT FAILURES "
                     f"IN COLUMN <strong>{column_position}</strong></div>"
-                    "<div style='padding-top: 10px;'>EXTRACT OF "
-                    f"<strong>{extract_length}</strong> ROWS WITH "
+                    f"<div style='padding-top: 10px;'>EXTRACT OF {extract_of_x_rows} "
+                    f"<strong>{extract_length_resolved}</strong> ROWS WITH "
                     "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
                     "</div></div>"
                 ),
