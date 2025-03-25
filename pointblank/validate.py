@@ -109,9 +109,66 @@ def _action_context_manager(metadata):
 
 
 def get_action_metadata():
-    """Function to access the current action metadata.
+    """Access step-level metadata when authoring custom actions.
 
-    This can be called by user functions to get the metadata for the current action.
+    Get the metadata for the validation step where an action was triggered. This can be called by
+    user functions to get the metadata for the current action.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the metadata for the current step.
+
+    Description of the Metadata Fields
+    ----------------------------------
+    The metadata dictionary contains the following fields:
+
+    - `step`: The step number for the validation step.
+    - `column`: The column name for the validation step.
+    - `value`: The value being compared in the validation step.
+    - `type`: The assertion type for the validation step.
+    - `time`: The time the validation step was executed.
+    - `level`: The severity level for the validation step.
+    - `level_num`: The severity level number for the validation step.
+    - `autobrief`: The auto-generated brief for the validation step.
+
+    Examples
+    --------
+    When creating a custom action, you can access the metadata for the current step using the
+    `get_action_metadata()` function. Here's an example of a custom action that logs the metadata
+    for the current step:
+
+    ```{python}
+    import pointblank as pb
+
+    def log_issue():
+        metadata = pb.get_action_metadata()
+        print(f"Type: {metadata['type']}, Step: {metadata['step']}")
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(warning=log_issue),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(
+            columns="session_duration",
+            value=15,
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Key pieces to note in the above example:
+
+    - `log_issue()` (the custom action) collects `metadata` by calling `get_action_metadata()`
+    - the `metadata` is a dictionary that is used to craft the log message
+    - the action is passed as a bare function to the `Actions` object within the `Validate` object
+    (placing it there ensures it's set as an action for every validation step)
     """
     if hasattr(_action_context, "metadata"):
         return _action_context.metadata
