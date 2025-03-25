@@ -168,7 +168,7 @@ def get_action_metadata():
     - `log_issue()` (the custom action) collects `metadata` by calling `get_action_metadata()`
     - the `metadata` is a dictionary that is used to craft the log message
     - the action is passed as a bare function to the `Actions` object within the `Validate` object
-    (placing it there ensures it's set as an action for every validation step)
+    (placing it within `Validate(actions=)` ensures it's set as an action for every validation step)
     """
     if hasattr(_action_context, "metadata"):  # pragma: no cover
         return _action_context.metadata  # pragma: no cover
