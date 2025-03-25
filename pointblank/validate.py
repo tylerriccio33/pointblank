@@ -357,6 +357,10 @@ def preview(
     max_col_width
         The maximum width of the columns (in pixels) before the text is truncated. The default value
         is `250` (`"250px"`).
+    min_tbl_width
+        The minimum width of the table in pixels. If the sum of the column widths is less than this
+        value, the all columns are sized up to reach this minimum width value. The default value is
+        `500` (`"500px"`).
     incl_header
         Should the table include a header with the table type and table dimensions? Set to `True` by
         default.
