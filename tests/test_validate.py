@@ -34,6 +34,7 @@ from pointblank.validate import (
     _fmt_lg,
     _get_default_title_text,
     _normalize_reporting_language,
+    _prep_column_text,
     _process_action_str,
     _process_brief,
     _process_title_text,
@@ -8361,3 +8362,9 @@ def test_assert_passing_example() -> None:
     )
 
     passing_validation.assert_passing()
+
+
+def test_prep_column_text():
+    assert _prep_column_text(column="column") == "`column`"
+    assert _prep_column_text(column=["column_a", "column_b"]) == "`column_a`"
+    assert _prep_column_text(column=3) == ""
