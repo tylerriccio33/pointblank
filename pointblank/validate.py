@@ -5314,6 +5314,9 @@ class Validate:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
+                    # Translate the severity level to a number
+                    level_num = LOG_LEVELS_MAP[level]
+
                     #
                     # If step-level actions are set, prefer those over actions set globally
                     #
@@ -5351,6 +5354,8 @@ class Validate:
                                         "type": assertion_type,
                                         "time": str(start_time),
                                         "level": level,
+                                        "level_num": level_num,
+                                        "autobrief": autobrief,
                                     }
 
                                     # Execute the action within the context manager
@@ -5388,6 +5393,8 @@ class Validate:
                                         "type": assertion_type,
                                         "time": str(start_time),
                                         "level": level,
+                                        "level_num": level_num,
+                                        "autobrief": autobrief,
                                     }
 
                                     # Execute the action within the context manager
