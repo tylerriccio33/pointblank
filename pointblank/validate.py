@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import base64
+import contextlib
 import copy
 import datetime
 import inspect
 import json
 import re
+import threading
 from dataclasses import dataclass
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any, Callable, Literal
@@ -24,6 +26,7 @@ from pointblank._constants import (
     COMPATIBLE_DTYPES,
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
+    LOG_LEVELS_MAP,
     METHOD_CATEGORY_MAP,
     REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
@@ -86,7 +89,91 @@ __all__ = [
     "missing_vals_tbl",
     "get_column_count",
     "get_row_count",
+    "get_action_metadata",
 ]
+
+# Create a thread-local storage for the metadata
+_action_context = threading.local()
+
+
+@contextlib.contextmanager
+def _action_context_manager(metadata):
+    """Context manager to store metadata during action execution."""
+    _action_context.metadata = metadata
+    try:
+        yield
+    finally:
+        # Clean up after execution
+        if hasattr(_action_context, "metadata"):
+            delattr(_action_context, "metadata")
+
+
+def get_action_metadata():
+    """Access step-level metadata when authoring custom actions.
+
+    Get the metadata for the validation step where an action was triggered. This can be called by
+    user functions to get the metadata for the current action.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the metadata for the current step.
+
+    Description of the Metadata Fields
+    ----------------------------------
+    The metadata dictionary contains the following fields:
+
+    - `step`: The step number for the validation step.
+    - `column`: The column name for the validation step.
+    - `value`: The value being compared in the validation step.
+    - `type`: The assertion type for the validation step.
+    - `time`: The time the validation step was executed.
+    - `level`: The severity level for the validation step.
+    - `level_num`: The severity level number for the validation step.
+    - `autobrief`: The auto-generated brief for the validation step.
+
+    Examples
+    --------
+    When creating a custom action, you can access the metadata for the current step using the
+    `get_action_metadata()` function. Here's an example of a custom action that logs the metadata
+    for the current step:
+
+    ```{python}
+    import pointblank as pb
+
+    def log_issue():
+        metadata = pb.get_action_metadata()
+        print(f"Type: {metadata['type']}, Step: {metadata['step']}")
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(warning=log_issue),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(
+            columns="session_duration",
+            value=15,
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Key pieces to note in the above example:
+
+    - `log_issue()` (the custom action) collects `metadata` by calling `get_action_metadata()`
+    - the `metadata` is a dictionary that is used to craft the log message
+    - the action is passed as a bare function to the `Actions` object within the `Validate` object
+    (placing it within `Validate(actions=)` ensures it's set as an action for every validation step)
+    """
+    if hasattr(_action_context, "metadata"):  # pragma: no cover
+        return _action_context.metadata  # pragma: no cover
+    else:
+        return None  # pragma: no cover
 
 
 @dataclass
@@ -5285,6 +5372,9 @@ class Validate:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
+                    # Translate the severity level to a number
+                    level_num = LOG_LEVELS_MAP[level]
+
                     #
                     # If step-level actions are set, prefer those over actions set globally
                     #
@@ -5314,7 +5404,21 @@ class Validate:
 
                                     print(act)
                                 elif callable(act):
-                                    act()
+                                    # Expose dictionary of values to the action function
+                                    metadata = {
+                                        "step": validation.i,
+                                        "column": column,
+                                        "value": value,
+                                        "type": assertion_type,
+                                        "time": str(start_time),
+                                        "level": level,
+                                        "level_num": level_num,
+                                        "autobrief": autobrief,
+                                    }
+
+                                    # Execute the action within the context manager
+                                    with _action_context_manager(metadata):
+                                        act()
 
                     elif self.actions is not None:
                         # Action execution on the global level
@@ -5339,7 +5443,21 @@ class Validate:
 
                                     print(act)
                                 elif callable(act):
-                                    act()
+                                    # Expose dictionary of values to the action function
+                                    metadata = {
+                                        "step": validation.i,
+                                        "column": column,
+                                        "value": value,
+                                        "type": assertion_type,
+                                        "time": str(start_time),
+                                        "level": level,
+                                        "level_num": level_num,
+                                        "autobrief": autobrief,
+                                    }
+
+                                    # Execute the action within the context manager
+                                    with _action_context_manager(metadata):
+                                        act()
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
@@ -7864,7 +7982,7 @@ def _create_autobrief(
 
 
 def _create_autobrief_comparison(
-    assertion_type: str, lang: str, column: str | None, values: str | None
+    assertion_type: str, lang: str, column: str | list[str] | None, values: str | None
 ) -> str:
     # For now `column_computed_text` is an empty string
     column_computed_text = ""
@@ -8031,8 +8149,13 @@ def _create_autobrief_col_count_match(lang: str, value: int) -> str:
     return autobrief
 
 
-def _prep_column_text(column: list[str]) -> str:
-    return "`" + str(column[0]) + "`"
+def _prep_column_text(column: str | list[str]) -> str:
+    if isinstance(column, list):
+        return "`" + str(column[0]) + "`"
+    elif isinstance(column, str):
+        return "`" + column + "`"
+    else:
+        return ""
 
 
 def _prep_values_text(
