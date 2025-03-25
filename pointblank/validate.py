@@ -309,9 +309,10 @@ def preview(
     columns_subset: str | list[str] | Column | None = None,
     n_head: int = 5,
     n_tail: int = 5,
-    limit: int | None = 50,
+    limit: int = 50,
     show_row_numbers: bool = True,
-    max_col_width: int | None = 250,
+    max_col_width: int = 250,
+    min_tbl_width: int = 500,
     incl_header: bool = None,
 ) -> GT:
     """
@@ -348,12 +349,18 @@ def preview(
         The number of rows to show from the end of the table. Set to `5` by default.
     limit
         The limit value for the sum of `n_head=` and `n_tail=` (the total number of rows shown).
-        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised.
+        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised. The default
+        value is `50`.
     show_row_numbers
         Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
-        in the full table.
+        in the input `data=` table. By default, this is set to `True`.
     max_col_width
-        The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
+        The maximum width of the columns (in pixels) before the text is truncated. The default value
+        is `250` (`"250px"`).
+    min_tbl_width
+        The minimum width of the table in pixels. If the sum of the column widths is less than this
+        value, the all columns are sized up to reach this minimum width value. The default value is
+        `500` (`"500px"`).
     incl_header
         Should the table include a header with the table type and table dimensions? Set to `True` by
         default.
@@ -459,6 +466,7 @@ def preview(
         limit=limit,
         show_row_numbers=show_row_numbers,
         max_col_width=max_col_width,
+        min_tbl_width=min_tbl_width,
         incl_header=incl_header,
         mark_missing_values=True,
     )
@@ -471,7 +479,8 @@ def _generate_display_table(
     n_tail: int = 5,
     limit: int | None = 50,
     show_row_numbers: bool = True,
-    max_col_width: int | None = 250,
+    max_col_width: int = 250,
+    min_tbl_width: int = 500,
     incl_header: bool = None,
     mark_missing_values: bool = True,
     row_number_list: list[int] | None = None,
@@ -669,13 +678,36 @@ def _generate_display_table(
     length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
 
     # Comparing the length of the column names, the data types, and the max length of the
-    # column values, prefer the largest of these for the column widths (by column)
+    # column values, prefer the largest of these for the column widths (by column);
+    # the `7.8` factor is an approximation of the average width of a character in the
+    # monospace font chosen for the table
     col_widths = [
-        f"{round(min(max(7.8 * max_length_col_vals[i] + 10, 7.8 * length_col_names[i] + 10, 7.8 * length_data_types[i] + 10), max_col_width))}px"
+        round(
+            min(
+                max(
+                    7.8 * max_length_col_vals[i] + 10,  # 1. largest column value
+                    7.8 * length_col_names[i] + 10,  # 2. characters in column name
+                    7.8 * length_data_types[i] + 10,  # 3. characters in data type
+                ),
+                max_col_width,
+            )
+        )
         for i in range(len(col_dtype_dict.keys()))
     ]
 
-    # Set the column width to the `col_widths`` list
+    sum_col_widths = sum(col_widths)
+
+    # In situations where the sum of the column widths is less than the minimum width,
+    # divide up the remaining space between the columns
+    if sum_col_widths < min_tbl_width:
+        remaining_width = min_tbl_width - sum_col_widths
+        n_remaining_cols = len(col_widths)
+        col_widths = [width + remaining_width // n_remaining_cols for width in col_widths]
+
+    # Add the `px` suffix to each of the column widths, stringifying them
+    col_widths = [f"{width}px" for width in col_widths]
+
+    # Create a dictionary of column names and their corresponding widths
     col_width_dict = {k: v for k, v in zip(col_names, col_widths)}
 
     # For each of the values in the dictionary, prepend the column name to the data type
