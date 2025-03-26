@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 import commonmark
 import narwhals as nw
-from great_tables import GT, from_column, google_font, html, loc, style, vals
+from great_tables import GT, from_column, google_font, html, loc, md, style, vals
 from importlib_resources import files
 from narwhals.typing import FrameT
 
@@ -7551,7 +7551,7 @@ class Validate:
 
         return gt_tbl
 
-    def get_step_report(self, i: int, limit: int | None = 10) -> GT:
+    def get_step_report(self, i: int, header: str = ":default:", limit: int | None = 10) -> GT:
         """
         Get a detailed report for a single validation step.
 
@@ -7569,6 +7569,11 @@ class Validate:
         ----------
         i
             The step number for which to get the report.
+        header
+            Options for customizing the header of the step report. The default is the `":default:"`
+            value which produces a generic header. Aside from this default, text can be provided for
+            the header. This will be interpreted as Markdown text and transformed internally to
+            HTML.
         limit
             The number of rows to display for those validation steps that check values in rows (the
             `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
@@ -7713,6 +7718,7 @@ class Validate:
                 all_passed=all_passed,
                 extract=extract,
                 tbl_preview=tbl_preview,
+                header=header,
                 limit=limit,
             )
 
@@ -7726,13 +7732,13 @@ class Validate:
             # CASE I: where ordering of columns is required (`in_order=True`)
             if in_order:
                 step_report = _step_report_schema_in_order(
-                    step=i, schema_info=val_info, debug_return_df=debug_return_df
+                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
                 )
 
             # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
                 step_report = _step_report_schema_any_order(
-                    step=i, schema_info=val_info, debug_return_df=debug_return_df
+                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
                 )
 
         else:
@@ -8731,6 +8737,7 @@ def _step_report_row_based(
     all_passed: bool,
     extract: any,
     tbl_preview: GT,
+    header: str,
     limit: int | None,
 ):
     # Get the length of the extracted data for the step
@@ -8771,8 +8778,27 @@ def _step_report_row_based(
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
 
     if all_passed:
-        step_report = (
-            tbl_preview.tab_header(
+        step_report = tbl_preview.tab_style(
+            style=[
+                style.text(color="#006400"),
+                style.fill(color="#4CA64C33"),
+                style.borders(
+                    sides=["left", "right"],
+                    color="#1B4D3E80",
+                    style="solid",
+                    weight="2px",
+                ),
+            ],
+            locations=loc.body(columns=column),
+        ).tab_style(
+            style=style.borders(
+                sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
+            ),
+            locations=loc.column_labels(columns=column),
+        )
+
+        if header == ":default:":
+            step_report = step_report.tab_header(
                 title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
                 subtitle=html(
                     "<div>"
@@ -8785,26 +8811,11 @@ def _step_report_row_based(
                     "</div></div>"
                 ),
             )
-            .tab_style(
-                style=[
-                    style.text(color="#006400"),
-                    style.fill(color="#4CA64C33"),
-                    style.borders(
-                        sides=["left", "right"],
-                        color="#1B4D3E80",
-                        style="solid",
-                        weight="2px",
-                    ),
-                ],
-                locations=loc.body(columns=column),
+
+        else:
+            step_report = step_report.tab_header(
+                title=md(header),
             )
-            .tab_style(
-                style=style.borders(
-                    sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
-                ),
-                locations=loc.column_labels(columns=column),
-            )
-        )
 
     else:
         if limit is None:
@@ -8828,8 +8839,22 @@ def _step_report_row_based(
             extract_length_resolved = extract_length
             extract_of_x_rows = "ALL"
 
-        step_report = (
-            extract_tbl.tab_header(
+        step_report = extract_tbl.tab_style(
+            style=[
+                style.text(color="#B22222"),
+                style.fill(color="#FFC1C159"),
+                style.borders(sides=["left", "right"], color="black", style="solid", weight="2px"),
+            ],
+            locations=loc.body(columns=column),
+        ).tab_style(
+            style=style.borders(
+                sides=["left", "right"], color="black", style="solid", weight="2px"
+            ),
+            locations=loc.column_labels(columns=column),
+        )
+
+        if header == ":default:":
+            step_report = step_report.tab_header(
                 title=f"Report for Validation Step {i}",
                 subtitle=html(
                     "<div>"
@@ -8845,29 +8870,17 @@ def _step_report_row_based(
                     "</div></div>"
                 ),
             )
-            .tab_style(
-                style=[
-                    style.text(color="#B22222"),
-                    style.fill(color="#FFC1C159"),
-                    style.borders(
-                        sides=["left", "right"], color="black", style="solid", weight="2px"
-                    ),
-                ],
-                locations=loc.body(columns=column),
+
+        else:
+            step_report = step_report.tab_header(
+                title=md(header),
             )
-            .tab_style(
-                style=style.borders(
-                    sides=["left", "right"], color="black", style="solid", weight="2px"
-                ),
-                locations=loc.column_labels(columns=column),
-            )
-        )
 
     return step_report
 
 
 def _step_report_schema_in_order(
-    step: int, schema_info: dict, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is supposed to have the same column
@@ -9045,10 +9058,6 @@ def _step_report_schema_in_order(
 
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
-        .tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html(col_schema_match_params_html),
-        )
         .fmt_markdown(columns=None)
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
         .opt_align_table_header(align="left")
@@ -9135,6 +9144,15 @@ def _step_report_schema_in_order(
         .tab_options(source_notes_font_size="12px")
     )
 
+    if header == ":default:":
+        step_report = step_report.tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html(col_schema_match_params_html),
+        )
+
+    else:
+        step_report = step_report.tab_header(title=md(header))
+
     if schema_length == "shorter":
         # Add background color to the missing column on the exp side
         step_report = step_report.tab_style(
@@ -9179,7 +9197,7 @@ def _step_report_schema_in_order(
 
 
 def _step_report_schema_any_order(
-    step: int, schema_info: dict, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is permitted to not have to be in the
@@ -9459,10 +9477,6 @@ def _step_report_schema_any_order(
 
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
-        .tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html(col_schema_match_params_html),
-        )
         .fmt_markdown(columns=None)
         .opt_table_font(font=google_font(name="IBM Plex Sans"))
         .opt_align_table_header(align="left")
@@ -9549,6 +9563,15 @@ def _step_report_schema_any_order(
         )
         .tab_options(source_notes_font_size="12px")
     )
+
+    if header == ":default:":
+        step_report = step_report.tab_header(
+            title=html(f"Report for Validation Step {step} {passing_symbol}"),
+            subtitle=html(col_schema_match_params_html),
+        )
+
+    else:
+        step_report = step_report.tab_header(title=md(header))
 
     # Add background color to signify limits of target table schema (on LHS side)
     if len(colnames_exp_unmatched) > 0:
