@@ -633,6 +633,10 @@ def _generate_display_table(
                 "The `columns_subset=` value doesn't resolve to any columns in the table."
             )
 
+        # Add back the row number column if it was removed
+        if has_leading_row_num_col:
+            resolved_columns = ["_row_num_"] + resolved_columns
+
         # Select the columns to display in the table with the `resolved_columns` value
         data = _select_columns(
             data, resolved_columns=resolved_columns, ibis_tbl=ibis_tbl, tbl_type=tbl_type
