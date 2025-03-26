@@ -7657,6 +7657,25 @@ class Validate:
         ```{python}
         validation.get_step_report(i=4)
         ```
+
+        If you'd like to trim down the number of columns shown in the report, you can provide a
+        subset of columns to display. For example, if you only want to see the columns `a`, `b`, and
+        `c`, you can provide those column names as a list.
+
+        ```{python}
+        validation.get_step_report(i=1, columns_subset=["a", "b", "c"])
+        ```
+
+        If you'd like to increase or reduce the maximum number of rows shown in the report, you can
+        provide a different value for the `limit` parameter. For example, if you'd like to see only
+        up to 5 rows, you can set `limit=5`.
+
+        ```{python}
+        validation.get_step_report(i=3, limit=5)
+        ```
+
+        Step 3 actually had 7 failing test units, but only the first 5 rows are shown in the step
+        report because of the `limit=5` parameter.
         """
 
         # If the step number is `-99` then enter the debug mode
