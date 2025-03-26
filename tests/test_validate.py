@@ -357,6 +357,7 @@ def test_validation_info():
         warning=None,
         error=None,
         critical=None,
+        failure_text=None,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -385,6 +386,7 @@ def test_validation_info():
     assert v.warning is None
     assert v.error is None
     assert v.critical is None
+    assert v.failure_text is None
 
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
@@ -465,6 +467,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "warning",
         "error",
         "critical",
+        "failure_text",
         "tbl_checked",
         "extract",
         "val_info",
@@ -495,6 +498,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.warning is None
     assert val_info.error is None
     assert val_info.critical is None
+    assert val_info.failure_text is None
     assert val_info.tbl_checked is None
     assert val_info.extract is None
     assert val_info.val_info is None
@@ -542,6 +546,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "warning",
         "error",
         "critical",
+        "failure_text",
         "tbl_checked",
         "extract",
         "val_info",
@@ -571,6 +576,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.warning is None
     assert val_info.error is None
     assert val_info.critical is None
+    assert val_info.failure_text is None
     assert val_info.tbl_checked is not None
     assert val_info.val_info is None
     assert isinstance(val_info.time_processed, str)
