@@ -1682,6 +1682,12 @@ class _ValidationInfo:
         Whether the number of failing test units is beyond the 'error' threshold level.
     critical
         Whether the number of failing test units is beyond the 'critical' threshold level.
+    warning_text
+        The localized warning message for the validation step.
+    error_text
+        The localized error message for the validation step.
+    critical_text
+        The localized critical message for the validation step.
     tbl_checked
         The data table in its native format that has been checked for the validation step. It wil
         include a new column called `pb_is_good_` that is a boolean column that indicates whether
@@ -1722,6 +1728,9 @@ class _ValidationInfo:
     warning: bool | None = None
     error: bool | None = None
     critical: bool | None = None
+    warning_text: str | None = None
+    error_text: str | None = None
+    critical_text: str | None = None
     tbl_checked: FrameT | None = None
     extract: FrameT | None = None
     val_info: dict[str, any] | None = None
