@@ -5438,6 +5438,7 @@ class Validate:
                                         "level": level,
                                         "level_num": level_num,
                                         "autobrief": autobrief,
+                                        "failure_text": failure_text,
                                     }
 
                                     # Execute the action within the context manager
@@ -5477,6 +5478,7 @@ class Validate:
                                         "level": level,
                                         "level_num": level_num,
                                         "autobrief": autobrief,
+                                        "failure_text": failure_text,
                                     }
 
                                     # Execute the action within the context manager
