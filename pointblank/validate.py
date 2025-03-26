@@ -7710,7 +7710,15 @@ class Validate:
             return "This validation step is inactive."
 
         # Create a table with a sample of ten rows, highlighting the column of interest
-        tbl_preview = preview(data=self.data, n_head=5, n_tail=5, limit=10, incl_header=False)
+        tbl_preview = preview(
+            data=self.data,
+            columns_subset=columns_subset,
+            n_head=5,
+            n_tail=5,
+            limit=10,
+            min_tbl_width=600,
+            incl_header=False,
+        )
 
         # If no rows were extracted, create a message to indicate that no rows were extracted
         # if get_row_count(extract) == 0:
