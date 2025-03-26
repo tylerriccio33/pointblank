@@ -5382,6 +5382,18 @@ class Validate:
                     # Translate the severity level to a number
                     level_num = LOG_LEVELS_MAP[level]
 
+                    # Generate failure text for the level in the validation step
+                    failure_text = _create_autobrief_or_failure_text(
+                        assertion_type=assertion_type,
+                        lang=self.lang,
+                        column=column,
+                        values=value,
+                        for_failure=True,
+                    )
+
+                    # Set the failure text in the validation step
+                    validation.failure_text = failure_text
+
                     #
                     # If step-level actions are set, prefer those over actions set globally
                     #
