@@ -8869,19 +8869,34 @@ def _step_report_row_based(
             extract_length_resolved = extract_length
             extract_of_x_rows = "ALL"
 
-        step_report = extract_tbl.tab_style(
-            style=[
-                style.text(color="#B22222"),
-                style.fill(color="#FFC1C159"),
-                style.borders(sides=["left", "right"], color="black", style="solid", weight="2px"),
-            ],
-            locations=loc.body(columns=column),
-        ).tab_style(
-            style=style.borders(
-                sides=["left", "right"], color="black", style="solid", weight="2px"
-            ),
-            locations=loc.column_labels(columns=column),
-        )
+        # Style the target column in green and add borders but only if that column is present
+        # in the `extract_tbl` (i.e., it may not be present if `columns_subset=` didn't include it)
+        extract_tbl_columns = extract_tbl._boxhead._get_columns()
+        extract_tbl_has_target_column = column in extract_tbl_columns
+
+        if extract_tbl_has_target_column:
+            step_report = extract_tbl.tab_style(
+                style=[
+                    style.text(color="#B22222"),
+                    style.fill(color="#FFC1C159"),
+                    style.borders(
+                        sides=["left", "right"], color="black", style="solid", weight="2px"
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            ).tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="black", style="solid", weight="2px"
+                ),
+                locations=loc.column_labels(columns=column),
+            )
+
+            not_shown = ""
+            shown_failures = "WITH <span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>"
+        else:
+            step_report = extract_tbl
+            not_shown = " (NOT SHOWN)"
+            shown_failures = ""
 
         if header == ":default:":
             step_report = step_report.tab_header(
@@ -8893,10 +8908,9 @@ def _step_report_row_based(
                     f"<code style='color: #303030;'>{text}</code></span><br>"
                     f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
                     f"<strong>{n}</strong> TEST UNIT FAILURES "
-                    f"IN COLUMN <strong>{column_position}</strong></div>"
+                    f"IN COLUMN <strong>{column_position}</strong>{not_shown}</div>"
                     f"<div style='padding-top: 10px;'>EXTRACT OF {extract_of_x_rows} "
-                    f"<strong>{extract_length_resolved}</strong> ROWS WITH "
-                    "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
+                    f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
                     "</div></div>"
                 ),
             )
