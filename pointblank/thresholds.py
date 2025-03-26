@@ -317,6 +317,10 @@ class Actions:
     critical
         A string, `Callable`, or list of `Callable`/string values for the 'critical' level. Using
         `None` means no action should be performed at the 'critical' level.
+    highest_only
+        A boolean value that, when set to `True`, will only execute the action for the highest
+        threshold level that is exceeded. This is useful when you want to ensure that only the most
+        severe action is taken when multiple threshold levels are exceeded.
 
     Returns
     -------
@@ -438,6 +442,7 @@ class Actions:
     warning: str | Callable | list[str | Callable] | None = None
     error: str | Callable | list[str | Callable] | None = None
     critical: str | Callable | list[str | Callable] | None = None
+    highest_only: bool = False
 
     def __post_init__(self):
         self.warning = self._ensure_list(self.warning)
