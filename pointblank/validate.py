@@ -121,16 +121,17 @@ def get_action_metadata():
 
     Description of the Metadata Fields
     ----------------------------------
-    The metadata dictionary contains the following fields:
+    The metadata dictionary contains the following fields for a given validation step:
 
-    - `step`: The step number for the validation step.
-    - `column`: The column name for the validation step.
-    - `value`: The value being compared in the validation step.
-    - `type`: The assertion type for the validation step.
-    - `time`: The time the validation step was executed.
-    - `level`: The severity level for the validation step.
-    - `level_num`: The severity level number for the validation step.
-    - `autobrief`: The auto-generated brief for the validation step.
+    - `step`: The step number.
+    - `column`: The column name.
+    - `value`: The value being compared (only available in certain validation steps).
+    - `type`: The assertion type (e.g., `"col_vals_gt"`, etc.).
+    - `time`: The time the validation step was executed (in ISO format).
+    - `level`: The severity level (`"warning"`, `"error"`, or `"critical"`).
+    - `level_num`: The severity level as a numeric value (`30`, `40`, or `50`).
+    - `autobrief`: A localized and brief statement of the expectation for the step.
+    - `failure_text`: Localized text that explains how the validation step failed.
 
     Examples
     --------
