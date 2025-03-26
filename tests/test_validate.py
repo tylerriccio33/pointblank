@@ -5709,13 +5709,69 @@ def test_get_step_report_no_fail(tbl_type):
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
-    # Test with a limit of `2` for every step report
+    # Test with a fixed limit of `2`
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i, limit=2), GT.GT)
 
-    # Test with `limit=None` for every step report
+    # Test with `limit=None`
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
+
+    # Test with a custom header
+    for i in range(1, 18):
+        assert isinstance(validation.get_step_report(i=i, header="Custom header"), GT.GT)
+
+    #
+    # Tests with a subset of columns
+    #
+
+    # All passing cases
+
+    # Single column (target)
+    assert isinstance(validation.get_step_report(i=1, columns_subset="a"), GT.GT)
+
+    # Single column (non-target)
+    assert isinstance(validation.get_step_report(i=1, columns_subset="b"), GT.GT)
+
+    # Multiple columns (including target)
+    assert isinstance(validation.get_step_report(i=1, columns_subset=["a", "b"]), GT.GT)
+
+    # Multiple columns (excluding target)
+    assert isinstance(validation.get_step_report(i=1, columns_subset=["b", "c"]), GT.GT)
+
+    # Using single selector
+    assert isinstance(validation.get_step_report(i=1, columns_subset=col("a")), GT.GT)
+    assert isinstance(validation.get_step_report(i=1, columns_subset=col(matches("a"))), GT.GT)
+    assert isinstance(validation.get_step_report(i=1, columns_subset=col(starts_with("a"))), GT.GT)
+
+    # Using multiple selectors
+    assert isinstance(
+        validation.get_step_report(i=1, columns_subset=col(starts_with("a") | matches("b"))), GT.GT
+    )
+
+    # Failing cases
+
+    # Single column (target)
+    assert isinstance(validation.get_step_report(i=3, columns_subset="a"), GT.GT)
+
+    # Single column (non-target)
+    assert isinstance(validation.get_step_report(i=3, columns_subset="b"), GT.GT)
+
+    # Multiple columns (including target)
+    assert isinstance(validation.get_step_report(i=3, columns_subset=["a", "b"]), GT.GT)
+
+    # Multiple columns (excluding target)
+    assert isinstance(validation.get_step_report(i=3, columns_subset=["b", "c"]), GT.GT)
+
+    # Using single selector
+    assert isinstance(validation.get_step_report(i=3, columns_subset=col("a")), GT.GT)
+    assert isinstance(validation.get_step_report(i=3, columns_subset=col(matches("a"))), GT.GT)
+    assert isinstance(validation.get_step_report(i=3, columns_subset=col(starts_with("a"))), GT.GT)
+
+    # Using multiple selectors
+    assert isinstance(
+        validation.get_step_report(i=3, columns_subset=col(starts_with("a") | matches("b"))), GT.GT
+    )
 
 
 def test_get_step_report_failing_inputs():

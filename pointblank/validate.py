@@ -633,6 +633,10 @@ def _generate_display_table(
                 "The `columns_subset=` value doesn't resolve to any columns in the table."
             )
 
+        # Add back the row number column if it was removed
+        if has_leading_row_num_col:
+            resolved_columns = ["_row_num_"] + resolved_columns
+
         # Select the columns to display in the table with the `resolved_columns` value
         data = _select_columns(
             data, resolved_columns=resolved_columns, ibis_tbl=ibis_tbl, tbl_type=tbl_type
@@ -7551,7 +7555,13 @@ class Validate:
 
         return gt_tbl
 
-    def get_step_report(self, i: int, header: str = ":default:", limit: int | None = 10) -> GT:
+    def get_step_report(
+        self,
+        i: int,
+        columns_subset: str | list[str] | Column | None = None,
+        header: str = ":default:",
+        limit: int | None = 10,
+    ) -> GT:
         """
         Get a detailed report for a single validation step.
 
@@ -7569,6 +7579,14 @@ class Validate:
         ----------
         i
             The step number for which to get the report.
+        columns_subset
+            The columns to display in a step report that shows errors in the input table. By default
+            all columns are shown (`None`). If a subset of columns is desired, we can provide a list
+            of column names, a string with a single column name, a `Column` object, or a
+            `ColumnSelector` object. The last two options allow for more flexible column selection
+            using column selector functions. Errors are raised if the column names provided don't
+            match any columns in the table (when provided as a string or list of strings) or if
+            column selector expressions don't resolve to any columns.
         header
             Options for customizing the header of the step report. The default is the `":default:"`
             value which produces a generic header. Aside from this default, text can be provided for
@@ -7639,6 +7657,25 @@ class Validate:
         ```{python}
         validation.get_step_report(i=4)
         ```
+
+        If you'd like to trim down the number of columns shown in the report, you can provide a
+        subset of columns to display. For example, if you only want to see the columns `a`, `b`, and
+        `c`, you can provide those column names as a list.
+
+        ```{python}
+        validation.get_step_report(i=1, columns_subset=["a", "b", "c"])
+        ```
+
+        If you'd like to increase or reduce the maximum number of rows shown in the report, you can
+        provide a different value for the `limit` parameter. For example, if you'd like to see only
+        up to 5 rows, you can set `limit=5`.
+
+        ```{python}
+        validation.get_step_report(i=3, limit=5)
+        ```
+
+        Step 3 actually had 7 failing test units, but only the first 5 rows are shown in the step
+        report because of the `limit=5` parameter.
         """
 
         # If the step number is `-99` then enter the debug mode
@@ -7696,7 +7733,15 @@ class Validate:
             return "This validation step is inactive."
 
         # Create a table with a sample of ten rows, highlighting the column of interest
-        tbl_preview = preview(data=self.data, n_head=5, n_tail=5, limit=10, incl_header=False)
+        tbl_preview = preview(
+            data=self.data,
+            columns_subset=columns_subset,
+            n_head=5,
+            n_tail=5,
+            limit=10,
+            min_tbl_width=600,
+            incl_header=False,
+        )
 
         # If no rows were extracted, create a message to indicate that no rows were extracted
         # if get_row_count(extract) == 0:
@@ -7711,6 +7756,7 @@ class Validate:
                 i=i,
                 column=column,
                 column_position=column_position,
+                columns_subset=columns_subset,
                 values=values,
                 inclusive=inclusive,
                 n=n,
@@ -8730,6 +8776,7 @@ def _step_report_row_based(
     i: int,
     column: str,
     column_position: int,
+    columns_subset: list[str] | None,
     values: any,
     inclusive: tuple[bool, bool] | None,
     n: int,
@@ -8778,24 +8825,33 @@ def _step_report_row_based(
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
 
     if all_passed:
-        step_report = tbl_preview.tab_style(
-            style=[
-                style.text(color="#006400"),
-                style.fill(color="#4CA64C33"),
-                style.borders(
-                    sides=["left", "right"],
-                    color="#1B4D3E80",
-                    style="solid",
-                    weight="2px",
+        # Style the target column in green and add borders but only if that column is present
+        # in the `tbl_preview` (i.e., it may not be present if `columns_subset=` didn't include it)
+        preview_tbl_columns = tbl_preview._boxhead._get_columns()
+        preview_tbl_has_target_column = column in preview_tbl_columns
+
+        if preview_tbl_has_target_column:
+            step_report = tbl_preview.tab_style(
+                style=[
+                    style.text(color="#006400"),
+                    style.fill(color="#4CA64C33"),
+                    style.borders(
+                        sides=["left", "right"],
+                        color="#1B4D3E80",
+                        style="solid",
+                        weight="2px",
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            ).tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
                 ),
-            ],
-            locations=loc.body(columns=column),
-        ).tab_style(
-            style=style.borders(
-                sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
-            ),
-            locations=loc.column_labels(columns=column),
-        )
+                locations=loc.column_labels(columns=column),
+            )
+
+        else:
+            step_report = tbl_preview
 
         if header == ":default:":
             step_report = step_report.tab_header(
@@ -8824,9 +8880,11 @@ def _step_report_row_based(
         # Create a preview of the extracted data
         extract_tbl = _generate_display_table(
             data=extract,
+            columns_subset=columns_subset,
             n_head=limit,
             n_tail=0,
             limit=limit,
+            min_tbl_width=600,
             incl_header=False,
             mark_missing_values=False,
         )
@@ -8839,19 +8897,34 @@ def _step_report_row_based(
             extract_length_resolved = extract_length
             extract_of_x_rows = "ALL"
 
-        step_report = extract_tbl.tab_style(
-            style=[
-                style.text(color="#B22222"),
-                style.fill(color="#FFC1C159"),
-                style.borders(sides=["left", "right"], color="black", style="solid", weight="2px"),
-            ],
-            locations=loc.body(columns=column),
-        ).tab_style(
-            style=style.borders(
-                sides=["left", "right"], color="black", style="solid", weight="2px"
-            ),
-            locations=loc.column_labels(columns=column),
-        )
+        # Style the target column in green and add borders but only if that column is present
+        # in the `extract_tbl` (i.e., it may not be present if `columns_subset=` didn't include it)
+        extract_tbl_columns = extract_tbl._boxhead._get_columns()
+        extract_tbl_has_target_column = column in extract_tbl_columns
+
+        if extract_tbl_has_target_column:
+            step_report = extract_tbl.tab_style(
+                style=[
+                    style.text(color="#B22222"),
+                    style.fill(color="#FFC1C159"),
+                    style.borders(
+                        sides=["left", "right"], color="black", style="solid", weight="2px"
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            ).tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="black", style="solid", weight="2px"
+                ),
+                locations=loc.column_labels(columns=column),
+            )
+
+            not_shown = ""
+            shown_failures = "WITH <span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>"
+        else:
+            step_report = extract_tbl
+            not_shown = " (NOT SHOWN)"
+            shown_failures = ""
 
         if header == ":default:":
             step_report = step_report.tab_header(
@@ -8863,10 +8936,9 @@ def _step_report_row_based(
                     f"<code style='color: #303030;'>{text}</code></span><br>"
                     f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
                     f"<strong>{n}</strong> TEST UNIT FAILURES "
-                    f"IN COLUMN <strong>{column_position}</strong></div>"
+                    f"IN COLUMN <strong>{column_position}</strong>{not_shown}</div>"
                     f"<div style='padding-top: 10px;'>EXTRACT OF {extract_of_x_rows} "
-                    f"<strong>{extract_length_resolved}</strong> ROWS WITH "
-                    "<span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>:"
+                    f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
                     "</div></div>"
                 ),
             )
