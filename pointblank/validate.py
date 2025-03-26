@@ -5107,8 +5107,12 @@ class Validate:
             # Generate the autobrief description for the validation step; it's important to perform
             # that here since text components like the column and the value(s) have been resolved
             # at this point
-            autobrief = _create_autobrief(
-                assertion_type=assertion_type, lang=self.lang, column=column, values=value
+            autobrief = _create_autobrief_or_failure_text(
+                assertion_type=assertion_type,
+                lang=self.lang,
+                column=column,
+                values=value,
+                for_failure=False,
             )
 
             validation.autobrief = autobrief
@@ -7929,8 +7933,8 @@ def _process_action_str(
     return action_str
 
 
-def _create_autobrief(
-    assertion_type: str, lang: str, column: str | None, values: str | None
+def _create_autobrief_or_failure_text(
+    assertion_type: str, lang: str, column: str | None, values: str | None, for_failure: bool
 ) -> str:
     if assertion_type in [
         "col_vals_gt",
@@ -7941,60 +7945,127 @@ def _create_autobrief(
         "col_vals_ne",
     ]:
         return _create_autobrief_comparison(
-            assertion_type=assertion_type, lang=lang, column=column, values=values
+            assertion_type=assertion_type,
+            lang=lang,
+            column=column,
+            values=values,
+            for_failure=for_failure,
         )
 
     if assertion_type == "col_vals_between":
         return _create_autobrief_between(
-            lang=lang, column=column, value_1=values[0], value_2=values[1]
+            lang=lang,
+            column=column,
+            value_1=values[0],
+            value_2=values[1],
+            for_failure=for_failure,
         )
 
     if assertion_type == "col_vals_outside":
         return _create_autobrief_between(
-            lang=lang, column=column, value_1=values[0], value_2=values[1], not_=True
+            lang=lang,
+            column=column,
+            value_1=values[0],
+            value_2=values[1],
+            not_=True,
+            for_failure=for_failure,
         )
 
     if assertion_type == "col_vals_in_set":
-        return _create_autobrief_set(lang=lang, column=column, values=values)
+        return _create_autobrief_set(
+            lang=lang,
+            column=column,
+            values=values,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_vals_not_in_set":
-        return _create_autobrief_set(lang=lang, column=column, values=values, not_=True)
+        return _create_autobrief_set(
+            lang=lang,
+            column=column,
+            values=values,
+            not_=True,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_vals_null":
-        return _create_autobrief_null(lang=lang, column=column)
+        return _create_autobrief_null(
+            lang=lang,
+            column=column,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_vals_not_null":
-        return _create_autobrief_null(lang=lang, column=column, not_=True)
+        return _create_autobrief_null(
+            lang=lang,
+            column=column,
+            not_=True,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_vals_regex":
-        return _create_autobrief_regex(lang=lang, column=column, pattern=values)
+        return _create_autobrief_regex(
+            lang=lang,
+            column=column,
+            pattern=values,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_vals_expr":
-        return _create_autobrief_expr(lang=lang)
+        return _create_autobrief_expr(
+            lang=lang,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_exists":
-        return _create_autobrief_col_exists(lang=lang, column=column)
+        return _create_autobrief_col_exists(
+            lang=lang,
+            column=column,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_schema_match":
-        return _create_autobrief_col_schema_match(lang=lang)
+        return _create_autobrief_col_schema_match(
+            lang=lang,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "rows_distinct":
-        return _create_autobrief_rows_distinct(lang=lang, columns_subset=column)
+        return _create_autobrief_rows_distinct(
+            lang=lang,
+            columns_subset=column,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "row_count_match":
-        return _create_autobrief_row_count_match(lang=lang, value=values)
+        return _create_autobrief_row_count_match(
+            lang=lang,
+            value=values,
+            for_failure=for_failure,
+        )
 
     if assertion_type == "col_count_match":
-        return _create_autobrief_col_count_match(lang=lang, value=values)
+        return _create_autobrief_col_count_match(
+            lang=lang,
+            value=values,
+            for_failure=for_failure,
+        )
 
     return None
 
 
+def _expect_failure_type(for_failure: bool) -> str:
+    return "failure" if for_failure else "expectation"
+
+
 def _create_autobrief_comparison(
-    assertion_type: str, lang: str, column: str | list[str] | None, values: str | None
+    assertion_type: str,
+    lang: str,
+    column: str | list[str] | None,
+    values: str | None,
+    for_failure: bool = False,
 ) -> str:
-    # For now `column_computed_text` is an empty string
-    column_computed_text = ""
+    type_ = _expect_failure_type(for_failure=for_failure)
 
     operator = COMPARISON_OPERATORS[assertion_type]
 
@@ -8002,11 +8073,10 @@ def _create_autobrief_comparison(
 
     values_text = _prep_values_text(values=values, lang=lang, limit=3)
 
-    compare_expectation_text = EXPECT_FAIL_TEXT["compare_expectation_text"][lang]
+    compare_expectation_text = EXPECT_FAIL_TEXT[f"compare_{type_}_text"][lang]
 
     autobrief = compare_expectation_text.format(
         column_text=column_text,
-        column_computed_text=column_computed_text,
         operator=operator,
         values_text=values_text,
     )
@@ -8015,10 +8085,14 @@ def _create_autobrief_comparison(
 
 
 def _create_autobrief_between(
-    lang: str, column: str | None, value_1: str, value_2: str, not_: bool = False
+    lang: str,
+    column: str | None,
+    value_1: str,
+    value_2: str,
+    not_: bool = False,
+    for_failure: bool = False,
 ) -> str:
-    # For now `column_computed_text` is an empty string
-    column_computed_text = ""
+    type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
 
@@ -8026,16 +8100,14 @@ def _create_autobrief_between(
     value_2_text = _prep_values_text(values=value_2, lang=lang, limit=3)
 
     if not not_:
-        autobrief = EXPECT_FAIL_TEXT["between_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT[f"between_{type_}_text"][lang].format(
             column_text=column_text,
-            column_computed_text=column_computed_text,
             value_1=value_1_text,
             value_2=value_2_text,
         )
     else:
-        autobrief = EXPECT_FAIL_TEXT["not_between_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT[f"not_between_{type_}_text"][lang].format(
             column_text=column_text,
-            column_computed_text=column_computed_text,
             value_1=value_1_text,
             value_2=value_2_text,
         )
@@ -8044,114 +8116,124 @@ def _create_autobrief_between(
 
 
 def _create_autobrief_set(
-    lang: str, column: str | None, values: list[any], not_: bool = False
+    lang: str, column: str | None, values: list[any], not_: bool = False, for_failure: bool = False
 ) -> str:
-    # For now `column_computed_text` is an empty string
-    column_computed_text = ""
+    type_ = _expect_failure_type(for_failure=for_failure)
 
     values_text = _prep_values_text(values=values, lang=lang, limit=3)
 
     column_text = _prep_column_text(column=column)
 
     if not not_:
-        autobrief = EXPECT_FAIL_TEXT["in_set_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT[f"in_set_{type_}_text"][lang].format(
             column_text=column_text,
-            column_computed_text=column_computed_text,
             values_text=values_text,
         )
     else:
-        autobrief = EXPECT_FAIL_TEXT["not_in_set_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT[f"not_in_set_{type_}_text"][lang].format(
             column_text=column_text,
-            column_computed_text=column_computed_text,
             values_text=values_text,
         )
 
     return autobrief
 
 
-def _create_autobrief_null(lang: str, column: str | None, not_: bool = False) -> str:
-    # For now `column_computed_text` is an empty string
-    column_computed_text = ""
+def _create_autobrief_null(
+    lang: str, column: str | None, not_: bool = False, for_failure: bool = False
+) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
 
     if not not_:
-        autobrief = EXPECT_FAIL_TEXT["null_expectation_text"][lang].format(
-            column_text=column_text, column_computed_text=column_computed_text
+        autobrief = EXPECT_FAIL_TEXT[f"null_{type_}_text"][lang].format(
+            column_text=column_text,
         )
     else:
-        autobrief = EXPECT_FAIL_TEXT["not_null_expectation_text"][lang].format(
-            column_text=column_text, column_computed_text=column_computed_text
+        autobrief = EXPECT_FAIL_TEXT[f"not_null_{type_}_text"][lang].format(
+            column_text=column_text,
         )
 
     return autobrief
 
 
-def _create_autobrief_regex(lang: str, column: str | None, pattern: str) -> str:
-    # For now `column_computed_text` is an empty string
-    column_computed_text = ""
+def _create_autobrief_regex(
+    lang: str, column: str | None, pattern: str, for_failure: bool = False
+) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
 
-    autobrief = EXPECT_FAIL_TEXT["regex_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT[f"regex_{type_}_text"][lang].format(
         column_text=column_text,
-        column_computed_text=column_computed_text,
         values_text=pattern,
     )
 
     return autobrief
 
 
-def _create_autobrief_expr(lang: str) -> str:
-    autobrief = EXPECT_FAIL_TEXT["col_vals_expr_expectation_text"][lang]
+def _create_autobrief_expr(lang: str, for_failure: bool) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
+    autobrief = EXPECT_FAIL_TEXT[f"col_vals_expr_{type_}_text"][lang]
 
     return autobrief
 
 
-def _create_autobrief_col_exists(lang: str, column: str | None) -> str:
+def _create_autobrief_col_exists(lang: str, column: str | None, for_failure: bool = False) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
     column_text = _prep_column_text(column=column)
 
-    autobrief = EXPECT_FAIL_TEXT["col_exists_expectation_text"][lang].format(
-        column_text=column_text
-    )
+    autobrief = EXPECT_FAIL_TEXT[f"col_exists_{type_}_text"][lang].format(column_text=column_text)
 
     return autobrief
 
 
-def _create_autobrief_col_schema_match(lang: str) -> str:
-    autobrief = EXPECT_FAIL_TEXT["col_schema_match_expectation_text"][lang]
+def _create_autobrief_col_schema_match(lang: str, for_failure: bool) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
+    autobrief = EXPECT_FAIL_TEXT[f"col_schema_match_{type_}_text"][lang]
 
     return autobrief
 
 
-def _create_autobrief_rows_distinct(lang: str, columns_subset: list[str] | None) -> str:
+def _create_autobrief_rows_distinct(
+    lang: str, columns_subset: list[str] | None, for_failure: bool = False
+) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
     if columns_subset is None:
-        autobrief = EXPECT_FAIL_TEXT["all_row_distinct_expectation_text"][lang]
+        autobrief = EXPECT_FAIL_TEXT[f"all_row_distinct_{type_}_text"][lang]
 
     else:
         column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
 
-        autobrief = EXPECT_FAIL_TEXT["across_row_distinct_expectation_text"][lang].format(
+        autobrief = EXPECT_FAIL_TEXT[f"across_row_distinct_{type_}_text"][lang].format(
             column_text=column_text
         )
 
     return autobrief
 
 
-def _create_autobrief_row_count_match(lang: str, value: int) -> str:
+def _create_autobrief_row_count_match(lang: str, value: int, for_failure: bool = False) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
     values_text = _prep_values_text(value["count"], lang=lang)
 
-    autobrief = EXPECT_FAIL_TEXT["row_count_match_n_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT[f"row_count_match_n_{type_}_text"][lang].format(
         values_text=values_text
     )
 
     return autobrief
 
 
-def _create_autobrief_col_count_match(lang: str, value: int) -> str:
+def _create_autobrief_col_count_match(lang: str, value: int, for_failure: bool = False) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
     values_text = _prep_values_text(value["count"], lang=lang)
 
-    autobrief = EXPECT_FAIL_TEXT["col_count_match_n_expectation_text"][lang].format(
+    autobrief = EXPECT_FAIL_TEXT[f"col_count_match_n_{type_}_text"][lang].format(
         values_text=values_text
     )
 
