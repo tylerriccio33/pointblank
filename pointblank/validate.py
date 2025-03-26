@@ -7733,6 +7733,7 @@ class Validate:
                 i=i,
                 column=column,
                 column_position=column_position,
+                columns_subset=columns_subset,
                 values=values,
                 inclusive=inclusive,
                 n=n,
@@ -8752,6 +8753,7 @@ def _step_report_row_based(
     i: int,
     column: str,
     column_position: int,
+    columns_subset: list[str] | None,
     values: any,
     inclusive: tuple[bool, bool] | None,
     n: int,
@@ -8846,9 +8848,11 @@ def _step_report_row_based(
         # Create a preview of the extracted data
         extract_tbl = _generate_display_table(
             data=extract,
+            columns_subset=columns_subset,
             n_head=limit,
             n_tail=0,
             limit=limit,
+            min_tbl_width=600,
             incl_header=False,
             mark_missing_values=False,
         )
