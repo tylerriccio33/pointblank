@@ -7551,7 +7551,13 @@ class Validate:
 
         return gt_tbl
 
-    def get_step_report(self, i: int, header: str = ":default:", limit: int | None = 10) -> GT:
+    def get_step_report(
+        self,
+        i: int,
+        columns_subset: str | list[str] | Column | None = None,
+        header: str = ":default:",
+        limit: int | None = 10,
+    ) -> GT:
         """
         Get a detailed report for a single validation step.
 
@@ -7569,6 +7575,14 @@ class Validate:
         ----------
         i
             The step number for which to get the report.
+        columns_subset
+            The columns to display in a step report that shows errors in the input table. By default
+            all columns are shown (`None`). If a subset of columns is desired, we can provide a list
+            of column names, a string with a single column name, a `Column` object, or a
+            `ColumnSelector` object. The last two options allow for more flexible column selection
+            using column selector functions. Errors are raised if the column names provided don't
+            match any columns in the table (when provided as a string or list of strings) or if
+            column selector expressions don't resolve to any columns.
         header
             Options for customizing the header of the step report. The default is the `":default:"`
             value which produces a generic header. Aside from this default, text can be provided for
