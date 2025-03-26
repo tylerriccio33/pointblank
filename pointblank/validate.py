@@ -1683,7 +1683,7 @@ class _ValidationInfo:
     critical
         Whether the number of failing test units is beyond the 'critical' threshold level.
     failure_text
-        Localized text explaining the failure.
+        Localized text explaining the failure. Only set if any threshold is exceeded.
     tbl_checked
         The data table in its native format that has been checked for the validation step. It wil
         include a new column called `pb_is_good_` that is a boolean column that indicates whether
