@@ -1912,7 +1912,8 @@ class Validate:
         self.thresholds = _normalize_thresholds_creation(self.thresholds)
 
         # Normalize the reporting language identifier and error if invalid
-        self.lang = _normalize_reporting_language(lang=self.lang)
+        if self.lang not in ["zh-Hans", "zh-Hant"]:
+            self.lang = _normalize_reporting_language(lang=self.lang)
 
         # Set the `locale` to the `lang` value if `locale` isn't set
         if self.locale is None:
@@ -5368,6 +5369,21 @@ class Validate:
                     ),
                 )
 
+            # If there is any threshold level that has been exceeded, then produce and
+            # set the general failure text for the validation step
+            if validation.warning or validation.error or validation.critical:
+                # Generate failure text for the validation step
+                failure_text = _create_autobrief_or_failure_text(
+                    assertion_type=assertion_type,
+                    lang=self.lang,
+                    column=column,
+                    values=value,
+                    for_failure=True,
+                )
+
+                # Set the failure text in the validation step
+                validation.failure_text = failure_text
+
             # Include the results table that has a new column called `pb_is_good_`; that
             # is a boolean column that indicates whether the row passed the validation or not
             if collect_tbl_checked and results_tbl is not None:
@@ -5381,18 +5397,6 @@ class Validate:
                 ):
                     # Translate the severity level to a number
                     level_num = LOG_LEVELS_MAP[level]
-
-                    # Generate failure text for the level in the validation step
-                    failure_text = _create_autobrief_or_failure_text(
-                        assertion_type=assertion_type,
-                        lang=self.lang,
-                        column=column,
-                        values=value,
-                        for_failure=True,
-                    )
-
-                    # Set the failure text in the validation step
-                    validation.failure_text = failure_text
 
                     #
                     # If step-level actions are set, prefer those over actions set globally
