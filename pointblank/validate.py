@@ -8806,24 +8806,33 @@ def _step_report_row_based(
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
 
     if all_passed:
-        step_report = tbl_preview.tab_style(
-            style=[
-                style.text(color="#006400"),
-                style.fill(color="#4CA64C33"),
-                style.borders(
-                    sides=["left", "right"],
-                    color="#1B4D3E80",
-                    style="solid",
-                    weight="2px",
+        # Style the target column in green and add borders but only if that column is present
+        # in the `tbl_preview` (i.e., it may not be present if `columns_subset=` didn't include it)
+        preview_tbl_columns = tbl_preview._boxhead._get_columns()
+        preview_tbl_has_target_column = column in preview_tbl_columns
+
+        if preview_tbl_has_target_column:
+            step_report = tbl_preview.tab_style(
+                style=[
+                    style.text(color="#006400"),
+                    style.fill(color="#4CA64C33"),
+                    style.borders(
+                        sides=["left", "right"],
+                        color="#1B4D3E80",
+                        style="solid",
+                        weight="2px",
+                    ),
+                ],
+                locations=loc.body(columns=column),
+            ).tab_style(
+                style=style.borders(
+                    sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
                 ),
-            ],
-            locations=loc.body(columns=column),
-        ).tab_style(
-            style=style.borders(
-                sides=["left", "right"], color="#1B4D3E80", style="solid", weight="2px"
-            ),
-            locations=loc.column_labels(columns=column),
-        )
+                locations=loc.column_labels(columns=column),
+            )
+
+        else:
+            step_report = tbl_preview
 
         if header == ":default:":
             step_report = step_report.tab_header(
