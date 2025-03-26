@@ -22,6 +22,7 @@ import narwhals as nw
 
 from pointblank.validate import (
     Actions,
+    get_action_metadata,
     get_column_count,
     get_row_count,
     load_dataset,
@@ -1568,6 +1569,61 @@ def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
     # Capture the output and verify that nothing was printed to the console
     captured = capsys.readouterr()
     assert captured.out == ""
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_get_action_metadata(tbl_type, capsys):
+    def log_issue():
+        metadata = get_action_metadata()
+        print(f"Step: {metadata['step']}, Type: {metadata['type']}, Column: {metadata['column']}, ")
+
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=0.10, critical=0.15),
+            actions=Actions(warning=log_issue),
+        )
+        .col_vals_lt(columns="c", value=0)  # 1
+        .col_vals_eq(columns="a", value=3)  # 2
+        .col_vals_ne(columns="c", value=10)  # 3
+        .col_vals_le(columns="a", value=7)  # 4
+        .col_vals_ge(columns="d", value=500, na_pass=True)  # 5
+        .col_vals_between(columns="c", left=0, right=5, na_pass=True)  # 6
+        .col_vals_outside(columns="a", left=0, right=9, inclusive=(False, True))  # 7
+        .col_vals_eq(columns="a", value=1)  # 8
+        .col_vals_in_set(columns="f", set=["lows", "mids", "highs"])  # 9
+        .col_vals_not_in_set(columns="f", set=["low", "mid", "high"])  # 10
+        .col_vals_null(columns="c")  # 11
+        .col_vals_not_null(columns="c")  # 12
+        .col_vals_regex(columns="f", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")  # 13
+        .col_exists(columns="z")  # 14
+        .rows_distinct()  # 15
+        .rows_distinct(columns_subset=["a", "b", "c"])  # 16
+        .col_count_match(count=14)  # 17
+        .row_count_match(count=20)  # 18
+        .interrogate()
+    )
+
+    # Capture the output and verify that several lines were printed to the console
+    captured = capsys.readouterr()
+    assert "Step: 1, Type: col_vals_lt, Column: c" in captured.out
+    assert "Step: 2, Type: col_vals_eq, Column: a" in captured.out
+    assert "Step: 3, Type: col_vals_ne, Column: c" in captured.out
+    assert "Step: 4, Type: col_vals_le, Column: a" in captured.out
+    assert "Step: 5, Type: col_vals_ge, Column: d" in captured.out
+    assert "Step: 6, Type: col_vals_between, Column: c" in captured.out
+    assert "Step: 7, Type: col_vals_outside, Column: a" in captured.out
+    assert "Step: 8, Type: col_vals_eq, Column: a" in captured.out
+    assert "Step: 9, Type: col_vals_in_set, Column: f" in captured.out
+    assert "Step: 10, Type: col_vals_not_in_set, Column: f" in captured.out
+    assert "Step: 11, Type: col_vals_null, Column: c" in captured.out
+    assert "Step: 12, Type: col_vals_not_null, Column: c" in captured.out
+    assert "Step: 13, Type: col_vals_regex, Column: f" in captured.out
+    assert "Step: 14, Type: col_exists, Column: z" in captured.out
+    assert "Step: 15, Type: rows_distinct, Column: None" in captured.out
+    assert "Step: 16, Type: rows_distinct, Column: ['a', 'b', 'c']" in captured.out
+    assert "Step: 17, Type: col_count_match, Column: None" in captured.out
+    assert "Step: 18, Type: row_count_match, Column: None" in captured.out
 
 
 def test_validation_with_preprocessing_pd(tbl_pd):
