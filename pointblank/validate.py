@@ -1944,7 +1944,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -1986,8 +1986,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2086,6 +2089,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2112,7 +2118,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2154,8 +2160,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2253,6 +2262,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2279,7 +2291,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2321,8 +2333,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2419,6 +2434,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2445,7 +2463,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2487,8 +2505,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2583,6 +2604,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2609,7 +2633,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2651,8 +2675,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2751,6 +2778,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2777,7 +2807,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2819,8 +2849,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -2919,6 +2952,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -2947,7 +2983,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -2998,8 +3034,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3110,6 +3149,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3139,7 +3181,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3190,8 +3232,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3305,6 +3350,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3331,7 +3379,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3366,8 +3414,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3459,6 +3510,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3483,7 +3537,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3518,10 +3572,15 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
 
         Returns
         -------
@@ -3610,6 +3669,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3633,7 +3695,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3665,8 +3727,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3755,6 +3820,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3777,7 +3845,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3809,8 +3877,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -3899,6 +3970,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -3923,7 +3997,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -3961,8 +4035,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4054,6 +4131,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -4078,7 +4158,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4111,8 +4191,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4180,6 +4263,9 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=None,
@@ -4200,7 +4286,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4229,8 +4315,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4320,6 +4409,9 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         # Iterate over the columns and create a validation step for each
         for column in columns:
             val_info = _ValidationInfo(
@@ -4342,7 +4434,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4374,8 +4466,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4464,6 +4559,9 @@ class Validate:
 
         # TODO: incorporate Column object
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=columns_subset,
@@ -4489,7 +4587,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4542,8 +4640,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4640,6 +4741,9 @@ class Validate:
             "full_match_dtypes": full_match_dtypes,
         }
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             values=values,
@@ -4662,7 +4766,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4708,8 +4812,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4811,6 +4918,9 @@ class Validate:
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse, "abs_tol_bounds": bounds}
 
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
+
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             values=values,
@@ -4832,7 +4942,7 @@ class Validate:
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
-        brief: str | None = None,
+        brief: str | bool | None = None,
         active: bool = True,
     ) -> Validate:
         """
@@ -4870,8 +4980,11 @@ class Validate:
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
             define the actions.
         brief
-            An optional brief description of the validation step. The templating elements `"{col}"`
-            and `"{step}"` can be used to insert the column name and step number, respectively.
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
         active
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
@@ -4938,6 +5051,9 @@ class Validate:
 
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse}
+
+        # Transform any shorthands of `brief=` to string representations
+        brief = _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -7003,8 +7119,16 @@ class Validate:
 
         # Add the `type_upd` entry to the dictionary
         validation_info_dict["type_upd"] = _transform_assertion_str(
-            assertion_str=validation_info_dict["assertion_type"]
+            assertion_str=validation_info_dict["assertion_type"],
+            brief_str=validation_info_dict["brief"],
+            autobrief_str=validation_info_dict["autobrief"],
         )
+
+        # Remove the `brief` entry from the dictionary
+        validation_info_dict.pop("brief")
+
+        # Remove the `autobrief` entry from the dictionary
+        validation_info_dict.pop("autobrief")
 
         # ------------------------------------------------
         # Process the `columns_upd` entry
@@ -7328,7 +7452,6 @@ class Validate:
         # Drop other keys from the dictionary
         validation_info_dict.pop("na_pass")
         validation_info_dict.pop("label")
-        validation_info_dict.pop("brief")
         validation_info_dict.pop("active")
         validation_info_dict.pop("all_passed")
 
@@ -7955,6 +8078,16 @@ def _process_brief(brief: str | None, step: int, col: str | list[str] | None) ->
     return brief
 
 
+def _transform_auto_brief(brief: str | bool | None) -> str | None:
+    if isinstance(brief, bool):
+        if brief:
+            return "{auto}"
+        else:
+            return None
+    else:
+        return brief
+
+
 def _process_action_str(
     action_str: str,
     step: int,
@@ -8386,6 +8519,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "pre",
         "label",
         "brief",
+        "autobrief",
         "active",
         "eval_error",
         "all_passed",
@@ -8600,12 +8734,28 @@ def _transform_w_s_n(values, color, interrogation_performed):
     ]
 
 
-def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
+def _transform_assertion_str(
+    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str]
+) -> list[str]:
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
-
     # Append `()` to the `assertion_str`
     assertion_str = [x + "()" for x in assertion_str]
+
+    # Make every None value in `brief_str` an empty string
+    brief_str = ["" if x is None else x for x in brief_str]
+
+    # If the template text `{auto}` is in the `brief_str` then replace it with the corresponding
+    # `autobrief_str` entry
+    brief_str = [
+        brief_str[i].replace("{auto}", autobrief_str[i])
+        if "{auto}" in brief_str[i]
+        else brief_str[i]
+        for i in range(len(brief_str))
+    ]
+
+    # Use Markdown-to-HTML conversion to format the `brief_str` text
+    brief_str = [commonmark.commonmark(x) for x in brief_str]
 
     # Obtain the number of characters contained in the assertion
     # string; this is important for sizing components appropriately
@@ -8617,12 +8767,15 @@ def _transform_assertion_str(assertion_str: list[str]) -> list[str]:
     # Create the assertion type update using a list comprehension
     type_upd = [
         f"""
-        <div style="margin:0;padding:0;display:inline-block;height:30px;vertical-align:middle;">
-        <!--?xml version="1.0" encoding="UTF-8"?-->{svg}
+        <div style="margin: 0; padding: 0; display: inline-block; height: 30px; vertical-align: middle; width: 16%;">
+            <!--?xml version="1.0" encoding="UTF-8"?-->{svg}
         </div>
-        <span style="font-family: 'IBM Plex Mono', monospace, courier; color: black; font-size:{size}px;"> {assertion}</span>
+        <div style="font-family: 'IBM Plex Mono', monospace, courier; color: black; font-size: {size}px; display: inline-block; vertical-align: middle;">
+            <div>{assertion}</div>
+        </div>
+        <div style="font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;">{brief}</div>
         """
-        for assertion, svg, size in zip(assertion_str, svg_icon, text_size)
+        for assertion, svg, size, brief in zip(assertion_str, svg_icon, text_size, brief_str)
     ]
 
     return type_upd
