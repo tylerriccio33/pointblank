@@ -250,7 +250,7 @@ Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bo
     (in the [`Validate`](`pointblank.Validate`) class).
 
 
-Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: 'str | Callable | list[str | Callable] | None' = None, critical: 'str | Callable | list[str | Callable] | None' = None) -> None
+Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: 'str | Callable | list[str | Callable] | None' = None, critical: 'str | Callable | list[str | Callable] | None' = None, default: 'str | Callable | list[str | Callable] | None' = None, highest_only: 'bool' = True) -> None
 
     Definition of action values.
 
@@ -263,7 +263,9 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
     to different levels of severity when a threshold is reached. Those thresholds can be defined
     using the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions
     don't have to be defined for all threshold levels; if an action is not defined for a level in
-    exceedance, no action will be taken.
+    exceedance, no action will be taken. Likewise, there is no negative consequence (other than a
+    no-op) for defining actions for thresholds that don't exist (e.g., setting an action for the
+    'critical' level when no corresponding 'critical' threshold has been set).
 
     Parameters
     ----------
@@ -276,6 +278,14 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
     critical
         A string, `Callable`, or list of `Callable`/string values for the 'critical' level. Using
         `None` means no action should be performed at the 'critical' level.
+    default
+        A string, `Callable`, or list of `Callable`/string values for all threshold levels. This
+        parameter can be used to set the same action for all threshold levels. If an action is
+        defined for a specific threshold level, it will override the action set for all levels.
+    highest_only
+        A boolean value that, when set to `True` (the default), results in executing only the action
+        for the highest threshold level that is exceeded. Useful when you want to ensure that only
+        the most severe action is taken when multiple threshold levels are exceeded.
 
     Returns
     -------
@@ -4268,12 +4278,12 @@ get_tabular_report(self, title: 'str | None' = ':default:', incl_header: 'bool' 
         to provide a more descriptive title for the report.
 
 
-get_step_report(self, i: 'int') -> 'GT'
+get_step_report(self, i: 'int', columns_subset: 'str | list[str] | Column | None' = None, header: 'str' = ':default:', limit: 'int | None' = 10) -> 'GT'
 
         Get a detailed report for a single validation step.
 
-        The `get_step_report()` method returns a report of what went well, or what failed
-        spectacularly, for a given validation step. The report includes a summary of the validation
+        The `get_step_report()` method returns a report of what went well---or what failed
+        spectacularly---for a given validation step. The report includes a summary of the validation
         step and a detailed breakdown of the interrogation results. The report is presented as a GT
         table object, which can be displayed in a notebook or exported to an HTML file.
 
@@ -4285,7 +4295,24 @@ get_step_report(self, i: 'int') -> 'GT'
         Parameters
         ----------
         i
-            The step number for which to get a detailed report.
+            The step number for which to get the report.
+        columns_subset
+            The columns to display in a step report that shows errors in the input table. By default
+            all columns are shown (`None`). If a subset of columns is desired, we can provide a list
+            of column names, a string with a single column name, a `Column` object, or a
+            `ColumnSelector` object. The last two options allow for more flexible column selection
+            using column selector functions. Errors are raised if the column names provided don't
+            match any columns in the table (when provided as a string or list of strings) or if
+            column selector expressions don't resolve to any columns.
+        header
+            Options for customizing the header of the step report. The default is the `":default:"`
+            value which produces a generic header. Aside from this default, text can be provided for
+            the header. This will be interpreted as Markdown text and transformed internally to
+            HTML.
+        limit
+            The number of rows to display for those validation steps that check values in rows (the
+            `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
+            entirely by setting `limit=None`.
 
         Returns
         -------
@@ -4341,6 +4368,25 @@ get_step_report(self, i: 'int') -> 'GT'
         ```python
         validation.get_step_report(i=4)
         ```
+
+        If you'd like to trim down the number of columns shown in the report, you can provide a
+        subset of columns to display. For example, if you only want to see the columns `a`, `b`, and
+        `c`, you can provide those column names as a list.
+
+        ```python
+        validation.get_step_report(i=1, columns_subset=["a", "b", "c"])
+        ```
+
+        If you'd like to increase or reduce the maximum number of rows shown in the report, you can
+        provide a different value for the `limit` parameter. For example, if you'd like to see only
+        up to 5 rows, you can set `limit=5`.
+
+        ```python
+        validation.get_step_report(i=3, limit=5)
+        ```
+
+        Step 3 actually had 7 failing test units, but only the first 5 rows are shown in the step
+        report because of the `limit=5` parameter.
 
 
 get_json_report(self, use_fields: 'list[str] | None' = None, exclude_fields: 'list[str] | None' = None) -> 'str'
@@ -5435,7 +5481,7 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
         A DataScan object.
 
 
-preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' = None, n_head: 'int' = 5, n_tail: 'int' = 5, limit: 'int | None' = 50, show_row_numbers: 'bool' = True, max_col_width: 'int | None' = 250, incl_header: 'bool' = None) -> 'GT'
+preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' = None, n_head: 'int' = 5, n_tail: 'int' = 5, limit: 'int' = 50, show_row_numbers: 'bool' = True, max_col_width: 'int' = 250, min_tbl_width: 'int' = 500, incl_header: 'bool' = None) -> 'GT'
 
     Display a table preview that shows some rows from the top, some from the bottom.
 
@@ -5470,12 +5516,18 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
         The number of rows to show from the end of the table. Set to `5` by default.
     limit
         The limit value for the sum of `n_head=` and `n_tail=` (the total number of rows shown).
-        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised.
+        If the sum of `n_head=` and `n_tail=` exceeds the limit, an error is raised. The default
+        value is `50`.
     show_row_numbers
         Should row numbers be shown? The numbers shown reflect the row numbers of the head and tail
-        in the full table.
+        in the input `data=` table. By default, this is set to `True`.
     max_col_width
-        The maximum width of the columns in pixels. This is `250` (`"250px"`) by default.
+        The maximum width of the columns (in pixels) before the text is truncated. The default value
+        is `250` (`"250px"`).
+    min_tbl_width
+        The minimum width of the table in pixels. If the sum of the column widths is less than this
+        value, the all columns are sized up to reach this minimum width value. The default value is
+        `500` (`"500px"`).
     incl_header
         Should the table include a header with the table type and table dimensions? Set to `True` by
         default.
