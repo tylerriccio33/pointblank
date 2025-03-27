@@ -7966,6 +7966,10 @@ def _process_action_str(
     # If a `col` value is available for the validation step *and* the action string contains a
     # placeholder for the column name then replace with `col`; placeholders are: {col} and {column}
     if col is not None:
+        # If a list of columns is provided, then join the columns into a comma-separated string
+        if isinstance(col, list):
+            col = ", ".join(col)
+
         action_str = action_str.replace("{col}", col)
         action_str = action_str.replace("{column}", col)
 
