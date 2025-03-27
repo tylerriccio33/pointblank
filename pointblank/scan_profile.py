@@ -133,6 +133,8 @@ class _DateProfile(ColumnProfile):
     def calc_stats(self, data: DataFrame):
         res = data.select(_min=MinStat.expr, _max=MaxStat.expr).to_dict()
 
+        data.select(_min=MinStat.expr)
+
         self.statistics: list[Stat] = [MinStat(res["_min"].item()), MaxStat(res["_max"].item())]
 
 
@@ -227,31 +229,44 @@ class _DataProfile:  # TODO: feels redundant and weird
         self.implementation = implementation
         self.column_profiles: list[ColumnProfile] = []
 
-    def as_dataframe(self, *, format_html: bool = False) -> DataFrame:
-        if format_html:
-            formatter = str
-        else:
-            formatter = lambda val: val  # noqa: E731
-
-        cols: list[dict] = []
+    def as_dataframe(self, *, strict: bool = True) -> DataFrame:
+        cols: list[dict] = []  # TODO: type hint
         for prof in self.column_profiles:
             stat_vals = {}
             for stat in prof.statistics:
-                if isinstance(stat.val, float):
-                    val = round(stat.val, 5)
-                else:
-                    val = stat.val
-
-                stat_vals[stat.name] = formatter(val)
+                stat_vals[stat.name] = stat.val
 
             stat_vals |= {"colname": prof.colname}
             stat_vals |= {"coltype": str(prof.coltype)}
-            stat_vals |= {"sample_data": prof.sample_data}
+            stat_vals |= {"sample_data": str(prof.sample_data)}  # TODO: not a good way to do this
             stat_vals |= {"icon": _TypeMap.fetch_icon(prof._type)}
             cols.append(stat_vals)
 
+        # Stringify if type mismatch
+        # Get all unique keys across all dictionaries
+        all_keys = set().union(*(d.keys() for d in cols))
+
+        for key in all_keys:
+            # Get all values for this key across all dictionaries
+            values = [d.get(key) for d in cols if key in d]
+
+            # Check if all values are of the same type
+            if len(values) > 1:
+                first_type = type(values[0])
+                all_same_type: bool = all(isinstance(v, first_type) for v in values[1:])
+                if not all_same_type:
+                    if strict:
+                        msg = f"Some types in {key!s} stat are different. Turn off `strict` to bypass."
+                        raise TypeError(msg)
+                    for d in cols:
+                        if key in d:
+                            d[key] = str(d[key])
+
         # TODO: This is a bad way to do this
-        df_native = self.implementation.to_native_namespace().DataFrame(cols)
+        try:
+            df_native = self.implementation.to_native_namespace().DataFrame(cols)
+        except Exception:
+            raise NotImplementedError
 
         return nw.from_native(df_native)
 
