@@ -5394,9 +5394,9 @@ class Validate:
             if collect_tbl_checked and results_tbl is not None:
                 validation.tbl_checked = results_tbl
 
-            # Perform any necessary actions if threshold levels are exceeded for each
-            # of the severity levels ('warning', 'error', 'critical')
-            for level in ["warning", "error", "critical"]:
+            # Perform any necessary actions if threshold levels are exceeded for each of
+            # the severity levels (in descending order of 'critical', 'error', and 'warning')
+            for level in ["critical", "error", "warning"]:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
@@ -5449,6 +5449,9 @@ class Validate:
                                     with _action_context_manager(metadata):
                                         act()
 
+                        if validation.actions.highest_only:
+                            break
+
                     elif self.actions is not None:
                         # Action execution on the global level
                         action = self.actions._get_action(level=level)
@@ -5488,6 +5491,9 @@ class Validate:
                                     # Execute the action within the context manager
                                     with _action_context_manager(metadata):
                                         act()
+
+                        if self.actions.highest_only:
+                            break
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
@@ -7966,6 +7972,10 @@ def _process_action_str(
     # If a `col` value is available for the validation step *and* the action string contains a
     # placeholder for the column name then replace with `col`; placeholders are: {col} and {column}
     if col is not None:
+        # If a list of columns is provided, then join the columns into a comma-separated string
+        if isinstance(col, list):
+            col = ", ".join(col)
+
         action_str = action_str.replace("{col}", col)
         action_str = action_str.replace("{column}", col)
 
