@@ -1670,6 +1670,100 @@ def test_validation_actions_local_all(tbl_type, capsys):
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_default_global(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(default="{level} default_action", highest_only=False),
+        )
+        .col_vals_gt(columns="d", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "critical default_action" in captured.out
+    assert "error default_action" in captured.out
+    assert "warning default_action" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_default_global_override(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="warning override", default="{level} default_action", highest_only=False
+            ),
+        )
+        .col_vals_gt(columns="d", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "critical default_action" in captured.out
+    assert "error default_action" in captured.out
+    assert "warning override" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_default_local(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(default="{level} default_action_global", highest_only=False),
+        )
+        .col_vals_gt(
+            columns="d",
+            value=10000,
+            actions=Actions(default="{level} default_action_local", highest_only=False),
+        )
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "critical default_action_local" in captured.out
+    assert "error default_action_local" in captured.out
+    assert "warning default_action_local" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_default_local_override(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="warning override_global",
+                default="{level} default_action_global",
+                highest_only=False,
+            ),
+        )
+        .col_vals_gt(
+            columns="d",
+            value=10000,
+            actions=Actions(
+                warning="warning override_local",
+                default="{level} default_action_local",
+                highest_only=False,
+            ),
+        )
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "critical default_action_local" in captured.out
+    assert "error default_action_local" in captured.out
+    assert "warning override_local" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_validation_actions_get_action_metadata(tbl_type, capsys):
     def log_issue():
         metadata = get_action_metadata()
