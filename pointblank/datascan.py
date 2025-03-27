@@ -205,7 +205,8 @@ class DataScan:
 
         # TODO: Ensure width is 905px in total
 
-        data = self.profile.as_dataframe(format_html=True)
+        data = self.profile.as_dataframe(strict=False)
+        # TODO: Type hint this
         # TODO: Remove all null columns
 
         # find what stat cols were used in the analysis
@@ -231,22 +232,48 @@ class DataScan:
 
         assert set(data.columns) == set(target_order), "Internal: fields calculated have no order."
 
+        # TODO: min-SL?
+        # TODO: IQR
+        # TODO: Label formatting
+
         ## Final Formatting:
-        formatted_data = data.with_columns(
-            colname=nw.concat_str(
-                nw.lit(
-                    "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
+        formatted_data = (
+            nw.from_native(data)
+            .with_columns(
+                colname=nw.concat_str(
+                    nw.lit(
+                        "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
+                    ),
+                    nw.col("colname"),
+                    nw.lit("</div><div style='font-size: 11px; color: gray;'>"),
+                    nw.col("coltype"),
+                    nw.lit("</div>"),
                 ),
-                nw.col("colname"),
-                nw.lit("</div><div style='font-size: 11px; color: gray;'>"),
-                nw.col("coltype"),
-                nw.lit("</div>"),
+                # TODO: These are supposted to be html formatted
+                __frac_n_unique=nw.col("n_unique") / nw.lit(self.profile.row_count),
+                __frac_n_missing=nw.col("n_missing") / nw.lit(self.profile.row_count),
             )
-        ).to_native()
+            .with_columns(
+                n_unique=nw.concat_str(
+                    nw.col("n_unique"), nw.lit("<br>"), nw.col("__frac_n_unique")
+                ),
+                n_missing=nw.concat_str(
+                    nw.col("n_missing"), nw.lit("<br>"), nw.col("__frac_n_missing")
+                ),
+            )
+            .drop("__frac_n_unique", "__frac_n_missing")
+        )
+
+        ## Determine Value Formatting Selectors:
+        # TODO: will they always be 64? might want strictly type cast this?
+        fmt_int: list[str] = formatted_data.select(nw.selectors.by_dtype(nw.dtypes.Int64)).columns
+        fmt_float: list[str] = formatted_data.select(
+            nw.selectors.by_dtype(nw.dtypes.Float64)
+        ).columns
 
         ## GT Table:
         gt_tbl = (
-            GT(formatted_data)
+            GT(formatted_data.to_native())
             .tab_header(title=html(combined_title))
             .cols_align(align="right", columns=list(present_stat_cols))
             .opt_table_font(font=google_font("IBM Plex Sans"))
@@ -257,6 +284,10 @@ class DataScan:
             )
             ## Order
             .cols_move_to_start(target_order)
+            ## Value Formatting
+            .fmt_integer(columns=fmt_int)
+            .fmt_number(columns=fmt_float)
+            .sub_missing(missing_text="-")
             ## Generic Styling
             .tab_style(
                 style=style.text(size="10px"),
@@ -295,6 +326,7 @@ class DataScan:
         raise NotImplementedError
 
     def to_json(self) -> str:
+        # TODO: Might make sense to return it deconstructed then to dict?
         prof_dict = self.profile.as_dataframe().to_dict(as_series=False)
 
         return json.dumps(prof_dict, indent=4, default=str)
