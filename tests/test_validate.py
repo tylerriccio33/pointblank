@@ -1572,6 +1572,104 @@ def test_validation_actions_step_only_none(request, tbl_fixture, capsys):
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_global_highest(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="W_global", error="E_global", critical="C_global", highest_only=True
+            ),
+        )
+        .col_vals_gt(columns="d", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that only the highest priority level
+    # message printed to the console
+    captured = capsys.readouterr()
+    assert "C_global" in captured.out
+    assert "E_global" not in captured.out
+    assert "W_global" not in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_global_all(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="W_global", error="E_global", critical="C_global", highest_only=False
+            ),
+        )
+        .col_vals_gt(columns="d", value=10000)
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "C_global" in captured.out
+    assert "E_global" in captured.out
+    assert "W_global" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_local_highest(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="W_global", error="E_global", critical="C_global", highest_only=False
+            ),
+        )
+        .col_vals_gt(
+            columns="d",
+            value=10000,
+            actions=Actions(
+                warning="W_local", error="E_local", critical="C_local", highest_only=True
+            ),
+        )
+        .interrogate()
+    )
+
+    # Capture the output and verify that only the highest priority level
+    # message printed to the console
+    captured = capsys.readouterr()
+    assert "C_local" in captured.out
+    assert "E_local" not in captured.out
+    assert "W_local" not in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_actions_local_all(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type=tbl_type),
+            thresholds=Thresholds(warning=1, error=2, critical=3),
+            actions=Actions(
+                warning="W_global", error="E_global", critical="C_global", highest_only=True
+            ),
+        )
+        .col_vals_gt(
+            columns="d",
+            value=10000,
+            actions=Actions(
+                warning="W_local", error="E_local", critical="C_local", highest_only=False
+            ),
+        )
+        .interrogate()
+    )
+
+    # Capture the output and verify that all three level messages are printed to the console
+    captured = capsys.readouterr()
+    assert "C_local" in captured.out
+    assert "E_local" in captured.out
+    assert "W_local" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_validation_actions_get_action_metadata(tbl_type, capsys):
     def log_issue():
         metadata = get_action_metadata()
