@@ -5403,6 +5403,34 @@ def test_comprehensive_validation_report_html_snap(snapshot):
     snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
 
 
+def test_validation_report_briefs_html(snapshot):
+    validation = (
+        Validate(
+            data=load_dataset(),
+            tbl_name="small_table",
+            label="Validation example with briefs",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+        )
+        .col_vals_eq(columns="a", value=3)  # no brief
+        .col_vals_lt(columns="c", value=5, brief=False)  # same as `brief=None` (no brief)
+        .col_vals_gt(columns="d", value=100, brief=True)  # automatically generated brief
+        .col_vals_le(columns="a", value=7, brief="This is a custom brief for the assertion")
+        .col_vals_ge(columns="d", value=500, na_pass=True, brief="**Step** {step}: {brief}")
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "validation_report_with_briefs.html")
+
+
 def test_no_interrogation_validation_report_html_snap(snapshot):
     validation = (
         Validate(
