@@ -102,7 +102,7 @@ Here's an example where we prepare a console message with a number of value plac
 
 action_str = "[{LEVEL}: {TYPE}]: Step {step} has failed validation. ({time})"
 
-validation = (
+validation_2 = (
     pb.Validate(
         data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
         thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
@@ -113,6 +113,8 @@ validation = (
     .col_vals_ge(columns="session_duration", value=15)
     .interrogate()
 )
+
+validation_2
 ```
 
 What we get here are two messages in the console, corresponding to critical failures in steps 2 and
@@ -130,7 +132,7 @@ def dq_issue():
 
     print(f"Data quality issue found ({datetime.now()}).")
 
-validation = (
+validation_3 = (
     pb.Validate(
         data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
         thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
@@ -145,7 +147,7 @@ validation = (
     .interrogate()
 )
 
-validation
+validation_3
 ```
 
 In this case, the 'warning' action is set to call the user's `dq_issue()` function. This action is
