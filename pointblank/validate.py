@@ -8764,7 +8764,15 @@ def _transform_assertion_str(
     # Declare the text size based on the length of `assertion_str`
     text_size = [10 if nchar + 2 >= 20 else 11 for nchar in assertion_type_nchar]
 
-    # Create the assertion type update using a list comprehension
+    # Define the brief's HTML div tag for each row
+    brief_divs = [
+        f"<div style=\"font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;\">{brief}</div>"
+        if brief.strip()
+        else ""
+        for brief in brief_str
+    ]
+
+    # Create the assertion `type_upd` strings
     type_upd = [
         f"""
         <div style="margin: 0; padding: 0; display: inline-block; height: 30px; vertical-align: middle; width: 16%;">
@@ -8773,9 +8781,9 @@ def _transform_assertion_str(
         <div style="font-family: 'IBM Plex Mono', monospace, courier; color: black; font-size: {size}px; display: inline-block; vertical-align: middle;">
             <div>{assertion}</div>
         </div>
-        <div style="font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;">{brief}</div>
+        {brief_div}
         """
-        for assertion, svg, size, brief in zip(assertion_str, svg_icon, text_size, brief_str)
+        for assertion, svg, size, brief_div in zip(assertion_str, svg_icon, text_size, brief_divs)
     ]
 
     return type_upd
