@@ -5449,6 +5449,9 @@ class Validate:
                                     with _action_context_manager(metadata):
                                         act()
 
+                        if validation.actions.highest_only:
+                            break
+
                     elif self.actions is not None:
                         # Action execution on the global level
                         action = self.actions._get_action(level=level)
@@ -5489,10 +5492,8 @@ class Validate:
                                     with _action_context_manager(metadata):
                                         act()
 
-                    if (validation.actions is not None and validation.actions.highest_only) or (
-                        self.actions is not None and self.actions.highest_only
-                    ):
-                        break
+                        if self.actions.highest_only:
+                            break
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
