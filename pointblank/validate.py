@@ -5394,9 +5394,9 @@ class Validate:
             if collect_tbl_checked and results_tbl is not None:
                 validation.tbl_checked = results_tbl
 
-            # Perform any necessary actions if threshold levels are exceeded for each
-            # of the severity levels ('warning', 'error', 'critical')
-            for level in ["warning", "error", "critical"]:
+            # Perform any necessary actions if threshold levels are exceeded for each of
+            # the severity levels (in descending order of 'critical', 'error', and 'warning')
+            for level in ["critical", "error", "warning"]:
                 if getattr(validation, level) and (
                     self.actions is not None or validation.actions is not None
                 ):
@@ -5488,6 +5488,11 @@ class Validate:
                                     # Execute the action within the context manager
                                     with _action_context_manager(metadata):
                                         act()
+
+                    if (validation.actions is not None and validation.actions.highest_only) or (
+                        self.actions is not None and self.actions.highest_only
+                    ):
+                        break
 
             # If this is a row-based validation step, then extract the rows that failed
             # TODO: Add support for extraction of rows for Ibis backends
