@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, ClassVar
 
 import narwhals as nw
 
+from pointblank._utils_html import _make_sublabel
+
 if TYPE_CHECKING:
     from typing import Any
 
@@ -22,7 +24,15 @@ class Stat(ABC):
     name: ClassVar[str]
     group: ClassVar[StatGroup]
     expr: ClassVar[nw.Expr]
-    py_type: ClassVar[type] = float
+    label: ClassVar[str]
+    py_type: ClassVar[type] = float  # TODO: why do we need this?
+
+    def __eq__(self, value) -> bool:
+        if isinstance(value, str):
+            return value == self.name
+        if isinstance(value, Stat):
+            return value is self
+        return NotImplemented
 
 
 @dataclass(frozen=True)
@@ -31,6 +41,7 @@ class MeanStat(Stat):
     name: ClassVar[str] = "mean"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().mean().cast(nw.Float64)
+    label: ClassVar[str] = "Mean"
     py_type: ClassVar[type] = float
 
 
@@ -40,6 +51,7 @@ class StdStat(Stat):
     name: ClassVar[str] = "std"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().std().cast(nw.Float64)
+    label: ClassVar[str] = "SD"
     py_type: ClassVar[type] = float
 
 
@@ -49,6 +61,7 @@ class MinStat(Stat):
     name: ClassVar[str] = "min"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().min().cast(nw.Float64)
+    label: ClassVar[str] = "Min"
     py_type: ClassVar[type] = float
 
 
@@ -58,6 +71,7 @@ class MaxStat(Stat):
     name: ClassVar[str] = "max"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().max().cast(nw.Float64)
+    label: ClassVar[str] = "Max"
     py_type: ClassVar[type] = float
 
 
@@ -67,6 +81,7 @@ class P05Stat(Stat):
     name: ClassVar[str] = "p05"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.005, interpolation="linear").cast(nw.Float64)
+    label: ClassVar[str] = _make_sublabel("P", "5")
     py_type: ClassVar[type] = float
 
 
@@ -76,6 +91,7 @@ class Q1Stat(Stat):
     name: ClassVar[str] = "q_1"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.25, interpolation="linear").cast(nw.Float64)
+    label: ClassVar[str] = _make_sublabel("Q", "1")
     py_type: ClassVar[type] = float
 
 
@@ -85,6 +101,7 @@ class MedianStat(Stat):
     name: ClassVar[str] = "median"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().median().cast(nw.Float64)
+    label: ClassVar[str] = "Med"
     py_type: ClassVar[type] = float
 
 
@@ -94,6 +111,7 @@ class Q3Stat(Stat):
     name: ClassVar[str] = "q_3"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.75, interpolation="linear").cast(nw.Float64)
+    label: ClassVar[str] = _make_sublabel("Q", "3")
     py_type: ClassVar[type] = float
 
 
@@ -103,6 +121,7 @@ class P95Stat(Stat):
     name: ClassVar[str] = "p95"
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.95, interpolation="linear").cast(nw.Float64)
+    label: ClassVar[str] = _make_sublabel("P", "95")
     py_type: ClassVar[type] = float
 
 
@@ -112,6 +131,7 @@ class NTrue(Stat):
     name: ClassVar[str] = "n_true"
     group = StatGroup.LOGIC
     expr: ClassVar[nw.Expr] = nw.all().sum().cast(nw.Boolean)
+    label: ClassVar[str] = _make_sublabel("True", "N")
     py_type: ClassVar[type] = int
 
 
@@ -122,6 +142,7 @@ class NFalse(Stat):
     group = StatGroup.LOGIC
     # TODO: I don't think this is valid
     expr: ClassVar[nw.Expr] = ~nw.all().sum().cast(nw.Boolean)
+    label: ClassVar[str] = _make_sublabel("False", "N")
     py_type: ClassVar[type] = int
 
 
@@ -131,6 +152,7 @@ class NMissing(Stat):
     name: ClassVar[str] = "n_missing"
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().null_count()
+    label: ClassVar[str] = _make_sublabel("Missing", "N")
     py_type: ClassVar[type] = int
 
 
@@ -140,6 +162,7 @@ class NUnique(Stat):
     name: ClassVar[str] = "n_unique"
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().n_unique()
+    label: ClassVar[str] = _make_sublabel("UQ", "N")
     py_type: ClassVar[type] = int
 
 

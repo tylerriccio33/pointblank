@@ -231,13 +231,22 @@ class DataScan:
 
         assert set(data.columns) == set(target_order), "Internal: fields calculated have no order."
 
+        label_map: dict[str, Any] = {}
+        for target_col in target_order:
+            try:
+                matching_stat = next(
+                    stat for stat in COLUMN_ORDER_REGISTRY if target_col == stat.name
+                )
+            except StopIteration:
+                continue
+            label_map[target_col] = matching_stat.label
+
         # TODO: min-SL?
         # TODO: IQR
-        # TODO: Label formatting
 
         ## Final Formatting:
         formatted_data = (
-            nw.from_native(data)
+            nw.from_native(data)  # TODO: isn't it already native?
             .with_columns(
                 colname=nw.concat_str(
                     nw.lit(
@@ -248,7 +257,6 @@ class DataScan:
                     nw.col("coltype"),
                     nw.lit("</div>"),
                 ),
-                # TODO: These are supposted to be html formatted
                 __frac_n_unique=nw.col("n_unique") / nw.lit(self.profile.row_count),
                 __frac_n_missing=nw.col("n_missing") / nw.lit(self.profile.row_count),
             )
@@ -283,6 +291,8 @@ class DataScan:
             )
             ## Order
             .cols_move_to_start(target_order)
+            ## Labeling
+            .cols_label(label_map)
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(columns=fmt_float)

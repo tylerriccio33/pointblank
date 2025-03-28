@@ -124,10 +124,12 @@ class ColumnProfile(_ColumnProfileABC):
             data.select(_nmissing=NMissing.expr, _nunique=NUnique.expr)
         ).to_dict()
 
-        self.statistics = [
-            NMissing(summarized["_nmissing"].item()),
-            NUnique(summarized["_nunique"].item()),
-        ]
+        self.statistics.extend(
+            [
+                NMissing(summarized["_nmissing"].item()),
+                NUnique(summarized["_nunique"].item()),
+            ]
+        )
 
 
 class _DateProfile(ColumnProfile):
@@ -138,10 +140,12 @@ class _DateProfile(ColumnProfile):
 
         physical = _as_physical(res).to_dict()
 
-        self.statistics: list[Stat] = [
-            MinStat(physical["_min"].item()),
-            MaxStat(physical["_max"].item()),
-        ]
+        self.statistics.extend(
+            [
+                MinStat(physical["_min"].item()),
+                MaxStat(physical["_max"].item()),
+            ]
+        )
 
 
 class _BoolProfile(ColumnProfile):
@@ -152,10 +156,12 @@ class _BoolProfile(ColumnProfile):
 
         physical = _as_physical(res).to_dict()
 
-        self.statistics: list[Stat] = [
-            NTrue(physical["_ntrue"].item()),
-            NFalse(physical["_nfalse"].item()),
-        ]
+        self.statistics.extend(
+            [
+                NTrue(physical["_ntrue"].item()),
+                NFalse(physical["_nfalse"].item()),
+            ]
+        )
 
 
 class _StringProfile(ColumnProfile):
