@@ -1792,6 +1792,12 @@ class Validate:
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no default actions
         will be set.
+    brief
+        A global setting for briefs, which are optional brief descriptions for validation steps
+        (they be displayed in the reporting table). For such a global setting, templating elements
+        like `"{step}"` (to insert the step number) or `"{auto}"` (to include an automatically
+        generated brief) are useful. If `True` then each brief will be automatically generated. If
+        `None` (the default) then briefs aren't globally set.
     lang
         The language to use for automatic creation of briefs (short descriptions for each validation
         step). By default, `None` will create English (`"en"`) text. Other options include French
@@ -1906,6 +1912,7 @@ class Validate:
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
     actions: Actions | None = None
+    brief: str | bool | None = None
     lang: str | None = None
     locale: str | None = None
 
@@ -1923,6 +1930,9 @@ class Validate:
         # Set the `locale` to the `lang` value if `locale` isn't set
         if self.locale is None:
             self.locale = self.lang
+
+        # Transform any shorthands of `brief` to string representations
+        self.brief = _transform_auto_brief(brief=self.brief)
 
         # TODO: Add functionality to obtain the column names and types from the table
         self.col_names = None
@@ -2089,8 +2099,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -2262,8 +2272,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -2434,8 +2444,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -2604,8 +2614,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -2778,8 +2788,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -2952,8 +2962,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3149,8 +3159,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3350,8 +3360,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3510,8 +3520,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3669,8 +3679,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3820,8 +3830,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -3970,8 +3980,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -4131,8 +4141,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -4263,8 +4273,8 @@ class Validate:
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -4409,8 +4419,8 @@ class Validate:
         if isinstance(columns, (Column, str)):
             columns = [columns]
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         # Iterate over the columns and create a validation step for each
         for column in columns:
@@ -4559,8 +4569,8 @@ class Validate:
 
         # TODO: incorporate Column object
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -4741,8 +4751,8 @@ class Validate:
             "full_match_dtypes": full_match_dtypes,
         }
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -4918,8 +4928,8 @@ class Validate:
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse, "abs_tol_bounds": bounds}
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
@@ -5052,8 +5062,8 @@ class Validate:
         # Package up the `count=` and boolean params into a dictionary for later interrogation
         values = {"count": count, "inverse": inverse}
 
-        # Transform any shorthands of `brief=` to string representations
-        brief = _transform_auto_brief(brief=brief)
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
