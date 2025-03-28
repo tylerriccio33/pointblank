@@ -1900,6 +1900,43 @@ class Validate:
     [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) method, which contains
     options for modifying the display of the table.
 
+    ### Adding briefs
+
+    Briefs are short descriptions of the validation steps. While they can be set for each step
+    individually, they can also be set globally. The global setting is done by using the
+    `brief=` argument in `Validate`. The global setting can be as simple as `True` to have
+    automatically-generated briefs for each step. Alternatively, we can use templating elements
+    like `"{step}"` (to insert the step number) or `"{auto}"` (to include an automatically generated
+    brief). Here's an example of a global setting for briefs:
+
+    ```{python}
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(),
+            tbl_name="small_table",
+            label="Validation example with briefs",
+            brief="Step {step}: {auto}",
+        )
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_between(columns="c", left=3, right=10, na_pass=True)
+        .col_vals_regex(
+            columns="b",
+            pattern=r"[0-9]-[a-z]{3}-[0-9]{3}",
+            brief="Regex check for column {col}"
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    We see the text of the briefs appear in the `STEP` column of the reporting table. Furthermore,
+    the global brief's template (`"Step {step}: {auto}"`) is applied to all steps except for the
+    final step, where the step-level `brief=` argument provided an override.
+
+    If you should want to cancel the globally-defined brief for one or more validation steps, you
+    can set `brief=False` in those particular steps.
+
     ### Post-interrogation methods
 
     The `Validate` class has a number of post-interrogation methods that can be used to extract
