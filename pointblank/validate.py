@@ -5147,7 +5147,7 @@ class Validate:
         get_first_n: int | None = None,
         sample_n: int | None = None,
         sample_frac: int | float | None = None,
-        sample_limit: int = 5000,
+        extract_limit: int = 500,
     ) -> Validate:
         """
         Execute each validation step against the table and store the results.
@@ -5158,8 +5158,8 @@ class Validate:
 
         The interrogation process will collect extracts of failing rows if the `collect_extracts=`
         option is set to `True` (the default). We can control the number of rows collected using the
-        `get_first_n=`, `sample_n=`, and `sample_frac=` options. The `sample_limit=` option will
-        enforce a hard limit on the number of rows collected when using the `sample_frac=` option.
+        `get_first_n=`, `sample_n=`, and `sample_frac=` options. The `extract_limit=` option will
+        enforce a hard limit on the number of rows collected when `collect_extracts=True`.
 
         After interrogation is complete, the `Validate` object will have gathered information, and
         we can use methods like [`n_passed()`](`pointblank.Validate.n_passed`),
@@ -5178,9 +5178,9 @@ class Validate:
             The processed data frames produced by executing the validation steps is collected and
             stored in the `Validate` object if `collect_tbl_checked=True`. This information is
             necessary for some methods (e.g.,
-            [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`)), but it potentially
-            makes the object grow to a large size. To opt out of attaching this data, set this
-            argument to `False`.
+            [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`)), but it can
+            potentially make the object grow to a large size. To opt out of attaching this data, set
+            this to `False`.
         get_first_n
             If the option to collect rows where test units is chosen, there is the option here to
             collect the first `n` rows. Supply an integer number of rows to extract from the top of
@@ -5194,11 +5194,15 @@ class Validate:
         sample_frac
             If the option to collect non-passing rows is chosen, this option allows for the sampling
             of a fraction of those rows. Provide a number in the range of `0` and `1`. The number of
-            rows to return could be very large, however, the `sample_limit=` option will apply a
+            rows to return could be very large, however, the `extract_limit=` option will apply a
             hard limit to the returned rows.
-        sample_limit
-            A value that limits the possible number of rows returned when sampling non-passing rows
-            using the `sample_frac=` option.
+        extract_limit
+            A value that limits the possible number of rows returned when extracting non-passing
+            rows. The default is `500` rows. This limit is applied after any sampling or limiting
+            options are applied. If the number of rows to be returned is greater than this limit,
+            then the number of rows returned will be limited to this value. This is useful for
+            preventing the collection of too many rows when the number of non-passing rows is very
+            large.
 
         Returns
         -------
@@ -5708,9 +5712,9 @@ class Validate:
                 elif sample_frac is not None:
                     validation_extract_nw = validation_extract_nw.sample(fraction=sample_frac)
 
-                    # Ensure a limit is set on the number of rows to extract
-                    if len(validation_extract_nw) > sample_limit:
-                        validation_extract_nw = validation_extract_nw.head(sample_limit)
+                # Ensure a limit is set on the number of rows to extract
+                if len(validation_extract_nw) > extract_limit:
+                    validation_extract_nw = validation_extract_nw.head(extract_limit)
 
                 validation.extract = nw.to_native(validation_extract_nw)
 
