@@ -11,7 +11,7 @@ failure thresholds (using the `Thresholds` class or through shorthands for this 
 `Validate` class has numerous methods for defining validation steps and for obtaining
 post-interrogation metrics and data.
 
-Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None, lang: 'str | None' = None, locale: 'str | None' = None) -> None
+Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, lang: 'str | None' = None, locale: 'str | None' = None) -> None
 
     Workflow for defining a set of validations on a table and interrogating for results.
 
@@ -62,6 +62,12 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no default actions
         will be set.
+    brief
+        A global setting for briefs, which are optional brief descriptions for validation steps
+        (they be displayed in the reporting table). For such a global setting, templating elements
+        like `"{step}"` (to insert the step number) or `"{auto}"` (to include an automatically
+        generated brief) are useful. If `True` then each brief will be automatically generated. If
+        `None` (the default) then briefs aren't globally set.
     lang
         The language to use for automatic creation of briefs (short descriptions for each validation
         step). By default, `None` will create English (`"en"`) text. Other options include French
