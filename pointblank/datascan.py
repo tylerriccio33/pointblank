@@ -120,19 +120,6 @@ class DataScan:
 
     def __init__(self, data: IntoFrame, tbl_name: str | None = None) -> None:
         self.nw_data: Frame = nw.from_native(data)
-
-        # # TODO: this must be wrong, investigate a more idiomatic way
-        # is_lazy = self.nw_data._level == "lazy"
-        # if is_lazy and not force_collect:  # ? this should be allowed (eventually?)
-        #     msg = (
-        #         "`DataScan` requires a dataframe to avoid unexpected computations "
-        #         "of the caller's execution graph. Please collect the data into a "
-        #         "narwhals compliant dataframe first or turn on `force_collect`."
-        #     )
-        #     raise TypeError(msg)
-        # if is_lazy and force_collect:
-        #     self.nw_data = self.nw_data.collect()
-
         self.tbl_name: str | None = tbl_name
         self.profile: _DataProfile = self._generate_profile_df()
 
@@ -179,7 +166,7 @@ class DataScan:
         return profile
 
     @property
-    def summary_data(self) -> DataFrame:  # TODO: Think this type hint is wrong
+    def summary_data(self) -> DataFrame:
         return self.profile.as_dataframe(strict=False)
 
     def get_tabular_report(self) -> GT:
@@ -204,8 +191,7 @@ class DataScan:
 
         # TODO: Ensure width is 905px in total
 
-        data = self.profile.as_dataframe(strict=False)
-        # TODO: Type hint this
+        data: DataFrame = self.profile.as_dataframe(strict=False)
         # TODO: Remove all null columns
 
         # find what stat cols were used in the analysis
@@ -246,8 +232,7 @@ class DataScan:
 
         ## Final Formatting:
         formatted_data = (
-            nw.from_native(data)  # TODO: isn't it already native?
-            .with_columns(
+            data.with_columns(
                 colname=nw.concat_str(
                     nw.lit(
                         "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
