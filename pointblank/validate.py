@@ -1790,7 +1790,7 @@ class Validate:
         [`Thresholds`](`pointblank.Thresholds`) object.
     actions
         The actions to take when validation steps meet or exceed any set threshold levels. This
-        should be provided in the form of an `Actions` object. If `None` then no default actions
+        should be provided in the form of an `Actions` object. If `None` then no global actions
         will be set.
     brief
         A global setting for briefs, which are optional brief descriptions for validation steps
@@ -1834,7 +1834,7 @@ class Validate:
 
     Examples
     --------
-    ## Creating a validation plan and interrogating
+    ### Creating a validation plan and interrogating
 
     Let's walk through a data quality analysis of an extremely small table. It's actually called
     `"small_table"` and it's accessible through the [`load_dataset()`](`pointblank.load_dataset`)
@@ -1900,11 +1900,35 @@ class Validate:
     [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) method, which contains
     options for modifying the display of the table.
 
-    Furthermore, post-interrogation methods such as
-    [`get_step_report()`](`pointblank.Validate.get_step_report`),
-    [`get_data_extracts()`](`pointblank.Validate.get_data_extracts`), and
-    [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) allow you to generate
-    additional reporting or extract useful data for downstream analysis from a `Validate` object.
+    ### Post-interrogation methods
+
+    The `Validate` class has a number of post-interrogation methods that can be used to extract
+    useful information from the validation results. For example, the
+    [`get_data_extracts()`](`pointblank.Validate.get_data_extracts`) method can be used to get
+    the data extracts for each validation step.
+
+    ```{python}
+    validation.get_data_extracts()
+    ```
+
+    We can also view step reports for each validation step using the
+    [`get_step_report()`](`pointblank.Validate.get_step_report`) method. This method adapts to the
+    type of validation step and shows the relevant information for a step's validation.
+
+    ```{python}
+    validation.get_step_report(i=2)
+    ```
+
+    The `Validate` class also has a method for getting the sundered data, which is the data that
+    passed or failed the validation steps. This can be done using the
+    [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) method.
+
+    ```{python}
+    pb.preview(validation.get_sundered_data())
+    ```
+
+    The sundered data is a DataFrame that contains the rows that passed or failed the validation.
+    The default behavior is to return the rows that failed the validation, as shown above.
     """
 
     data: FrameT | Any
