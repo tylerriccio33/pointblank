@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 from narwhals.dataframe import DataFrame
@@ -34,13 +34,8 @@ if TYPE_CHECKING:
     from narwhals.typing import Frame
 
 
-## Columns that pose risks for exceptions or don't have handlers
+## Types that may cause unrecoverable errors and don't pose any value
 ILLEGAL_TYPES = ("struct",)
-
-
-class _Metadata(TypedDict):  # TODO: Need a better name
-    row_count: int
-    implementation: nw.Implementation
 
 
 class _TypeMap(Enum):  # ! ordered;
