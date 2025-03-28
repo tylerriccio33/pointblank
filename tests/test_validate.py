@@ -5057,6 +5057,55 @@ def test_interrogate_sample_n(request, tbl_fixture):
         assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 
+def test_interrogate_sample_n_limit():
+    game_revenue = load_dataset(dataset="game_revenue", tbl_type="polars")
+
+    validation_default_limit = (
+        Validate(game_revenue).col_vals_gt(columns="item_revenue", value=10000).interrogate()
+    )
+
+    assert (
+        len(nw.from_native(validation_default_limit.get_data_extracts(i=1, frame=True)).rows())
+        == 500
+    )
+
+    validation_set_n_limit = (
+        Validate(game_revenue)
+        .col_vals_gt(columns="item_revenue", value=10000)
+        .interrogate(get_first_n=10)
+    )
+
+    assert (
+        len(nw.from_native(validation_set_n_limit.get_data_extracts(i=1, frame=True)).rows()) == 10
+    )
+
+    validation_set_n_no_limit_break = (
+        Validate(game_revenue)
+        .col_vals_gt(columns="item_revenue", value=10000)
+        .interrogate(get_first_n=750)
+    )
+
+    assert (
+        len(
+            nw.from_native(
+                validation_set_n_no_limit_break.get_data_extracts(i=1, frame=True)
+            ).rows()
+        )
+        == 500
+    )
+
+    validation_set_n_adj_limit = (
+        Validate(game_revenue)
+        .col_vals_gt(columns="item_revenue", value=10000)
+        .interrogate(get_first_n=750, extract_limit=1000)
+    )
+
+    assert (
+        len(nw.from_native(validation_set_n_adj_limit.get_data_extracts(i=1, frame=True)).rows())
+        == 750
+    )
+
+
 @pytest.mark.parametrize(
     "tbl_fixture, sample_frac, expected",
     [
@@ -5096,7 +5145,7 @@ def test_interrogate_sample_frac_with_sample_limit(request, tbl_fixture):
     validation = (
         Validate(tbl)
         .col_vals_regex(columns="text", pattern=r"^[a-z]{3}")
-        .interrogate(sample_frac=0.8, sample_limit=1)
+        .interrogate(sample_frac=0.8, extract_limit=1)
     )
 
     # Expect that the extracts table has 2 entries out of 3 failures
