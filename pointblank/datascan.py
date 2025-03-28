@@ -9,14 +9,14 @@ from great_tables import GT, google_font, html, loc, style
 from narwhals.typing import FrameT
 
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
-from pointblank.scan_profile import ColumnProfile, _DataProfile, _TypeMap
+from pointblank.scan_profile import ColumnProfile, _as_physical, _DataProfile, _TypeMap
 from pointblank.scan_profile_stats import COLUMN_ORDER_REGISTRY
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from narwhals.dataframe import DataFrame
-    from narwhals.typing import IntoDataFrame
+    from narwhals.typing import Frame, IntoFrame
 
     from pointblank.scan_profile_stats import StatGroup
 
@@ -118,34 +118,29 @@ class DataScan:
         A DataScan object.
     """
 
-    def __init__(
-        self, data: IntoDataFrame, tbl_name: str | None = None, *, force_collect: bool = True
-    ) -> None:
-        self.nw_data: DataFrame = nw.from_native(data)
+    def __init__(self, data: IntoFrame, tbl_name: str | None = None) -> None:
+        self.nw_data: Frame = nw.from_native(data)
 
         # # TODO: this must be wrong, investigate a more idiomatic way
-        is_lazy = self.nw_data._level == "lazy"
-        if is_lazy and not force_collect:  # ? this should be allowed (eventually?)
-            msg = (
-                "`DataScan` requires a dataframe to avoid unexpected computations "
-                "of the caller's execution graph. Please collect the data into a "
-                "narwhals compliant dataframe first or turn on `force_collect`."
-            )
-            raise TypeError(msg)
-        if is_lazy and force_collect:
-            self.nw_data = self.nw_data.collect()
+        # is_lazy = self.nw_data._level == "lazy"
+        # if is_lazy and not force_collect:  # ? this should be allowed (eventually?)
+        #     msg = (
+        #         "`DataScan` requires a dataframe to avoid unexpected computations "
+        #         "of the caller's execution graph. Please collect the data into a "
+        #         "narwhals compliant dataframe first or turn on `force_collect`."
+        #     )
+        #     raise TypeError(msg)
+        # if is_lazy and force_collect:
+        #     self.nw_data = self.nw_data.collect()
 
         self.tbl_name: str | None = tbl_name
         self.profile: _DataProfile = self._generate_profile_df()
 
     def _generate_profile_df(self) -> _DataProfile:
-        row_count = len(self.nw_data)
-
         columns: list[str] = self.nw_data.columns
 
         profile = _DataProfile(
             table_name=self.tbl_name,
-            row_count=row_count,
             columns=columns,
             implementation=self.nw_data.implementation,
         )
@@ -167,7 +162,9 @@ class DataScan:
             ## Collect Sample Data:
             ## This is the most consistent way (i think) to get the samples out of the data.
             ## We can avoid writing our own logic to determine operations and rely on narwhals.
-            raw_vals: list[Any] = col_data.drop_nulls().head(5).to_dict()[column].to_list()
+            raw_vals: list[Any] = (
+                _as_physical(col_data.drop_nulls().head(5)).to_dict()[column].to_list()
+            )
             col_profile.sample_data = [str(x) for x in raw_vals]
 
             col_profile.calc_stats(col_data)
@@ -177,11 +174,13 @@ class DataScan:
 
             profile.column_profiles.append(sub_profile)
 
+        profile.set_row_count(self.nw_data)
+
         return profile
 
     @property
     def summary_data(self) -> DataFrame:  # TODO: Think this type hint is wrong
-        return self.profile.as_dataframe()
+        return self.profile.as_dataframe(strict=False)
 
     def get_tabular_report(self) -> GT:
         # Create the label, table type, and thresholds HTML fragments

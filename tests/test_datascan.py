@@ -7,22 +7,35 @@ from great_tables import GT
 import polars as pl
 
 from pointblank.datascan import DataScan, col_summary_tbl
+from pointblank import load_dataset
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
+from pointblank.scan_profile import _as_physical
 
 
 ## Setup Strategies:
 happy_path_df = pt.dataframes(
-    min_size=5, allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical]
+    min_size=5,
+    allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date, pl.Datetime],
+)
+happy_path_ldf = pt.dataframes(
+    min_size=5,
+    allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date, pl.Datetime],
+    lazy=True,
 )
 
+# TODO: Generate a grid of different types (arrow, pandas, polars, etc.)
 
-@given(df=happy_path_df)
+
+@given(happy_path_df | happy_path_ldf)
 def test_datascan_class_parametric(df) -> None:
     scanner = DataScan(data=df)
 
     df_nw = nw.from_native(df)
 
     summary_res = scanner.summary_data.to_native()
+
+    physical_summary = _as_physical(scanner.summary_data)
+    physical_input = _as_physical(nw.from_native(df))
 
     ## Go through checks:
     cols = summary_res.select("colname").to_series().to_list()
@@ -31,8 +44,9 @@ def test_datascan_class_parametric(df) -> None:
     df_cols = df_nw.columns
     assert set(cols) == set(df_cols), msg
 
-    msg = "return type must be same as input"
-    assert isinstance(summary_res, type(df)), msg
+    msg = "return type is the physical version of the input"
+    assert physical_input.implementation == physical_summary.implementation
+    assert isinstance(scanner.summary_data, nw.DataFrame)
 
     msg = "did not return correct amount of summary rows"
     assert len(summary_res) == len(cols)  # only for happy path
@@ -166,4 +180,3 @@ def test_compact_0_1_fmt():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-x"])
-

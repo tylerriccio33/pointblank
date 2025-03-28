@@ -8,6 +8,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, TypedDict
 
 import narwhals as nw
+from narwhals.dataframe import DataFrame
 
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank.scan_profile_stats import (
@@ -30,7 +31,7 @@ from pointblank.scan_profile_stats import (
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
 
-    from narwhals.dataframe import DataFrame
+    from narwhals.typing import Frame
 
 
 ## Columns that pose risks for exceptions or don't have handlers
@@ -91,7 +92,7 @@ class _TypeMap(Enum):  # ! ordered;
 
 class _ColumnProfileABC(ABC):
     @abstractmethod
-    def calc_stats(self, data: DataFrame) -> None: ...
+    def calc_stats(self, data: Frame) -> None: ...
 
 
 @dataclass
@@ -118,8 +119,10 @@ class ColumnProfile(_ColumnProfileABC):
         inst.sample_data = self.sample_data
         return inst
 
-    def calc_stats(self, data: DataFrame) -> None:
-        summarized = data.select(_nmissing=NMissing.expr, _nunique=NUnique.expr)
+    def calc_stats(self, data: Frame) -> None:
+        summarized = _as_physical(
+            data.select(_nmissing=NMissing.expr, _nunique=NUnique.expr)
+        ).to_dict()
 
         self.statistics = [
             NMissing(summarized["_nmissing"].item()),
@@ -130,27 +133,35 @@ class ColumnProfile(_ColumnProfileABC):
 class _DateProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.DATE
 
-    def calc_stats(self, data: DataFrame):
-        res = data.select(_min=MinStat.expr, _max=MaxStat.expr).to_dict()
+    def calc_stats(self, data: Frame):
+        res = data.select(_min=MinStat.expr, _max=MaxStat.expr)
 
-        data.select(_min=MinStat.expr)
+        physical = _as_physical(res).to_dict()
 
-        self.statistics: list[Stat] = [MinStat(res["_min"].item()), MaxStat(res["_max"].item())]
+        self.statistics: list[Stat] = [
+            MinStat(physical["_min"].item()),
+            MaxStat(physical["_max"].item()),
+        ]
 
 
 class _BoolProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.BOOL
 
-    def calc_stats(self, data: DataFrame) -> None:
-        res = data.select(_ntrue=NTrue.expr, _nfalse=NFalse.expr).to_dict()
+    def calc_stats(self, data: Frame) -> None:
+        res = data.select(_ntrue=NTrue.expr, _nfalse=NFalse.expr)
 
-        self.statistics: list[Stat] = [NTrue(res["_ntrue"].item()), NFalse(res["_nfalse"].item())]
+        physical = _as_physical(res).to_dict()
+
+        self.statistics: list[Stat] = [
+            NTrue(physical["_ntrue"].item()),
+            NFalse(physical["_nfalse"].item()),
+        ]
 
 
 class _StringProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.STRING
 
-    def calc_stats(self, data: DataFrame):
+    def calc_stats(self, data: Frame):
         str_data = data.select(nw.all().cast(nw.String).str.len_chars())
 
         summarized = str_data.select(
@@ -165,19 +176,19 @@ class _StringProfile(ColumnProfile):
             _p95=P95Stat.expr,
         )
 
-        res = summarized.to_dict()
+        physical = _as_physical(summarized).to_dict()
 
         stats: list[Stat] = []
 
-        stats.append(MeanStat(res["_mean"].item()))
-        stats.append(MedianStat(res["_median"].item()))
-        stats.append(StdStat(res["_std"].item()))
-        stats.append(MinStat(res["_min"].item()))
-        stats.append(MaxStat(res["_max"].item()))
-        stats.append(P05Stat(res["_p05"].item()))
-        stats.append(Q1Stat(res["_q1"].item()))
-        stats.append(Q3Stat(res["_q3"].item()))
-        stats.append(P95Stat(res["_p95"].item()))
+        stats.append(MeanStat(physical["_mean"].item()))
+        stats.append(MedianStat(physical["_median"].item()))
+        stats.append(StdStat(physical["_std"].item()))
+        stats.append(MinStat(physical["_min"].item()))
+        stats.append(MaxStat(physical["_max"].item()))
+        stats.append(P05Stat(physical["_p05"].item()))
+        stats.append(Q1Stat(physical["_q1"].item()))
+        stats.append(Q3Stat(physical["_q3"].item()))
+        stats.append(P95Stat(physical["_p95"].item()))
 
         self.statistics.extend(stats)
 
@@ -185,8 +196,8 @@ class _StringProfile(ColumnProfile):
 class _NumericProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.NUMERIC
 
-    def calc_stats(self, data: DataFrame):
-        summarized = data.select(
+    def calc_stats(self, data: Frame):
+        res = data.select(
             _mean=MeanStat.expr,
             _median=MedianStat.expr,
             _std=StdStat.expr,
@@ -198,19 +209,19 @@ class _NumericProfile(ColumnProfile):
             _p95=P95Stat.expr,
         )
 
-        res = summarized.to_dict()
+        summarized = _as_physical(res).to_dict()
 
         stats: list[Stat] = []
 
-        stats.append(MeanStat(res["_mean"].item()))
-        stats.append(MedianStat(res["_median"].item()))
-        stats.append(StdStat(res["_std"].item()))
-        stats.append(MinStat(res["_min"].item()))
-        stats.append(MaxStat(res["_max"].item()))
-        stats.append(P05Stat(res["_p05"].item()))
-        stats.append(Q1Stat(res["_q1"].item()))
-        stats.append(Q3Stat(res["_q3"].item()))
-        stats.append(P95Stat(res["_p95"].item()))
+        stats.append(MeanStat(summarized["_mean"].item()))
+        stats.append(MedianStat(summarized["_median"].item()))
+        stats.append(StdStat(summarized["_std"].item()))
+        stats.append(MinStat(summarized["_min"].item()))
+        stats.append(MaxStat(summarized["_max"].item()))
+        stats.append(P05Stat(summarized["_p05"].item()))
+        stats.append(Q1Stat(summarized["_q1"].item()))
+        stats.append(Q3Stat(summarized["_q3"].item()))
+        stats.append(P95Stat(summarized["_p95"].item()))
 
         self.statistics.extend(stats)
 
@@ -219,15 +230,24 @@ class _DataProfile:  # TODO: feels redundant and weird
     def __init__(
         self,
         table_name: str | None,
-        row_count: int,
         columns: list[str],
         implementation: nw.Implementation,
     ):
         self.table_name: str | None = table_name
-        self.row_count: int = row_count
         self.columns: list[str] = columns
         self.implementation = implementation
         self.column_profiles: list[ColumnProfile] = []
+
+    # TODO: annotate row count?
+
+    def set_row_count(self, data: Frame) -> None:
+        assert self.columns  # internal: cols should already be set
+
+        slim = data.select(nw.col(self.columns[0]))
+
+        physical = _as_physical(slim)
+
+        self.row_count = len(physical)
 
     def as_dataframe(self, *, strict: bool = True) -> DataFrame:
         cols: list[dict] = []  # TODO: type hint
@@ -272,3 +292,12 @@ class _DataProfile:  # TODO: feels redundant and weird
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<_DataProfile(table_name={self.table_name}, row_count={self.row_count}, columns={self.columns})>"
+
+
+def _as_physical(data: Frame) -> DataFrame:
+    try:
+        # TODO: might be
+        return data.collect()  # type: ignore[union-attr]
+    except AttributeError:
+        assert isinstance(data, DataFrame)  # help mypy
+        return data
