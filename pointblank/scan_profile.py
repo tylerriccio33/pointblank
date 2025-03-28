@@ -102,7 +102,6 @@ class ColumnProfile(_ColumnProfileABC):
 
     @sample_data.setter
     def sample_data(self, value: object) -> None:
-        # TODO: type guard this
         if isinstance(value, Sequence):
             self._sample_data = value
             return

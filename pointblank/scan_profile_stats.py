@@ -25,7 +25,6 @@ class Stat(ABC):
     group: ClassVar[StatGroup]
     expr: ClassVar[nw.Expr]
     label: ClassVar[str]
-    py_type: ClassVar[type] = float  # TODO: why do we need this?
 
     def __eq__(self, value) -> bool:
         if isinstance(value, str):
@@ -42,7 +41,6 @@ class MeanStat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().mean().cast(nw.Float64)
     label: ClassVar[str] = "Mean"
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -52,7 +50,6 @@ class StdStat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().std().cast(nw.Float64)
     label: ClassVar[str] = "SD"
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -62,7 +59,6 @@ class MinStat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().min().cast(nw.Float64)
     label: ClassVar[str] = "Min"
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -72,7 +68,6 @@ class MaxStat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().max().cast(nw.Float64)
     label: ClassVar[str] = "Max"
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -82,7 +77,6 @@ class P05Stat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.005, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("P", "5")
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -92,7 +86,6 @@ class Q1Stat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.25, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("Q", "1")
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -102,7 +95,6 @@ class MedianStat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().median().cast(nw.Float64)
     label: ClassVar[str] = "Med"
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -112,7 +104,6 @@ class Q3Stat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.75, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("Q", "3")
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -122,7 +113,6 @@ class P95Stat(Stat):
     group = StatGroup.DESCR
     expr: ClassVar[nw.Expr] = nw.all().quantile(0.95, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("P", "95")
-    py_type: ClassVar[type] = float
 
 
 @dataclass(frozen=True)
@@ -132,7 +122,6 @@ class NTrue(Stat):
     group = StatGroup.LOGIC
     expr: ClassVar[nw.Expr] = nw.all().sum().cast(nw.Boolean)
     label: ClassVar[str] = _make_sublabel("True", "N")
-    py_type: ClassVar[type] = int
 
 
 @dataclass(frozen=True)
@@ -143,7 +132,6 @@ class NFalse(Stat):
     # TODO: I don't think this is valid
     expr: ClassVar[nw.Expr] = ~nw.all().sum().cast(nw.Boolean)
     label: ClassVar[str] = _make_sublabel("False", "N")
-    py_type: ClassVar[type] = int
 
 
 @dataclass(frozen=True)
@@ -153,7 +141,6 @@ class NMissing(Stat):
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().null_count()
     label: ClassVar[str] = _make_sublabel("Missing", "N")
-    py_type: ClassVar[type] = int
 
 
 @dataclass(frozen=True)
@@ -163,7 +150,6 @@ class NUnique(Stat):
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().n_unique()
     label: ClassVar[str] = _make_sublabel("UQ", "N")
-    py_type: ClassVar[type] = int
 
 
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
