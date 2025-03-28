@@ -35,7 +35,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank._constants_expect_fail import EXPECT_FAIL_TEXT
+from pointblank._constants_translations import EXPECT_FAIL_TEXT
 from pointblank._interrogation import (
     ColCountMatch,
     ColExistsHasType,
