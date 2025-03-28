@@ -33,6 +33,10 @@ class Stat(ABC):
             return value is self
         return NotImplemented
 
+    @classmethod
+    def _fetch_priv_name(self) -> str:
+        return f"_{self.name}"
+
 
 @dataclass(frozen=True)
 class MeanStat(Stat):
@@ -116,6 +120,15 @@ class P95Stat(Stat):
 
 
 @dataclass(frozen=True)
+class IQRStat(Stat):
+    val: str
+    name: ClassVar[str] = "iqr"
+    group = StatGroup.DESCR
+    expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(Q1Stat._fetch_priv_name())
+    label: ClassVar[str] = "IQR"
+
+
+@dataclass(frozen=True)
 class NTrue(Stat):
     val: int
     name: ClassVar[str] = "n_true"
@@ -164,6 +177,7 @@ COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
     MedianStat,
     Q3Stat,
     P95Stat,
+    IQRStat,
     NTrue,
     NFalse,
 )

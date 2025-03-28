@@ -228,7 +228,6 @@ class DataScan:
             label_map[target_col] = matching_stat.label
 
         # TODO: min-SL?
-        # TODO: IQR
 
         ## Final Formatting:
         formatted_data = (

@@ -12,6 +12,7 @@ from narwhals.dataframe import DataFrame
 
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank.scan_profile_stats import (
+    IQRStat,
     MaxStat,
     MeanStat,
     MedianStat,
@@ -203,25 +204,29 @@ class _NumericProfile(ColumnProfile):
             _std=StdStat.expr,
             _min=MinStat.expr,
             _max=MaxStat.expr,
-            _p05=P05Stat.expr,
-            _q1=Q1Stat.expr,
-            _q3=Q3Stat.expr,
-            _p95=P95Stat.expr,
+            _p_05=P05Stat.expr,
+            _q_1=Q1Stat.expr,
+            _q_3=Q3Stat.expr,
+            _p_95=P95Stat.expr,
+        ).with_columns(
+            _iqr=IQRStat.expr,  # TODO: Need something to indicate this consistently
         )
 
         summarized = _as_physical(res).to_dict()
 
         stats: list[Stat] = []
 
+        # TODO: use a single extend to keep it consistent
         stats.append(MeanStat(summarized["_mean"].item()))
         stats.append(MedianStat(summarized["_median"].item()))
         stats.append(StdStat(summarized["_std"].item()))
         stats.append(MinStat(summarized["_min"].item()))
         stats.append(MaxStat(summarized["_max"].item()))
-        stats.append(P05Stat(summarized["_p05"].item()))
-        stats.append(Q1Stat(summarized["_q1"].item()))
-        stats.append(Q3Stat(summarized["_q3"].item()))
-        stats.append(P95Stat(summarized["_p95"].item()))
+        stats.append(P05Stat(summarized["_p_05"].item()))
+        stats.append(Q1Stat(summarized["_q_1"].item()))
+        stats.append(Q3Stat(summarized["_q_3"].item()))
+        stats.append(P95Stat(summarized["_p_95"].item()))
+        stats.append(IQRStat(summarized["_iqr"].item()))
 
         self.statistics.extend(stats)
 
