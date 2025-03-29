@@ -33,7 +33,6 @@ from pointblank.validate import (
     _create_table_time_html,
     _create_table_type_html,
     _fmt_lg,
-    _get_default_title_text,
     _normalize_reporting_language,
     _prep_column_text,
     _process_action_str,
@@ -5675,12 +5674,19 @@ def test_process_action_str():
 
 
 def test_process_title_text():
-    assert _process_title_text(title=None, tbl_name=None) == ""
-    assert _process_title_text(title=":default:", tbl_name=None) == _get_default_title_text()
-    assert _process_title_text(title=":none:", tbl_name=None) == ""
-    assert _process_title_text(title=":tbl_name:", tbl_name="tbl_name") == "<code>tbl_name</code>"
-    assert _process_title_text(title=":tbl_name:", tbl_name=None) == ""
-    assert _process_title_text(title="*Title*", tbl_name=None) == "<p><em>Title</em></p>\n"
+    assert _process_title_text(title=None, tbl_name=None, lang="en") == ""
+    assert (
+        _process_title_text(title=":default:", tbl_name=None, lang="en") == "Pointblank Validation"
+    )
+    assert _process_title_text(title=":none:", tbl_name=None, lang="en") == ""
+    assert (
+        _process_title_text(title=":tbl_name:", tbl_name="tbl_name", lang="en")
+        == "<code>tbl_name</code>"
+    )
+    assert _process_title_text(title=":tbl_name:", tbl_name=None, lang="en") == ""
+    assert (
+        _process_title_text(title="*Title*", tbl_name=None, lang="en") == "<p><em>Title</em></p>\n"
+    )
 
 
 @pytest.mark.parametrize(
@@ -5706,7 +5712,7 @@ def test_process_title_text():
     ],
 )
 def test_fmt_lg(input_value, expected_output):
-    assert _fmt_lg(input_value) == expected_output
+    assert _fmt_lg(input_value, locale="en") == expected_output
 
 
 def test_create_table_time_html():
