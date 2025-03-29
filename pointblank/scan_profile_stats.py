@@ -61,7 +61,7 @@ class MinStat(Stat):
     val: str
     name: ClassVar[str] = "min"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().min().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.all().min()  # don't cast as float, can be date
     label: ClassVar[str] = "Min"
 
 
@@ -70,7 +70,7 @@ class MaxStat(Stat):
     val: str
     name: ClassVar[str] = "max"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().max().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.all().max()  # don't cast as float, can be date
     label: ClassVar[str] = "Max"
 
 

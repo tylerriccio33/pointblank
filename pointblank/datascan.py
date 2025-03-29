@@ -169,7 +169,7 @@ class DataScan:
     def summary_data(self) -> DataFrame:
         return self.profile.as_dataframe(strict=False)
 
-    def get_tabular_report(self) -> GT:
+    def get_tabular_report(self, *, show_sample_data: bool = False) -> GT:
         # Create the label, table type, and thresholds HTML fragments
         table_type_html = _create_table_type_html(
             tbl_type=str(self.profile.implementation), tbl_name=self.tbl_name, font_size="10px"
@@ -194,6 +194,9 @@ class DataScan:
         data: DataFrame = self.profile.as_dataframe(strict=False)
         # TODO: Remove all null columns
 
+        if not show_sample_data:
+            data = data.drop("sample_data")
+
         # find what stat cols were used in the analysis
         non_stat_cols = ("icon", "colname", "coltype")  # TODO: need a better place for this
         present_stat_cols: set[str] = set(data.columns) - set(non_stat_cols)
@@ -213,10 +216,6 @@ class DataScan:
 
         right_border_cols.append(target_order[-1])  # add border to last stat col
 
-        target_order.append("sample_data")
-
-        assert set(data.columns) == set(target_order), "Internal: fields calculated have no order."
-
         label_map: dict[str, Any] = {}
         for target_col in target_order:
             try:
@@ -226,8 +225,6 @@ class DataScan:
             except StopIteration:
                 continue
             label_map[target_col] = matching_stat.label
-
-        # TODO: min-SL?
 
         ## Final Formatting:
         formatted_data = (
@@ -241,8 +238,9 @@ class DataScan:
                     nw.col("coltype"),
                     nw.lit("</div>"),
                 ),
-                __frac_n_unique=nw.col("n_unique") / nw.lit(self.profile.row_count),
-                __frac_n_missing=nw.col("n_missing") / nw.lit(self.profile.row_count),
+                # TODO: This is a very temporary solution
+                __frac_n_unique=(nw.col("n_unique") / nw.lit(self.profile.row_count)).round(5),
+                __frac_n_missing=(nw.col("n_missing") / nw.lit(self.profile.row_count)).round(5),
             )
             .with_columns(
                 n_unique=nw.concat_str(
@@ -262,6 +260,9 @@ class DataScan:
             nw.selectors.by_dtype(nw.dtypes.Float64)
         ).columns
 
+        # TODO: Datetime Min/Max in wrong format
+        # TODO: Borders are incorrect, look at the example
+
         ## GT Table:
         gt_tbl = (
             GT(formatted_data.to_native())
@@ -277,6 +278,7 @@ class DataScan:
             .cols_move_to_start(target_order)
             ## Labeling
             .cols_label(label_map)
+            .cols_label(icon="", colname="Column", coltype="Type")
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(columns=fmt_float)
