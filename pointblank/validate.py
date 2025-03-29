@@ -7080,7 +7080,7 @@ class Validate:
                 {
                     "status_color": "",
                     "i": "",
-                    "type_upd": "NO VALIDATION STEPS",
+                    "type_upd": "NO VALIDATION STEPS",  # TODO: Provide translation for this text
                     "columns_upd": "",
                     "values_upd": "",
                     "tbl": "",
