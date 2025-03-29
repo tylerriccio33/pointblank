@@ -192,6 +192,15 @@ class DataScan:
         # TODO: Ensure width is 905px in total
 
         data: DataFrame = self.profile.as_dataframe(strict=False)
+
+        ## Remove all null columns:
+        all_null: list[str] = []
+        for stat_name in data.iter_columns():
+            col_len = len(stat_name.drop_nulls())
+            if col_len == 0:
+                all_null.append(stat_name.name)
+        data = data.drop(all_null)
+
         # TODO: Remove all null columns
 
         if not show_sample_data:
@@ -300,10 +309,6 @@ class DataScan:
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=list(present_stat_cols)),
             )
-            # .tab_style(
-            #     style=style.borders(sides="left", style="none"),
-            #     locations=loc.body(columns=list(present_stat_cols)),
-            # )
             ## Formatting
             .cols_width(
                 icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
