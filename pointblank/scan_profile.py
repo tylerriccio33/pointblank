@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import narwhals as nw
 from narwhals.dataframe import DataFrame
@@ -232,6 +232,8 @@ class _NumericProfile(ColumnProfile):
 
 
 class _DataProfile:  # TODO: feels redundant and weird
+    row_count: ClassVar[int]
+
     def __init__(
         self,
         table_name: str | None,
@@ -242,8 +244,6 @@ class _DataProfile:  # TODO: feels redundant and weird
         self.columns: list[str] = columns
         self.implementation = implementation
         self.column_profiles: list[ColumnProfile] = []
-
-    # TODO: annotate row count?
 
     def set_row_count(self, data: Frame) -> None:
         assert self.columns  # internal: cols should already be set
