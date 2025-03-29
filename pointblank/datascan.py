@@ -198,8 +198,9 @@ class DataScan:
             data = data.drop("sample_data")
 
         # find what stat cols were used in the analysis
-        non_stat_cols = ("icon", "colname", "coltype")  # TODO: need a better place for this
+        non_stat_cols = ("icon", "colname")  # TODO: need a better place for this
         present_stat_cols: set[str] = set(data.columns) - set(non_stat_cols)
+        present_stat_cols.remove("coltype")
 
         target_order: list[str] = list(non_stat_cols)
         right_border_cols: list[str] = [non_stat_cols[-1]]
@@ -211,7 +212,8 @@ class DataScan:
 
                 start_new_group: bool = last_group != cur_group
                 if start_new_group:
-                    last_col_added = target_order[-1]
+                    last_group = cur_group
+                    last_col_added = target_order[-2]  # -2 since we don't include the current
                     right_border_cols.append(last_col_added)
 
         right_border_cols.append(target_order[-1])  # add border to last stat col
@@ -250,7 +252,7 @@ class DataScan:
                     nw.col("n_missing"), nw.lit("<br>"), nw.col("__frac_n_missing")
                 ),
             )
-            .drop("__frac_n_unique", "__frac_n_missing")
+            .drop("__frac_n_unique", "__frac_n_missing", "coltype")
         )
 
         ## Determine Value Formatting Selectors:
@@ -260,7 +262,7 @@ class DataScan:
             nw.selectors.by_dtype(nw.dtypes.Float64)
         ).columns
 
-        # TODO: Datetime Min/Max in wrong format
+        # TODO: T/F N are incorrect
         # TODO: Borders are incorrect, look at the example
 
         ## GT Table:
@@ -278,7 +280,7 @@ class DataScan:
             .cols_move_to_start(target_order)
             ## Labeling
             .cols_label(label_map)
-            .cols_label(icon="", colname="Column", coltype="Type")
+            .cols_label(icon="", colname="Column")
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(columns=fmt_float)
@@ -301,10 +303,10 @@ class DataScan:
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=list(present_stat_cols)),
             )
-            .tab_style(
-                style=style.borders(sides="left", style="none"),
-                locations=loc.body(columns=list(present_stat_cols)),
-            )
+            # .tab_style(
+            #     style=style.borders(sides="left", style="none"),
+            #     locations=loc.body(columns=list(present_stat_cols)),
+            # )
             ## Formatting
             .cols_width(
                 icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
