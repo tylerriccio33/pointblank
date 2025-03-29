@@ -35,7 +35,7 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank._constants_translations import EXPECT_FAIL_TEXT
+from pointblank._constants_translations import EXPECT_FAIL_TEXT, VALIDATION_REPORT_TEXT
 from pointblank._interrogation import (
     ColCountMatch,
     ColExistsHasType,
@@ -7040,6 +7040,9 @@ class Validate:
         # Get the thresholds object
         thresholds = self.thresholds
 
+        # Get the language for the report
+        lang = self.lang
+
         # Determine if there are any validation steps
         no_validation_steps = len(self.validation_info) == 0
 
@@ -7048,7 +7051,10 @@ class Validate:
         if no_validation_steps:
             # Create the title text
             title_text = _get_title_text(
-                title=title, tbl_name=self.tbl_name, interrogation_performed=False
+                title=title,
+                tbl_name=self.tbl_name,
+                interrogation_performed=False,
+                lang=lang,
             )
 
             # Create the label, table type, and thresholds HTML fragments
@@ -7540,7 +7546,10 @@ class Validate:
 
         # Create the title text
         title_text = _get_title_text(
-            title=title, tbl_name=self.tbl_name, interrogation_performed=interrogation_performed
+            title=title,
+            tbl_name=self.tbl_name,
+            interrogation_performed=interrogation_performed,
+            lang=lang,
         )
 
         # Create the label, table type, and thresholds HTML fragments
@@ -7655,9 +7664,9 @@ class Validate:
                 cases={
                     "status_color": "",
                     "i": "",
-                    "type_upd": "STEP",
-                    "columns_upd": "COLUMNS",
-                    "values_upd": "VALUES",
+                    "type_upd": VALIDATION_REPORT_TEXT["report_col_step"][lang],
+                    "columns_upd": VALIDATION_REPORT_TEXT["report_col_columns"][lang],
+                    "values_upd": VALIDATION_REPORT_TEXT["report_col_values"][lang],
                     "tbl": "TBL",
                     "eval": "EVAL",
                     "test_units": "UNITS",
@@ -8645,8 +8654,10 @@ def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[s
     return svg
 
 
-def _get_title_text(title: str | None, tbl_name: str | None, interrogation_performed: bool) -> str:
-    title = _process_title_text(title=title, tbl_name=tbl_name)
+def _get_title_text(
+    title: str | None, tbl_name: str | None, interrogation_performed: bool, lang: str
+) -> str:
+    title = _process_title_text(title=title, tbl_name=tbl_name, lang=lang)
 
     if interrogation_performed:
         return title
@@ -8668,11 +8679,13 @@ def _get_title_text(title: str | None, tbl_name: str | None, interrogation_perfo
     return html_str
 
 
-def _process_title_text(title: str | None, tbl_name: str | None) -> str:
+def _process_title_text(title: str | None, tbl_name: str | None, lang: str) -> str:
+    default_title_text = VALIDATION_REPORT_TEXT["pointblank_validation_title_text"][lang]
+
     if title is None:
         title_text = ""
     elif title == ":default:":
-        title_text = _get_default_title_text()
+        title_text = default_title_text
     elif title == ":none:":
         title_text = ""
     elif title == ":tbl_name:":
@@ -8684,10 +8697,6 @@ def _process_title_text(title: str | None, tbl_name: str | None) -> str:
         title_text = commonmark.commonmark(title)
 
     return title_text
-
-
-def _get_default_title_text() -> str:
-    return "Pointblank Validation"
 
 
 def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
