@@ -5712,7 +5712,7 @@ def test_process_title_text():
     ],
 )
 def test_fmt_lg(input_value, expected_output):
-    assert _fmt_lg(input_value) == expected_output
+    assert _fmt_lg(input_value, locale="en") == expected_output
 
 
 def test_create_table_time_html():
