@@ -262,9 +262,6 @@ class DataScan:
             nw.selectors.by_dtype(nw.dtypes.Float64)
         ).columns
 
-        # TODO: T/F N are incorrect
-        # TODO: Borders are incorrect, look at the example
-
         ## GT Table:
         gt_tbl = (
             GT(formatted_data.to_native())

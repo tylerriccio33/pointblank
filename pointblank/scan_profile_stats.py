@@ -133,7 +133,7 @@ class NTrue(Stat):
     val: int
     name: ClassVar[str] = "n_true"
     group = StatGroup.LOGIC
-    expr: ClassVar[nw.Expr] = nw.all().sum().cast(nw.Boolean)
+    expr: ClassVar[nw.Expr] = nw.all().sum().cast(nw.Int64)
     label: ClassVar[str] = _make_sublabel("True", "N")
 
 
@@ -142,8 +142,7 @@ class NFalse(Stat):
     val: int
     name: ClassVar[str] = "n_false"
     group = StatGroup.LOGIC
-    # TODO: I don't think this is valid
-    expr: ClassVar[nw.Expr] = ~nw.all().sum().cast(nw.Boolean)
+    expr: ClassVar[nw.Expr] = nw.all().filter(~nw.all()).count().cast(nw.Int64)
     label: ClassVar[str] = _make_sublabel("False", "N")
 
 
