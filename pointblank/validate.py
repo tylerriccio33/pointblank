@@ -7116,9 +7116,9 @@ class Validate:
                     cases={
                         "status_color": "",
                         "i": "",
-                        "type_upd": "STEP",
-                        "columns_upd": "COLUMNS",
-                        "values_upd": "VALUES",
+                        "type_upd": VALIDATION_REPORT_TEXT["report_col_step"][lang],
+                        "columns_upd": VALIDATION_REPORT_TEXT["report_col_columns"][lang],
+                        "values_upd": VALIDATION_REPORT_TEXT["report_col_values"][lang],
                         "tbl": "TBL",
                         "eval": "EVAL",
                         "test_units": "UNITS",
