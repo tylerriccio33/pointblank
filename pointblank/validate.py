@@ -7043,6 +7043,9 @@ class Validate:
         # Get the language for the report
         lang = self.lang
 
+        # Get the locale for the report
+        locale = self.locale
+
         # Determine if there are any validation steps
         no_validation_steps = len(self.validation_info) == 0
 
