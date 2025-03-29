@@ -7362,6 +7362,7 @@ class Validate:
             test_units=validation_info_dict["n"],
             interrogation_performed=interrogation_performed,
             active=active,
+            locale=locale,
         )
 
         # ------------------------------------------------
@@ -7376,6 +7377,7 @@ class Validate:
             f_passed_failed=validation_info_dict["f_passed"],
             interrogation_performed=interrogation_performed,
             active=active,
+            locale=locale,
         )
 
         validation_info_dict["fail"] = _transform_passed_failed(
@@ -7383,6 +7385,7 @@ class Validate:
             f_passed_failed=validation_info_dict["f_failed"],
             interrogation_performed=interrogation_performed,
             active=active,
+            locale=locale,
         )
 
         # ------------------------------------------------
@@ -8754,7 +8757,7 @@ def _transform_eval(
 
 
 def _transform_test_units(
-    test_units: list[int], interrogation_performed: bool, active: list[bool]
+    test_units: list[int], interrogation_performed: bool, active: list[bool], locale: str
 ) -> list[str]:
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
@@ -8765,7 +8768,7 @@ def _transform_test_units(
             (
                 str(test_units[i])
                 if test_units[i] < 10000
-                else str(vals.fmt_number(test_units[i], n_sigfig=3, compact=True)[0])
+                else str(vals.fmt_number(test_units[i], n_sigfig=3, compact=True, locale=locale)[0])
             )
             if active[i]
             else "&mdash;"
@@ -8774,8 +8777,8 @@ def _transform_test_units(
     ]
 
 
-def _fmt_lg(value: int) -> str:
-    return vals.fmt_number(value, n_sigfig=3, compact=True)[0]
+def _fmt_lg(value: int, locale: str) -> str:
+    return vals.fmt_number(value, n_sigfig=3, compact=True, locale=locale)[0]
 
 
 def _transform_passed_failed(
@@ -8783,14 +8786,15 @@ def _transform_passed_failed(
     f_passed_failed: list[float],
     interrogation_performed: bool,
     active: list[bool],
+    locale: str,
 ) -> list[str]:
     if not interrogation_performed:
         return ["" for _ in range(len(n_passed_failed))]
 
     passed_failed = [
         (
-            f"{n_passed_failed[i] if n_passed_failed[i] < 10000 else _fmt_lg(n_passed_failed[i])}"
-            f"<br />{vals.fmt_number(f_passed_failed[i], decimals=2)[0]}"
+            f"{n_passed_failed[i] if n_passed_failed[i] < 10000 else _fmt_lg(n_passed_failed[i], locale=locale)}"
+            f"<br />{vals.fmt_number(f_passed_failed[i], decimals=2, locale=locale)[0]}"
             if active[i]
             else "&mdash;"
         )
