@@ -245,8 +245,8 @@ class DataScan:
                     nw.lit("</div>"),
                 ),
                 # TODO: This is a very temporary solution
-                __frac_n_unique=(nw.col("n_unique") / nw.lit(self.profile.row_count)).round(5),
-                __frac_n_missing=(nw.col("n_missing") / nw.lit(self.profile.row_count)).round(5),
+                __frac_n_unique=(nw.col("n_unique") / nw.lit(self.profile.row_count)).round(2),
+                __frac_n_missing=(nw.col("n_missing") / nw.lit(self.profile.row_count)).round(2),
             )
             .with_columns(
                 n_unique=nw.concat_str(
@@ -283,7 +283,7 @@ class DataScan:
             .cols_label(icon="", colname="Column")
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
-            .fmt_number(columns=fmt_float)
+            .fmt_number(columns=fmt_float, decimals=2)
             .sub_missing(missing_text="-")
             ## Generic Styling
             .tab_style(
