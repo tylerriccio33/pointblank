@@ -142,7 +142,14 @@ class NFalse(Stat):
     val: int
     name: ClassVar[str] = "n_false"
     group = StatGroup.LOGIC
-    expr: ClassVar[nw.Expr] = nw.all().filter(~nw.all()).count().cast(nw.Int64)
+    ## Indirection to the point of absurdity:
+    ## - Reversing the bool results in inconsistent unsigned types, ie. False is max hexidecimal
+    ## - Filtering on `nw.all` is generally unavailable, at least for polars
+    ## - Replacing T/F w/Null is not interpreted correctly by Narwhals
+    ## - Swapping 0 -> 1 and 1 -> 0 is the most consistent, albiet odd
+    expr: ClassVar[nw.Expr] = (
+        nw.all().cast(nw.Int64).replace_strict([1, 0], new=[0, 1]).sum().cast(nw.Int64)
+    )
     label: ClassVar[str] = _make_sublabel("False", "N")
 
 

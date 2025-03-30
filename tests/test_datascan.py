@@ -23,6 +23,19 @@ happy_path_ldf = pt.dataframes(
     lazy=True,
 )
 
+
+def _arrow_strat() -> None:
+    raise NotImplementedError
+
+
+def _pandas_strat() -> None:
+    raise NotImplementedError
+
+
+def _duckdb_strat() -> None:
+    raise NotImplementedError("This will be manual but it's necessary.")
+
+
 # TODO: Generate a grid of different types (arrow, pandas, polars, etc.)
 
 
