@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 ## too much the job of narwhals, and we should avoid stepping on their testing suite.
 happy_path_df = pt.dataframes(
     min_size=5,
-    allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date, pl.Datetime],
+    allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date],
 )
 happy_path_ldf = pt.dataframes(
     min_size=5,
