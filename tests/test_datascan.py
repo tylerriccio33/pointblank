@@ -1,19 +1,29 @@
+from __future__ import annotations
+
 import pytest
 import narwhals as nw
 
-from hypothesis import given, settings
+from hypothesis import given, settings, strategies as st
 import polars.testing.parametric as pt
 from great_tables import GT
+from typing import TYPE_CHECKING
 import polars as pl
 
 from pointblank.datascan import DataScan, col_summary_tbl
-from pointblank import load_dataset
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 from pointblank.scan_profile import _as_physical
 from pointblank.scan_profile_stats import StatGroup, COLUMN_ORDER_REGISTRY
 
+if TYPE_CHECKING:
+    import pyarrow as pa
+    import pandas as pd
+
 
 ## Setup Strategies:
+## Generate df and ldf happy paths using polars.
+## Also generate pandas and arrow strategies which should smoke test any complete mistakes
+## or inconsistent handling in narwhals. Really checking the consistency among packages is
+## too much the job of narwhals, and we should avoid stepping on their testing suite.
 happy_path_df = pt.dataframes(
     min_size=5,
     allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date, pl.Datetime],
@@ -25,34 +35,32 @@ happy_path_ldf = pt.dataframes(
 )
 
 
-def _arrow_strat() -> None:
-    raise NotImplementedError
+@st.composite
+def _arrow_strat(draw) -> pa.Table:
+    polars_df = draw(happy_path_df)
+    return nw.from_native(polars_df).to_arrow()
 
 
-def _pandas_strat() -> None:
-    raise NotImplementedError
+@st.composite
+def _pandas_strat(draw) -> pd.DataFrame:
+    polars_df = draw(happy_path_df)
+    return nw.from_native(polars_df).to_pandas()
 
 
-def _duckdb_strat() -> None:
-    raise NotImplementedError("This will be manual but it's necessary.")
-
-
-# TODO: Generate a grid of different types (arrow, pandas, polars, etc.)
-
-
-@given(happy_path_df | happy_path_ldf)
+@given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
+@settings(deadline=None)  # too variant to enforce deadline
 def test_datascan_class_parametric(df) -> None:
     scanner = DataScan(data=df)
 
     df_nw = nw.from_native(df)
 
-    summary_res = scanner.summary_data.to_native()
+    summary_res = scanner.summary_data
 
     physical_summary = _as_physical(scanner.summary_data)
     physical_input = _as_physical(nw.from_native(df))
 
     ## High Level Checks:
-    cols = summary_res.select("colname").to_series().to_list()
+    cols = summary_res.select("colname").to_dict()["colname"].to_list()
 
     msg = "cols must be the same"
     df_cols = df_nw.columns
@@ -87,6 +95,9 @@ def test_datascan_class_parametric(df) -> None:
         )
         if any_in_summary:
             assert all(stat in summary_res.columns for stat in stats_that_should_be_present), msg
+
+
+# TODO: Check stats and expressions themselves by determinstic casing
 
 
 @given(happy_path_df | happy_path_ldf)
