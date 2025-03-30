@@ -259,7 +259,6 @@ class DataScan:
         )
 
         ## Determine Value Formatting Selectors:
-        # TODO: will they always be 64? might want strictly type cast this?
         fmt_int: list[str] = formatted_data.select(nw.selectors.by_dtype(nw.dtypes.Int64)).columns
         fmt_float: list[str] = formatted_data.select(
             nw.selectors.by_dtype(nw.dtypes.Float64)

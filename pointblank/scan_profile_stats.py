@@ -124,7 +124,9 @@ class IQRStat(Stat):
     val: str
     name: ClassVar[str] = "iqr"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(Q1Stat._fetch_priv_name())
+    expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(
+        Q1Stat._fetch_priv_name()
+    ).cast(nw.Float64)
     label: ClassVar[str] = "IQR"
 
 
@@ -158,7 +160,7 @@ class NMissing(Stat):
     val: int
     name: ClassVar[str] = "n_missing"
     group = StatGroup.STRUCTURE
-    expr: ClassVar[nw.Expr] = nw.all().null_count()
+    expr: ClassVar[nw.Expr] = nw.all().null_count().cast(nw.Int64)
     label: ClassVar[str] = _make_sublabel("Missing", "N")
 
 
@@ -167,7 +169,7 @@ class NUnique(Stat):
     val: int
     name: ClassVar[str] = "n_unique"
     group = StatGroup.STRUCTURE
-    expr: ClassVar[nw.Expr] = nw.all().n_unique()
+    expr: ClassVar[nw.Expr] = nw.all().n_unique().cast(nw.Int64)
     label: ClassVar[str] = _make_sublabel("UQ", "N")
 
 
