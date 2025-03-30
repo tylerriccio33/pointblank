@@ -13,7 +13,7 @@ from pointblank.scan_profile import ColumnProfile, _as_physical, _DataProfile, _
 from pointblank.scan_profile_stats import COLUMN_ORDER_REGISTRY
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from narwhals.dataframe import DataFrame
     from narwhals.typing import Frame, IntoFrame
@@ -201,8 +201,6 @@ class DataScan:
                 all_null.append(stat_name.name)
         data = data.drop(all_null)
 
-        # TODO: Remove all null columns
-
         if not show_sample_data:
             data = data.drop("sample_data")
 
@@ -211,8 +209,12 @@ class DataScan:
         present_stat_cols: set[str] = set(data.columns) - set(non_stat_cols)
         present_stat_cols.remove("coltype")
 
+        ## Assemble the target order and find what columns need borders.
+        ## Borders should be placed to divide the stat "groups" and create a
+        ## generally more aesthetically pleasing experience.
         target_order: list[str] = list(non_stat_cols)
         right_border_cols: list[str] = [non_stat_cols[-1]]
+
         last_group: StatGroup = COLUMN_ORDER_REGISTRY[0].group
         for col in COLUMN_ORDER_REGISTRY:
             if col.name in present_stat_cols:
@@ -227,15 +229,7 @@ class DataScan:
 
         right_border_cols.append(target_order[-1])  # add border to last stat col
 
-        label_map: dict[str, Any] = {}
-        for target_col in target_order:
-            try:
-                matching_stat = next(
-                    stat for stat in COLUMN_ORDER_REGISTRY if target_col == stat.name
-                )
-            except StopIteration:
-                continue
-            label_map[target_col] = matching_stat.label
+        label_map: dict[str, Any] = self._build_label_map(target_order)
 
         ## Final Formatting:
         formatted_data = (
@@ -320,6 +314,19 @@ class DataScan:
             gt_tbl = gt_tbl.tab_options(quarto_disable_processing=True)
 
         return gt_tbl
+
+    @staticmethod
+    def _build_label_map(cols: Sequence[str]) -> dict[str, Any]:
+        label_map: dict[str, Any] = {}
+        for target_col in cols:
+            try:
+                matching_stat = next(
+                    stat for stat in COLUMN_ORDER_REGISTRY if target_col == stat.name
+                )
+            except StopIteration:
+                continue
+            label_map[target_col] = matching_stat.label
+        return label_map
 
     def to_dict(self) -> dict:
         raise NotImplementedError
