@@ -70,7 +70,7 @@ def test_datascan_class_parametric(df) -> None:
     # TODO: Should contain many more cases
 
 
-@given(df=pt.dataframes(min_size=5))
+@given(happy_path_df | happy_path_ldf)
 def test_datascan_json_output(df):
     scanner = DataScan(data=df)
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import re
+from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
@@ -15,6 +16,23 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from pointblank._typing import AbsoluteBounds, Tolerance
+
+
+def transpose_dicts(list_of_dicts: list[dict[str, Any]]) -> dict[str, list[Any]]:
+    if not list_of_dicts:
+        return {}
+
+    # Get all unique keys across all dictionaries
+    all_keys = set()
+    for d in list_of_dicts:
+        all_keys.update(d.keys())
+
+    result = defaultdict(list)
+    for d in list_of_dicts:
+        for key in all_keys:
+            result[key].append(d.get(key))  # None is default for missing keys
+
+    return dict(result)
 
 
 def _derive_single_bound(ref: int, tol: int | float) -> int:

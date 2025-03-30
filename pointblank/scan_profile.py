@@ -11,6 +11,7 @@ import narwhals as nw
 from narwhals.dataframe import DataFrame
 
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
+from pointblank._utils import transpose_dicts
 from pointblank.scan_profile_stats import (
     IQRStat,
     MaxStat,
@@ -255,6 +256,8 @@ class _DataProfile:  # TODO: feels redundant and weird
         self.row_count = len(physical)
 
     def as_dataframe(self, *, strict: bool = True) -> DataFrame:
+        assert self.column_profiles
+
         cols: list[dict] = []  # TODO: type hint
         for prof in self.column_profiles:
             stat_vals = {}
@@ -278,7 +281,12 @@ class _DataProfile:  # TODO: feels redundant and weird
             # Check if all values are of the same type
             if len(values) > 1:
                 first_type = type(values[0])
-                all_same_type: bool = all(isinstance(v, first_type) for v in values[1:])
+
+                # use `type` instead of instance check because some types are sub
+                # classes of supers, ie. date is a subclass of datetime, so it's
+                # technically an instance. This however would fail most dataframe
+                # instantiations that require consistent types.
+                all_same_type: bool = all(type(v) is first_type for v in values[1:])
                 if not all_same_type:
                     if strict:
                         msg = f"Some types in {key!s} stat are different. Turn off `strict` to bypass."
@@ -287,13 +295,7 @@ class _DataProfile:  # TODO: feels redundant and weird
                         if key in d:
                             d[key] = str(d[key])
 
-        # TODO: This is a bad way to do this
-        try:
-            df_native = self.implementation.to_native_namespace().DataFrame(cols)
-        except Exception:
-            raise NotImplementedError
-
-        return nw.from_native(df_native)
+        return nw.from_dict(transpose_dicts(cols), backend=self.implementation)
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<_DataProfile(table_name={self.table_name}, row_count={self.row_count}, columns={self.columns})>"
