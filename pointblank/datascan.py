@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from narwhals.dataframe import DataFrame
-    from narwhals.typing import Frame, IntoFrame
+    from narwhals.typing import Frame, IntoFrameT
 
     from pointblank.scan_profile_stats import StatGroup
 
@@ -118,7 +118,8 @@ class DataScan:
         A DataScan object.
     """
 
-    def __init__(self, data: IntoFrame, tbl_name: str | None = None) -> None:
+    # TODO: This needs to be generically typed at the class level, ie. DataScan[T]
+    def __init__(self, data: IntoFrameT, tbl_name: str | None = None) -> None:
         self.nw_data: Frame = nw.from_native(data)
         self.tbl_name: str | None = tbl_name
         self.profile: _DataProfile = self._generate_profile_df()
@@ -166,8 +167,8 @@ class DataScan:
         return profile
 
     @property
-    def summary_data(self) -> DataFrame:
-        return self.profile.as_dataframe(strict=False)
+    def summary_data(self) -> IntoFrameT:
+        return self.profile.as_dataframe(strict=False).to_native()
 
     def get_tabular_report(self, *, show_sample_data: bool = False) -> GT:
         # Create the label, table type, and thresholds HTML fragments
