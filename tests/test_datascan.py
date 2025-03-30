@@ -9,6 +9,7 @@ from great_tables import GT
 from typing import TYPE_CHECKING, NamedTuple
 import polars as pl
 import polars.testing as pt
+import pointblank as pb
 
 from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
@@ -159,7 +160,9 @@ def test_datascan_json_output(df):
 
 
 @given(df=happy_path_df)
-@settings(max_examples=5)
+@example(df=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+@example(df=pb.load_dataset(dataset="nycflights", tbl_type="duckdb"))
+@settings(deadline=None)
 def test_col_summary_tbl(df):
     col_summary = col_summary_tbl(df)
 
