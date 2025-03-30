@@ -331,7 +331,6 @@ class DataScan:
         raise NotImplementedError
 
     def to_json(self) -> str:
-        # TODO: Might make sense to return it deconstructed then to dict?
         prof_dict = self.profile.as_dataframe(strict=False).to_dict(as_series=False)
 
         return json.dumps(prof_dict, indent=4, default=str)

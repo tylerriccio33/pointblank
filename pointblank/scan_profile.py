@@ -179,20 +179,19 @@ class _StringProfile(ColumnProfile):
         )
 
         physical = _as_physical(summarized).to_dict()
-
-        stats: list[Stat] = []
-
-        stats.append(MeanStat(physical["_mean"].item()))
-        stats.append(MedianStat(physical["_median"].item()))
-        stats.append(StdStat(physical["_std"].item()))
-        stats.append(MinStat(physical["_min"].item()))
-        stats.append(MaxStat(physical["_max"].item()))
-        stats.append(P05Stat(physical["_p05"].item()))
-        stats.append(Q1Stat(physical["_q1"].item()))
-        stats.append(Q3Stat(physical["_q3"].item()))
-        stats.append(P95Stat(physical["_p95"].item()))
-
-        self.statistics.extend(stats)
+        self.statistics.extend(
+            [
+                MeanStat(physical["_mean"].item()),
+                MedianStat(physical["_median"].item()),
+                StdStat(physical["_std"].item()),
+                MinStat(physical["_min"].item()),
+                MaxStat(physical["_max"].item()),
+                P05Stat(physical["_p05"].item()),
+                Q1Stat(physical["_q1"].item()),
+                Q3Stat(physical["_q3"].item()),
+                P95Stat(physical["_p95"].item()),
+            ]
+        )
 
 
 class _NumericProfile(ColumnProfile):
@@ -215,21 +214,20 @@ class _NumericProfile(ColumnProfile):
 
         summarized = _as_physical(res).to_dict()
 
-        stats: list[Stat] = []
-
-        # TODO: use a single extend to keep it consistent
-        stats.append(MeanStat(summarized["_mean"].item()))
-        stats.append(MedianStat(summarized["_median"].item()))
-        stats.append(StdStat(summarized["_std"].item()))
-        stats.append(MinStat(summarized["_min"].item()))
-        stats.append(MaxStat(summarized["_max"].item()))
-        stats.append(P05Stat(summarized["_p_05"].item()))
-        stats.append(Q1Stat(summarized["_q_1"].item()))
-        stats.append(Q3Stat(summarized["_q_3"].item()))
-        stats.append(P95Stat(summarized["_p_95"].item()))
-        stats.append(IQRStat(summarized["_iqr"].item()))
-
-        self.statistics.extend(stats)
+        self.statistics.extend(
+            [
+                MeanStat(summarized["_mean"].item()),
+                MedianStat(summarized["_median"].item()),
+                StdStat(summarized["_std"].item()),
+                MinStat(summarized["_min"].item()),
+                MaxStat(summarized["_max"].item()),
+                P05Stat(summarized["_p_05"].item()),
+                Q1Stat(summarized["_q_1"].item()),
+                Q3Stat(summarized["_q_3"].item()),
+                P95Stat(summarized["_p_95"].item()),
+                IQRStat(summarized["_iqr"].item()),
+            ]
+        )
 
 
 class _DataProfile:  # TODO: feels redundant and weird
