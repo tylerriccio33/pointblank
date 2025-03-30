@@ -10,6 +10,7 @@ from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank import load_dataset
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 from pointblank.scan_profile import _as_physical
+from pointblank.scan_profile_stats import StatGroup, COLUMN_ORDER_REGISTRY
 
 
 ## Setup Strategies:
@@ -50,7 +51,7 @@ def test_datascan_class_parametric(df) -> None:
     physical_summary = _as_physical(scanner.summary_data)
     physical_input = _as_physical(nw.from_native(df))
 
-    ## Go through checks:
+    ## High Level Checks:
     cols = summary_res.select("colname").to_series().to_list()
 
     msg = "cols must be the same"
@@ -67,7 +68,25 @@ def test_datascan_class_parametric(df) -> None:
     msg = "contains sample data"
     assert "sample_data" in summary_res.columns
 
-    # TODO: Should contain many more cases
+    ## More Granular Checks:
+    cols_that_must_be_there = ("n_missing", "n_unique", "icon", "colname", "sample_data", "coltype")
+    for col in cols_that_must_be_there:
+        assert col in summary_res.columns, f"Missing column: {col}"
+
+    # this also catches developer error in syncing the calculations and stat classes
+    # for example if dev adds a new stat to `scan_profile_stats.py` and does not add
+    # it to the `calc_stats` method, this test will fail since it never calculated the
+    # statistic.
+    msg = "If a single of a group is there, they should all be there."
+    for group in StatGroup:
+        stats_that_should_be_present: list[str] = [
+            stat.name for stat in COLUMN_ORDER_REGISTRY if group == stat.group
+        ]
+        any_in_summary = any(
+            col for col in stats_that_should_be_present if col in summary_res.columns
+        )
+        if any_in_summary:
+            assert all(stat in summary_res.columns for stat in stats_that_should_be_present), msg
 
 
 @given(happy_path_df | happy_path_ldf)
