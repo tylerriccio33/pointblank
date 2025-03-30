@@ -3,11 +3,12 @@ from __future__ import annotations
 import pytest
 import narwhals as nw
 
-from hypothesis import given, settings, strategies as st
-import polars.testing.parametric as pt
+from hypothesis import given, settings, strategies as st, example
+import polars.testing.parametric as ptp
 from great_tables import GT
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 import polars as pl
+import polars.testing as pt
 
 from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
@@ -24,11 +25,13 @@ if TYPE_CHECKING:
 ## Also generate pandas and arrow strategies which should smoke test any complete mistakes
 ## or inconsistent handling in narwhals. Really checking the consistency among packages is
 ## too much the job of narwhals, and we should avoid stepping on their testing suite.
-happy_path_df = pt.dataframes(
+## LDF gets a datetime check because eager datetime values are not easily handled by pandas.
+## We need the coverage of datetimes generally and that is checked by the ldf, just not for eager.
+happy_path_df = ptp.dataframes(
     min_size=5,
     allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date],
 )
-happy_path_ldf = pt.dataframes(
+happy_path_ldf = ptp.dataframes(
     min_size=5,
     allowed_dtypes=[pl.Int64, pl.Float64, pl.String, pl.Categorical, pl.Date, pl.Datetime],
     lazy=True,
@@ -54,9 +57,8 @@ def test_datascan_class_parametric(df) -> None:
 
     df_nw = nw.from_native(df)
 
-    summary_res = scanner.summary_data
+    summary_res: nw.DataFrame = nw.from_native(scanner.summary_data)
 
-    physical_summary = _as_physical(scanner.summary_data)
     physical_input = _as_physical(nw.from_native(df))
 
     ## High Level Checks:
@@ -67,8 +69,7 @@ def test_datascan_class_parametric(df) -> None:
     assert set(cols) == set(df_cols), msg
 
     msg = "return type is the physical version of the input"
-    assert physical_input.implementation == physical_summary.implementation
-    assert isinstance(scanner.summary_data, nw.DataFrame)
+    assert physical_input.implementation == summary_res.implementation
 
     msg = "did not return correct amount of summary rows"
     assert len(summary_res) == len(cols)  # only for happy path
@@ -97,7 +98,55 @@ def test_datascan_class_parametric(df) -> None:
             assert all(stat in summary_res.columns for stat in stats_that_should_be_present), msg
 
 
-# TODO: Check stats and expressions themselves by determinstic casing
+## Deterministic Casing:
+class _Case(NamedTuple):
+    data: pl.DataFrame
+    should_be: pl.DataFrame
+
+
+case1 = _Case(
+    data=pl.DataFrame(
+        {
+            "bool_col": [True, False, True, False, True],
+            "numeric_col": [1.5, 2.3, 3.1, 4.7, 5.2],
+        }
+    ),
+    should_be=pl.DataFrame(
+        {
+            "colname": ["bool_col", "numeric_col"],
+            "std": [None, 1.57],
+            "mean": [None, 3.36],
+            "max": [None, 5.2],
+            "q_1": [None, 2.3],
+            "p95": [None, 5.1],
+            "n_missing": [0, 0],
+            "n_false": [2, None],
+            "median": [None, 3.1],
+            "n_true": [3, None],
+            "iqr": [None, 2.4],
+            "p05": [None, 1.516],
+            "n_unique": [2, 5],
+            "q_3": [None, 4.7],
+            "min": [None, 1.5],
+        }
+    ),
+)
+
+
+@pytest.mark.parametrize("case", [case1])
+def test_deterministic_calculations(case: _Case) -> None:
+    scanner = DataScan(case.data)
+
+    output = scanner.summary_data.drop("icon", "coltype", "sample_data")
+
+    pt.assert_frame_equal(
+        case.should_be,
+        output,
+        check_row_order=False,
+        check_column_order=False,
+        check_exact=False,
+        atol=0.01,
+    )
 
 
 @given(happy_path_df | happy_path_ldf)
