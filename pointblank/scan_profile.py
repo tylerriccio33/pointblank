@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 from narwhals.dataframe import DataFrame
@@ -172,10 +172,12 @@ class _StringProfile(ColumnProfile):
             _std=StdStat.expr,
             _min=MinStat.expr,
             _max=MaxStat.expr,
-            _p05=P05Stat.expr,
-            _q1=Q1Stat.expr,
-            _q3=Q3Stat.expr,
-            _p95=P95Stat.expr,
+            _p_05=P05Stat.expr,
+            _q_1=Q1Stat.expr,
+            _q_3=Q3Stat.expr,
+            _p_95=P95Stat.expr,
+        ).with_columns(
+            _iqr=IQRStat.expr,
         )
 
         physical = _as_physical(summarized).to_dict()
@@ -186,10 +188,11 @@ class _StringProfile(ColumnProfile):
                 StdStat(physical["_std"].item()),
                 MinStat(physical["_min"].item()),
                 MaxStat(physical["_max"].item()),
-                P05Stat(physical["_p05"].item()),
-                Q1Stat(physical["_q1"].item()),
-                Q3Stat(physical["_q3"].item()),
-                P95Stat(physical["_p95"].item()),
+                P05Stat(physical["_p_05"].item()),
+                Q1Stat(physical["_q_1"].item()),
+                Q3Stat(physical["_q_3"].item()),
+                P95Stat(physical["_p_95"].item()),
+                IQRStat(physical["_iqr"].item()),
             ]
         )
 
@@ -231,8 +234,6 @@ class _NumericProfile(ColumnProfile):
 
 
 class _DataProfile:  # TODO: feels redundant and weird
-    row_count: ClassVar[int]
-
     def __init__(
         self,
         table_name: str | None,
@@ -256,7 +257,7 @@ class _DataProfile:  # TODO: feels redundant and weird
     def as_dataframe(self, *, strict: bool = True) -> DataFrame:
         assert self.column_profiles
 
-        cols: list[dict] = []  # TODO: type hint
+        cols: list[dict[str, Any]] = []
         for prof in self.column_profiles:
             stat_vals = {}
             for stat in prof.statistics:
@@ -301,7 +302,7 @@ class _DataProfile:  # TODO: feels redundant and weird
 
 def _as_physical(data: Frame) -> DataFrame:
     try:
-        # TODO: might be
+        # TODO: might be a built in way to do this
         return data.collect()  # type: ignore[union-attr]
     except AttributeError:
         assert isinstance(data, DataFrame)  # help mypy
