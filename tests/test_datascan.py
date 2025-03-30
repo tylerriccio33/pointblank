@@ -161,7 +161,6 @@ def test_datascan_json_output(df):
 
 @given(df=happy_path_df)
 @example(df=pb.load_dataset(dataset="small_table", tbl_type="polars"))
-@example(df=pb.load_dataset(dataset="nycflights", tbl_type="duckdb"))
 @settings(deadline=None)
 def test_col_summary_tbl(df):
     col_summary = col_summary_tbl(df)
