@@ -15,7 +15,6 @@ import contextlib
 import pandas as pd
 import polars as pl
 import ibis
-from datetime import datetime
 
 import great_tables as GT
 import narwhals as nw
@@ -5875,7 +5874,9 @@ def test_process_brief():
 
 
 def test_process_action_str():
-    datetime_val = str(datetime(2025, 1, 1, 0, 0, 0, 0))
+    import datetime
+
+    datetime_val = str(datetime.datetime(2025, 1, 1, 0, 0, 0, 0))
 
     partial_process_action_str = partial(
         _process_action_str,
@@ -5949,8 +5950,10 @@ def test_fmt_lg(input_value, expected_output):
 
 
 def test_create_table_time_html():
-    datetime_0 = datetime(2021, 1, 1, 0, 0, 0, 0)
-    datetime_1_min_later = datetime(2021, 1, 1, 0, 1, 0, 0)
+    import datetime
+
+    datetime_0 = datetime.datetime(2021, 1, 1, 0, 0, 0, 0)
+    datetime_1_min_later = datetime.datetime(2021, 1, 1, 0, 1, 0, 0)
 
     assert _create_table_time_html(time_start=None, time_end=None) == ""
     assert "div" in _create_table_time_html(time_start=datetime_0, time_end=datetime_1_min_later)
