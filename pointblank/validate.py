@@ -97,7 +97,7 @@ _action_context = threading.local()
 
 @contextlib.contextmanager
 def _action_context_manager(metadata):
-    """Context manager to store metadata during action execution."""
+    """Context manager for storing metadata during action execution."""
     _action_context.metadata = metadata
     try:
         yield
