@@ -4441,6 +4441,234 @@ def test_date_validation_across_cols(request, tbl_fixture):
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
+def test_date_validation_fixed_date(request, tbl_fixture):
+    import datetime
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    date_left = datetime.date(2021, 1, 1)
+
+    date_right = datetime.date(2021, 3, 1)
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_gt(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ge(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_eq(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ne(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_lt(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_le(
+            columns="date_1",
+            value=date_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_between(
+            columns="date_1",
+            left=date_left,
+            right=date_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_between(
+            columns="date_1",
+            left=date_left,
+            right=date_right,
+            inclusive=(False, False),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_outside(
+            columns="date_1",
+            left=date_left,
+            right=date_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_outside(
+            columns="date_1",
+            left=date_left,
+            right=date_right,
+            inclusive=(False, False),
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 1
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
+def test_date_validation_fixed_datetime(request, tbl_fixture):
+    import datetime
+
+    tbl = request.getfixturevalue(tbl_fixture)
+
+    datetime_left = datetime.datetime(2021, 1, 1)
+
+    datetime_right = datetime.datetime(2021, 3, 1)
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_gt(
+            columns="dttm_1",
+            value=datetime_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ge(
+            columns="dttm_1",
+            value=datetime_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_eq(
+            columns="dttm_1",
+            value=datetime_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_ne(
+            columns="dttm_1",
+            value=datetime_left,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_lt(
+            columns="dttm_1",
+            value=datetime_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_le(
+            columns="dttm_1",
+            value=datetime_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_between(
+            columns="dttm_1",
+            left=datetime_left,
+            right=datetime_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 2
+    )
+
+    assert (
+        Validate(data=tbl)
+        .col_vals_outside(
+            columns="dttm_1",
+            left=datetime_left,
+            right=datetime_right,
+        )
+        .interrogate()
+        .n_passed(i=1, scalar=True)
+        == 0
+    )
+
+
+@pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
 def test_datetime_validation_across_cols(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
 
