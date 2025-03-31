@@ -95,6 +95,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, ColumnLiteral):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -110,6 +114,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
@@ -158,6 +166,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -173,6 +185,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
@@ -221,6 +237,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -236,6 +256,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
@@ -328,6 +352,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -342,6 +370,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=ibis.ifelse(
@@ -539,6 +570,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -553,6 +588,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=self.x[self.column] >= ibis.literal(self.compare),
@@ -601,6 +639,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -615,6 +657,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=self.x[self.column] <= ibis.literal(self.compare),
@@ -663,6 +708,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
+                #
+                # Ibis column-to-column/column or column-to-column/literal comparison
+                #
+
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -718,6 +767,10 @@ class Interrogator:
                 ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
             else:
+                #
+                # Ibis column-to-literal/literal comparison
+                #
+
                 low_val = ibis.literal(self.low)
                 high_val = ibis.literal(self.high)
 
@@ -819,6 +872,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
+                #
+                # Ibis column-to-column/column or column-to-column/literal comparison
+                #
+
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -898,6 +955,9 @@ class Interrogator:
                     pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 | tbl.pb_is_good_3)
                 ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
+            #
+            # Ibis column-to-literal/literal comparison
+            #
             low_val = ibis.literal(self.low)
             high_val = ibis.literal(self.high)
 
