@@ -113,7 +113,7 @@ def tbl_dates_times_text_pd():
 
 @pytest.fixture
 def tbl_true_dates_times_pd():
-    return pd.DataFrame(
+    df = pd.DataFrame(
         {
             "date_1": pd.to_datetime(["2021-01-01", "2021-02-01"]),
             "date_2": pd.to_datetime(["2021-02-01", "2021-03-01"]),
@@ -121,6 +121,11 @@ def tbl_true_dates_times_pd():
             "dttm_2": pd.to_datetime(["2021-02-01 03:30:00", "2021-03-01 03:30:00"]),
         }
     )
+
+    df["date_1"] = df["date_1"].dt.date
+    df["date_2"] = df["date_2"].dt.date
+
+    return df
 
 
 @pytest.fixture
