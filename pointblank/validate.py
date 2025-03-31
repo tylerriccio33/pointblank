@@ -66,7 +66,6 @@ from pointblank._utils_check_args import (
     _check_pre,
     _check_set_types,
     _check_thresholds,
-    _check_value_float_int,
 )
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelectorNarwhals, col
@@ -2140,7 +2139,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -2313,7 +2312,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -2485,7 +2484,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -2655,7 +2654,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -2829,7 +2828,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -3003,7 +3002,7 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=value)
+        # _check_value_float_int(value=value)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -3196,8 +3195,8 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=left)
-        _check_value_float_int(value=right)
+        # _check_value_float_int(value=left)
+        # _check_value_float_int(value=right)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
@@ -3394,8 +3393,8 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_value_float_int(value=left)
-        _check_value_float_int(value=right)
+        # _check_value_float_int(value=left)
+        # _check_value_float_int(value=right)
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
