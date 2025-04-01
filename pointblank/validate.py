@@ -2035,8 +2035,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2145,6 +2145,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2209,8 +2212,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2318,6 +2321,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2382,8 +2388,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2490,6 +2496,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2554,8 +2563,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2660,6 +2669,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2724,8 +2736,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2834,6 +2846,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2898,8 +2913,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -3008,6 +3023,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -3075,13 +3093,13 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         left
-            The lower bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the lower bound.
+            The lower bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the lower bound.
         right
-            The upper bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the upper bound.
+            The upper bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3202,13 +3220,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If `left=` or `right=` is a string-based date or datetime, convert to the appropriate type
+        left = _string_date_dttm_conversion(value=left)
+        right = _string_date_dttm_conversion(value=right)
+
+        # Place the `left=` and `right=` values in a tuple for inclusion in the validation info
+        value = (left, right)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
-
-        # Place the `left` and `right` values in a tuple for inclusion in the validation info
-        value = (left, right)
 
         # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
         # resolve the columns
@@ -3273,13 +3295,13 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         left
-            The lower bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the lower bound.
+            The lower bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the lower bound.
         right
-            The upper bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the upper bound.
+            The upper bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3400,16 +3422,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
+        # If `left=` or `right=` is a string-based date or datetime, convert to the appropriate type
+        left = _string_date_dttm_conversion(value=left)
+        right = _string_date_dttm_conversion(value=right)
+
+        # Place the `left=` and `right=` values in a tuple for inclusion in the validation info
+        value = (left, right)
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
-
-        # Place the `left` and `right` values in a tuple for inclusion in the validation info
-        value = (left, right)
 
         # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
         # resolve the columns
@@ -8144,6 +8167,157 @@ def _normalize_reporting_language(lang: str | None) -> str:
     return lang.lower()
 
 
+def _is_string_date(value: str) -> bool:
+    """
+    Check if a string represents a date in ISO format (YYYY-MM-DD).
+
+    Parameters
+    ----------
+    value
+        The string value to check.
+
+    Returns
+    -------
+    bool
+        True if the string is in date format, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+
+    import re
+
+    # Match ISO date format YYYY-MM-DD
+    pattern = r"^\d{4}-\d{2}-\d{2}$"
+    if not re.match(pattern, value):
+        return False
+
+    return True
+
+
+def _is_string_datetime(value: str) -> bool:
+    """
+    Check if a string represents a datetime in ISO format (YYYY-MM-DD HH:MM:SS).
+
+    Parameters
+    ----------
+    value
+        The string value to check.
+
+    Returns
+    -------
+    bool
+        True if the string is in datetime format, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+
+    import re
+
+    # Match ISO datetime format YYYY-MM-DD HH:MM:SS with optional milliseconds
+    pattern = r"^\d{4}-\d{2}-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d+)?$"
+    if not re.match(pattern, value):
+        return False
+
+    return True
+
+
+def _convert_string_to_date(value: str) -> datetime.date:
+    """
+    Convert a string to a datetime.date object.
+
+    Parameters
+    ----------
+    value
+        The string value to convert.
+
+    Returns
+    -------
+    datetime.date
+        The converted date object.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a date.
+    """
+    if not _is_string_date(value):
+        raise ValueError(f"Cannot convert '{value}' to a date.")
+
+    import datetime
+
+    return datetime.datetime.strptime(value, "%Y-%m-%d").date()
+
+
+def _convert_string_to_datetime(value: str) -> datetime.datetime:
+    """
+    Convert a string to a datetime.datetime object.
+
+    Parameters
+    ----------
+    value
+        The string value to convert.
+
+    Returns
+    -------
+    datetime.datetime
+        The converted datetime object.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a datetime.
+    """
+    if not _is_string_datetime(value):
+        raise ValueError(f"Cannot convert '{value}' to a datetime.")
+
+    import datetime
+
+    if "T" in value:
+        if "." in value:
+            return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+        else:
+            return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+    else:
+        if "." in value:
+            return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+
+
+def _string_date_dttm_conversion(value: any) -> any:
+    """
+    Convert a string to a date or datetime object if it is in the correct format.
+    If the value is not a string, it is returned as is.
+
+    Parameters
+    ----------
+    value
+        The value to convert. It can be a string, date, or datetime object.
+
+    Returns
+    -------
+    any
+        The converted date or datetime object, or the original value if it is not a string.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a date or datetime.
+    """
+
+    if isinstance(value, str):
+        if _is_string_date(value):
+            value = _convert_string_to_date(value)
+        elif _is_string_datetime(value):
+            value = _convert_string_to_datetime(value)
+        else:
+            raise ValueError(
+                "If `value=` is provided as a string it must be a date or datetime string."
+            )
+
+    return value
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
@@ -8348,7 +8522,7 @@ def _create_autobrief_or_failure_text(
             for_failure=for_failure,
         )
 
-    return None
+    return None  # pragma: no cover
 
 
 def _expect_failure_type(for_failure: bool) -> str:
