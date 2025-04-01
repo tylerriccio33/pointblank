@@ -8171,6 +8171,33 @@ def _is_string_date(value: str) -> bool:
     return True
 
 
+def _is_string_datetime(value: str) -> bool:
+    """
+    Check if a string represents a datetime in ISO format (YYYY-MM-DD HH:MM:SS).
+
+    Parameters
+    ----------
+    value
+        The string value to check.
+
+    Returns
+    -------
+    bool
+        True if the string is in datetime format, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+
+    import re
+
+    # Match ISO datetime format YYYY-MM-DD HH:MM:SS with optional milliseconds
+    pattern = r"^\d{4}-\d{2}-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d+)?$"
+    if not re.match(pattern, value):
+        return False
+
+    return True
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
