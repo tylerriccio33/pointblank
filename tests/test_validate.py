@@ -11,10 +11,12 @@ import random
 import itertools
 from functools import partial
 import contextlib
+import datetime
 
 import pandas as pd
 import polars as pl
 import ibis
+
 
 import great_tables as GT
 import narwhals as nw
@@ -38,6 +40,11 @@ from pointblank.validate import (
     _process_brief,
     _process_title_text,
     _ValidationInfo,
+    _is_string_date,
+    _is_string_datetime,
+    _convert_string_to_date,
+    _convert_string_to_datetime,
+    _string_date_dttm_conversion,
 )
 from pointblank.thresholds import Thresholds
 from pointblank.schema import Schema, _get_schema_validation_info
@@ -4439,14 +4446,26 @@ def test_date_validation_across_cols(request, tbl_fixture):
     )
 
 
+@pytest.mark.parametrize(
+    "date_values",
+    [
+        # Test with datetime.date objects
+        {
+            "left": datetime.date(2021, 1, 1),
+            "right": datetime.date(2021, 3, 1),
+            "format": "date_obj",
+        },
+        # Test with string dates
+        {"left": "2021-01-01", "right": "2021-03-01", "format": "string"},
+    ],
+    ids=["date_objects", "string_dates"],
+)
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
-def test_date_validation_fixed_date(request, tbl_fixture):
-    import datetime
-
+def test_date_validation_fixed_date(request, tbl_fixture, date_values):
     tbl = request.getfixturevalue(tbl_fixture)
 
-    date_left = datetime.date(2021, 1, 1)
-    date_right = datetime.date(2021, 3, 1)
+    date_left = date_values["left"]
+    date_right = date_values["right"]
 
     assert (
         Validate(data=tbl)
@@ -4565,14 +4584,26 @@ def test_date_validation_fixed_date(request, tbl_fixture):
     )
 
 
+@pytest.mark.parametrize(
+    "datetime_values",
+    [
+        # Test with datetime.datetime objects
+        {
+            "left": datetime.datetime(2021, 1, 1, 0, 0, 0),
+            "right": datetime.datetime(2021, 3, 1, 0, 0, 0),
+            "format": "datetime_obj",
+        },
+        # Test with string datetimes
+        {"left": "2021-01-01 00:00:00", "right": "2021-03-01 00:00:00", "format": "string"},
+    ],
+    ids=["datetime_objects", "string_datetimes"],
+)
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
-def test_date_validation_fixed_datetime(request, tbl_fixture):
-    import datetime
-
+def test_date_validation_fixed_datetime(request, tbl_fixture, datetime_values):
     tbl = request.getfixturevalue(tbl_fixture)
 
-    datetime_left = datetime.datetime(2021, 1, 1)
-    datetime_right = datetime.datetime(2021, 3, 1)
+    datetime_left = datetime_values["left"]
+    datetime_right = datetime_values["right"]
 
     assert (
         Validate(data=tbl)
@@ -6151,6 +6182,64 @@ def test_load_dataset_no_polars():
         # A ValueError is raised when `tbl_type="pandas"` and the `pandas` package is not installed
         with pytest.raises(ImportError):
             load_dataset(tbl_type="polars")
+
+
+def test_is_string_date():
+    assert _is_string_date("2023-01-01")
+    assert not _is_string_date("2023-01-01 12:00:00")
+    assert not _is_string_date(256)
+
+
+def test_is_string_datetime():
+    assert _is_string_datetime("2023-01-01 12:00:00")
+    assert not _is_string_datetime("2023-01-01")
+    assert not _is_string_datetime(256)
+
+
+def test_convert_string_to_date():
+    assert _convert_string_to_date("2023-01-01") == datetime.date(2023, 1, 1)
+
+
+def test_convert_string_to_date_raises():
+    with pytest.raises(ValueError):
+        _convert_string_to_date("2023-01-01 12:00:00")
+    with pytest.raises(ValueError):
+        _convert_string_to_date(256)
+
+
+def test_convert_string_to_datetime():
+    assert _convert_string_to_datetime("2023-01-01 12:00:00") == datetime.datetime(
+        2023, 1, 1, 12, 0
+    )
+    assert _convert_string_to_datetime("2023-01-01T12:00:00") == datetime.datetime(
+        2023, 1, 1, 12, 0
+    )
+    assert _convert_string_to_datetime("2023-01-01 12:00:00.123456") == datetime.datetime(
+        2023, 1, 1, 12, 0, 0, 123456
+    )
+    assert _convert_string_to_datetime("2023-01-01T12:00:00.123456") == datetime.datetime(
+        2023, 1, 1, 12, 0, 0, 123456
+    )
+
+
+def test_convert_string_to_datetime_raises():
+    with pytest.raises(ValueError):
+        _convert_string_to_datetime("2023-01-01")
+    with pytest.raises(ValueError):
+        _convert_string_to_datetime(256)
+
+
+def test_string_date_dttm_conversion():
+    assert _string_date_dttm_conversion("2023-01-01") == datetime.date(2023, 1, 1)
+    assert _string_date_dttm_conversion("2023-01-01 12:00:00") == datetime.datetime(
+        2023, 1, 1, 12, 0
+    )
+    assert _string_date_dttm_conversion(256) == 256
+
+
+def test_string_date_dttm_conversion_raises():
+    with pytest.raises(ValueError):
+        _string_date_dttm_conversion("2023-01-01P12:00:00")
 
 
 def test_process_brief():
