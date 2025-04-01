@@ -1798,11 +1798,10 @@ class Validate:
         generated brief) are useful. If `True` then each brief will be automatically generated. If
         `None` (the default) then briefs aren't globally set.
     lang
-        The language to use for automatic creation of briefs (short descriptions for each validation
-        step). By default, `None` will create English (`"en"`) text. Other options include French
-        (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
-        (`"tr"`), Simplified Chinese (`"zh-Hans"`), Traditional Chinese (`"zh-Hant"`),
-        Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish (`"sv"`), and Dutch (`"nl"`).
+        The language to use for various reporting elements. By default, `None` will select English
+        (`"en"`) as the but other options include French (`"fr"`), German (`"de"`), Italian
+        (`"it"`), Spanish (`"es"`), and several more. Have a look at the *Reporting Languages*
+        section for the full list of supported languages and where they are utilized.
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
@@ -1830,6 +1829,33 @@ class Validate:
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    Reporting Languages
+    -------------------
+    Various pieces of reporting in Pointblank can be localized to a specific language. This is done
+    by setting the `lang=` parameter in `Validate`. Any of the following languages can be used (just
+    provide the language code):
+
+    - English (`"en"`)
+    - French (`"fr"`)
+    - German (`"de"`)
+    - Italian (`"it"`)
+    - Spanish (`"es"`)
+    - Portuguese (`"pt"`)
+    - Turkish (`"tr"`)
+    - Simplified Chinese (`"zh-Hans"`)
+    - Traditional Chinese (`"zh-Hant"`)
+    - Russian (`"ru"`)
+    - Polish (`"pl"`)
+    - Danish (`"da"`)
+    - Swedish (`"sv"`)
+    - Dutch (`"nl"`)
+
+    The language codes are used for various reporting elements. Automatically generated briefs
+    (using `brief=True` or `brief="...{auto}..."`) will be in the selected language. The `lang=`
+    parameter is also used when generating the validation report table through
+    [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) (or printing the `Validate`
+    object in a notebook environment).
 
     Examples
     --------
