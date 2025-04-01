@@ -8225,6 +8225,42 @@ def _convert_string_to_date(value: str) -> datetime.date:
     return datetime.datetime.strptime(value, "%Y-%m-%d").date()
 
 
+def _convert_string_to_datetime(value: str) -> datetime.datetime:
+    """
+    Convert a string to a datetime.datetime object.
+
+    Parameters
+    ----------
+    value
+        The string value to convert.
+
+    Returns
+    -------
+    datetime.datetime
+        The converted datetime object.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a datetime.
+    """
+    if not _is_string_datetime(value):
+        raise ValueError(f"Cannot convert '{value}' to a datetime.")
+
+    import datetime
+
+    if "T" in value:
+        if "." in value:
+            return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+        else:
+            return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+    else:
+        if "." in value:
+            return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
