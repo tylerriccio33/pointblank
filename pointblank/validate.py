@@ -8261,6 +8261,40 @@ def _convert_string_to_datetime(value: str) -> datetime.datetime:
             return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
 
 
+def _string_date_dttm_conversion(value: any) -> any:
+    """
+    Convert a string to a date or datetime object if it is in the correct format.
+    If the value is not a string, it is returned as is.
+
+    Parameters
+    ----------
+    value
+        The value to convert. It can be a string, date, or datetime object.
+
+    Returns
+    -------
+    any
+        The converted date or datetime object, or the original value if it is not a string.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a date or datetime.
+    """
+
+    if isinstance(value, str):
+        if _is_string_date(value):
+            value = _convert_string_to_date(value)
+        elif _is_string_datetime(value):
+            value = _convert_string_to_datetime(value)
+        else:
+            raise ValueError(
+                "If `value=` is provided as a string it must be a date or datetime string."
+            )
+
+    return value
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
