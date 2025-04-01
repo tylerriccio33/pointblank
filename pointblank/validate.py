@@ -2036,8 +2036,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2070,6 +2071,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2117,8 +2139,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_gt()` to check whether
-        the values in column `c` are greater than values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_gt()` to check
+        whether the values in column `c` are greater than values in column `b`.
 
         ```{python}
         validation = (
@@ -2213,8 +2235,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2247,6 +2270,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2294,8 +2338,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_lt()` to check whether
-        the values in column `b` are less than values in column `c`.
+        column-to-column comparison. For the next example, we'll use `col_vals_lt()` to check
+        whether the values in column `b` are less than values in column `c`.
 
         ```{python}
         validation = (
@@ -2389,8 +2433,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2423,6 +2468,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2468,8 +2534,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_eq()` to check whether
-        the values in column `a` are equal to the values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_eq()` to check
+        whether the values in column `a` are equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2564,8 +2630,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2598,6 +2665,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2643,8 +2731,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_ne()` to check whether
-        the values in column `a` aren't equal to the values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_ne()` to check
+        whether the values in column `a` aren't equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2737,8 +2825,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2771,6 +2860,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2818,8 +2928,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_ge()` to check whether
-        the values in column `b` are greater than values in column `c`.
+        column-to-column comparison. For the next example, we'll use `col_vals_ge()` to check
+        whether the values in column `b` are greater than values in column `c`.
 
         ```{python}
         validation = (
@@ -2914,8 +3024,9 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
@@ -2948,6 +3059,27 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
 
         Examples
         --------
@@ -2995,8 +3127,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_le()` to check whether
-        the values in column `c` are less than values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_le()` to check
+        whether the values in column `c` are less than values in column `b`.
 
         ```{python}
         validation = (
@@ -3094,12 +3226,14 @@ class Validate:
             generated for each column.
         left
             The lower bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the lower bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         right
             The upper bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the upper bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3136,6 +3270,29 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `left=` and `right=`?
+        -----------------------------------------
+        The `left=` and `right=` arguments both allow for a variety of input types. The most common
+        are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value within `left=` and `right=`. There is flexibility in how
+        you provide the date or datetime values for the bounds; they can be:
+
+        - string-based dates or datetimes (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - date or datetime objects using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+        `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in either `left=` or `right=` (or both), it must be
+        specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
+        and, crucially, the columns being compared to either/both of the bounds must be of the same
+        type as the column data (e.g., all numeric, all dates, etc.).
 
         Examples
         --------
@@ -3296,12 +3453,14 @@ class Validate:
             generated for each column.
         left
             The lower bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the lower bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         right
             The upper bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the upper bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3338,6 +3497,29 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `left=` and `right=`?
+        -----------------------------------------
+        The `left=` and `right=` arguments both allow for a variety of input types. The most common
+        are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value within `left=` and `right=`. There is flexibility in how
+        you provide the date or datetime values for the bounds; they can be:
+
+        - string-based dates or datetimes (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - date or datetime objects using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+        `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in either `left=` or `right=` (or both), it must be
+        specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
+        and, crucially, the columns being compared to either/both of the bounds must be of the same
+        type as the column data (e.g., all numeric, all dates, etc.).
 
         Examples
         --------
