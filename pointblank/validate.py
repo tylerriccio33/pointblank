@@ -2035,8 +2035,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2209,8 +2209,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2382,8 +2382,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2554,8 +2554,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2724,8 +2724,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -2898,8 +2898,8 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         value
-            The value to compare against. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
+            The value to compare against. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column
             comparison.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
@@ -3075,13 +3075,13 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         left
-            The lower bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the lower bound.
+            The lower bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the lower bound.
         right
-            The upper bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the upper bound.
+            The upper bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3273,13 +3273,13 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         left
-            The lower bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the lower bound.
+            The lower bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the lower bound.
         right
-            The upper bound of the range. This can be a single numeric value or a single column name
-            given in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison for the upper bound.
+            The upper bound of the range. This can be a single value or a single column name given
+            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
+            for the upper bound.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
