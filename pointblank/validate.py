@@ -1878,6 +1878,7 @@ class Validate:
     - Danish (`"da"`)
     - Swedish (`"sv"`)
     - Dutch (`"nl"`)
+    - Finnish (`"fi"`)
 
     The language codes are used for various reporting elements. Automatically generated briefs
     (using `brief=True` or `brief="...{auto}..."`) will be in the selected language. The `lang=`

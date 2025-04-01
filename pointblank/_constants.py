@@ -167,6 +167,7 @@ REPORTING_LANGUAGES = [
     "da",
     "sv",
     "nl",
+    "fi",
 ]
 
 SEVERITY_LEVEL_COLORS = {
