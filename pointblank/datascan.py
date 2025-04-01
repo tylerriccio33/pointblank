@@ -328,9 +328,6 @@ class DataScan:
             label_map[target_col] = matching_stat.label
         return label_map
 
-    def to_dict(self) -> dict:
-        raise NotImplementedError
-
     def to_json(self) -> str:
         prof_dict = self.profile.as_dataframe(strict=False).to_dict(as_series=False)
 
