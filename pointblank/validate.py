@@ -2098,7 +2098,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2145,6 +2147,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -2324,7 +2341,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2371,6 +2390,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -2549,7 +2583,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2596,6 +2632,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -2773,7 +2824,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2820,6 +2873,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -2995,7 +3063,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3042,6 +3112,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -3221,7 +3306,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3268,6 +3355,21 @@ class Validate:
         Finally, when supplying a column name in the `value=` argument, it must be specified within
         [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
         columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -3459,7 +3561,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3508,6 +3612,21 @@ class Validate:
         specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
         and, crucially, the columns being compared to either/both of the bounds must be of the same
         type as the column data (e.g., all numeric, all dates, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `left=col(...)`/`right=col(...)` that are expected to be present
+        in the transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -3713,7 +3832,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3762,6 +3883,21 @@ class Validate:
         specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
         and, crucially, the columns being compared to either/both of the bounds must be of the same
         type as the column data (e.g., all numeric, all dates, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `left=col(...)`/`right=col(...)` that are expected to be present
+        in the transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -3946,7 +4082,9 @@ class Validate:
             A list of values to compare against.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3972,6 +4110,21 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
 
         Thresholds
         ----------
@@ -4131,7 +4284,9 @@ class Validate:
             A list of values to compare against.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4157,6 +4312,21 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
 
         Thresholds
         ----------
@@ -4313,7 +4483,9 @@ class Validate:
             generated for each column.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4334,6 +4506,26 @@ class Validate:
             A boolean value indicating whether the validation step should be active. Using `False`
             will make the validation step inactive (still reporting its presence and keeping indexes
             for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
 
         Thresholds
         ----------
@@ -4362,11 +4554,6 @@ class Validate:
 
         Aside from reporting failure conditions, thresholds can be used to determine the actions to
         take for each level of failure (using the `actions=` parameter).
-
-        Returns
-        -------
-        Validate
-            The `Validate` object with the added validation step.
 
         Examples
         --------
@@ -4490,7 +4677,9 @@ class Validate:
             generated for each column.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4516,6 +4705,21 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
 
         Thresholds
         ----------
@@ -4675,7 +4879,9 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4701,6 +4907,21 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
 
         Thresholds
         ----------
@@ -4858,7 +5079,9 @@ class Validate:
             should either be a lambda expression or a Narwhals column expression.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4884,6 +5107,19 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -5187,7 +5423,9 @@ class Validate:
             values in those columns.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5213,6 +5451,21 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns_subset=` that are expected to be present in the transformed table, but
+        may not exist in the table before preprocessing. Regarding the lifetime of the transformed
+        table, it only exists during the validation step and is not stored in the `Validate` object
+        or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -5388,7 +5641,9 @@ class Validate:
             data type of `Int64`.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5414,6 +5669,18 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. Regarding the lifetime of the transformed table, it only exists during the
+        validation step and is not stored in the `Validate` object or used in subsequent validation
+        steps.
 
         Thresholds
         ----------
@@ -5587,7 +5854,9 @@ class Validate:
             count of the target table should not match the specified `count=` value.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5613,6 +5882,19 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
@@ -5782,7 +6064,9 @@ class Validate:
             column count of the target table should not match the specified `count=` value.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5808,6 +6092,19 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
 
         Thresholds
         ----------
