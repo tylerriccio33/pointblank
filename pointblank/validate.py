@@ -2145,6 +2145,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2318,6 +2321,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2490,6 +2496,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -2659,6 +2668,9 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
@@ -2834,6 +2846,9 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
@@ -3007,6 +3022,9 @@ class Validate:
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
+
+        # If value is a string-based date or datetime, convert it to the appropriate type
+        value = _string_date_dttm_conversion(value=value)
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
@@ -3202,13 +3220,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
+        # If `left=` or `right=` is a string-based date or datetime, convert to the appropriate type
+        left = _string_date_dttm_conversion(value=left)
+        right = _string_date_dttm_conversion(value=right)
+
+        # Place the `left=` and `right=` values in a tuple for inclusion in the validation info
+        value = (left, right)
+
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
-
-        # Place the `left` and `right` values in a tuple for inclusion in the validation info
-        value = (left, right)
 
         # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
         # resolve the columns
@@ -3400,16 +3422,17 @@ class Validate:
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
 
-        if isinstance(columns, str):
-            columns = [columns]
+        # If `left=` or `right=` is a string-based date or datetime, convert to the appropriate type
+        left = _string_date_dttm_conversion(value=left)
+        right = _string_date_dttm_conversion(value=right)
+
+        # Place the `left=` and `right=` values in a tuple for inclusion in the validation info
+        value = (left, right)
 
         # Determine threshold to use (global or local) and normalize a local `thresholds=` value
         thresholds = (
             self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
         )
-
-        # Place the `left` and `right` values in a tuple for inclusion in the validation info
-        value = (left, right)
 
         # If `columns` is a ColumnSelector or Narwhals selector, call `col()` on it to later
         # resolve the columns
