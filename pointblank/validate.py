@@ -8499,7 +8499,7 @@ def _create_autobrief_or_failure_text(
             for_failure=for_failure,
         )
 
-    return None
+    return None  # pragma: no cover
 
 
 def _expect_failure_type(for_failure: bool) -> str:
