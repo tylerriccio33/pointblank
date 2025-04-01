@@ -8198,6 +8198,33 @@ def _is_string_datetime(value: str) -> bool:
     return True
 
 
+def _convert_string_to_date(value: str) -> datetime.date:
+    """
+    Convert a string to a datetime.date object.
+
+    Parameters
+    ----------
+    value
+        The string value to convert.
+
+    Returns
+    -------
+    datetime.date
+        The converted date object.
+
+    Raises
+    ------
+    ValueError
+        If the string cannot be converted to a date.
+    """
+    if not _is_string_date(value):
+        raise ValueError(f"Cannot convert '{value}' to a date.")
+
+    import datetime
+
+    return datetime.datetime.strptime(value, "%Y-%m-%d").date()
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
