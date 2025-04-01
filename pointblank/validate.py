@@ -1783,10 +1783,10 @@ class Validate:
         label more visually appealing (it will appear in the header area of the tabular report).
     thresholds
         Generate threshold failure levels so that all validation steps can report and react
-        accordingly when exceeding the set levels. This is to be created using one of several valid
-        input schemes: (1) single integer/float denoting absolute number or fraction of failing test
-        units for the 'warn' level, (2) a tuple of 1-3 values, (3) a dictionary of 1-3 entries, or a
-        [`Thresholds`](`pointblank.Thresholds`) object.
+        accordingly when exceeding the set levels. The thresholds are set at the global level and
+        can be overridden at the validation step level (each validation step has its own
+        `thresholds=` parameter). The default is `None`, which means that no thresholds will be set.
+        Look at the *Thresholds* section for information on how to set threshold levels.
     actions
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no global actions
@@ -1798,11 +1798,10 @@ class Validate:
         generated brief) are useful. If `True` then each brief will be automatically generated. If
         `None` (the default) then briefs aren't globally set.
     lang
-        The language to use for automatic creation of briefs (short descriptions for each validation
-        step). By default, `None` will create English (`"en"`) text. Other options include French
-        (`"fr"`), German (`"de"`), Italian (`"it"`), Spanish (`"es"`), Portuguese (`"pt"`), Turkish
-        (`"tr"`), Simplified Chinese (`"zh-Hans"`), Traditional Chinese (`"zh-Hant"`),
-        Russian (`"ru"`), Polish (`"pl"`), Danish (`"da"`), Swedish (`"sv"`), and Dutch (`"nl"`).
+        The language to use for various reporting elements. By default, `None` will select English
+        (`"en"`) as the but other options include French (`"fr"`), German (`"de"`), Italian
+        (`"it"`), Spanish (`"es"`), and several more. Have a look at the *Reporting Languages*
+        section for the full list of supported languages and where they are utilized.
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
@@ -1830,6 +1829,61 @@ class Validate:
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    Thresholds
+    ----------
+    The `thresholds=` parameter is used to set the failure-condition levels for all validation
+    steps. They are set here at the global level but can be overridden at the validation step level
+    (each validation step has its own local `thresholds=` parameter).
+
+    There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values can
+    either be set as a proportion failing of all test units (a value between `0` to `1`), or, the
+    absolute number of failing test units (as integer that's `1` or greater).
+
+    Thresholds can be defined using one of these input schemes:
+
+    1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+    create thresholds
+    2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
+    'error' level, and position `2` is the 'critical' level.
+    3. a single integer/float value denoting absolute number or fraction of failing test units for
+    the 'warn' level only
+    4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical' and
+    the values are the corresponding threshold values.
+
+    If the number of failing test units for a validation step exceeds set thresholds, the validation
+    step will be marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need
+    to be set, you're free to set any combination of them.
+
+    Aside from reporting failure conditions, thresholds can be used to determine the actions to take
+    for each level of failure (using the `actions=` parameter).
+
+    Reporting Languages
+    -------------------
+    Various pieces of reporting in Pointblank can be localized to a specific language. This is done
+    by setting the `lang=` parameter in `Validate`. Any of the following languages can be used (just
+    provide the language code):
+
+    - English (`"en"`)
+    - French (`"fr"`)
+    - German (`"de"`)
+    - Italian (`"it"`)
+    - Spanish (`"es"`)
+    - Portuguese (`"pt"`)
+    - Turkish (`"tr"`)
+    - Simplified Chinese (`"zh-Hans"`)
+    - Traditional Chinese (`"zh-Hant"`)
+    - Russian (`"ru"`)
+    - Polish (`"pl"`)
+    - Danish (`"da"`)
+    - Swedish (`"sv"`)
+    - Dutch (`"nl"`)
+
+    The language codes are used for various reporting elements. Automatically generated briefs
+    (using `brief=True` or `brief="...{auto}..."`) will be in the selected language. The `lang=`
+    parameter is also used when generating the validation report table through
+    [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) (or printing the `Validate`
+    object in a notebook environment).
 
     Examples
     --------
@@ -2036,21 +2090,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2070,6 +2126,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2117,8 +2237,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_gt()` to check whether
-        the values in column `c` are greater than values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_gt()` to check
+        whether the values in column `c` are greater than values in column `b`.
 
         ```{python}
         validation = (
@@ -2213,21 +2333,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2247,6 +2369,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2294,8 +2480,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_lt()` to check whether
-        the values in column `b` are less than values in column `c`.
+        column-to-column comparison. For the next example, we'll use `col_vals_lt()` to check
+        whether the values in column `b` are less than values in column `c`.
 
         ```{python}
         validation = (
@@ -2389,21 +2575,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2423,6 +2611,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2468,8 +2720,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_eq()` to check whether
-        the values in column `a` are equal to the values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_eq()` to check
+        whether the values in column `a` are equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2564,21 +2816,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2598,6 +2852,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2643,8 +2961,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_ne()` to check whether
-        the values in column `a` aren't equal to the values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_ne()` to check
+        whether the values in column `a` aren't equal to the values in column `b`.
 
         ```{python}
         validation = (
@@ -2737,21 +3055,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2771,6 +3091,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2818,8 +3202,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_ge()` to check whether
-        the values in column `b` are greater than values in column `c`.
+        column-to-column comparison. For the next example, we'll use `col_vals_ge()` to check
+        whether the values in column `b` are greater than values in column `c`.
 
         ```{python}
         validation = (
@@ -2914,21 +3298,23 @@ class Validate:
             generated for each column.
         value
             The value to compare against. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column
-            comparison.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison. For more information on which types of values are allowed, see the
+            *What Can Be Used in `value=`?* section.
         na_pass
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -2948,6 +3334,70 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `value=`?
+        -----------------------------
+        The `value=` argument allows for a variety of input types. The most common are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column name
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value as the `value=` argument. There is flexibility in how
+        you provide the date or datetime value, as it can be:
+
+        - a string-based date or datetime (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - a date or datetime object using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+          `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in the `value=` argument, it must be specified within
+        [`col()`](`pointblank.col`). This is a column-to-column comparison and, crucially, the
+        columns being compared must be of the same type (e.g., both numeric, both date, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `value=col(...)` that are expected to be present in the
+        transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -2995,8 +3445,8 @@ class Validate:
 
         Aside from checking a column against a literal value, we can also use a column name in the
         `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
-        column-column comparison. For the next example, we'll use `col_vals_le()` to check whether
-        the values in column `c` are less than values in column `b`.
+        column-to-column comparison. For the next example, we'll use `col_vals_le()` to check
+        whether the values in column `c` are less than values in column `b`.
 
         ```{python}
         validation = (
@@ -3094,12 +3544,14 @@ class Validate:
             generated for each column.
         left
             The lower bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the lower bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         right
             The upper bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the upper bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3109,14 +3561,15 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3136,6 +3589,72 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `left=` and `right=`?
+        -----------------------------------------
+        The `left=` and `right=` arguments both allow for a variety of input types. The most common
+        are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value within `left=` and `right=`. There is flexibility in how
+        you provide the date or datetime values for the bounds; they can be:
+
+        - string-based dates or datetimes (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - date or datetime objects using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+        `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in either `left=` or `right=` (or both), it must be
+        specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
+        and, crucially, the columns being compared to either/both of the bounds must be of the same
+        type as the column data (e.g., all numeric, all dates, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `left=col(...)`/`right=col(...)` that are expected to be present
+        in the transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -3296,12 +3815,14 @@ class Validate:
             generated for each column.
         left
             The lower bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the lower bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         right
             The upper bound of the range. This can be a single value or a single column name given
-            in [`col()`](`pointblank.col`). The latter option allows for a column-column comparison
-            for the upper bound.
+            in [`col()`](`pointblank.col`). The latter option allows for a column-to-column
+            comparison for this bound. See the *What Can Be Used in `left=` and `right=`?* section
+            for details on this.
         inclusive
             A tuple of two boolean values indicating whether the comparison should be inclusive. The
             position of the boolean values correspond to the `left=` and `right=` values,
@@ -3311,14 +3832,15 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3338,6 +3860,72 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        What Can Be Used in `left=` and `right=`?
+        -----------------------------------------
+        The `left=` and `right=` arguments both allow for a variety of input types. The most common
+        are:
+
+        - a single numeric value
+        - a single date or datetime value
+        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+
+        When supplying a number as the basis of comparison, keep in mind that all resolved columns
+        must also be numeric. Should you have columns that are of the date or datetime types, you
+        can supply a date or datetime value within `left=` and `right=`. There is flexibility in how
+        you provide the date or datetime values for the bounds; they can be:
+
+        - string-based dates or datetimes (e.g., `"2023-10-01"`, `"2023-10-01 13:45:30"`, etc.)
+        - date or datetime objects using the `datetime` module (e.g., `datetime.date(2023, 10, 1)`,
+        `datetime.datetime(2023, 10, 1, 13, 45, 30)`, etc.)
+
+        Finally, when supplying a column name in either `left=` or `right=` (or both), it must be
+        specified within [`col()`](`pointblank.col`). This facilitates column-to-column comparisons
+        and, crucially, the columns being compared to either/both of the bounds must be of the same
+        type as the column data (e.g., all numeric, all dates, etc.).
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns=` and `left=col(...)`/`right=col(...)` that are expected to be present
+        in the transformed table, but may not exist in the table before preprocessing. Regarding the
+        lifetime of the transformed table, it only exists during the validation step and is not
+        stored in the `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -3494,14 +4082,15 @@ class Validate:
             A list of values to compare against.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3521,6 +4110,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -3652,14 +4284,15 @@ class Validate:
             A list of values to compare against.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3679,6 +4312,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -3807,14 +4483,15 @@ class Validate:
             generated for each column.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3834,6 +4511,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -3957,14 +4677,15 @@ class Validate:
             generated for each column.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -3984,6 +4705,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4115,14 +4879,15 @@ class Validate:
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4142,6 +4907,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        a column via `columns=` that is expected to be present in the transformed table, but may not
+        exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
+        only exists during the validation step and is not stored in the `Validate` object or used in
+        subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4271,14 +5079,15 @@ class Validate:
             should either be a lambda expression or a Narwhals column expression.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4298,6 +5107,47 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4397,12 +5247,11 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step(s) meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4422,6 +5271,34 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4546,14 +5423,15 @@ class Validate:
             values in those columns.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4573,6 +5451,49 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns_subset=` that are expected to be present in the transformed table, but
+        may not exist in the table before preprocessing. Regarding the lifetime of the transformed
+        table, it only exists during the validation step and is not stored in the `Validate` object
+        or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4720,14 +5641,15 @@ class Validate:
             data type of `Int64`.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4747,6 +5669,46 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. Regarding the lifetime of the transformed table, it only exists during the
+        validation step and is not stored in the `Validate` object or used in subsequent validation
+        steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -4892,14 +5854,15 @@ class Validate:
             count of the target table should not match the specified `count=` value.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -4919,6 +5882,47 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
@@ -5060,14 +6064,15 @@ class Validate:
             column count of the target table should not match the specified `count=` value.
         pre
             A optional preprocessing function or lambda to apply to the data table during
-            interrogation.
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
         thresholds
-            Optional failure threshold levels for the validation step(s), so that the interrogation
-            can react accordingly when exceeding the set levels for different states ('warning',
-            'error', and 'critical'). This can be created using the
-            [`Thresholds`](`pointblank.Thresholds`) class or more simply as (1) an integer or float
-            denoting the absolute number or fraction of failing test units for the 'warn' level, (2)
-            a tuple of 1-3 values, or (3) a dictionary of 1-3 entries.
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
         actions
             Optional actions to take when the validation step meets or exceeds any set threshold
             levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
@@ -5087,6 +6092,47 @@ class Validate:
         -------
         Validate
             The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+        create thresholds
+        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level.
+        3. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warn' level only
+        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
+        and the values are the corresponding threshold values.
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
 
         Examples
         --------
