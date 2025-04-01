@@ -1783,10 +1783,10 @@ class Validate:
         label more visually appealing (it will appear in the header area of the tabular report).
     thresholds
         Generate threshold failure levels so that all validation steps can report and react
-        accordingly when exceeding the set levels. This is to be created using one of several valid
-        input schemes: (1) single integer/float denoting absolute number or fraction of failing test
-        units for the 'warn' level, (2) a tuple of 1-3 values, (3) a dictionary of 1-3 entries, or a
-        [`Thresholds`](`pointblank.Thresholds`) object.
+        accordingly when exceeding the set levels. The thresholds are set at the global level and
+        can be overridden at the validation step level (each validation step has its own
+        `thresholds=` parameter). The default is `None`, which means that no thresholds will be set.
+        Look at the *Thresholds* section for information on how to set thresholds levels.
     actions
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no global actions
@@ -1829,6 +1829,34 @@ class Validate:
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    Thresholds
+    ----------
+    The `thresholds=` parameter is used to set the failure-condition levels for the validation
+    steps. They are set here at the global level but can be overridden at the validation step level
+    (each validation step has its own local `thresholds=` parameter).
+
+    There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values can
+    either be set as a proportion failing of all test units (a value between `0` to `1`), or, the
+    absolute number of failing test units (as integer that's `1` or greater).
+
+    Thresholds can be defined using one of these input schemes:
+
+    1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
+    create thresholds
+    2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
+    'error' level, and position `2` is the 'critical' level.
+    3. a single integer/float value denoting absolute number or fraction of failing test units for
+    the 'warn' level only
+    4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical' and
+    the values are the corresponding threshold values.
+
+    If the number of failing test units for a validation step exceeds set thresholds, the validation
+    step will be marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need
+    to be set, you're free to set any combination of them.
+
+    Aside from reporting failure conditions, thresholds can be used to determine the actions to take
+    for each level of failure (using the `actions=` parameter).
 
     Reporting Languages
     -------------------
