@@ -8144,6 +8144,33 @@ def _normalize_reporting_language(lang: str | None) -> str:
     return lang.lower()
 
 
+def _is_string_date(value: str) -> bool:
+    """
+    Check if a string represents a date in ISO format (YYYY-MM-DD).
+
+    Parameters
+    ----------
+    value
+        The string value to check.
+
+    Returns
+    -------
+    bool
+        True if the string is in date format, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+
+    import re
+
+    # Match ISO date format YYYY-MM-DD
+    pattern = r"^\d{4}-\d{2}-\d{2}$"
+    if not re.match(pattern, value):
+        return False
+
+    return True
+
+
 def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
     # If there is no brief, return `None`
     if brief is None:
