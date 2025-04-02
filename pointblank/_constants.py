@@ -159,14 +159,21 @@ REPORTING_LANGUAGES = [
     "it",
     "es",
     "pt",
+    "ro",
     "tr",
     "zh-Hans",
     "zh-Hant",
+    "ja",
+    "ko",
     "ru",
+    "cs",
     "pl",
     "da",
     "sv",
+    "nb",
     "nl",
+    "fi",
+    "is",
 ]
 
 SEVERITY_LEVEL_COLORS = {

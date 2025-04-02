@@ -1801,7 +1801,8 @@ class Validate:
         The language to use for various reporting elements. By default, `None` will select English
         (`"en"`) as the but other options include French (`"fr"`), German (`"de"`), Italian
         (`"it"`), Spanish (`"es"`), and several more. Have a look at the *Reporting Languages*
-        section for the full list of supported languages and where they are utilized.
+        section for the full list of supported languages and information on how the language setting
+        is utilized.
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
@@ -1870,18 +1871,25 @@ class Validate:
     - Italian (`"it"`)
     - Spanish (`"es"`)
     - Portuguese (`"pt"`)
+    - Romanian (`"ro"`)
     - Turkish (`"tr"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
+    - Japanese (`"ja"`)
+    - Korean (`"ko"`)
     - Russian (`"ru"`)
+    - Czech (`"cs"`)
     - Polish (`"pl"`)
     - Danish (`"da"`)
     - Swedish (`"sv"`)
+    - Norwegian Bokmål (`"nb"`)
     - Dutch (`"nl"`)
+    - Finnish (`"fi"`)
+    - Icelandic (`"is"`)
 
-    The language codes are used for various reporting elements. Automatically generated briefs
-    (using `brief=True` or `brief="...{auto}..."`) will be in the selected language. The `lang=`
-    parameter is also used when generating the validation report table through
+    Automatically generated briefs (produced by using `brief=True` or `brief="...{auto}..."`) will
+    be written in the selected language. The language setting will also used when generating the
+    validation report table through
     [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) (or printing the `Validate`
     object in a notebook environment).
 
@@ -2133,7 +2141,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -2236,7 +2244,7 @@ class Validate:
         by using `col_vals_gt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_gt()` to check
         whether the values in column `c` are greater than values in column `b`.
 
@@ -2376,7 +2384,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -2479,7 +2487,7 @@ class Validate:
         by using `col_vals_lt()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_lt()` to check
         whether the values in column `b` are less than values in column `c`.
 
@@ -2618,7 +2626,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -2719,7 +2727,7 @@ class Validate:
         by using `col_vals_eq()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_eq()` to check
         whether the values in column `a` are equal to the values in column `b`.
 
@@ -2859,7 +2867,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -2960,7 +2968,7 @@ class Validate:
         by using `col_vals_ne()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_ne()` to check
         whether the values in column `a` aren't equal to the values in column `b`.
 
@@ -3098,7 +3106,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -3201,7 +3209,7 @@ class Validate:
         by using `col_vals_ge()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_ge()` to check
         whether the values in column `b` are greater than values in column `c`.
 
@@ -3341,7 +3349,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column name
+        - A [`col()`](`pointblank.col`) object that represents a column name
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -3444,7 +3452,7 @@ class Validate:
         by using `col_vals_le()`. All test units passed, and there are no failing test units.
 
         Aside from checking a column against a literal value, we can also use a column name in the
-        `value=` argument (with the helper function [`col()`](`pointblank.col`)) to perform a
+        `value=` argument (with the helper function [`col()`](`pointblank.col`) to perform a
         column-to-column comparison. For the next example, we'll use `col_vals_le()` to check
         whether the values in column `c` are less than values in column `b`.
 
@@ -3597,7 +3605,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+        - A [`col()`](`pointblank.col`) object that represents a column in the target table
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -3702,7 +3710,7 @@ class Validate:
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
-        the helper function [`col()`](`pointblank.col`)). In this way, we can perform three
+        the helper function [`col()`](`pointblank.col`). In this way, we can perform three
         additional comparison types:
 
         1. `left=column`, `right=column`
@@ -3868,7 +3876,7 @@ class Validate:
 
         - a single numeric value
         - a single date or datetime value
-        - A [`col()`](`pointblank.col`)) object that represents a column in the target table
+        - A [`col()`](`pointblank.col`) object that represents a column in the target table
 
         When supplying a number as the basis of comparison, keep in mind that all resolved columns
         must also be numeric. Should you have columns that are of the date or datetime types, you
@@ -3973,7 +3981,7 @@ class Validate:
 
         Aside from checking a column against two literal values representing the lower and upper
         bounds, we can also provide column names to the `left=` and/or `right=` arguments (by using
-        the helper function [`col()`](`pointblank.col`)). In this way, we can perform three
+        the helper function [`col()`](`pointblank.col`). In this way, we can perform three
         additional comparison types:
 
         1. `left=column`, `right=column`
