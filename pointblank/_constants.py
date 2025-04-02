@@ -165,6 +165,7 @@ REPORTING_LANGUAGES = [
     "ja",
     "ko",
     "ru",
+    "cs",
     "pl",
     "da",
     "sv",

@@ -1876,6 +1876,7 @@ class Validate:
     - Japanese (`"ja"`)
     - Korean (`"ko"`)
     - Russian (`"ru"`)
+    - Czech (`"cs"`)
     - Polish (`"pl"`)
     - Danish (`"da"`)
     - Swedish (`"sv"`)
