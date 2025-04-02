@@ -1,6 +1,6 @@
 # Summary
 
-Thank you for contributing to pointblank! To make this process easier for everyone, please explain the context and purpose of your contribution. Also, list the changes made to the existing code or documentation.
+Thank you for contributing to Pointblank! To make this process easier for everyone, please explain the context and purpose of your contribution. Also, list the changes made to the existing code or documentation.
 
 # Related GitHub Issues and PRs
 
