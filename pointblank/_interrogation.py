@@ -2032,18 +2032,14 @@ def _modify_datetime_compare_val(tgt_column: any, compare_val: any) -> any:
         compare_type = "datetime"
     elif "datetime.date" in compare_type_str:
         compare_type = "date"
-    elif "datetime.timedelta" in compare_type_str:
-        compare_type = "timedelta"
     else:
         compare_type = "other"
 
     if "datetime" in tgt_col_dtype_str:
         tgt_col_dtype = "datetime"
     elif "date" in tgt_col_dtype_str or "object" in tgt_col_dtype_str:
-        # Object type is used for date columns in the Pandas
+        # Object type is used for date columns in Pandas
         tgt_col_dtype = "date"
-    elif "timedelta" in tgt_col_dtype_str:
-        tgt_col_dtype = "timedelta"
     else:
         tgt_col_dtype = "other"
 
