@@ -1844,14 +1844,14 @@ class Validate:
 
     Thresholds can be defined using one of these input schemes:
 
-    1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-    create thresholds
-    2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
-    'error' level, and position `2` is the 'critical' level.
-    3. a single integer/float value denoting absolute number or fraction of failing test units for
-    the 'warn' level only
-    4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical' and
-    the values are the corresponding threshold values.
+    1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+    thresholds)
+    2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
+    'error' level, and position `2` is the 'critical' level
+    3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+    'critical'
+    4. a single integer/float value denoting absolute number or fraction of failing test units for
+    the 'warning' level only
 
     If the number of failing test units for a validation step exceeds set thresholds, the validation
     step will be marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need
@@ -2184,14 +2184,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2427,14 +2427,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2669,14 +2669,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2910,14 +2910,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3149,14 +3149,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3392,14 +3392,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3649,14 +3649,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3920,14 +3920,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -4147,14 +4147,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -4349,14 +4349,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -4548,14 +4548,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -4742,14 +4742,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -4944,14 +4944,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -5142,14 +5142,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -5293,14 +5293,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -5488,14 +5488,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -5703,14 +5703,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -5917,14 +5917,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -6127,14 +6127,14 @@ class Validate:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -8166,8 +8166,8 @@ class Validate:
                     "pass": "",
                     "fail": "",
                     "w_upd": "",
-                    "s_upd": "",
-                    "n_upd": "",
+                    "e_upd": "",
+                    "c_upd": "",
                     "extract_upd": "",
                 }
             )
@@ -8202,8 +8202,8 @@ class Validate:
                         "pass": "PASS",
                         "fail": "FAIL",
                         "w_upd": "W",
-                        "s_upd": "E",
-                        "n_upd": "C",
+                        "e_upd": "E",
+                        "c_upd": "C",
                         "extract_upd": "EXT",
                     }
                 )
@@ -8220,14 +8220,14 @@ class Validate:
                         "pass": "60px",
                         "fail": "60px",
                         "w_upd": "30px",
-                        "s_upd": "30px",
-                        "n_upd": "30px",
+                        "e_upd": "30px",
+                        "c_upd": "30px",
                         "extract_upd": "65px",
                     }
                 )
                 .cols_align(
                     align="center",
-                    columns=["tbl", "eval", "w_upd", "s_upd", "n_upd", "extract_upd"],
+                    columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"],
                 )
                 .cols_align(align="right", columns=["test_units", "pass", "fail"])
                 .cols_move_to_start(
@@ -8243,8 +8243,8 @@ class Validate:
                         "pass",
                         "fail",
                         "w_upd",
-                        "s_upd",
-                        "n_upd",
+                        "e_upd",
+                        "c_upd",
                         "extract_upd",
                     ]
                 )
@@ -8466,21 +8466,21 @@ class Validate:
         )
 
         # ------------------------------------------------
-        # Process `w_upd`, `s_upd`, `n_upd` entries
+        # Process `w_upd`, `e_upd`, `c_upd` entries
         # ------------------------------------------------
 
-        # Transform 'warning', 'error', and 'critical' to `w_upd`, `s_upd`, and `n_upd` entries
-        validation_info_dict["w_upd"] = _transform_w_s_n(
+        # Transform 'warning', 'error', and 'critical' to `w_upd`, `e_upd`, and `c_upd` entries
+        validation_info_dict["w_upd"] = _transform_w_e_c(
             values=validation_info_dict["warning"],
             color=SEVERITY_LEVEL_COLORS["warning"],
             interrogation_performed=interrogation_performed,
         )
-        validation_info_dict["s_upd"] = _transform_w_s_n(
+        validation_info_dict["e_upd"] = _transform_w_e_c(
             values=validation_info_dict["error"],
             color=SEVERITY_LEVEL_COLORS["error"],
             interrogation_performed=interrogation_performed,
         )
-        validation_info_dict["n_upd"] = _transform_w_s_n(
+        validation_info_dict["c_upd"] = _transform_w_e_c(
             values=validation_info_dict["critical"],
             color=SEVERITY_LEVEL_COLORS["critical"],
             interrogation_performed=interrogation_performed,
@@ -8493,27 +8493,28 @@ class Validate:
         # For the `status_color` entry, we will add a string based on the status of the validation:
         #
         # CASE 1: if `all_passed` is `True`, then the status color will be green
-        # CASE 2: If none of `warning`, `error`, or `critical` are `True`, then the status color
+        # CASE 2: If `critical` is `True`, then the status color will be red (#FF3300)
+        # CASE 3: If `error` is `True`, then the status color will be yellow (#EBBC14)
+        # CASE 4: If `warning` is `True`, then the status color will be gray (#AAAAAA)
+        # CASE 5: If none of `warning`, `error`, or `critical` are `True`, then the status color
         #   will be light green (includes alpha of `0.5`)
-        # CASE 3: If `warn` is `True`, then the status color will be yellow
-        # CASE 4: If `stop` is `True`, then the status color will be red
 
         # Create a list to store the status colors
         status_color_list = []
 
-        # Iterate over the validation steps
+        # Iterate over the validation steps in priority order
         for i in range(len(validation_info_dict["type_upd"])):
             if validation_info_dict["all_passed"][i]:
-                status_color_list.append(SEVERITY_LEVEL_COLORS["green"])
+                status_color_list.append(SEVERITY_LEVEL_COLORS["green"])  # CASE 1
             elif validation_info_dict["critical"][i]:
-                status_color_list.append(SEVERITY_LEVEL_COLORS["critical"])
+                status_color_list.append(SEVERITY_LEVEL_COLORS["critical"])  # CASE 2
             elif validation_info_dict["error"][i]:
-                status_color_list.append(SEVERITY_LEVEL_COLORS["error"])
+                status_color_list.append(SEVERITY_LEVEL_COLORS["error"])  # CASE 3
             elif validation_info_dict["warning"][i]:
-                status_color_list.append(SEVERITY_LEVEL_COLORS["warning"])
+                status_color_list.append(SEVERITY_LEVEL_COLORS["warning"])  # CASE 4
             else:
-                # No status entered (W, S, N) but also not all passed
-                status_color_list.append(SEVERITY_LEVEL_COLORS["green"] + "66")
+                # No threshold exceeded for {W, E, C} and NOT `all_passed`
+                status_color_list.append(SEVERITY_LEVEL_COLORS["green"] + "66")  # CASE 5
 
         # Add the `status_color` entry to the dictionary
         validation_info_dict["status_color"] = status_color_list
@@ -8695,7 +8696,7 @@ class Validate:
             )
             .tab_style(
                 style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
-                locations=loc.body(columns=["w_upd", "s_upd", "n_upd"]),
+                locations=loc.body(columns=["w_upd", "e_upd", "c_upd"]),
             )
             .tab_style(
                 style=style.borders(
@@ -8703,7 +8704,7 @@ class Validate:
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
-                locations=loc.body(columns="n_upd"),
+                locations=loc.body(columns="c_upd"),
             )
             .tab_style(
                 style=style.borders(
@@ -8756,8 +8757,8 @@ class Validate:
                     "pass": "PASS",
                     "fail": "FAIL",
                     "w_upd": "W",
-                    "s_upd": "E",
-                    "n_upd": "C",
+                    "e_upd": "E",
+                    "c_upd": "C",
                     "extract_upd": "EXT",
                 }
             )
@@ -8774,13 +8775,13 @@ class Validate:
                     "pass": "60px",
                     "fail": "60px",
                     "w_upd": "30px",
-                    "s_upd": "30px",
-                    "n_upd": "30px",
+                    "e_upd": "30px",
+                    "c_upd": "30px",
                     "extract_upd": "65px",
                 }
             )
             .cols_align(
-                align="center", columns=["tbl", "eval", "w_upd", "s_upd", "n_upd", "extract_upd"]
+                align="center", columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"]
             )
             .cols_align(align="right", columns=["test_units", "pass", "fail"])
             .cols_move_to_start(
@@ -8796,8 +8797,8 @@ class Validate:
                     "pass",
                     "fail",
                     "w_upd",
-                    "s_upd",
-                    "n_upd",
+                    "e_upd",
+                    "c_upd",
                     "extract_upd",
                 ]
             )
@@ -8816,7 +8817,7 @@ class Validate:
             gt_tbl = gt_tbl.tab_style(
                 style=style.fill(color="#F2F2F2"),
                 locations=loc.body(
-                    columns=["tbl", "eval", "test_units", "pass", "fail", "w_upd", "s_upd", "n_upd"]
+                    columns=["tbl", "eval", "test_units", "pass", "fail", "w_upd", "e_upd", "c_upd"]
                 ),
             )
 
@@ -10032,7 +10033,7 @@ def _transform_passed_failed(
     return passed_failed
 
 
-def _transform_w_s_n(values, color, interrogation_performed):
+def _transform_w_e_c(values, color, interrogation_performed):
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(values))]
