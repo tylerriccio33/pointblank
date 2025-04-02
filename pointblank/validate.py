@@ -1873,6 +1873,7 @@ class Validate:
     - Turkish (`"tr"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
+    - Japanese (`"ja"`)
     - Russian (`"ru"`)
     - Polish (`"pl"`)
     - Danish (`"da"`)

@@ -162,6 +162,7 @@ REPORTING_LANGUAGES = [
     "tr",
     "zh-Hans",
     "zh-Hant",
+    "ja",
     "ru",
     "pl",
     "da",
