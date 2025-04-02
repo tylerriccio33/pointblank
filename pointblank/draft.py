@@ -228,7 +228,7 @@ class DraftValidation:
         prompt = (  # pragma: no cover
             f"{api_and_examples_text}"
             "--------------------------"
-            "Knowing what you now know about the pointblank package in Python, can you write a "
+            "Knowing what you now know about the Pointblank package in Python, can you write a "
             "thorough validation plan for the following table?"
             "Here is the JSON summary for the table:"
             " "
