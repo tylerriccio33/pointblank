@@ -114,14 +114,14 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
 
     Thresholds can be defined using one of these input schemes:
 
-    1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-    create thresholds
-    2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
-    'error' level, and position `2` is the 'critical' level.
-    3. a single integer/float value denoting absolute number or fraction of failing test units for
-    the 'warn' level only
-    4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical' and
-    the values are the corresponding threshold values.
+    1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+    thresholds)
+    2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is the
+    'error' level, and position `2` is the 'critical' level
+    3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+    'critical'
+    4. a single integer/float value denoting absolute number or fraction of failing test units for
+    the 'warning' level only
 
     If the number of failing test units for a validation step exceeds set thresholds, the validation
     step will be marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need
@@ -1060,14 +1060,14 @@ col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -1240,14 +1240,14 @@ col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -1420,14 +1420,14 @@ col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -1600,14 +1600,14 @@ col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -1780,14 +1780,14 @@ col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -1958,14 +1958,14 @@ col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2146,14 +2146,14 @@ col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | Col
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2346,14 +2346,14 @@ col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | Col
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2505,14 +2505,14 @@ col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | Colu
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2650,14 +2650,14 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2793,14 +2793,14 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -2934,14 +2934,14 @@ col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | Co
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3081,14 +3081,14 @@ col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | Colum
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3222,14 +3222,14 @@ col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3329,14 +3329,14 @@ col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSel
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3471,14 +3471,14 @@ rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Calla
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3634,14 +3634,14 @@ col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'boo
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3788,14 +3788,14 @@ row_count_match(self, count: 'int | FrameT | Any', tol: 'Tolerance' = 0, inverse
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -3934,14 +3934,14 @@ col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
 
         Thresholds can be defined using one of these input schemes:
 
-        1. with the [`Thresholds`](`pointblank.Thresholds`) class, which is the most common way to
-        create thresholds
-        2. using a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
-        the 'error' level, and position `2` is the 'critical' level.
-        3. a single integer/float value denoting absolute number or fraction of failing test units
-        for the 'warn' level only
-        4. a dictionary of 1-3 entries, where the valid keys are 'warning', 'error', and 'critical'
-        and the values are the corresponding threshold values.
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
 
         If the number of failing test units exceeds set thresholds, the validation step will be
         marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
@@ -7130,7 +7130,7 @@ load_dataset(dataset: "Literal['small_table', 'game_revenue', 'nycflights']" = '
 
 config(report_incl_header: 'bool' = True, report_incl_footer: 'bool' = True, preview_incl_header: 'bool' = True) -> 'PointblankConfig'
 
-    Configuration settings for the pointblank library.
+    Configuration settings for the Pointblank library.
 
     Parameters
     ----------
