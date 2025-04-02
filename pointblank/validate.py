@@ -1877,6 +1877,7 @@ class Validate:
     - Polish (`"pl"`)
     - Danish (`"da"`)
     - Swedish (`"sv"`)
+    - Norwegian Bokmål (`"nb"`)
     - Dutch (`"nl"`)
     - Finnish (`"fi"`)
     - Icelandic (`"is"`)

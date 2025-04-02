@@ -166,6 +166,7 @@ REPORTING_LANGUAGES = [
     "pl",
     "da",
     "sv",
+    "nb",
     "nl",
     "fi",
     "is",
