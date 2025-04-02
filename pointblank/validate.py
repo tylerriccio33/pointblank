@@ -1801,7 +1801,8 @@ class Validate:
         The language to use for various reporting elements. By default, `None` will select English
         (`"en"`) as the but other options include French (`"fr"`), German (`"de"`), Italian
         (`"it"`), Spanish (`"es"`), and several more. Have a look at the *Reporting Languages*
-        section for the full list of supported languages and where they are utilized.
+        section for the full list of supported languages and information on how the language setting
+        is utilized.
     locale
         An optional locale ID to use for formatting values in the reporting table according the
         locale's rules. Examples include `"en-US"` for English (United States) and `"fr-FR"` for
@@ -1886,9 +1887,9 @@ class Validate:
     - Finnish (`"fi"`)
     - Icelandic (`"is"`)
 
-    The language codes are used for various reporting elements. Automatically generated briefs
-    (using `brief=True` or `brief="...{auto}..."`) will be in the selected language. The `lang=`
-    parameter is also used when generating the validation report table through
+    Automatically generated briefs (produced by using `brief=True` or `brief="...{auto}..."`) will
+    be written in the selected language. The language setting will also used when generating the
+    validation report table through
     [`get_tabular_report()`](`pointblank.Validate.get_tabular_report`) (or printing the `Validate`
     object in a notebook environment).
 
