@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 from great_tables import GT, google_font, html, loc, style
+from narwhals.dataframe import LazyFrame
 from narwhals.typing import FrameT
 
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
@@ -120,7 +121,32 @@ class DataScan:
 
     # TODO: This needs to be generically typed at the class level, ie. DataScan[T]
     def __init__(self, data: IntoFrameT, tbl_name: str | None = None) -> None:
-        self.nw_data: Frame = nw.from_native(data)
+        as_native = nw.from_native(data)
+
+        if as_native.implementation.name == "IBIS" and as_native._level == "lazy":
+            assert isinstance(as_native, LazyFrame)  # help mypy
+
+            ibis_native = as_native.to_native()
+
+            valid_conversion_methods = ("to_pyarrow", "to_pandas", "to_polars")
+            for conv_method in valid_conversion_methods:
+                try:
+                    valid_native = getattr(ibis_native, conv_method)()
+                except (NotImplementedError, ImportError, ModuleNotFoundError):
+                    continue
+                break
+            else:
+                msg = (
+                    "To use `ibis` as input, you must have one of arrow, pandas, polars or numpy "
+                    "available in the process. Until `ibis` is fully supported by Narwhals, this is "
+                    "necessary. Additionally, the data must be collected in order to calculate some "
+                    "structural statistics, which may be performance detrimental."
+                )
+                raise ImportError(msg)
+            as_native = nw.from_native(valid_native)
+
+        self.nw_data: Frame = nw.from_native(as_native)
+
         self.tbl_name: str | None = tbl_name
         self.profile: _DataProfile = self._generate_profile_df()
 

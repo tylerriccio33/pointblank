@@ -13,7 +13,6 @@ import pointblank as pb
 
 from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
-from pointblank.scan_profile import _as_physical
 from pointblank.scan_profile_stats import StatGroup, COLUMN_ORDER_REGISTRY
 
 if TYPE_CHECKING:
@@ -52,6 +51,15 @@ def _pandas_strat(draw) -> pd.DataFrame:
 
 
 @given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
+@example(pb.load_dataset("small_table", "polars"))
+@example(pb.load_dataset("small_table", "pandas"))
+@example(pb.load_dataset("small_table", "duckdb"))
+@example(pb.load_dataset("game_revenue", "polars"))
+@example(pb.load_dataset("game_revenue", "pandas"))
+@example(pb.load_dataset("game_revenue", "duckdb"))
+@example(pb.load_dataset("nycflights", "polars"))
+@example(pb.load_dataset("nycflights", "pandas"))
+@example(pb.load_dataset("nycflights", "duckdb"))
 @settings(deadline=None)  # too variant to enforce deadline
 def test_datascan_class_parametric(df) -> None:
     scanner = DataScan(data=df)
@@ -59,8 +67,6 @@ def test_datascan_class_parametric(df) -> None:
     df_nw = nw.from_native(df)
 
     summary_res: nw.DataFrame = nw.from_native(scanner.summary_data)
-
-    physical_input = _as_physical(nw.from_native(df))
 
     ## High Level Checks:
     cols = summary_res.select("colname").to_dict()["colname"].to_list()
@@ -70,7 +76,13 @@ def test_datascan_class_parametric(df) -> None:
     assert set(cols) == set(df_cols), msg
 
     msg = "return type is the physical version of the input"
-    assert physical_input.implementation == summary_res.implementation
+    try:
+        assert df_nw.implementation == summary_res.implementation
+    except AssertionError:
+        if df_nw.implementation.name == "IBIS" and df_nw._level == "lazy":
+            pass  # this is actually expected, the summary will come back in another type
+        else:
+            raise AssertionError
 
     msg = "did not return correct amount of summary rows"
     assert len(summary_res) == len(cols)  # only for happy path
@@ -150,7 +162,17 @@ def test_deterministic_calculations(case: _Case) -> None:
     )
 
 
-@given(happy_path_df | happy_path_ldf)
+@given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
+@example(pb.load_dataset("small_table", "polars"))
+@example(pb.load_dataset("small_table", "pandas"))
+@example(pb.load_dataset("small_table", "duckdb"))
+@example(pb.load_dataset("game_revenue", "polars"))
+@example(pb.load_dataset("game_revenue", "pandas"))
+@example(pb.load_dataset("game_revenue", "duckdb"))
+@example(pb.load_dataset("nycflights", "polars"))
+@example(pb.load_dataset("nycflights", "pandas"))
+@example(pb.load_dataset("nycflights", "duckdb"))
+@settings(deadline=None)
 def test_datascan_json_output(df):
     scanner = DataScan(data=df)
 
@@ -159,8 +181,19 @@ def test_datascan_json_output(df):
     assert isinstance(profile_json, str)
 
 
-@given(df=happy_path_df)
-@example(df=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+# TODO: paramaterize the whole 9 yards, ie. all datasets/types plus happy paths
+
+
+@given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
+@example(pb.load_dataset("small_table", "polars"))
+@example(pb.load_dataset("small_table", "pandas"))
+@example(pb.load_dataset("small_table", "duckdb"))
+@example(pb.load_dataset("game_revenue", "polars"))
+@example(pb.load_dataset("game_revenue", "pandas"))
+@example(pb.load_dataset("game_revenue", "duckdb"))
+@example(pb.load_dataset("nycflights", "polars"))
+@example(pb.load_dataset("nycflights", "pandas"))
+@example(pb.load_dataset("nycflights", "duckdb"))
 @settings(deadline=None)
 def test_col_summary_tbl(df):
     col_summary = col_summary_tbl(df)
