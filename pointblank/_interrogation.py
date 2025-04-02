@@ -2022,7 +2022,7 @@ def _column_has_null_values(table: FrameT, column: str) -> bool:
 def _modify_datetime_compare_val(tgt_column: any, compare_val: any) -> any:
     tgt_col_dtype_str = str(tgt_column.dtype).lower()
 
-    if compare_val is isinstance(compare_val, Column):
+    if compare_val is isinstance(compare_val, Column):  # pragma: no cover
         return compare_val
 
     # Get the type of `compare_expr` and convert, if necessary, to the type of the column
