@@ -159,6 +159,7 @@ REPORTING_LANGUAGES = [
     "it",
     "es",
     "pt",
+    "ro",
     "tr",
     "zh-Hans",
     "zh-Hant",

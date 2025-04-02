@@ -1870,6 +1870,7 @@ class Validate:
     - Italian (`"it"`)
     - Spanish (`"es"`)
     - Portuguese (`"pt"`)
+    - Romanian (`"ro"`)
     - Turkish (`"tr"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
