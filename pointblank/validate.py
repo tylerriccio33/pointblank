@@ -179,7 +179,7 @@ def get_action_metadata():
 @dataclass
 class PointblankConfig:
     """
-    Configuration settings for the pointblank library.
+    Configuration settings for the Pointblank library.
     """
 
     report_incl_header: bool = True
@@ -204,7 +204,7 @@ def config(
     preview_incl_header: bool = True,
 ) -> PointblankConfig:
     """
-    Configuration settings for the pointblank library.
+    Configuration settings for the Pointblank library.
 
     Parameters
     ----------
