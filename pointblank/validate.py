@@ -16,6 +16,7 @@ from zipfile import ZipFile
 import commonmark
 import narwhals as nw
 from great_tables import GT, from_column, google_font, html, loc, md, style, vals
+from great_tables.vals import fmt_integer, fmt_number
 from importlib_resources import files
 from narwhals.typing import FrameT
 
@@ -8139,7 +8140,7 @@ class Validate:
             # Create the label, table type, and thresholds HTML fragments
             label_html = _create_label_html(label=self.label, start_time="")
             table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
-            thresholds_html = _create_thresholds_html(thresholds=thresholds)
+            thresholds_html = _create_thresholds_html(thresholds=thresholds, locale=locale)
 
             # Compose the subtitle HTML fragment
             combined_subtitle = (
@@ -8637,7 +8638,7 @@ class Validate:
         # Create the label, table type, and thresholds HTML fragments
         label_html = _create_label_html(label=self.label, start_time=self.time_start)
         table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
-        thresholds_html = _create_thresholds_html(thresholds=thresholds)
+        thresholds_html = _create_thresholds_html(thresholds=thresholds, locale=locale)
 
         # Compose the subtitle HTML fragment
         combined_subtitle = (
@@ -10198,26 +10199,44 @@ def _create_label_html(label: str | None, start_time: str) -> str:
     )
 
 
-def _create_thresholds_html(thresholds: Thresholds) -> str:
+def _create_thresholds_html(thresholds: Thresholds, locale: str) -> str:
     if thresholds == Thresholds():
         return ""
 
     warning = (
-        thresholds.warning_fraction
+        fmt_number(
+            thresholds.warning_fraction, decimals=3, drop_trailing_zeros=True, locale=locale
+        )[0]
         if thresholds.warning_fraction is not None
-        else (thresholds.warning_count if thresholds.warning_count is not None else "&mdash;")
+        else (
+            fmt_integer(thresholds.warning_count, locale=locale)[0]
+            if thresholds.warning_count is not None
+            else "&mdash;"
+        )
     )
 
     error = (
-        thresholds.error_fraction
+        fmt_number(thresholds.error_fraction, decimals=3, drop_trailing_zeros=True, locale=locale)[
+            0
+        ]
         if thresholds.error_fraction is not None
-        else (thresholds.error_count if thresholds.error_count is not None else "&mdash;")
+        else (
+            fmt_integer(thresholds.error_count, locale=locale)[0]
+            if thresholds.error_count is not None
+            else "&mdash;"
+        )
     )
 
     critical = (
-        thresholds.critical_fraction
+        fmt_number(
+            thresholds.critical_fraction, decimals=3, drop_trailing_zeros=True, locale=locale
+        )[0]
         if thresholds.critical_fraction is not None
-        else (thresholds.critical_count if thresholds.critical_count is not None else "&mdash;")
+        else (
+            fmt_integer(thresholds.critical_count, locale=locale)[0]
+            if thresholds.critical_count is not None
+            else "&mdash;"
+        )
     )
 
     warning_color = SEVERITY_LEVEL_COLORS["warning"]
