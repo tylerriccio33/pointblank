@@ -15,6 +15,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Antagande används",
         "nl": "Voorwaarde toegepast",
         "fi": "Esiehto sovellettu",
+        "is": "Forskilyrði beitt",
     },
     "column_computed_text": {
         "en": "computed column",
@@ -32,6 +33,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "beräknad kolumn",
         "nl": "berekende kolom",
         "fi": "laskettu sarake",
+        "is": "reiknaður dálkur",
     },
     "values_text": {
         "en": "and {num_omitted} more",
@@ -49,6 +51,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "och {num_omitted} till",
         "nl": "en {num_omitted} meer",
         "fi": "ja {num_omitted} lisää",
+        "is": "og {num_omitted} fleiri",
     },
     "compare_expectation_text": {
         "en": "Expect that values in {column_text} should be {operator} {values_text}.",
@@ -66,6 +69,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värden i {column_text} är {operator} {values_text}.",
         "nl": "Verwacht dat waarden in {column_text} {operator} {values_text} moeten zijn.",
         "fi": "Odota, että arvot sarakkeessa {column_text} ovat {operator} {values_text}.",
+        "is": "Væntir þess að gildi í {column_text} séu {operator} {values_text}.",
     },
     "compare_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been {operator} {values_text}.",
@@ -83,6 +87,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider misslyckade testenheter där värden i {column_text} borde ha varit {operator} {values_text}.",
         "nl": "Overschrijding van mislukte testeenheden, waar de waarden in {column_text} {operator} {values_text} zouden moeten zijn.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvojen olisi pitänyt olla {operator} {values_text}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera {operator} {values_text}.",
     },
     "in_set_expectation_text": {
         "en": "Expect that values in {column_text} should be in the set of {values_text}.",
@@ -100,6 +105,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värden i {column_text} finns bland {values_text}.",
         "nl": "Verwacht dat de waarden in {column_text} in de set {values_text} moeten staan.",
         "fi": "Odota, että arvot sarakkeessa {column_text} kuuluvat joukkoon {values_text}.",
+        "is": "Væntir þess að gildi í {column_text} séu í mengi {values_text}.",
     },
     "in_set_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been in the set of {values_text}.",
@@ -117,6 +123,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider misslyckade testenheter där värden i {column_text} borde ha varit bland {values_text}.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} in de set van {values_text} hadden moeten staan.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvojen olisi pitänyt kuulua joukkoon {values_text}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera í mengi {values_text}.",
     },
     "not_in_set_expectation_text": {
         "en": "Expect that values in {column_text} should not be in the set of {values_text}.",
@@ -134,6 +141,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värdena i {column_text} inte ska vara bland värdena i {values_text}.",
         "nl": "Verwacht dat de waarden in {column_text} niet in de set van {values_text} mogen voorkomen.",
         "fi": "Odota, että arvot sarakkeessa {column_text} eivät kuulu joukkoon {values_text}.",
+        "is": "Væntir þess að gildi í {column_text} séu ekki í mengi {values_text}.",
     },
     "not_in_set_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been in the set of {values_text}.",
@@ -151,6 +159,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider misslyckade testenheter där värdena i {column_text} inte ska vara bland värdena i {values_text}.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} niet in de set van {values_text} hadden mogen staan.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvot eivät olisi pitäneet kuulua joukkoon {values_text}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera í mengi {values_text}.",
     },
     "between_expectation_text": {
         "en": "Expect that values in {column_text} should be between {value_1} and {value_2}.",
@@ -168,6 +177,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värdena i {column_text} ligger mellan {value_1} och {value_2}.",
         "nl": "Verwacht dat de waarden in {column_text} tussen {value_1} en {value_2} moeten liggen.",
         "fi": "Odota, että arvot sarakkeessa {column_text} ovat välillä {value_1} ja {value_2}.",
+        "is": "Væntir þess að gildi í {column_text} séu á milli {value_1} og {value_2}.",
     },
     "between_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been between {value_1} and {value_2}.",
@@ -185,6 +195,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider misslyckade testenheter där värdena i {column_text} borde ha varit mellan {value_1} och {value_2}.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} tussen {value_1} en {value_2} hadden moeten liggen.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvojen olisi pitänyt olla välillä {value_1} ja {value_2}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera á milli {value_1} og {value_2}.",
     },
     "not_between_expectation_text": {
         "en": "Expect that values in {column_text} should not be between {value_1} and {value_2}.",
@@ -202,6 +213,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värdena i {column_text} ligger mellan {value_1} och {value_2}.",
         "nl": "Verwacht dat de waarden in {column_text} niet tussen {value_1} en {value_2} mogen liggen.",
         "fi": "Odota, että arvot sarakkeessa {column_text} eivät ole välillä {value_1} ja {value_2}.",
+        "is": "Væntir þess að gildi í {column_text} séu ekki á milli {value_1} og {value_2}.",
     },
     "not_between_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been between {value_1} and {value_2}.",
@@ -219,6 +231,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider testenheter där värdena i {column_text} inte borde ha varit mellan {value_1} och {value_2}.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} niet tussen {value_1} en {value_2} mogen liggen.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvot eivät olisi pitäneet olla välillä {value_1} ja {value_2}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera á milli {value_1} og {value_2}.",
     },
     "null_expectation_text": {
         "en": "Expect that all values in {column_text} should be Null.",
@@ -236,6 +249,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att alla värden i {column_text} är Null.",
         "nl": "Verwacht dat alle waarden in {column_text} Null moeten zijn.",
         "fi": "Odota, että kaikki arvot sarakkeessa {column_text} ovat Null.",
+        "is": "Væntir þess að öll gildi í {column_text} séu Null.",
     },
     "null_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been Null.",
@@ -253,6 +267,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider testenheter där värdena i {column_text} borde ha varit Null.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} Null hadden moeten zijn.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvojen olisi pitänyt olla Null.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera Null.",
     },
     "not_null_expectation_text": {
         "en": "Expect that all values in {column_text} should not be Null.",
@@ -270,6 +285,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att inget av värdena i {column_text} ska vara Null.",
         "nl": "Verwacht dat alle waarden in {column_text} niet Null mogen zijn.",
         "fi": "Odota, että kaikki arvot sarakkeessa {column_text} eivät ole Null.",
+        "is": "Væntir þess að engin gildi í {column_text} séu Null.",
     },
     "not_null_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been Null.",
@@ -287,6 +303,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider antalet misslyckade testenheter där inget av värdena i {column_text} borde ha varit Null.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} niet Null hadden mogen zijn.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvot eivät olisi pitäneet olla Null.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera Null.",
     },
     "regex_expectation_text": {
         "en": "Expect that values in {column_text} should match the regular expression: {values_text}.",
@@ -304,6 +321,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värdena i {column_text} ska matcha följande reguljära uttryck: {values_text}.",
         "nl": "Verwacht dat de waarden in {column_text} overeenkomen met de reguliere expressie {values_text}.",
         "fi": "Odota, että arvot sarakkeessa {column_text} vastaavat säännöllistä lauseketta: {values_text}.",
+        "is": "Væntir þess að gildi í {column_text} passi við reglulega segðina: {values_text}.",
     },
     "regex_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have matched the regular expression: {values_text}.",
@@ -321,6 +339,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överskrider antalet misslyckade testenheter där värden {column_text} borde ha matchat följande reguljära uttryck: {values_text}.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden in {column_text} overeen moeten komen met de reguliere expressie: {values_text}.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa sarakkeen {column_text} arvojen olisi pitänyt vastata säännöllistä lauseketta: {values_text}.",
+        "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að passa við reglulega segðina: {values_text}.",
     },
     "col_vals_expr_expectation_text": {
         "en": "Expect that values should agree with the given Python expression.",
@@ -338,6 +357,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att värden överensstämmer med det Python-uttrycket.",
         "nl": "Verwacht dat de waarden overeenkomen met de gegeven Python-uitdrukking.",
         "fi": "Odota, että arvot vastaavat annettua Python-lauseketta.",
+        "is": "Væntir þess að gildi samræmist gefnu Python-segðinni.",
     },
     "col_vals_expr_failure_text": {
         "en": "Exceedance of failed test units where values should have agreed with the given Python expression.",
@@ -355,6 +375,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överstiger antalet misslyckade testenheter där värden borde ha varit i enlighet med relevant Python-uttryck.",
         "nl": "Overschrijding van mislukte testeenheden waarbij waarden overeen hadden moeten komen met de gegeven Python-uitdrukking.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa arvojen olisi pitänyt vastata annettua Python-lauseketta.",
+        "is": "Of mörg misheppnuð próf þar sem gildi hefðu átt að samræmast gefnu Python-segðinni.",
     },
     "col_exists_expectation_text": {
         "en": "Expect that column {column_text} exists.",
@@ -372,6 +393,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att kolumnen {column_text} ska finnas.",
         "nl": "Verwacht dat de kolom {column_text} bestaat.",
         "fi": "Odota, että sarake {column_text} on olemassa.",
+        "is": "Væntir þess að dálkurinn {column_text} sé til.",
     },
     "col_exists_failure_text": {
         "en": "Failure to validate that column {column_text} exists.",
@@ -389,6 +411,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Fel eftersom {column_text} inte kunde verifieras.",
         "nl": "Het is mislukt om de kolom {column_text} te valideren.",
         "fi": "Sarakkeen {column_text} olemassaolon vahvistaminen epäonnistui.",
+        "is": "Mistókst að staðfesta að dálkurinn {column_text} sé til.",
     },
     "all_row_distinct_expectation_text": {
         "en": "Expect entirely distinct rows across all columns.",
@@ -406,6 +429,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig unika värden i alla rader i alla kolumner.",
         "nl": "Verwacht unieke rijen in alle kolommen.",
         "fi": "Odota täysin erillisiä rivejä kaikissa sarakkeissa.",
+        "is": "Væntir þess að allar raðir séu aðskildar yfir alla dálka.",
     },
     "all_row_distinct_failure_text": {
         "en": "Exceedance of failed test units where there weren't distinct rows across all columns.",
@@ -423,6 +447,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överstiger antalet misslyckade enhetstest där det inte fanns några unika värden i alla rader i alla kolumner.",
         "nl": "Overschrijding van mislukte testeenheden waarbij er niet in alle kolommen verschillende rijen waren.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa ei ollut erillisiä rivejä kaikissa sarakkeissa.",
+        "is": "Of mörg misheppnuð próf þar sem raðir voru ekki aðskildar yfir alla dálka.",
     },
     "across_row_distinct_expectation_text": {
         "en": "Expect entirely distinct rows across {column_text}.",
@@ -440,6 +465,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig unika värden i alla rader i {column_text}.",
         "nl": "Verwacht unieke regels in {column_text}.",
         "fi": "Odota täysin erillisiä rivejä sarakkeissa {column_text}.",
+        "is": "Væntir þess að allar raðir séu aðskildar yfir {column_text}.",
     },
     "across_row_distinct_failure_text": {
         "en": "Exceedance of failed test units where there weren't distinct rows across selected columns.",
@@ -457,6 +483,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Överstiger antalet misslyckade enhetstest där det inte fanns några unika värden i alla rader i de valda kolumnerna.",
         "nl": "Overschrijding van mislukte testeenheden waarbij er geen afzonderlijke rijen waren over geselecteerde kolommen.",
         "fi": "Epäonnistuneiden testiyksikköjen ylitys, joissa ei ollut erillisiä rivejä valituissa sarakkeissa.",
+        "is": "Of mörg misheppnuð próf þar sem raðir voru ekki aðskildar yfir valda dálka.",
     },
     "col_schema_match_expectation_text": {
         "en": "Expect that column schemas match.",
@@ -474,6 +501,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta överensstämmelse med kolumn schema.",
         "nl": "Verwacht dat de kolomschema's overeenkomen.",
         "fi": "Odota, että sarakkeiden skeemat täsmäävät.",
+        "is": "Væntir þess að dálkaskema passi.",
     },
     "col_schema_match_failure_text": {
         "en": "Failure to validate that column schemas match.",
@@ -491,6 +519,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Fel eftersom kolonnschemat inte matchar.",
         "nl": "Het is mislukt om de overeenkomst van die kolomschema's te valideren.",
         "fi": "Sarakkeiden skeemojen täsmäävyyden vahvistaminen epäonnistui.",
+        "is": "Mistókst að staðfesta að dálkaskema passi.",
     },
     "row_count_match_expectation_text": {
         "en": "Expect that row counts for two tables match.",
@@ -508,6 +537,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Räkna med att radantalet är lika för två tabeller.",
         "nl": "Verwacht dat het aantal rijen gelijk is voor twee tabellen.",
         "fi": "Odota, että kahden taulun rivimäärät täsmäävät.",
+        "is": "Væntir þess að raðafjöldi tveggja taflna passi.",
     },
     "row_count_match_failure_text": {
         "en": "Row counts for the two tables did not match.",
@@ -525,6 +555,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Antal rader för de två borden stämde inte överens.",
         "nl": "Het aantal rijen voor de twee tafels kwam niet overeen.",
         "fi": "Kahden taulun rivimäärät eivät täsmänneet.",
+        "is": "Raðafjöldi tveggja taflna passaði ekki.",
     },
     "row_count_match_n_expectation_text": {
         "en": "Expect that the row count is exactly {values_text}.",
@@ -542,6 +573,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att antalet rader är exakt {values_text}.",
         "nl": "Verwacht dat het rijtal precies {values_text} is.",
         "fi": "Odota, että rivimäärä on tasan {values_text}.",
+        "is": "Væntir þess að raðafjöldi sé nákvæmlega {values_text}.",
     },
     "row_count_match_n_failure_text": {
         "en": "The row count did not match {values_text}.",
@@ -559,6 +591,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Antalet rader stämde inte överens med {values_text}.",
         "nl": "Het rijtal kwam niet overeen met {values_text}.",
         "fi": "Rivimäärä ei vastannut arvoa {values_text}.",
+        "is": "Raðafjöldi passaði ekki við {values_text}.",
     },
     "col_count_match_expectation_text": {
         "en": "Expect that column counts for two tables match.",
@@ -576,6 +609,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att kolumnantalet för två tabeller är detsamma.",
         "nl": "Verwacht dat kolomtellingen voor twee tabellen overeenkomen.",
         "fi": "Odota, että kahden taulun sarakemäärät täsmäävät.",
+        "is": "Væntir þess að dálkafjöldi tveggja taflna passi.",
     },
     "col_count_match_failure_text": {
         "en": "Column counts for the two tables did not match.",
@@ -593,6 +627,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Kolumnantalet i de två tabellerna stämde inte överens.",
         "nl": "Kolomtellingen voor de twee tabellen kwamen niet overeen.",
         "fi": "Kahden taulun sarakemäärät eivät täsmänneet.",
+        "is": "Dálkafjöldi tveggja taflna passaði ekki.",
     },
     "col_count_match_n_expectation_text": {
         "en": "Expect that the column count is exactly {values_text}.",
@@ -610,6 +645,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Förvänta dig att antalet kolumner är exakt {values_text}.",
         "nl": "Verwacht dat het aantal kolommen precies {values_text} is.",
         "fi": "Odota, että sarakemäärä on tasan {values_text}.",
+        "is": "Væntir þess að dálkafjöldi sé nákvæmlega {values_text}.",
     },
     "col_count_match_n_failure_text": {
         "en": "The column count did not match {values_text}.",
@@ -627,6 +663,7 @@ EXPECT_FAIL_TEXT = {
         "sv": "Antalet kolumner stämde inte överens med {values_text}.",
         "nl": "De kolomtelling kwam niet overeen met {values_text}.",
         "fi": "Sarakemäärä ei vastannut arvoa {values_text}.",
+        "is": "Dálkafjöldi passaði ekki við {values_text}.",
     },
 }
 
@@ -648,6 +685,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Pointblank Validation",
         "nl": "Pointblank-validatie",
         "fi": "Pointblank-validointi",
+        "is": "Pointblank Gildisstaðfesting",
     },
     "pointblank_validation_plan_text": {
         "en": "Pointblank Validation Plan",
@@ -665,6 +703,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Pointblank Validation Plan",
         "nl": "Pointblank-validatieplan",
         "fi": "Pointblank-validointisuunnitelma",
+        "is": "Pointblank Gildisstaðfestingaráætlun",
     },
     "no_interrogation_performed_text": {
         "en": "No Interrogation Performed",
@@ -682,6 +721,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Inga förhör genomfördes",
         "nl": "Geen ondervraging uitgevoerd",
         "fi": "Kyselyä ei suoritettu",
+        "is": "Engin yfirheyrsla framkvæmd",
     },
     "report_fail_rows_available": {
         "en": "There are {fail_rows_extract} 'fail' rows available as a CSV file.",
@@ -699,6 +739,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Det finns {fail_rows_extract} 'fail'-rader tillgängliga som CSV-fil.",
         "nl": "Er zijn {fail_rows_extract} 'fail' rijen beschikbaar als CSV-bestand.",
         "fi": "CSV-tiedostona on saatavilla {fail_rows_extract} 'epäonnistunutta' riviä.",
+        "is": "Það eru {fail_rows_extract} 'misheppnaðar' raðir fáanlegar sem CSV-skrá.",
     },
     "report_no_table_preconditions": {
         "en": "No modifications of the table.",
@@ -716,6 +757,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Inga ändringar i tabellen.",
         "nl": "Geen wijzigingen aan de tafel.",
         "fi": "Ei muutoksia taulukkoon.",
+        "is": "Engar breytingar á töflunni.",
     },
     "report_some_table_preconditions": {
         "en": "The data table was modified for this step.",
@@ -733,6 +775,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Datatabellen modifierades för detta steg.",
         "nl": "De tafel is voor deze stap gewijzigd.",
         "fi": "Taulukkoa muokattiin tätä vaihetta varten.",
+        "is": "Gagnataflan var breytt fyrir þetta skref.",
     },
     "report_on_segmentation": {
         "en": "Using segment associated with value '{seg_val_x}' from column '{seg_col_x}'.",
@@ -750,6 +793,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Med hjälp av det segment som är associerat med värdet '{seg_val_x}' från kolumnen '{seg_col_x}'.",
         "nl": "Het segment gebruiken dat is gekoppeld aan de waarde '{seg_val_x}' uit kolom '{seg_col_x}'.",
         "fi": "Käytetään sarakkeeseen '{seg_col_x}' liittyvää arvon '{seg_val_x}' segmenttiä.",
+        "is": "Notar hluta tengt við gildið '{seg_val_x}' úr dálki '{seg_col_x}'.",
     },
     "report_no_evaluation_issues": {
         "en": "No evaluation issues.",
@@ -767,6 +811,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Inga utvärderingsproblem.",
         "nl": "Geen waarderingsproblemen.",
         "fi": "Ei arviointiongelmia.",
+        "is": "Engin matsleg vandamál.",
     },
     "report_col_step": {
         "en": "STEP",
@@ -784,6 +829,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "STEG",
         "nl": "STAP",
         "fi": "VAIHE",
+        "is": "SKREF",
     },
     "report_col_steps": {
         "en": "STEPS",
@@ -801,6 +847,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "STEG",
         "nl": "STAPPEN",
         "fi": "VAIHEET",
+        "is": "SKREF",
     },
     "report_col_columns": {
         "en": "COLUMNS",
@@ -818,6 +865,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "KOLONNER",
         "nl": "KOLOMMEN",
         "fi": "SARAKKEET",
+        "is": "DÁLKAR",
     },
     "report_col_values": {
         "en": "VALUES",
@@ -835,6 +883,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "VÄRDEN",
         "nl": "WAARDEN",
         "fi": "ARVOT",
+        "is": "GILDI",
     },
     "report_column_schema": {
         "en": "SCHEMA",
@@ -852,6 +901,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "SCHEMA",
         "nl": "REGELING",
         "fi": "SKEEMA",
+        "is": "SKEMA",
     },
     "report_r_col_types": {
         "en": "Python TYPES",
@@ -869,6 +919,7 @@ VALIDATION_REPORT_TEXT = {
         "sv": "Python TYPER",
         "nl": "Python-TYPEN",
         "fi": "Python-TYYPIT",
+        "is": "Python TEGUNDIR",
     },
     "report_r_sql_types": {
         "en": "SQL TYPES",
@@ -886,5 +937,6 @@ VALIDATION_REPORT_TEXT = {
         "sv": "SQL TYPER",
         "nl": "SQL-TYPEN",
         "fi": "SQL-TYYPIT",
+        "is": "SQL TEGUNDIR",
     },
 }
