@@ -85,7 +85,7 @@ def _get_tbl_type(data: FrameT | Any) -> str:
 
         return backend
 
-    return "unknown"
+    return "unknown"  # pragma: no cover
 
 
 def _is_lib_present(lib_name: str) -> bool:
