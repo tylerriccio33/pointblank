@@ -163,6 +163,7 @@ REPORTING_LANGUAGES = [
     "zh-Hans",
     "zh-Hant",
     "ja",
+    "ko",
     "ru",
     "pl",
     "da",

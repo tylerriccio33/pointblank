@@ -1874,6 +1874,7 @@ class Validate:
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
     - Japanese (`"ja"`)
+    - Korean (`"ko"`)
     - Russian (`"ru"`)
     - Polish (`"pl"`)
     - Danish (`"da"`)
