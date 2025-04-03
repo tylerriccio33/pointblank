@@ -10460,6 +10460,8 @@ def _step_report_row_based(
         if header == ":default:":
             header = "{title}{details}"
 
+        # Use commonmark to convert the header text to HTML
+        header = commonmark.commonmark(header)
 
         # Place any templated text in the header
         header = header.format(title=title, details=details)
