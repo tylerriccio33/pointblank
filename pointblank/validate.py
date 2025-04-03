@@ -8157,7 +8157,7 @@ class Validate:
                 {
                     "status_color": "",
                     "i": "",
-                    "type_upd": "NO VALIDATION STEPS",  # TODO: Provide translation for this text
+                    "type_upd": VALIDATION_REPORT_TEXT["no_validation_steps_text"][lang],
                     "columns_upd": "",
                     "values_upd": "",
                     "tbl": "",
@@ -8186,7 +8186,11 @@ class Validate:
                     locations=loc.title(),
                 )
                 .tab_style(
-                    style=[style.fill(color="#FED8B1"), style.text(weight="bold")],
+                    style=[
+                        style.fill(color="#FED8B1"),
+                        style.text(weight="bold", size="14px"),
+                        style.css("overflow-x: visible; white-space: nowrap;"),
+                    ],
                     locations=loc.body(),
                 )
                 .cols_label(
