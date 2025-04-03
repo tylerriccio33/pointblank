@@ -10362,6 +10362,8 @@ def _step_report_row_based(
         else:
             step_report = tbl_preview
 
+        # TODO: localize all text fragments according to `lang=` parameter
+
         if header == ":default:":
             step_report = step_report.tab_header(
                 title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
