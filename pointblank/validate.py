@@ -10435,27 +10435,34 @@ def _step_report_row_based(
             not_shown = " (NOT SHOWN)"
             shown_failures = ""
 
-        if header == ":default:":
-            step_report = step_report.tab_header(
-                title=f"Report for Validation Step {i}",
-                subtitle=html(
-                    "<div>"
-                    "ASSERTION <span style='border-style: solid; border-width: thin; "
-                    "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
-                    f"<code style='color: #303030;'>{text}</code></span><br>"
-                    f"<div style='padding-top: 3px;'><strong>{n_failed}</strong> / "
-                    f"<strong>{n}</strong> TEST UNIT FAILURES "
-                    f"IN COLUMN <strong>{column_position}</strong>{not_shown}</div>"
-                    f"<div style='padding-top: 10px;'>EXTRACT OF {extract_of_x_rows} "
-                    f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
-                    "</div></div>"
-                ),
-            )
+        title = f"Report for Validation Step {i}"
+        details = (
+            "<div style='font-size: 13.6px;'>"
+            "<div style='padding-top: 7px;'>"
+            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+            f"<code style='color: #303030;'>{text}</code></span>"
+            "</div>"
+            "<div style='padding-top: 7px;'>"
+            f"<strong>{n_failed}</strong> / "
+            f"<strong>{n}</strong> TEST UNIT FAILURES "
+            f"IN COLUMN <strong>{column_position}</strong>{not_shown}"
+            "</div>"
+            f"<div>EXTRACT OF {extract_of_x_rows} "
+            f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
+            "</div>"
+            "</div>"
+        )
 
-        else:
-            step_report = step_report.tab_header(
-                title=md(header),
-            )
+        # Generate the default template text for the header when `":default:"` is used
+        if header == ":default:":
+            header = "{title}<br>{details}"
+
+        # Place any templated text in the header
+        header = header.format(title=title, details=details)
+
+        # Create the header with `header` string
+        step_report = step_report.tab_header(title=md(header))
 
     return step_report
 
