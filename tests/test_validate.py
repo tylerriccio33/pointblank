@@ -6640,9 +6640,17 @@ def test_get_step_report_no_fail(tbl_type):
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
 
-    # Test with a custom header
+    # Test with a custom header using static text
     for i in range(1, 18):
         assert isinstance(validation.get_step_report(i=i, header="Custom header"), GT.GT)
+
+    # Test with a custom header using templating elements
+    for i in range(1, 18):
+        assert isinstance(validation.get_step_report(i=i, header="Title {title} {details}"), GT.GT)
+
+    # Test with header removal
+    for i in range(1, 18):
+        assert isinstance(validation.get_step_report(i=i, header=None), GT.GT)
 
     #
     # Tests with a subset of columns
