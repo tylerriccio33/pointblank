@@ -11259,7 +11259,12 @@ def _create_col_schema_match_params_html(
     )
 
     return (
-        '<div style="display: flex;"><div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>'
-        f"{complete_text}{in_order_text}{case_sensitive_colnames_text}{case_sensitive_dtypes_text}"
-        f"{full_match_dtypes_text}</div>"
+        '<div style="display: flex; font-size: 13.7px; padding-top: 7px;">'
+        '<div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>'
+        f"{complete_text}"
+        f"{in_order_text}"
+        f"{case_sensitive_colnames_text}"
+        f"{case_sensitive_dtypes_text}"
+        f"{full_match_dtypes_text}"
+        "</div>"
     )
