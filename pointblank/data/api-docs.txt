@@ -5490,9 +5490,12 @@ get_step_report(self, i: 'int', columns_subset: 'str | list[str] | Column | None
             column selector expressions don't resolve to any columns.
         header
             Options for customizing the header of the step report. The default is the `":default:"`
-            value which produces a generic header. Aside from this default, text can be provided for
-            the header. This will be interpreted as Markdown text and transformed internally to
-            HTML.
+            value which produces a header with a standard title and set of details underneath. Aside
+            from this default, free text can be provided for the header. This will be interpreted as
+            Markdown text and transformed internally to HTML. You can provide one of two templating
+            elements: `{title}` and `{details}`. The default header has the template
+            `"{title}{details}"` so you can easily start from that and modify as you see fit. If you
+            don't want a header at all, you can set `header=None` to remove it entirely.
         limit
             The number of rows to display for those validation steps that check values in rows (the
             `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
