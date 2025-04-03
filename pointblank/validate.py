@@ -10365,30 +10365,40 @@ def _step_report_row_based(
         else:
             step_report = tbl_preview
 
+        if header is None:
+            return step_report
+
         # TODO: localize all text fragments according to `lang=` parameter
 
-        if header is None:
-            pass
+        title = f"Report for Validation Step {i} {CHECK_MARK_SPAN}"
+        details = (
+            "<div style='font-size: 13.6px;'>"
+            "<div style='padding-top: 7px;'>"
+            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
+            f"<code style='color: #303030;'>{text}</code></span>"
+            "</div>"
+            "<div style='padding-top: 7px;'>"
+            f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
+            f"IN COLUMN <strong>{column_position}</strong>"
+            "</div>"
+            "<div>PREVIEW OF TARGET TABLE:"
+            "</div>"
+            "</div>"
+        )
 
-        elif header == ":default:":
-            step_report = step_report.tab_header(
-                title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
-                subtitle=html(
-                    "<div>"
-                    "ASSERTION <span style='border-style: solid; border-width: thin; "
-                    "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
-                    f"{text}</span><br><div style='padding-top: 3px;'>"
-                    f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
-                    f"IN COLUMN <strong>{column_position}</strong></div>"
-                    "<div style='padding-top: 10px;'>PREVIEW OF TARGET TABLE:"
-                    "</div></div>"
-                ),
-            )
+        # Generate the default template text for the header when `":default:"` is used
+        if header == ":default:":
+            header = "{title}{details}"
 
-        else:
-            step_report = step_report.tab_header(
-                title=md(header),
-            )
+        # Use commonmark to convert the header text to HTML
+        header = commonmark.commonmark(header)
+
+        # Place any templated text in the header
+        header = header.format(title=title, details=details)
+
+        # Create the header with `header` string
+        step_report = step_report.tab_header(title=md(header))
 
     else:
         if limit is None:
