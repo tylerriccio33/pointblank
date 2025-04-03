@@ -10458,7 +10458,8 @@ def _step_report_row_based(
 
         # Generate the default template text for the header when `":default:"` is used
         if header == ":default:":
-            header = "{title}<br>{details}"
+            header = "{title}{details}"
+
 
         # Place any templated text in the header
         header = header.format(title=title, details=details)
