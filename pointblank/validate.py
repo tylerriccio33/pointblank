@@ -8886,9 +8886,11 @@ class Validate:
             column selector expressions don't resolve to any columns.
         header
             Options for customizing the header of the step report. The default is the `":default:"`
-            value which produces a generic header. Aside from this default, text can be provided for
-            the header. This will be interpreted as Markdown text and transformed internally to
-            HTML.
+            value which produces a header with a standard title and set of details underneath. Aside
+            from this default, free text can be provided for the header. This will be interpreted as
+            Markdown text and transformed internally to HTML. You can provide one of two templating
+            elements: `{title}` and `{details}`. The default header has the template
+            `"{title}{details}"` so you can easily start from that and modify as you see fit.
         limit
             The number of rows to display for those validation steps that check values in rows (the
             `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
@@ -10632,23 +10634,6 @@ def _step_report_schema_in_order(
     if debug_return_df:
         return schema_combined
 
-    # Get the other parameters for the `col_schema_match()` function
-    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
-    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
-    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
-
-    # Generate text for the `col_schema_match()` parameters
-    col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=complete,
-        in_order=True,
-        case_sensitive_colnames=case_sensitive_colnames,
-        case_sensitive_dtypes=case_sensitive_dtypes,
-        full_match_dtypes=full_match_dtypes,
-    )
-
-    # Get the passing symbol for the step
-    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
-
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -10737,15 +10722,6 @@ def _step_report_schema_in_order(
         .tab_options(source_notes_font_size="12px")
     )
 
-    if header == ":default:":
-        step_report = step_report.tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html(col_schema_match_params_html),
-        )
-
-    else:
-        step_report = step_report.tab_header(title=md(header))
-
     if schema_length == "shorter":
         # Add background color to the missing column on the exp side
         step_report = step_report.tab_style(
@@ -10785,6 +10761,39 @@ def _step_report_schema_in_order(
     # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
     if version("great_tables") >= "0.17.0":
         step_report = step_report.tab_options(quarto_disable_processing=True)
+
+    # Get the other parameters for the `col_schema_match()` function
+    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
+    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
+    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
+
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
+
+    # Generate the title for the step report
+    title = f"Report for Validation Step {step} {passing_symbol}"
+
+    # Generate the details for the step report
+    details = _create_col_schema_match_params_html(
+        complete=complete,
+        in_order=True,
+        case_sensitive_colnames=case_sensitive_colnames,
+        case_sensitive_dtypes=case_sensitive_dtypes,
+        full_match_dtypes=full_match_dtypes,
+    )
+
+    # Generate the default template text for the header when `":default:"` is used
+    if header == ":default:":
+        header = "{title}{details}"
+
+    # Use commonmark to convert the header text to HTML
+    header = commonmark.commonmark(header)
+
+    # Place any templated text in the header
+    header = header.format(title=title, details=details)
+
+    # Create the header with `header` string
+    step_report = step_report.tab_header(title=md(header))
 
     return step_report
 
@@ -11051,23 +11060,6 @@ def _step_report_schema_any_order(
     if debug_return_df:
         return schema_combined
 
-    # Get the other parameters for the `col_schema_match()` function
-    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
-    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
-    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
-
-    # Generate text for the `col_schema_match()` parameters
-    col_schema_match_params_html = _create_col_schema_match_params_html(
-        complete=complete,
-        in_order=False,
-        case_sensitive_colnames=case_sensitive_colnames,
-        case_sensitive_dtypes=case_sensitive_dtypes,
-        full_match_dtypes=full_match_dtypes,
-    )
-
-    # Get the passing symbol for the step
-    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
-
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -11157,15 +11149,6 @@ def _step_report_schema_any_order(
         .tab_options(source_notes_font_size="12px")
     )
 
-    if header == ":default:":
-        step_report = step_report.tab_header(
-            title=html(f"Report for Validation Step {step} {passing_symbol}"),
-            subtitle=html(col_schema_match_params_html),
-        )
-
-    else:
-        step_report = step_report.tab_header(title=md(header))
-
     # Add background color to signify limits of target table schema (on LHS side)
     if len(colnames_exp_unmatched) > 0:
         step_report = step_report.tab_style(
@@ -11183,6 +11166,39 @@ def _step_report_schema_any_order(
     # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
     if version("great_tables") >= "0.17.0":
         step_report = step_report.tab_options(quarto_disable_processing=True)
+
+    # Get the other parameters for the `col_schema_match()` function
+    case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
+    case_sensitive_dtypes = schema_info["params"]["case_sensitive_dtypes"]
+    full_match_dtypes = schema_info["params"]["full_match_dtypes"]
+
+    # Get the passing symbol for the step
+    passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
+
+    # Generate the title for the step report
+    title = f"Report for Validation Step {step} {passing_symbol}"
+
+    # Generate the details for the step report
+    details = _create_col_schema_match_params_html(
+        complete=complete,
+        in_order=False,
+        case_sensitive_colnames=case_sensitive_colnames,
+        case_sensitive_dtypes=case_sensitive_dtypes,
+        full_match_dtypes=full_match_dtypes,
+    )
+
+    # Generate the default template text for the header when `":default:"` is used
+    if header == ":default:":
+        header = "{title}{details}"
+
+    # Use commonmark to convert the header text to HTML
+    header = commonmark.commonmark(header)
+
+    # Place any templated text in the header
+    header = header.format(title=title, details=details)
+
+    # Create the header with `header` string
+    step_report = step_report.tab_header(title=md(header))
 
     return step_report
 
