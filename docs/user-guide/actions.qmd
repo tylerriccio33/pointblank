@@ -163,3 +163,62 @@ applied to step 3. You are free to mix and match both threshold and action setti
 level (i.e., set in the [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html)
 call) or at the step level. The key thing to be aware of is that step-level settings of thresholds
 and actions take precedence.
+
+## Using `get_action_metadata()` to Access Metadata When Building an Action Callable
+
+To access information about the validation step where an action was triggered, we can call
+[`get_action_metadata()`](https://posit-dev.github.io/pointblank/reference/get_action_metadata.html)
+in the body of a function to be used within `Actions`. The dictionary that's returned by that
+function allows us to make more generalized actions that could react accordingly to different
+failure states.
+
+In the following example, we'll make a function called `print_problem()` that prints information to
+the console about the failure state for a validation step. In this case, the action will be applied
+to any threshold level being exceeded (by using `Actions(default=print_problem)`). And only the most
+severe level exceeded per step will execute `print_problem()` since `Actions(highest_only=True)` by
+default.
+
+```{python}
+def print_problem():
+    m = pb.get_action_metadata()
+    print(f"{m['level']} ({m['level_num']}) for Step {m['step']}: {m['failure_text']}")
+
+
+validation = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+        actions=pb.Actions(default=print_problem),
+        brief=True,
+    )
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .col_vals_gt(columns="item_revenue", value=0.05)
+    .col_vals_gt(
+        columns="session_duration",
+        value=15,
+    )
+    .interrogate()
+)
+
+validation
+```
+
+We end up seeing two messages printed for failures in Steps 2 and 3. And though those steps had more
+than one threshold exceeded, only the most severe level in each yielded a console message.
+
+Alse note that we set the action in `Validate(actions=)` so that the action would apply to all
+validation steps where thresholds are exceeded. This obviated the need to set `actions=` at every
+validation step (though you can do this as a local override, even setting `actions=None` to disable
+globally set actions).
+
+The metadata dictionary contains the following fields for a given validation step:
+
+- `step`: The step number.
+- `column`: The column name.
+- `value`: The value being compared (only available in certain validation steps).
+- `type`: The assertion type (e.g., `"col_vals_gt"`, etc.).
+- `time`: The time the validation step was executed (in ISO format).
+- `level`: The severity level (`"warning"`, `"error"`, or `"critical"`).
+- `level_num`: The severity level as a numeric value (`30`, `40`, or `50`).
+- `autobrief`: A localized and brief statement of the expectation for the step.
+- `failure_text`: Localized text that explains how the validation step failed.
