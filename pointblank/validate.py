@@ -8890,7 +8890,8 @@ class Validate:
             from this default, free text can be provided for the header. This will be interpreted as
             Markdown text and transformed internally to HTML. You can provide one of two templating
             elements: `{title}` and `{details}`. The default header has the template
-            `"{title}{details}"` so you can easily start from that and modify as you see fit.
+            `"{title}{details}"` so you can easily start from that and modify as you see fit. If you
+            don't want a header at all, you can set `header=None` to remove it entirely.
         limit
             The number of rows to display for those validation steps that check values in rows (the
             `col_vals_*()` validation steps). The default is `10` rows and the limit can be removed
@@ -10366,7 +10367,10 @@ def _step_report_row_based(
 
         # TODO: localize all text fragments according to `lang=` parameter
 
-        if header == ":default:":
+        if header is None:
+            pass
+
+        elif header == ":default:":
             step_report = step_report.tab_header(
                 title=html(f"Report for Validation Step {i} {CHECK_MARK_SPAN}"),
                 subtitle=html(
@@ -10457,6 +10461,10 @@ def _step_report_row_based(
             "</div>"
             "</div>"
         )
+
+        # If `header` is None then don't add a header and just return the step report
+        if header is None:
+            return step_report
 
         # Generate the default template text for the header when `":default:"` is used
         if header == ":default:":
@@ -10761,6 +10769,10 @@ def _step_report_schema_in_order(
     # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
     if version("great_tables") >= "0.17.0":
         step_report = step_report.tab_options(quarto_disable_processing=True)
+
+    # If `header` is None then don't add a header and just return the step report
+    if header is None:
+        return step_report
 
     # Get the other parameters for the `col_schema_match()` function
     case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
@@ -11166,6 +11178,10 @@ def _step_report_schema_any_order(
     # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
     if version("great_tables") >= "0.17.0":
         step_report = step_report.tab_options(quarto_disable_processing=True)
+
+    # If `header` is None then don't add a header and just return the step report
+    if header is None:
+        return step_report
 
     # Get the other parameters for the `col_schema_match()` function
     case_sensitive_colnames = schema_info["params"]["case_sensitive_colnames"]
