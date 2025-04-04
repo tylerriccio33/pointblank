@@ -1,0 +1,11 @@
+---
+title: "Blog"
+image: "pointblank_blog_logo.png"
+listing:
+  type: table
+  sort: "date desc"
+  feed: true
+  contents:
+    - "**.qmd"
+---
+
