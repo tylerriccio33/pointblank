@@ -16,11 +16,18 @@ strongly determines the quality of decisions.
 Having the ability to distinguish bad data from good data is the first step in solving DQ issues,
 and the sustained practice of doing data validation will guard against intrusions of poor-quality
 data. Pointblank has been designed to really help here. Though it's a fairly new package it is
-currently quite capable! And it's available in PyPI so you can install it by using:
+currently quite capable. And it's available in PyPI, so you can install it by using:
 
-```
+```bash
 pip install pointblank
 ```
+
+::: {.callout-note}
+To run the examples in this post, you'll need to have a DataFrame library installed. Pointblank
+works seamlessly with both Polars and Pandas but you'll need to install at least one of them on your
+own. We also have a DuckDB example that's running via Ibis (so, you'll have to install Ibis with
+the DuckDB backend for that to work).
+:::
 
 ## How Pointblank Transforms Your Data Validation Workflow
 
@@ -32,15 +39,19 @@ fields match specific patterns, or relationships between columns remain consiste
 
 But say you find problems. What are you gonna do about it? Well, Pointblank wants to help at not
 just finding problems but helping you understand them. When validation failures occur, the detailed
-reporting capabilities (in the form of beautiful, sharable tables) show you exactly where issues are.
-Right down to the specific rows and columns. This transforms data validation from a binary pass/fail
-exercise into a super-insightful diagnostic tool!
+reporting capabilities (in the form of beautiful, sharable tables) show you exactly where issues
+are. Right down to the specific rows and columns. This transforms data validation from a binary
+pass/fail exercise into a super-insightful diagnostic tool.
+
+![](./step_report.png)
 
 Here's the the best part: Pointblank is designed to work with your existing data stack. Whether
 you're using Polars, Pandas, DuckDB, or other database systems, Pointblank tries hard to integrate
 without forcing you to change your workflow. We also have international spoken language support for
 reporting, meaning that validation reports can be localized to your team's preferred language. This
 making data quality accessible to everyone in your organization (like a team sport!).
+
+![](./pointblank-localized.png)
 
 Alright! Let's look at a few demonstrations of Pointblank's capabilities for data validation.
 
