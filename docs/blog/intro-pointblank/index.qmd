@@ -3,11 +3,9 @@ jupyter: python3
 html-table-processing: none
 title: "Introducing Pointblank"
 author: Rich Iannone
-date: 2024-04-06
+date: 2024-04-04
 freeze: true
 ---
-
-## Introducing Pointblank: Making Data Quality a Priority
 
 If you have tabular data (and who doesn't?) this is the package for you! I've long been interested
 in data quality and so I've spent a lot of time building tooling that makes it possible to perform
