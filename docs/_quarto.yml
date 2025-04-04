@@ -43,7 +43,7 @@ website:
       - href: reference/index.qmd
         text: API Reference
       - href: blog/index.qmd
-        text: Blog
+        text: Pointblog
     right:
       - icon: discord
         href: https://discord.com/invite/YH7CybCNCQ
