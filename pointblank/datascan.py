@@ -307,6 +307,10 @@ class DataScan:
             ## Labeling
             .cols_label(label_map)
             .cols_label(icon="", colname="Column")
+            .cols_align("center", columns=list(present_stat_cols))
+            .tab_style(
+                style=style.text(align="right"), locations=loc.body(columns=list(present_stat_cols))
+            )
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(columns=fmt_float, decimals=2)
@@ -336,11 +340,9 @@ class DataScan:
         )
 
         # TODO:
-        # - IQR in separate category at the end
         # - T/F in the UQ for bools (can remove them as stat types)
         # - datetime value formatting weirdness
         # - datetime column formatting weirdness
-        # - center all column headers
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":

@@ -179,8 +179,8 @@ class NUnique(Stat):
 
 
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
-    NUnique,
     NMissing,
+    NUnique,
     MeanStat,
     StdStat,
     MinStat,
