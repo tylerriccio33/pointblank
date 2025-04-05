@@ -117,7 +117,7 @@ class ColumnProfile(_ColumnProfileABC):
 
     def calc_stats(self, data: Frame) -> None:
         summarized = _as_physical(
-            data.select(_nmissing=NMissing.expr, _nunique=NUnique.expr)
+            data.select(_col=self.colname).select(_nmissing=NMissing.expr, _nunique=NUnique.expr)
         ).to_dict()
 
         self.statistics.extend(
@@ -132,7 +132,7 @@ class _DateProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.DATE
 
     def calc_stats(self, data: Frame):
-        res = data.select(_min=MinStat.expr, _max=MaxStat.expr)
+        res = data.rename({self.colname: "_col"}).select(_min=MinStat.expr, _max=MaxStat.expr)
 
         physical = _as_physical(res).to_dict()
 
@@ -148,7 +148,7 @@ class _BoolProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.BOOL
 
     def calc_stats(self, data: Frame) -> None:
-        res = data.select(_ntrue=NTrue.expr, _nfalse=NFalse.expr)
+        res = data.rename({self.colname: "_col"}).select(_ntrue=NTrue.expr, _nfalse=NFalse.expr)
 
         physical = _as_physical(res).to_dict()
 
@@ -166,18 +166,22 @@ class _StringProfile(ColumnProfile):
     def calc_stats(self, data: Frame):
         str_data = data.select(nw.all().cast(nw.String).str.len_chars())
 
-        summarized = str_data.select(
-            _mean=MeanStat.expr,
-            _median=MedianStat.expr,
-            _std=StdStat.expr,
-            _min=MinStat.expr,
-            _max=MaxStat.expr,
-            _p_05=P05Stat.expr,
-            _q_1=Q1Stat.expr,
-            _q_3=Q3Stat.expr,
-            _p_95=P95Stat.expr,
-        ).with_columns(
-            _iqr=IQRStat.expr,
+        summarized = (
+            str_data.rename({self.colname: "_col"})
+            .select(
+                _mean=MeanStat.expr,
+                _median=MedianStat.expr,
+                _std=StdStat.expr,
+                _min=MinStat.expr,
+                _max=MaxStat.expr,
+                _p_05=P05Stat.expr,
+                _q_1=Q1Stat.expr,
+                _q_3=Q3Stat.expr,
+                _p_95=P95Stat.expr,
+            )
+            .with_columns(
+                _iqr=IQRStat.expr,
+            )
         )
 
         physical = _as_physical(summarized).to_dict()
@@ -201,18 +205,22 @@ class _NumericProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.NUMERIC
 
     def calc_stats(self, data: Frame):
-        res = data.select(
-            _mean=MeanStat.expr,
-            _median=MedianStat.expr,
-            _std=StdStat.expr,
-            _min=MinStat.expr,
-            _max=MaxStat.expr,
-            _p_05=P05Stat.expr,
-            _q_1=Q1Stat.expr,
-            _q_3=Q3Stat.expr,
-            _p_95=P95Stat.expr,
-        ).with_columns(
-            _iqr=IQRStat.expr,  # TODO: Need something to indicate this consistently
+        res = (
+            data.rename({self.colname: "_col"})
+            .select(
+                _mean=MeanStat.expr,
+                _median=MedianStat.expr,
+                _std=StdStat.expr,
+                _min=MinStat.expr,
+                _max=MaxStat.expr,
+                _p_05=P05Stat.expr,
+                _q_1=Q1Stat.expr,
+                _q_3=Q3Stat.expr,
+                _p_95=P95Stat.expr,
+            )
+            .with_columns(
+                _iqr=IQRStat.expr,  # TODO: Need something to indicate this consistently
+            )
         )
 
         summarized = _as_physical(res).to_dict()

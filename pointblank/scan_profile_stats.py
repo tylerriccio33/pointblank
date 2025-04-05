@@ -19,9 +19,11 @@ class StatGroup(Enum):
     STRUCTURE = auto()
     LOGIC = auto()
     IQR = auto()
+    FREQ = auto()
 
 
 # TODO: Make sure all these subclasses are suffixed w/`Stat`
+# TODO: Replace all the nw.all w/_col
 
 
 class Stat(ABC):
@@ -48,7 +50,7 @@ class MeanStat(Stat):
     val: str
     name: ClassVar[str] = "mean"
     group = StatGroup.SUMMARY
-    expr: ClassVar[nw.Expr] = nw.all().mean().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").mean().cast(nw.Float64)
     label: ClassVar[str] = "Mean"
 
 
@@ -57,7 +59,7 @@ class StdStat(Stat):  # TODO: Rename this SD for consistency
     val: str
     name: ClassVar[str] = "std"
     group = StatGroup.SUMMARY
-    expr: ClassVar[nw.Expr] = nw.all().std().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").std().cast(nw.Float64)
     label: ClassVar[str] = "SD"
 
 
@@ -66,7 +68,7 @@ class MinStat(Stat):
     val: str
     name: ClassVar[str] = "min"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().min()  # don't cast as float, can be date
+    expr: ClassVar[nw.Expr] = nw.col("_col").min()  # don't cast as float, can be date
     label: ClassVar[str] = "Min"
 
 
@@ -75,7 +77,7 @@ class MaxStat(Stat):
     val: str
     name: ClassVar[str] = "max"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().max()  # don't cast as float, can be date
+    expr: ClassVar[nw.Expr] = nw.col("_col").max()  # don't cast as float, can be date
     label: ClassVar[str] = "Max"
 
 
@@ -84,7 +86,9 @@ class P05Stat(Stat):
     val: str
     name: ClassVar[str] = "p05"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().quantile(0.005, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = (
+        nw.col("_col").quantile(0.005, interpolation="linear").cast(nw.Float64)
+    )
     label: ClassVar[str] = _make_sublabel("P", "5")
 
 
@@ -93,7 +97,7 @@ class Q1Stat(Stat):
     val: str
     name: ClassVar[str] = "q_1"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().quantile(0.25, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.25, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("Q", "1")
 
 
@@ -102,7 +106,7 @@ class MedianStat(Stat):
     val: str
     name: ClassVar[str] = "median"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().median().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").median().cast(nw.Float64)
     label: ClassVar[str] = "Med"
 
 
@@ -111,7 +115,7 @@ class Q3Stat(Stat):
     val: str
     name: ClassVar[str] = "q_3"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().quantile(0.75, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.75, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("Q", "3")
 
 
@@ -120,7 +124,7 @@ class P95Stat(Stat):
     val: str
     name: ClassVar[str] = "p95"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.all().quantile(0.95, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.95, interpolation="linear").cast(nw.Float64)
     label: ClassVar[str] = _make_sublabel("P", "95")
 
 
@@ -140,12 +144,12 @@ class NTrue(Stat):
     val: int
     name: ClassVar[str] = "n_true"
     group = StatGroup.LOGIC
-    expr: ClassVar[nw.Expr] = nw.all().sum().cast(nw.Int64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").sum().cast(nw.Int64)
     label: ClassVar[str] = _make_sublabel("True", "N")
 
 
 @dataclass(frozen=True)
-class NFalse(Stat):
+class NFalse(Stat):  # TODO remove this ?
     val: int
     name: ClassVar[str] = "n_false"
     group = StatGroup.LOGIC
@@ -161,11 +165,19 @@ class NFalse(Stat):
 
 
 @dataclass(frozen=True)
+class FreqStats(Stat):
+    val: list[dict[str, int]]
+    name: ClassVar[str] = "freqs"
+    group = StatGroup.FREQ
+    expr: ClassVar[nw.Expr] = nw.len().over("_col")
+
+
+@dataclass(frozen=True)
 class NMissing(Stat):
     val: int
     name: ClassVar[str] = "n_missing"
     group = StatGroup.STRUCTURE
-    expr: ClassVar[nw.Expr] = nw.all().null_count().cast(nw.Int64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").null_count().cast(nw.Int64)
     label: ClassVar[str] = "NA"
 
 
@@ -174,13 +186,13 @@ class NUnique(Stat):
     val: int
     name: ClassVar[str] = "n_unique"
     group = StatGroup.STRUCTURE
-    expr: ClassVar[nw.Expr] = nw.all().n_unique().cast(nw.Int64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").n_unique().cast(nw.Int64)
     label: ClassVar[str] = "UQ"
 
 
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
-    NMissing,
     NUnique,
+    NMissing,
     MeanStat,
     StdStat,
     MinStat,
