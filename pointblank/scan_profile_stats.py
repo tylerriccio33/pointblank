@@ -161,7 +161,7 @@ class NMissing(Stat):
     name: ClassVar[str] = "n_missing"
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().null_count().cast(nw.Int64)
-    label: ClassVar[str] = _make_sublabel("Missing", "N")
+    label: ClassVar[str] = "NA"
 
 
 @dataclass(frozen=True)
@@ -170,7 +170,7 @@ class NUnique(Stat):
     name: ClassVar[str] = "n_unique"
     group = StatGroup.STRUCTURE
     expr: ClassVar[nw.Expr] = nw.all().n_unique().cast(nw.Int64)
-    label: ClassVar[str] = _make_sublabel("UQ", "N")
+    label: ClassVar[str] = "UQ"
 
 
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
