@@ -18,6 +18,7 @@ class StatGroup(Enum):
     SUMMARY = auto()
     STRUCTURE = auto()
     LOGIC = auto()
+    IQR = auto()
 
 
 # TODO: Make sure all these subclasses are suffixed w/`Stat`
@@ -127,7 +128,7 @@ class P95Stat(Stat):
 class IQRStat(Stat):
     val: str
     name: ClassVar[str] = "iqr"
-    group = StatGroup.DESCR
+    group = StatGroup.IQR
     expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(
         Q1Stat._fetch_priv_name()
     ).cast(nw.Float64)
@@ -189,7 +190,7 @@ COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
     Q3Stat,
     P95Stat,
     MaxStat,
-    IQRStat,
     NTrue,
     NFalse,
+    IQRStat,
 )
