@@ -336,7 +336,6 @@ class DataScan:
         )
 
         # TODO:
-        # - min, med, max to span percentiles
         # - IQR in separate category at the end
         # - T/F in the UQ for bools (can remove them as stat types)
         # - datetime value formatting weirdness
