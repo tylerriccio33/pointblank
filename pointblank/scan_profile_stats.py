@@ -15,8 +15,12 @@ if TYPE_CHECKING:
 
 class StatGroup(Enum):
     DESCR = auto()
+    SUMMARY = auto()
     STRUCTURE = auto()
     LOGIC = auto()
+
+
+# TODO: Make sure all these subclasses are suffixed w/`Stat`
 
 
 class Stat(ABC):
@@ -42,16 +46,16 @@ class Stat(ABC):
 class MeanStat(Stat):
     val: str
     name: ClassVar[str] = "mean"
-    group = StatGroup.DESCR
+    group = StatGroup.SUMMARY
     expr: ClassVar[nw.Expr] = nw.all().mean().cast(nw.Float64)
     label: ClassVar[str] = "Mean"
 
 
 @dataclass(frozen=True)
-class StdStat(Stat):
+class StdStat(Stat):  # TODO: Rename this SD for consistency
     val: str
     name: ClassVar[str] = "std"
-    group = StatGroup.DESCR
+    group = StatGroup.SUMMARY
     expr: ClassVar[nw.Expr] = nw.all().std().cast(nw.Float64)
     label: ClassVar[str] = "SD"
 
@@ -176,10 +180,10 @@ class NUnique(Stat):
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
     NUnique,
     NMissing,
-    MinStat,
-    MaxStat,
     MeanStat,
     StdStat,
+    MinStat,
+    MaxStat,
     P05Stat,
     Q1Stat,
     MedianStat,

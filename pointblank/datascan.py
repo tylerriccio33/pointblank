@@ -336,12 +336,12 @@ class DataScan:
         )
 
         # TODO:
-        # - mean and SD in own cat
         # - min, med, max to span percentiles
         # - IQR in separate category at the end
         # - T/F in the UQ for bools (can remove them as stat types)
         # - datetime value formatting weirdness
         # - datetime column formatting weirdness
+        # - center all column headers
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":
