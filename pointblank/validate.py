@@ -211,18 +211,34 @@ def get_validation_summary():
     --------------------------------
     The summary dictionary contains the following fields:
 
-    - `step_count`: The total number of validation steps.
-    - `passing_steps`: The number of validation steps that passed.
-    - `failing_steps`: The number of validation steps that failed.
-    - `warning_steps`: The number of steps that exceeded the warning threshold.
-    - `error_steps`: The number of steps that exceeded the error threshold.
-    - `critical_steps`: The number of steps that exceeded the critical threshold.
-    - `validation_duration`: The duration of the validation in seconds.
-    - `row_count`: The number of rows in the validated table.
-    - `column_count`: The number of columns in the validated table.
-    - `table_name`: The name of the validated table.
-    - `status`: Overall validation status ("PASSED", "FAILED", "WARNING", "ERROR", or "CRITICAL").
-    - `steps_with_issues`: List of step numbers that had issues.
+    - `n_steps` (`int`): The total number of validation steps.
+    - `n_passing_steps` (`int`): The number of validation steps where all test units passed.
+    - `n_failing_steps` (`int`): The number of validation steps that had some failing test units.
+    - `n_warning_steps` (`int`): The number of steps that exceeded a 'warning' threshold.
+    - `n_error_steps` (`int`): The number of steps that exceeded an 'error' threshold.
+    - `n_critical_steps` (`int`): The number of steps that exceeded a 'critical' threshold.
+    - `list_passing_steps` (`list[int]`): List of step numbers where all test units passed.
+    - `list_failing_steps` (`list[int]`): List of step numbers for steps having failing test units.
+    - `dict_n` (`dict`): The number of test units for each validation step.
+    - `dict_n_passed` (`dict`): The number of test units that passed for each validation step.
+    - `dict_n_failed` (`dict`): The number of test units that failed for each validation step.
+    - `dict_f_passed` (`dict`): The fraction of test units that passed for each validation step.
+    - `dict_f_failed` (`dict`): The fraction of test units that failed for each validation step.
+    - `dict_warning` (`dict`): The 'warning' level status for each validation step.
+    - `dict_error` (`dict`): The 'error' level status for each validation step.
+    - `dict_critical` (`dict`): The 'critical' level status for each validation step.
+    - `all_passed` (`bool`): Whether or not every validation step had no failing test units.
+    - `highest_severity` (`str`): The highest severity level encountered during validation. This can
+      be one of the following: `"warning"`, `"error"`, or `"critical"`, `"some failing"`, or
+      `"all passed"`.
+    - `tbl_row_count` (`int`): The number of rows in the target table.
+    - `tbl_column_count` (`int`): The number of columns in the target table.
+    - `tbl_name` (`str`): The name of the target table.
+    - `validation_duration` (`float`): The duration of the validation in seconds.
+
+    Note that the summary dictionary is only available within the context of a final action. If
+    called outside of a final action (i.e., when no final action is being executed), this function
+    will return `None`.
 
     Examples
     --------
@@ -236,10 +252,11 @@ def get_validation_summary():
 
     def send_report():
         summary = pb.get_validation_summary()
-        if summary["status"] == "CRITICAL":
+        if summary["highest_severity"] == "critical":
+            # Send an alert email
             send_alert_email(
-                subject=f"CRITICAL validation failures in {summary['table_name']}",
-                body=f"{summary['critical_steps']} steps failed with critical severity."
+                subject=f"CRITICAL validation failures in {summary['tbl_name']}",
+                body=f"{summary['n_critical_steps']} steps failed with critical severity."
             )
 
     validation = (
@@ -263,20 +280,21 @@ def get_validation_summary():
     def log_validation_results():
         summary = pb.get_validation_summary()
 
-        print(f"Validation completed with status: {summary['status']}")
-        print(f"Steps: {summary['step_count']} total")
-        print(f"  - {summary['passing_steps']} passing, {summary['failing_steps']} failing")
+        print(f"Validation completed with status: {summary['highest_severity'].upper()}")
+        print(f"Steps: {summary['n_steps']} total")
+        print(f"  - {summary['n_passing_steps']} passing, {summary['n_failing_steps']} failing")
         print(
-            f"  - Severity: {summary['warning_steps']} warnings, {summary['error_steps']} errors, "
-            f"{summary['critical_steps']} critical"
+            f"  - Severity: {summary['n_warning_steps']} warnings, "
+            f"{summary['n_error_steps']} errors, "
+            f"{summary['n_critical_steps']} critical"
         )
 
-        if summary['status'] in ["ERROR", "CRITICAL"]:
+        if summary['highest_severity'] in ["error", "critical"]:
             print("⚠️ Action required: Please review failing validation steps!")
     ```
 
-    Final actions work well with both simple logging and more complex notification systems,
-    allowing you to integrate validation results into your broader data quality workflows.
+    Final actions work well with both simple logging and more complex notification systems, allowing
+    you to integrate validation results into your broader data quality workflows.
     """
     if hasattr(_final_action_context, "summary"):
         return _final_action_context.summary
@@ -7003,10 +7021,10 @@ class Validate:
             # Set the time of processing for this step, this should be UTC time is ISO 8601 format
             validation.time_processed = end_time.isoformat(timespec="milliseconds")
 
+        self.time_end = datetime.datetime.now(datetime.timezone.utc)
+
         # Perform any final actions
         self._execute_final_actions()
-
-        self.time_end = datetime.datetime.now(datetime.timezone.utc)
 
         return self
 
@@ -9424,8 +9442,8 @@ class Validate:
         if self.final_actions is None:
             return
 
-        # Get the overall status based on the validation results
-        status = self._get_overall_status()
+        # Get the highest severity level based on the validation results
+        highest_severity = self._get_highest_severity_level()
 
         # Get row count using the dedicated function that handles all table types correctly
         row_count = get_row_count(self.data)
@@ -9433,22 +9451,35 @@ class Validate:
         # Get column count using the dedicated function that handles all table types correctly
         column_count = get_column_count(self.data)
 
+        # Get the validation duration
+        validation_duration = self.validation_duration = (
+            self.time_end - self.time_start
+        ).total_seconds()
+
         # Create a summary of validation results as a dictionary
         summary = {
-            "step_count": len(self.validation_info),
-            "passing_steps": sum(1 for step in self.validation_info if step.all_passed),
-            "failing_steps": sum(1 for step in self.validation_info if not step.all_passed),
-            "warning_steps": sum(1 for step in self.validation_info if step.warning),
-            "error_steps": sum(1 for step in self.validation_info if step.error),
-            "critical_steps": sum(1 for step in self.validation_info if step.critical),
-            "validation_duration": (self.time_end - self.time_start).total_seconds()
-            if self.time_end and self.time_start
-            else 0,
-            "row_count": row_count,
-            "column_count": column_count,
-            "table_name": self.tbl_name or "Unknown",
-            "status": status,
-            "steps_with_issues": [step.i for step in self.validation_info if not step.all_passed],
+            "n_steps": len(self.validation_info),
+            "n_passing_steps": sum(1 for step in self.validation_info if step.all_passed),
+            "n_failing_steps": sum(1 for step in self.validation_info if not step.all_passed),
+            "n_warning_steps": sum(1 for step in self.validation_info if step.warning),
+            "n_error_steps": sum(1 for step in self.validation_info if step.error),
+            "n_critical_steps": sum(1 for step in self.validation_info if step.critical),
+            "list_passing_steps": [step.i for step in self.validation_info if step.all_passed],
+            "list_failing_steps": [step.i for step in self.validation_info if not step.all_passed],
+            "dict_n": {step.i: step.n for step in self.validation_info},
+            "dict_n_passed": {step.i: step.n_passed for step in self.validation_info},
+            "dict_n_failed": {step.i: step.n_failed for step in self.validation_info},
+            "dict_f_passed": {step.i: step.f_passed for step in self.validation_info},
+            "dict_f_failed": {step.i: step.f_failed for step in self.validation_info},
+            "dict_warning": {step.i: step.warning for step in self.validation_info},
+            "dict_error": {step.i: step.error for step in self.validation_info},
+            "dict_critical": {step.i: step.critical for step in self.validation_info},
+            "all_passed": all(step.all_passed for step in self.validation_info),
+            "highest_severity": highest_severity,
+            "tbl_row_count": row_count,
+            "tbl_column_count": column_count,
+            "tbl_name": self.tbl_name or "Unknown",
+            "validation_duration": validation_duration,
         }
 
         # If final_actions is a FinalActions object, extract the action(s)
@@ -9487,18 +9518,18 @@ class Validate:
                         else:
                             action()
 
-    def _get_overall_status(self):
-        """Get the overall validation status."""
+    def _get_highest_severity_level(self):
+        """Get the highest severity level reached across all validation steps."""
         if any(step.critical for step in self.validation_info):
-            return "CRITICAL"
+            return "critical"
         elif any(step.error for step in self.validation_info):
-            return "ERROR"
+            return "error"
         elif any(step.warning for step in self.validation_info):
-            return "WARNING"
+            return "warning"
         elif any(not step.all_passed for step in self.validation_info):
-            return "FAILED"
+            return "some failing"
         else:
-            return "PASSED"
+            return "all passed"
 
 
 def _normalize_reporting_language(lang: str | None) -> str:
