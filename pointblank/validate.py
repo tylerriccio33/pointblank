@@ -1896,13 +1896,21 @@ class Validate:
         `thresholds=` parameter). The default is `None`, which means that no thresholds will be set.
         Look at the *Thresholds* section for information on how to set threshold levels.
     actions
-        The actions to take when validation steps meet or exceed any set threshold levels. This
-        should be provided in the form of an `Actions` object. If `None` then no global actions
-        will be set.
+        The actions to take when validation steps meet or exceed any set threshold levels. These
+        actions are paired with the threshold levels and are executed during the interrogation
+        process when there are exceedances. The actions are executed right after each step is
+        evaluated. Such actions should be provided in the form of an `Actions` object. If `None`
+        then no global actions will be set. View the *Actions* section for information on how to set
+        actions.
     final_actions
-        The actions to take when validation steps meet or exceed any set threshold levels. This
+        The actions to take when the validation process is complete and the final results are
+        available. This is useful for sending notifications or reporting the overall status of the
+        validation process. The final actions are executed after all validation steps have been
+        processed and the results have been collected. The final actions are not tied to any
+        threshold levels, they are executed regardless of the validation results. Such actions
         should be provided in the form of a `FinalActions` object. If `None` then no finalizing
-        actions will be set.
+        actions will be set. Please see the *Actions* section for information on how to set final
+        actions.
     brief
         A global setting for briefs, which are optional brief descriptions for validation steps
         (they be displayed in the reporting table). For such a global setting, templating elements
@@ -1970,6 +1978,85 @@ class Validate:
 
     Aside from reporting failure conditions, thresholds can be used to determine the actions to take
     for each level of failure (using the `actions=` parameter).
+
+    Actions
+    -------
+    The `actions=` and `final_actions=` parameters provide mechanisms to respond to validation
+    results. These actions can be used to notify users of validation failures, log issues, or
+    trigger other processes when problems are detected.
+
+    Step Actions
+    ~~~~~~~~~~~~
+    The `actions=` parameter allows you to define actions that are triggered when validation steps
+    exceed specific threshold levels (warning, error, or critical). These actions are executed
+    during the interrogation process, right after each step is evaluated.
+
+    Step actions should be provided using the [`Actions`](`pointblank.Actions`) class, which lets
+    you specify different actions for different severity levels:
+
+    ```python
+    # Define an action that logs a message when warning threshold is exceeded
+    def log_warning():
+        metadata = pb.get_action_metadata()
+        print(f"WARNING: Step {metadata['step']} failed with type {metadata['type']}")
+
+    # Define actions for different threshold levels
+    actions = pb.Actions(
+        warning = log_warning,
+        error = lambda: send_email("Error in validation"),
+        critical = "CRITICAL FAILURE DETECTED"
+    )
+
+    # Use in Validate
+    validation = pb.Validate(
+        data=my_data,
+        actions=actions  # Global actions for all steps
+    )
+    ```
+
+    You can also provide step-specific actions in individual validation methods:
+
+    ```python
+    validation.col_vals_gt(
+        columns="revenue",
+        value=0,
+        actions=pb.Actions(warning=log_warning)  # Only applies to this step
+    )
+    ```
+
+    Step actions have access to step-specific context through the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which provides details
+    about the current validation step that triggered the action.
+
+    Final Actions
+    ~~~~~~~~~~~~~
+    The `final_actions=` parameter lets you define actions that execute after all validation steps
+    have completed. These are useful for providing summaries, sending notifications based on
+    overall validation status, or performing cleanup operations.
+
+    Final actions should be provided using the [`FinalActions`](`pointblank.FinalActions`) class:
+
+    ```python
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary["status"] == "CRITICAL":
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary['table_name']}",
+                body=f"{summary['critical_steps']} steps failed with critical severity."
+            )
+
+    validation = pb.Validate(
+        data=my_data,
+        final_actions=pb.FinalActions(send_report)
+    )
+    ```
+
+    Final actions have access to validation-wide summary information through the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function, which provides a
+    comprehensive overview of the entire validation process.
+
+    The combination of step actions and final actions provides a flexible system for responding to
+    data quality issues at both the individual step level and the overall validation level.
 
     Reporting Languages
     -------------------
