@@ -9427,6 +9427,12 @@ class Validate:
         # Get the overall status based on the validation results
         status = self._get_overall_status()
 
+        # Get row count using the dedicated function that handles all table types correctly
+        row_count = get_row_count(self.data)
+
+        # Get column count using the dedicated function that handles all table types correctly
+        column_count = get_column_count(self.data)
+
         # Create a summary of validation results as a dictionary
         summary = {
             "step_count": len(self.validation_info),
@@ -9438,8 +9444,8 @@ class Validate:
             "validation_duration": (self.time_end - self.time_start).total_seconds()
             if self.time_end and self.time_start
             else 0,
-            "row_count": getattr(self, "n_rows", 0),
-            "column_count": len(self.data.columns) if hasattr(self.data, "columns") else 0,
+            "row_count": row_count,
+            "column_count": column_count,
             "table_name": self.tbl_name or "Unknown",
             "status": status,
             "steps_with_issues": [step.i for step in self.validation_info if not step.all_passed],
