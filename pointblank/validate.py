@@ -226,6 +226,11 @@ def get_validation_summary():
 
     Examples
     --------
+    Final actions are executed after the completion of all validation steps. They provide an
+    opportunity to take appropriate actions based on the overall validation results. Here's an
+    example of a final action function (`send_report()`) that sends an alert when critical
+    validation failures are detected:
+
     ```python
     import pointblank as pb
 
@@ -246,6 +251,32 @@ def get_validation_summary():
         .interrogate()
     )
     ```
+
+    Note that `send_alert_email()` in the example above is a placeholder function that would be
+    implemented by the user to send email alerts. This function is not provided by the Pointblank
+    package.
+
+    The `get_validation_summary()` function can also be used to create custom reporting for
+    validation results:
+
+    ```python
+    def log_validation_results():
+        summary = pb.get_validation_summary()
+
+        print(f"Validation completed with status: {summary['status']}")
+        print(f"Steps: {summary['step_count']} total")
+        print(f"  - {summary['passing_steps']} passing, {summary['failing_steps']} failing")
+        print(
+            f"  - Severity: {summary['warning_steps']} warnings, {summary['error_steps']} errors, "
+            f"{summary['critical_steps']} critical"
+        )
+
+        if summary['status'] in ["ERROR", "CRITICAL"]:
+            print("⚠️ Action required: Please review failing validation steps!")
+    ```
+
+    Final actions work well with both simple logging and more complex notification systems,
+    allowing you to integrate validation results into your broader data quality workflows.
     """
     if hasattr(_final_action_context, "summary"):
         return _final_action_context.summary
