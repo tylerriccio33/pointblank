@@ -199,23 +199,42 @@ def get_validation_summary():
     """Access validation summary information when authoring final actions.
 
     This function provides a convenient way to access summary information about the validation
-    process within a final action. It returns a ValidationSummary object with key metrics from
-    the validation process.
+    process within a final action. It returns a dictionary with key metrics from the validation
+    process.
 
     Returns
     -------
-    ValidationSummary | None
-        A summary object containing validation metrics, or None if called outside a final action.
+    dict | None
+        A dictionary containing validation metrics, or None if called outside a final action.
+
+    Description of the Summary Fields
+    --------------------------------
+    The summary dictionary contains the following fields:
+
+    - `step_count`: The total number of validation steps.
+    - `passing_steps`: The number of validation steps that passed.
+    - `failing_steps`: The number of validation steps that failed.
+    - `warning_steps`: The number of steps that exceeded the warning threshold.
+    - `error_steps`: The number of steps that exceeded the error threshold.
+    - `critical_steps`: The number of steps that exceeded the critical threshold.
+    - `validation_duration`: The duration of the validation in seconds.
+    - `row_count`: The number of rows in the validated table.
+    - `column_count`: The number of columns in the validated table.
+    - `table_name`: The name of the validated table.
+    - `status`: Overall validation status ("PASSED", "FAILED", "WARNING", "ERROR", or "CRITICAL").
+    - `steps_with_issues`: List of step numbers that had issues.
 
     Examples
     --------
     ```python
+    import pointblank as pb
+
     def send_report():
         summary = pb.get_validation_summary()
-        if summary.status == "CRITICAL":
+        if summary["status"] == "CRITICAL":
             send_alert_email(
-                subject=f"CRITICAL validation failures in {summary.table_name}",
-                body=f"{summary.critical_steps} steps failed with critical severity."
+                subject=f"CRITICAL validation failures in {summary['table_name']}",
+                body=f"{summary['critical_steps']} steps failed with critical severity."
             )
 
     validation = (
@@ -232,35 +251,6 @@ def get_validation_summary():
         return _final_action_context.summary
     else:
         return None
-
-
-@dataclass
-class ValidationSummary:
-    """User-friendly summary of validation results for final actions."""
-
-    step_count: int
-    passing_steps: int
-    failing_steps: int
-    warning_steps: int
-    error_steps: int
-    critical_steps: int
-    validation_duration: float
-    row_count: int
-    column_count: int
-    table_name: str
-    status: str
-    steps_with_issues: list[int]
-
-    def __str__(self):
-        return (
-            f"Validation Summary\n"
-            f"=================\n"
-            f"Status: {self.status}\n"
-            f"Steps: {self.step_count} total, {self.passing_steps} passed, {self.failing_steps} failed\n"
-            f"Severity: {self.warning_steps} warnings, {self.error_steps} errors, {self.critical_steps} critical\n"
-            f"Duration: {self.validation_duration:.2f} seconds\n"
-            f"Table: {self.table_name} ({self.row_count} rows, {self.column_count} columns)"
-        )
 
 
 @dataclass
@@ -9319,23 +9309,23 @@ class Validate:
         # Get the overall status based on the validation results
         status = self._get_overall_status()
 
-        # Create a summary of validation results
-        summary = ValidationSummary(
-            step_count=len(self.validation_info),
-            passing_steps=sum(1 for step in self.validation_info if step.all_passed),
-            failing_steps=sum(1 for step in self.validation_info if not step.all_passed),
-            warning_steps=sum(1 for step in self.validation_info if step.warning),
-            error_steps=sum(1 for step in self.validation_info if step.error),
-            critical_steps=sum(1 for step in self.validation_info if step.critical),
-            validation_duration=(self.time_end - self.time_start).total_seconds()
+        # Create a summary of validation results as a dictionary
+        summary = {
+            "step_count": len(self.validation_info),
+            "passing_steps": sum(1 for step in self.validation_info if step.all_passed),
+            "failing_steps": sum(1 for step in self.validation_info if not step.all_passed),
+            "warning_steps": sum(1 for step in self.validation_info if step.warning),
+            "error_steps": sum(1 for step in self.validation_info if step.error),
+            "critical_steps": sum(1 for step in self.validation_info if step.critical),
+            "validation_duration": (self.time_end - self.time_start).total_seconds()
             if self.time_end and self.time_start
             else 0,
-            row_count=getattr(self, "n_rows", 0),
-            column_count=len(self.data.columns) if hasattr(self.data, "columns") else 0,
-            table_name=self.tbl_name or "Unknown",
-            status=status,
-            steps_with_issues=[step.i for step in self.validation_info if not step.all_passed],
-        )
+            "row_count": getattr(self, "n_rows", 0),
+            "column_count": len(self.data.columns) if hasattr(self.data, "columns") else 0,
+            "table_name": self.tbl_name or "Unknown",
+            "status": status,
+            "steps_with_issues": [step.i for step in self.validation_info if not step.all_passed],
+        }
 
         # If final_actions is a FinalActions object, extract the action(s)
         if isinstance(self.final_actions, FinalActions):
