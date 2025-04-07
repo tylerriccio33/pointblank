@@ -73,6 +73,7 @@ from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelec
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Actions,
+    FinalActions,
     Thresholds,
     _convert_abs_count_to_fraction,
     _normalize_thresholds_creation,
@@ -90,6 +91,7 @@ __all__ = [
     "get_column_count",
     "get_row_count",
     "get_action_metadata",
+    "get_validation_summary",
 ]
 
 # Create a thread-local storage for the metadata
@@ -175,6 +177,90 @@ def get_action_metadata():
         return _action_context.metadata  # pragma: no cover
     else:
         return None  # pragma: no cover
+
+
+# Create a thread-local storage for the metadata
+_final_action_context = threading.local()
+
+
+@contextlib.contextmanager
+def _final_action_context_manager(summary):
+    """Context manager for storing validation summary during final action execution."""
+    _final_action_context.summary = summary
+    try:
+        yield
+    finally:
+        # Clean up after execution
+        if hasattr(_final_action_context, "summary"):
+            delattr(_final_action_context, "summary")
+
+
+def get_validation_summary():
+    """Access validation summary information when authoring final actions.
+
+    This function provides a convenient way to access summary information about the validation
+    process within a final action. It returns a ValidationSummary object with key metrics from
+    the validation process.
+
+    Returns
+    -------
+    ValidationSummary | None
+        A summary object containing validation metrics, or None if called outside a final action.
+
+    Examples
+    --------
+    ```python
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary.status == "CRITICAL":
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary.table_name}",
+                body=f"{summary.critical_steps} steps failed with critical severity."
+            )
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_report)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+    """
+    if hasattr(_final_action_context, "summary"):
+        return _final_action_context.summary
+    else:
+        return None
+
+
+@dataclass
+class ValidationSummary:
+    """User-friendly summary of validation results for final actions."""
+
+    step_count: int
+    passing_steps: int
+    failing_steps: int
+    warning_steps: int
+    error_steps: int
+    critical_steps: int
+    validation_duration: float
+    row_count: int
+    column_count: int
+    table_name: str
+    status: str
+    steps_with_issues: list[int]
+
+    def __str__(self):
+        return (
+            f"Validation Summary\n"
+            f"=================\n"
+            f"Status: {self.status}\n"
+            f"Steps: {self.step_count} total, {self.passing_steps} passed, {self.failing_steps} failed\n"
+            f"Severity: {self.warning_steps} warnings, {self.error_steps} errors, {self.critical_steps} critical\n"
+            f"Duration: {self.validation_duration:.2f} seconds\n"
+            f"Table: {self.table_name} ({self.row_count} rows, {self.column_count} columns)"
+        )
 
 
 @dataclass
@@ -1792,6 +1878,10 @@ class Validate:
         The actions to take when validation steps meet or exceed any set threshold levels. This
         should be provided in the form of an `Actions` object. If `None` then no global actions
         will be set.
+    final_actions
+        The actions to take when validation steps meet or exceed any set threshold levels. This
+        should be provided in the form of a `FinalActions` object. If `None` then no finalizing
+        actions will be set.
     brief
         A global setting for briefs, which are optional brief descriptions for validation steps
         (they be displayed in the reporting table). For such a global setting, templating elements
@@ -2035,6 +2125,7 @@ class Validate:
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
     actions: Actions | None = None
+    final_actions: FinalActions | None = None
     brief: str | bool | None = None
     lang: str | None = None
     locale: str | None = None
@@ -6804,6 +6895,9 @@ class Validate:
             # Set the time of processing for this step, this should be UTC time is ISO 8601 format
             validation.time_processed = end_time.isoformat(timespec="milliseconds")
 
+        # Perform any final actions
+        self._execute_final_actions()
+
         self.time_end = datetime.datetime.now(datetime.timezone.utc)
 
         return self
@@ -9216,6 +9310,81 @@ class Validate:
             for validation in self.validation_info
             if validation.i in i
         }
+
+    def _execute_final_actions(self):
+        """Execute any final actions after interrogation is complete."""
+        if self.final_actions is None:
+            return
+
+        # Get the overall status based on the validation results
+        status = self._get_overall_status()
+
+        # Create a summary of validation results
+        summary = ValidationSummary(
+            step_count=len(self.validation_info),
+            passing_steps=sum(1 for step in self.validation_info if step.all_passed),
+            failing_steps=sum(1 for step in self.validation_info if not step.all_passed),
+            warning_steps=sum(1 for step in self.validation_info if step.warning),
+            error_steps=sum(1 for step in self.validation_info if step.error),
+            critical_steps=sum(1 for step in self.validation_info if step.critical),
+            validation_duration=(self.time_end - self.time_start).total_seconds()
+            if self.time_end and self.time_start
+            else 0,
+            row_count=getattr(self, "n_rows", 0),
+            column_count=len(self.data.columns) if hasattr(self.data, "columns") else 0,
+            table_name=self.tbl_name or "Unknown",
+            status=status,
+            steps_with_issues=[step.i for step in self.validation_info if not step.all_passed],
+        )
+
+        # If final_actions is a FinalActions object, extract the action(s)
+        if isinstance(self.final_actions, FinalActions):
+            actions = self.final_actions.actions
+        else:
+            # For backward compatibility
+            actions = self.final_actions
+
+        # Process the actions
+        if isinstance(actions, str):
+            print(actions)
+        elif callable(actions):
+            # Execute the callable within the context manager
+            with _final_action_context_manager(summary):
+                # For backward compatibility, still pass the validate object directly if the
+                # function expects a parameter
+                import inspect
+
+                sig = inspect.signature(actions)
+                if len(sig.parameters) > 0:
+                    actions(self)
+                else:
+                    actions()
+        elif isinstance(actions, list):
+            for action in actions:
+                if isinstance(action, str):
+                    print(action)
+                elif callable(action):
+                    with _final_action_context_manager(summary):
+                        import inspect
+
+                        sig = inspect.signature(action)
+                        if len(sig.parameters) > 0:
+                            action(self)
+                        else:
+                            action()
+
+    def _get_overall_status(self):
+        """Get the overall validation status."""
+        if any(step.critical for step in self.validation_info):
+            return "CRITICAL"
+        elif any(step.error for step in self.validation_info):
+            return "ERROR"
+        elif any(step.warning for step in self.validation_info):
+            return "WARNING"
+        elif any(not step.all_passed for step in self.validation_info):
+            return "FAILED"
+        else:
+            return "PASSED"
 
 
 def _normalize_reporting_language(lang: str | None) -> str:

@@ -24,13 +24,14 @@ from pointblank.datascan import DataScan, col_summary_tbl
 from pointblank.draft import DraftValidation
 from pointblank.schema import Schema
 from pointblank.tf import TF
-from pointblank.thresholds import Actions, Thresholds
+from pointblank.thresholds import Actions, FinalActions, Thresholds
 from pointblank.validate import (
     Validate,
     config,
     get_action_metadata,
     get_column_count,
     get_row_count,
+    get_validation_summary,
     load_dataset,
     missing_vals_tbl,
     preview,
@@ -42,6 +43,7 @@ __all__ = [
     "Validate",
     "Thresholds",
     "Actions",
+    "FinalActions",
     "Schema",
     "DataScan",
     "DraftValidation",
@@ -59,6 +61,7 @@ __all__ = [
     "preview",
     "missing_vals_tbl",
     "get_action_metadata",
+    "get_validation_summary",
     "get_column_count",
     "get_row_count",
 ]

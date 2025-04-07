@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable
 
-__all__ = ["Thresholds", "Actions"]
+__all__ = ["Thresholds", "Actions", "FinalActions"]
 
 
 @dataclass
@@ -484,3 +484,20 @@ class Actions:
 
     def _get_action(self, level: str) -> list[str | Callable]:
         return getattr(self, level)
+
+
+@dataclass
+class FinalActions:
+    """Define actions to be taken after validation is complete."""
+
+    actions: list | str | Callable
+
+    def __init__(self, *args):
+        if len(args) == 0:
+            self.actions = []
+        elif len(args) == 1:
+            # If a single action is provided, store it directly (not in a list)
+            self.actions = args[0]
+        else:
+            # Multiple actions, store as a list
+            self.actions = list(args)
