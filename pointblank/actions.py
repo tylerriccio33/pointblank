@@ -286,19 +286,33 @@ def send_slack_notification(
 
     # If called directly (not as a callback), show template preview
     if webhook_url is None and debug:
-        # Sample data for previews
+        # Sample data for step preview with all possible variables
         step_data = {
-            "type": "col_vals_gt",
-            "level": "critical",
             "step": 1,
             "column": "column_name",
+            "value": 100,
+            "type": "col_vals_gt",
+            "level": "critical",
+            "level_num": 50,
+            "autobrief": "Values in column_name must be greater than 100",
+            "failure_text": "25% of values failed this test",
             "time": datetime.now(),
         }
 
+        # Sample data for summary preview with all possible variables
         summary_data = {
             "highest_severity": "critical",
+            "all_passed": False,
             "n_steps": 5,
+            "n_passing_steps": 3,
             "n_failing_steps": 2,
+            "n_warning_steps": 1,
+            "n_error_steps": 0,
+            "n_critical_steps": 1,
+            "tbl_name": "example_table",
+            "tbl_row_count": 1000,
+            "tbl_column_count": 8,
+            "validation_duration": 1.23,
             "time": datetime.now(),
         }
 
@@ -310,7 +324,7 @@ def send_slack_notification(
 
         return None
 
-    def notify():
+    def notify():  # pragma: no cover
         try:
             message = None
 
@@ -373,4 +387,4 @@ def send_slack_notification(
             else:
                 print(error_msg)
 
-    return notify
+    return notify  # pragma: no cover
