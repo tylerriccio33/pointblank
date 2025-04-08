@@ -2263,6 +2263,24 @@ class Validate:
         # Normalize the thresholds value (if any) to a Thresholds object
         self.thresholds = _normalize_thresholds_creation(self.thresholds)
 
+        # Check that `actions` is an Actions object if provided
+        # TODO: allow string, callable, of list of either and upgrade to Actions object
+        if self.actions is not None and not isinstance(self.actions, Actions):  # pragma: no cover
+            raise TypeError(
+                "The actions parameter must be an Actions object. "
+                "Please use Actions() to wrap your actions."
+            )
+
+        # Check that `final_actions` is a FinalActions object if provided
+        # TODO: allow string, callable, of list of either and upgrade to FinalActions object
+        if self.final_actions is not None and not isinstance(
+            self.final_actions, FinalActions
+        ):  # pragma: no cover
+            raise TypeError(
+                "The final_actions parameter must be a FinalActions object. "
+                "Please use FinalActions() to wrap your actions."
+            )
+
         # Normalize the reporting language identifier and error if invalid
         if self.lang not in ["zh-Hans", "zh-Hant"]:
             self.lang = _normalize_reporting_language(lang=self.lang)
