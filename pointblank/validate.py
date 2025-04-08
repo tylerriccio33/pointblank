@@ -2003,8 +2003,8 @@ class Validate:
     results. These actions can be used to notify users of validation failures, log issues, or
     trigger other processes when problems are detected.
 
-    Step Actions
-    ~~~~~~~~~~~~
+    *Step Actions*
+
     The `actions=` parameter allows you to define actions that are triggered when validation steps
     exceed specific threshold levels (warning, error, or critical). These actions are executed
     during the interrogation process, right after each step is evaluated.
@@ -2046,8 +2046,8 @@ class Validate:
     [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which provides details
     about the current validation step that triggered the action.
 
-    Final Actions
-    ~~~~~~~~~~~~~
+    *Final Actions*
+
     The `final_actions=` parameter lets you define actions that execute after all validation steps
     have completed. These are useful for providing summaries, sending notifications based on
     overall validation status, or performing cleanup operations.
