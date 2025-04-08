@@ -9,6 +9,7 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
 
 # Import objects from the module
+from pointblank.actions import send_slack_notification
 from pointblank.assistant import assistant
 from pointblank.column import (
     col,
@@ -64,4 +65,5 @@ __all__ = [
     "get_validation_summary",
     "get_column_count",
     "get_row_count",
+    "send_slack_notification",
 ]
