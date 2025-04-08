@@ -2056,6 +2056,31 @@ def test_validation_with_final_actions_highest_severity_critical(tbl_type, capsy
     assert "critical" in captured.out
 
 
+def test_final_actions_type_error():
+    # Expect a TypeError when passing an invalid type to FinalActions
+    with pytest.raises(TypeError):
+        FinalActions(3)
+
+
+def test_final_actions_repr():
+    # Test `FinalActions` with a list of strings
+    actions = FinalActions(["action1", "action2"])
+    assert repr(actions) == "FinalActions(['action1', 'action2'])"
+    # Test with a single string
+    actions = FinalActions("action1")
+    assert repr(actions) == "FinalActions('action1')"
+    # Test with nothing provided
+    actions = FinalActions()
+    assert repr(actions) == "FinalActions([])"
+
+    # Test with a callable
+    def dummy_function():
+        pass
+
+    actions = FinalActions(dummy_function)
+    assert repr(actions) == "FinalActions(dummy_function)"
+
+
 def test_validation_with_preprocessing_pd(tbl_pd):
     v = (
         Validate(tbl_pd)
