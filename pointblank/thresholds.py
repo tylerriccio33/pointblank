@@ -624,4 +624,4 @@ class FinalActions:
         elif callable(self.actions):
             return f"FinalActions({self.actions.__name__})"
         else:
-            return f"FinalActions({self.actions})"
+            return f"FinalActions({self.actions})"  # pragma: no cover
