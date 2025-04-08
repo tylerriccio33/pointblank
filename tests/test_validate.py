@@ -2081,6 +2081,12 @@ def test_final_actions_repr():
     assert repr(actions) == "FinalActions(dummy_function)"
 
 
+def test_final_actions_str():
+    # Test string method of FinalActions
+    actions = FinalActions(["action1", "action2"])
+    assert str(actions) == "FinalActions(['action1', 'action2'])"
+
+
 def test_validation_with_preprocessing_pd(tbl_pd):
     v = (
         Validate(tbl_pd)
