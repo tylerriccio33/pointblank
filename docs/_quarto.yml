@@ -199,3 +199,11 @@ quartodoc:
         - name: get_action_metadata
         - name: get_validation_summary
         - name: config
+    - title: Prebuilt Actions
+      desc: >
+        The *Prebuilt Actions* group contains a function that can be used to send a Slack
+        notification when validation steps exceed failure threshold levels or just to provide a
+        summary of the validation results, including the status, number of steps, passing and
+        failing steps, table information, and timing details.
+      contents:
+        - name: send_slack_notification
