@@ -73,6 +73,7 @@ from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelec
 from pointblank.schema import Schema, _get_schema_validation_info
 from pointblank.thresholds import (
     Actions,
+    FinalActions,
     Thresholds,
     _convert_abs_count_to_fraction,
     _normalize_thresholds_creation,
@@ -90,6 +91,7 @@ __all__ = [
     "get_column_count",
     "get_row_count",
     "get_action_metadata",
+    "get_validation_summary",
 ]
 
 # Create a thread-local storage for the metadata
@@ -175,6 +177,129 @@ def get_action_metadata():
         return _action_context.metadata  # pragma: no cover
     else:
         return None  # pragma: no cover
+
+
+# Create a thread-local storage for the metadata
+_final_action_context = threading.local()
+
+
+@contextlib.contextmanager
+def _final_action_context_manager(summary):
+    """Context manager for storing validation summary during final action execution."""
+    _final_action_context.summary = summary
+    try:
+        yield
+    finally:
+        # Clean up after execution
+        if hasattr(_final_action_context, "summary"):
+            delattr(_final_action_context, "summary")
+
+
+def get_validation_summary():
+    """Access validation summary information when authoring final actions.
+
+    This function provides a convenient way to access summary information about the validation
+    process within a final action. It returns a dictionary with key metrics from the validation
+    process.
+
+    Returns
+    -------
+    dict | None
+        A dictionary containing validation metrics, or None if called outside a final action.
+
+    Description of the Summary Fields
+    --------------------------------
+    The summary dictionary contains the following fields:
+
+    - `n_steps` (`int`): The total number of validation steps.
+    - `n_passing_steps` (`int`): The number of validation steps where all test units passed.
+    - `n_failing_steps` (`int`): The number of validation steps that had some failing test units.
+    - `n_warning_steps` (`int`): The number of steps that exceeded a 'warning' threshold.
+    - `n_error_steps` (`int`): The number of steps that exceeded an 'error' threshold.
+    - `n_critical_steps` (`int`): The number of steps that exceeded a 'critical' threshold.
+    - `list_passing_steps` (`list[int]`): List of step numbers where all test units passed.
+    - `list_failing_steps` (`list[int]`): List of step numbers for steps having failing test units.
+    - `dict_n` (`dict`): The number of test units for each validation step.
+    - `dict_n_passed` (`dict`): The number of test units that passed for each validation step.
+    - `dict_n_failed` (`dict`): The number of test units that failed for each validation step.
+    - `dict_f_passed` (`dict`): The fraction of test units that passed for each validation step.
+    - `dict_f_failed` (`dict`): The fraction of test units that failed for each validation step.
+    - `dict_warning` (`dict`): The 'warning' level status for each validation step.
+    - `dict_error` (`dict`): The 'error' level status for each validation step.
+    - `dict_critical` (`dict`): The 'critical' level status for each validation step.
+    - `all_passed` (`bool`): Whether or not every validation step had no failing test units.
+    - `highest_severity` (`str`): The highest severity level encountered during validation. This can
+      be one of the following: `"warning"`, `"error"`, or `"critical"`, `"some failing"`, or
+      `"all passed"`.
+    - `tbl_row_count` (`int`): The number of rows in the target table.
+    - `tbl_column_count` (`int`): The number of columns in the target table.
+    - `tbl_name` (`str`): The name of the target table.
+    - `validation_duration` (`float`): The duration of the validation in seconds.
+
+    Note that the summary dictionary is only available within the context of a final action. If
+    called outside of a final action (i.e., when no final action is being executed), this function
+    will return `None`.
+
+    Examples
+    --------
+    Final actions are executed after the completion of all validation steps. They provide an
+    opportunity to take appropriate actions based on the overall validation results. Here's an
+    example of a final action function (`send_report()`) that sends an alert when critical
+    validation failures are detected:
+
+    ```python
+    import pointblank as pb
+
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary["highest_severity"] == "critical":
+            # Send an alert email
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary['tbl_name']}",
+                body=f"{summary['n_critical_steps']} steps failed with critical severity."
+            )
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_report)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    Note that `send_alert_email()` in the example above is a placeholder function that would be
+    implemented by the user to send email alerts. This function is not provided by the Pointblank
+    package.
+
+    The `get_validation_summary()` function can also be used to create custom reporting for
+    validation results:
+
+    ```python
+    def log_validation_results():
+        summary = pb.get_validation_summary()
+
+        print(f"Validation completed with status: {summary['highest_severity'].upper()}")
+        print(f"Steps: {summary['n_steps']} total")
+        print(f"  - {summary['n_passing_steps']} passing, {summary['n_failing_steps']} failing")
+        print(
+            f"  - Severity: {summary['n_warning_steps']} warnings, "
+            f"{summary['n_error_steps']} errors, "
+            f"{summary['n_critical_steps']} critical"
+        )
+
+        if summary['highest_severity'] in ["error", "critical"]:
+            print("⚠️ Action required: Please review failing validation steps!")
+    ```
+
+    Final actions work well with both simple logging and more complex notification systems, allowing
+    you to integrate validation results into your broader data quality workflows.
+    """
+    if hasattr(_final_action_context, "summary"):
+        return _final_action_context.summary
+    else:
+        return None
 
 
 @dataclass
@@ -1789,9 +1914,21 @@ class Validate:
         `thresholds=` parameter). The default is `None`, which means that no thresholds will be set.
         Look at the *Thresholds* section for information on how to set threshold levels.
     actions
-        The actions to take when validation steps meet or exceed any set threshold levels. This
-        should be provided in the form of an `Actions` object. If `None` then no global actions
-        will be set.
+        The actions to take when validation steps meet or exceed any set threshold levels. These
+        actions are paired with the threshold levels and are executed during the interrogation
+        process when there are exceedances. The actions are executed right after each step is
+        evaluated. Such actions should be provided in the form of an `Actions` object. If `None`
+        then no global actions will be set. View the *Actions* section for information on how to set
+        actions.
+    final_actions
+        The actions to take when the validation process is complete and the final results are
+        available. This is useful for sending notifications or reporting the overall status of the
+        validation process. The final actions are executed after all validation steps have been
+        processed and the results have been collected. The final actions are not tied to any
+        threshold levels, they are executed regardless of the validation results. Such actions
+        should be provided in the form of a `FinalActions` object. If `None` then no finalizing
+        actions will be set. Please see the *Actions* section for information on how to set final
+        actions.
     brief
         A global setting for briefs, which are optional brief descriptions for validation steps
         (they be displayed in the reporting table). For such a global setting, templating elements
@@ -1859,6 +1996,85 @@ class Validate:
 
     Aside from reporting failure conditions, thresholds can be used to determine the actions to take
     for each level of failure (using the `actions=` parameter).
+
+    Actions
+    -------
+    The `actions=` and `final_actions=` parameters provide mechanisms to respond to validation
+    results. These actions can be used to notify users of validation failures, log issues, or
+    trigger other processes when problems are detected.
+
+    Step Actions
+    ~~~~~~~~~~~~
+    The `actions=` parameter allows you to define actions that are triggered when validation steps
+    exceed specific threshold levels (warning, error, or critical). These actions are executed
+    during the interrogation process, right after each step is evaluated.
+
+    Step actions should be provided using the [`Actions`](`pointblank.Actions`) class, which lets
+    you specify different actions for different severity levels:
+
+    ```python
+    # Define an action that logs a message when warning threshold is exceeded
+    def log_warning():
+        metadata = pb.get_action_metadata()
+        print(f"WARNING: Step {metadata['step']} failed with type {metadata['type']}")
+
+    # Define actions for different threshold levels
+    actions = pb.Actions(
+        warning = log_warning,
+        error = lambda: send_email("Error in validation"),
+        critical = "CRITICAL FAILURE DETECTED"
+    )
+
+    # Use in Validate
+    validation = pb.Validate(
+        data=my_data,
+        actions=actions  # Global actions for all steps
+    )
+    ```
+
+    You can also provide step-specific actions in individual validation methods:
+
+    ```python
+    validation.col_vals_gt(
+        columns="revenue",
+        value=0,
+        actions=pb.Actions(warning=log_warning)  # Only applies to this step
+    )
+    ```
+
+    Step actions have access to step-specific context through the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which provides details
+    about the current validation step that triggered the action.
+
+    Final Actions
+    ~~~~~~~~~~~~~
+    The `final_actions=` parameter lets you define actions that execute after all validation steps
+    have completed. These are useful for providing summaries, sending notifications based on
+    overall validation status, or performing cleanup operations.
+
+    Final actions should be provided using the [`FinalActions`](`pointblank.FinalActions`) class:
+
+    ```python
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary["status"] == "CRITICAL":
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary['table_name']}",
+                body=f"{summary['critical_steps']} steps failed with critical severity."
+            )
+
+    validation = pb.Validate(
+        data=my_data,
+        final_actions=pb.FinalActions(send_report)
+    )
+    ```
+
+    Final actions have access to validation-wide summary information through the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function, which provides a
+    comprehensive overview of the entire validation process.
+
+    The combination of step actions and final actions provides a flexible system for responding to
+    data quality issues at both the individual step level and the overall validation level.
 
     Reporting Languages
     -------------------
@@ -2035,6 +2251,7 @@ class Validate:
     label: str | None = None
     thresholds: int | float | bool | tuple | dict | Thresholds | None = None
     actions: Actions | None = None
+    final_actions: FinalActions | None = None
     brief: str | bool | None = None
     lang: str | None = None
     locale: str | None = None
@@ -2045,6 +2262,24 @@ class Validate:
 
         # Normalize the thresholds value (if any) to a Thresholds object
         self.thresholds = _normalize_thresholds_creation(self.thresholds)
+
+        # Check that `actions` is an Actions object if provided
+        # TODO: allow string, callable, of list of either and upgrade to Actions object
+        if self.actions is not None and not isinstance(self.actions, Actions):  # pragma: no cover
+            raise TypeError(
+                "The `actions=` parameter must be an `Actions` object. "
+                "Please use `Actions()` to wrap your actions."
+            )
+
+        # Check that `final_actions` is a FinalActions object if provided
+        # TODO: allow string, callable, of list of either and upgrade to FinalActions object
+        if self.final_actions is not None and not isinstance(
+            self.final_actions, FinalActions
+        ):  # pragma: no cover
+            raise TypeError(
+                "The `final_actions=` parameter must be a `FinalActions` object. "
+                "Please use `FinalActions()` to wrap your finalizing actions."
+            )
 
         # Normalize the reporting language identifier and error if invalid
         if self.lang not in ["zh-Hans", "zh-Hant"]:
@@ -6806,6 +7041,9 @@ class Validate:
 
         self.time_end = datetime.datetime.now(datetime.timezone.utc)
 
+        # Perform any final actions
+        self._execute_final_actions()
+
         return self
 
     def all_passed(self) -> bool:
@@ -9216,6 +9454,80 @@ class Validate:
             for validation in self.validation_info
             if validation.i in i
         }
+
+    def _execute_final_actions(self):
+        """Execute any final actions after interrogation is complete."""
+        if self.final_actions is None:
+            return
+
+        # Get the highest severity level based on the validation results
+        highest_severity = self._get_highest_severity_level()
+
+        # Get row count using the dedicated function that handles all table types correctly
+        row_count = get_row_count(self.data)
+
+        # Get column count using the dedicated function that handles all table types correctly
+        column_count = get_column_count(self.data)
+
+        # Get the validation duration
+        validation_duration = self.validation_duration = (
+            self.time_end - self.time_start
+        ).total_seconds()
+
+        # Create a summary of validation results as a dictionary
+        summary = {
+            "n_steps": len(self.validation_info),
+            "n_passing_steps": sum(1 for step in self.validation_info if step.all_passed),
+            "n_failing_steps": sum(1 for step in self.validation_info if not step.all_passed),
+            "n_warning_steps": sum(1 for step in self.validation_info if step.warning),
+            "n_error_steps": sum(1 for step in self.validation_info if step.error),
+            "n_critical_steps": sum(1 for step in self.validation_info if step.critical),
+            "list_passing_steps": [step.i for step in self.validation_info if step.all_passed],
+            "list_failing_steps": [step.i for step in self.validation_info if not step.all_passed],
+            "dict_n": {step.i: step.n for step in self.validation_info},
+            "dict_n_passed": {step.i: step.n_passed for step in self.validation_info},
+            "dict_n_failed": {step.i: step.n_failed for step in self.validation_info},
+            "dict_f_passed": {step.i: step.f_passed for step in self.validation_info},
+            "dict_f_failed": {step.i: step.f_failed for step in self.validation_info},
+            "dict_warning": {step.i: step.warning for step in self.validation_info},
+            "dict_error": {step.i: step.error for step in self.validation_info},
+            "dict_critical": {step.i: step.critical for step in self.validation_info},
+            "all_passed": all(step.all_passed for step in self.validation_info),
+            "highest_severity": highest_severity,
+            "tbl_row_count": row_count,
+            "tbl_column_count": column_count,
+            "tbl_name": self.tbl_name or "Unknown",
+            "validation_duration": validation_duration,
+        }
+
+        # Extract the actions from FinalActions object and execute
+        action = self.final_actions.actions
+
+        # Execute the action within the context manager
+        with _final_action_context_manager(summary):
+            if isinstance(action, str):
+                print(action)
+            elif callable(action):
+                action()
+            elif isinstance(action, list):
+                for single_action in action:
+                    if isinstance(single_action, str):
+                        print(single_action)
+                    elif callable(single_action):
+                        single_action()
+
+    def _get_highest_severity_level(self):
+        """Get the highest severity level reached across all validation steps."""
+        if any(step.critical for step in self.validation_info):
+            return "critical"
+        elif any(step.error for step in self.validation_info):
+            return "error"
+        elif any(step.warning for step in self.validation_info):
+            return "warning"
+        elif any(not step.all_passed for step in self.validation_info):
+            return "some failing"
+        else:
+            return "all passed"
 
 
 def _normalize_reporting_language(lang: str | None) -> str:

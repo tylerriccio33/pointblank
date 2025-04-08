@@ -98,6 +98,8 @@ quartodoc:
           members: []
         - name: Thresholds
         - name: Actions
+          members: []
+        - name: FinalActions
         - name: Schema
           members: []
         - name: DraftValidation
@@ -195,4 +197,5 @@ quartodoc:
         - name: get_column_count
         - name: get_row_count
         - name: get_action_metadata
+        - name: get_validation_summary
         - name: config
