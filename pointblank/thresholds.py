@@ -625,3 +625,6 @@ class FinalActions:
             return f"FinalActions({self.actions.__name__})"
         else:
             return f"FinalActions({self.actions})"  # pragma: no cover
+
+    def __str__(self) -> str:
+        return self.__repr__()
