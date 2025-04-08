@@ -488,7 +488,57 @@ class Actions:
 
 @dataclass
 class FinalActions:
-    """Define actions to be taken after validation is complete."""
+    """
+    Define actions to be taken after validation is complete.
+
+    Final actions are executed after all validation steps have been completed. They provide a
+    mechanism to respond to the overall validation results, such as sending alerts when critical
+    failures are detected or generating summary reports.
+
+    Parameters
+    ----------
+    *actions
+        One or more actions to execute after validation. An action can be (1) a callable function
+        that will be executed with no arguments, or (2) a string message that will be printed to the
+        console.
+
+    Examples
+    --------
+    ```python
+    import pointblank as pb
+
+    def send_alert():
+        summary = pb.get_validation_summary()
+        if summary["highest_severity"] == "critical":
+            print(f"ALERT: Critical validation failures found in {summary['table_name']}")
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_alert)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    Multiple final actions can be provided:
+
+    ```python
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(
+                "Validation complete.",
+                send_alert,
+                generate_report
+            )
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+    """
 
     actions: list | str | Callable
 
