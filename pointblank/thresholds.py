@@ -561,3 +561,16 @@ class FinalActions:
         else:
             # Multiple actions, store as a list
             self.actions = list(args)
+
+    def __repr__(self) -> str:
+        if isinstance(self.actions, list):
+            action_reprs = ", ".join(
+                f"'{a}'" if isinstance(a, str) else a.__name__ for a in self.actions
+            )
+            return f"FinalActions([{action_reprs}])"
+        elif isinstance(self.actions, str):
+            return f"FinalActions('{self.actions}')"
+        elif callable(self.actions):
+            return f"FinalActions({self.actions.__name__})"
+        else:
+            return f"FinalActions({self.actions})"
