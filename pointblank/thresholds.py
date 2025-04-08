@@ -373,6 +373,15 @@ class Actions:
     displayed as `"WARNING: 'col_vals_gt' threshold exceeded for column a."` when the 'warning'
     threshold is exceeded in a 'col_vals_gt' validation step involving column `a`.
 
+    Crafting Callables with `get_action_metadata()`
+    -----------------------------------------------
+    When creating a callable function to be used as an action, you can use the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function to retrieve metadata about
+    the step where the action is executed. This metadata contains information about the validation
+    step, including the step type, level, step number, column name, and associated value. You can
+    use this information to craft your action message or to take specific actions based on the
+    metadata provided.
+
     Examples
     --------
     ```{python}
