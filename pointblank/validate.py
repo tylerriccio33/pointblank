@@ -9500,41 +9500,21 @@ class Validate:
             "validation_duration": validation_duration,
         }
 
-        # If final_actions is a FinalActions object, extract the action(s)
-        if isinstance(self.final_actions, FinalActions):
-            actions = self.final_actions.actions
-        else:
-            # For backward compatibility
-            actions = self.final_actions
+        # Extract the actions from FinalActions object and execute
+        action = self.final_actions.actions
 
-        # Process the actions
-        if isinstance(actions, str):
-            print(actions)
-        elif callable(actions):
-            # Execute the callable within the context manager
-            with _final_action_context_manager(summary):
-                # For backward compatibility, still pass the validate object directly if the
-                # function expects a parameter
-                import inspect
-
-                sig = inspect.signature(actions)
-                if len(sig.parameters) > 0:
-                    actions(self)
-                else:
-                    actions()
-        elif isinstance(actions, list):
-            for action in actions:
-                if isinstance(action, str):
-                    print(action)
-                elif callable(action):
-                    with _final_action_context_manager(summary):
-                        import inspect
-
-                        sig = inspect.signature(action)
-                        if len(sig.parameters) > 0:
-                            action(self)
-                        else:
-                            action()
+        # Execute the action within the context manager
+        with _final_action_context_manager(summary):
+            if isinstance(action, str):
+                print(action)
+            elif callable(action):
+                action()
+            elif isinstance(action, list):
+                for single_action in action:
+                    if isinstance(single_action, str):
+                        print(single_action)
+                    elif callable(single_action):
+                        single_action()
 
     def _get_highest_severity_level(self):
         """Get the highest severity level reached across all validation steps."""
