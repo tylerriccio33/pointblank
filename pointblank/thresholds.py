@@ -543,6 +543,16 @@ class FinalActions:
     actions: list | str | Callable
 
     def __init__(self, *args):
+        # Check that all arguments are either strings or callables
+        for arg in args:
+            if not isinstance(arg, (str, Callable)) and not (
+                isinstance(arg, list) and all(isinstance(item, (str, Callable)) for item in arg)
+            ):
+                raise TypeError(
+                    f"All final actions must be strings, callables, or lists of strings/callables. "
+                    f"Got {type(arg).__name__} instead."
+                )
+
         if len(args) == 0:
             self.actions = []
         elif len(args) == 1:
