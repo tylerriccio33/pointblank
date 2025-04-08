@@ -43,6 +43,11 @@ def send_slack_notification(
     debug
         Print debug information and message previews.
 
+    Returns
+    -------
+    Callable
+        A function that sends notifications to Slack.
+
     Available Template Variables for Step Notifications
     ---------------------------------------------------
     When creating a custom template for validation step alerts (`step_msg=`), the following
@@ -126,10 +131,7 @@ def send_slack_notification(
     generated. The placeholders will be replaced with actual values when the Slack notification is
     sent.
 
-    Returns
-    -------
-    Callable
-        A function that sends notifications to Slack.
+
 
     Examples
     --------
