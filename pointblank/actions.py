@@ -131,7 +131,60 @@ def send_slack_notification(
     generated. The placeholders will be replaced with actual values when the Slack notification is
     sent.
 
+    Offline Testing
+    ---------------
+    If you want to test the function without sending actual notifications, you can leave the
+    `webhook_url` as `None` and set `debug=True`. This will print the message to the console
+    instead of sending it to Slack. This is useful for debugging and ensuring that your templates
+    are formatted correctly. Furthermore, the function could be run globally (i.e., outside of the
+    context of a validation plan) to show the message templates with all possible variables. Here's
+    an example of how to do this:
 
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function
+    notify_slack = pb.send_slack_notification(
+        webhook_url=None,  # Leave as None for dry run
+        debug=True,  # Enable debug mode to print message previews
+    )
+    # Call the function to see the message previews
+    notify_slack()
+    ```
+
+    This will print the step and summary message previews to the console, allowing you to see how
+    the templates will look when filled with actual data. You can then adjust your templates as
+    needed before using them in a real validation plan.
+
+    When `step_msg=` and `summary_msg=` are not provided, the function will use default templates.
+    However, you can customize the templates to include additional information or change the format
+    to better suit your needs. Iterating on the templates can help you create more informative and
+    visually appealing messages. Here's an example of that:
+
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function with custom templates
+    notify_slack = pb.send_slack_notification(
+        webhook_url=None, # Leave as None for dry run
+        step_msg=\"\"\"*Data Validation Alert*
+        • Type: {type}
+        • Level: {level}
+        • Step: {step}
+        • Column: {column}
+        • Time: {time}\"\"\",
+        summary_msg=\"\"\"*Data Validation Summary*
+        • Highest Severity: {highest_severity}
+        • Total Steps: {n_steps}
+        • Failed Steps: {n_failing_steps}
+        • Time: {time}\"\"\",
+        debug=True,  # Enable debug mode to print message previews
+    )
+    ```
+
+    These templates will be used with sample data when the function is called. The combination of
+    `webhook_url=None` and `debug=True` allows you to test your custom templates without having to
+    send actual notifications to Slack.
 
     Examples
     --------
