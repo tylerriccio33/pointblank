@@ -1831,7 +1831,7 @@ def test_validation_actions_get_action_metadata(tbl_type, capsys):
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
-def test_validation_with_final_actions(tbl_type, capsys):
+def test_validation_with_final_actions_callable(tbl_type, capsys):
     def final_info():
         summary = get_validation_summary()
 
@@ -1887,6 +1887,173 @@ def test_validation_with_final_actions(tbl_type, capsys):
     assert "Test units per step: {1: 2000, 2: 2000, 3: 2000, 4: 2000, 5: 2000}" in captured.out
     assert "Table: game_revenue (2000 rows, 11 columns)" in captured.out
     assert "Validation process took " in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_str(tbl_type, capsys):
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions("The validation process is complete."),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "The validation process is complete." in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_list_str_callable(tbl_type, capsys):
+    def final_msg():
+        print(f"This final message comes from a function.")
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions("This is the first part of the message.", final_msg),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .interrogate()
+    )
+
+    # Capture the output and verify that several lines were printed to the console
+    captured = capsys.readouterr()
+    assert "This is the first part of the message." in captured.out
+    assert "This final message comes from a function." in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_highest_severity_all_passed(tbl_type, capsys):
+    def highest_severity():
+        summary = get_validation_summary()
+        print(summary["highest_severity"])
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions(highest_severity),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "all passed" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_highest_severity_some_failing(tbl_type, capsys):
+    def highest_severity():
+        summary = get_validation_summary()
+        print(summary["highest_severity"])
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions(highest_severity),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .rows_distinct(columns_subset=["player_id", "session_id", "time"])
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "some failing" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_highest_severity_warning(tbl_type, capsys):
+    def highest_severity():
+        summary = get_validation_summary()
+        print(summary["highest_severity"])
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions(highest_severity),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .rows_distinct(columns_subset=["player_id", "session_id", "time"])
+        .col_vals_in_set(columns="acquisition", set=["google", "facebook", "organic"])
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "warning" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_highest_severity_error(tbl_type, capsys):
+    def highest_severity():
+        summary = get_validation_summary()
+        print(summary["highest_severity"])
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions(highest_severity),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .rows_distinct(columns_subset=["player_id", "session_id", "time"])
+        .col_vals_in_set(columns="acquisition", set=["google", "facebook", "organic"])
+        .col_vals_gt(columns="session_duration", value=20)
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "error" in captured.out
+
+
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
+def test_validation_with_final_actions_highest_severity_critical(tbl_type, capsys):
+    def highest_severity():
+        summary = get_validation_summary()
+        print(summary["highest_severity"])
+
+    (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Comprehensive validation example",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+            final_actions=FinalActions(highest_severity),
+        )
+        .col_vals_in_set(columns="item_type", set=["iap", "ad"])
+        .rows_distinct(columns_subset=["player_id", "session_id", "time"])
+        .col_vals_in_set(columns="acquisition", set=["google", "facebook", "organic"])
+        .col_vals_gt(columns="session_duration", value=20)
+        .col_vals_ge(columns="item_revenue", value=0.5)
+        .interrogate()
+    )
+
+    # Capture the output and verify the line printed to the console
+    captured = capsys.readouterr()
+    assert "critical" in captured.out
 
 
 def test_validation_with_preprocessing_pd(tbl_pd):
