@@ -8901,12 +8901,38 @@ class Validate:
         # (it is either Polars or Pandas)
         df = df_lib.DataFrame(validation_info_dict)
 
+        # Set up left/right depending on the language (LTR or RTL)
+        before = "left" if not lang == "ar" else "right"
+        after = "right" if not lang == "ar" else "left"
+
+        # Define the order of columns
+        column_order = [
+            "status_color",
+            "i",
+            "type_upd",
+            "columns_upd",
+            "values_upd",
+            "tbl",
+            "eval",
+            "test_units",
+            "pass",
+            "fail",
+            "w_upd",
+            "e_upd",
+            "c_upd",
+            "extract_upd",
+        ]
+
+        if lang == "ar":
+            # Reverse the order of the columns for RTL languages
+            column_order.reverse()
+
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
             GT(df, id="pb_tbl")
             .fmt_markdown(columns=["pass", "fail", "extract_upd"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
-            .opt_align_table_header(align="left")
+            .opt_align_table_header(align=before)
             .tab_style(style=style.css("height: 40px;"), locations=loc.body())
             .tab_style(
                 style=style.text(weight="bold", color="#666666", size="13px"),
@@ -8916,7 +8942,7 @@ class Validate:
                 style=style.text(weight="bold", color="#666666"), locations=loc.column_labels()
             )
             .tab_style(
-                style=style.text(size="28px", weight="bold", align="left", color="#444444"),
+                style=style.text(size="28px", weight="bold", align=before, color="#444444"),
                 locations=loc.title(),
             )
             .tab_style(
@@ -8928,24 +8954,32 @@ class Validate:
                 ),
             )
             .tab_style(
-                style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
+                locations=loc.body(columns=["w_upd", "e_upd", "c_upd"]),
+            )
+            .tab_style(
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
+                locations=loc.body(columns=["tbl", "eval"]),
+            )
+            .tab_style(
+                style=style.borders(sides=before, color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=["columns_upd", "values_upd"]),
             )
             .tab_style(
+                style=style.text(align=before),
+                locations=[loc.title(), loc.subtitle(), loc.footer()],
+            )
+            .tab_style(
                 style=style.borders(
-                    sides="left",
+                    sides=before,
                     color="#E5E5E5",
                     style="dashed" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns=["pass", "fail"]),
             )
             .tab_style(
-                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
-                locations=loc.body(columns=["w_upd", "e_upd", "c_upd"]),
-            )
-            .tab_style(
                 style=style.borders(
-                    sides="right",
+                    sides=after,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
@@ -8953,26 +8987,22 @@ class Validate:
             )
             .tab_style(
                 style=style.borders(
-                    sides="left",
+                    sides=before,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns="w_upd"),
             )
             .tab_style(
-                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
-                locations=loc.body(columns=["tbl", "eval"]),
-            )
-            .tab_style(
                 style=style.borders(
-                    sides="right",
+                    sides=after,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns="eval"),
             )
             .tab_style(
-                style=style.borders(sides="left", color="#D3D3D3", style="solid"),
+                style=style.borders(sides=before, color="#D3D3D3", style="solid"),
                 locations=loc.body(columns="tbl"),
             )
             .tab_style(
@@ -9029,24 +9059,8 @@ class Validate:
                 align="center", columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"]
             )
             .cols_align(align="right", columns=["test_units", "pass", "fail"])
-            .cols_move_to_start(
-                [
-                    "status_color",
-                    "i",
-                    "type_upd",
-                    "columns_upd",
-                    "values_upd",
-                    "tbl",
-                    "eval",
-                    "test_units",
-                    "pass",
-                    "fail",
-                    "w_upd",
-                    "e_upd",
-                    "c_upd",
-                    "extract_upd",
-                ]
-            )
+            .cols_align(align=before, columns=["type_upd", "columns_upd", "values_upd"])
+            .cols_move_to_start(columns=column_order)
             .tab_options(table_font_size="90%")
         )
 
