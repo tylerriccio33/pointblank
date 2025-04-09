@@ -187,6 +187,10 @@ REPORTING_LANGUAGES = [
     "ar",
 ]
 
+RTL_LANGUAGES = [
+    "ar",
+]
+
 SEVERITY_LEVEL_COLORS = {
     "warning": "#AAAAAA",
     "error": "#EBBC14",
