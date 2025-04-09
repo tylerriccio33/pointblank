@@ -32,6 +32,7 @@ from pointblank._constants import (
     METHOD_CATEGORY_MAP,
     REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
+    RTL_LANGUAGES,
     SEVERITY_LEVEL_COLORS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
@@ -8364,6 +8365,32 @@ class Validate:
         # Get the locale for the report
         locale = self.locale
 
+        # Define the order of columns
+        column_order = [
+            "status_color",
+            "i",
+            "type_upd",
+            "columns_upd",
+            "values_upd",
+            "tbl",
+            "eval",
+            "test_units",
+            "pass",
+            "fail",
+            "w_upd",
+            "e_upd",
+            "c_upd",
+            "extract_upd",
+        ]
+
+        if lang == "ar":
+            # Reverse the order of the columns for RTL languages
+            column_order.reverse()
+
+        # Set up before/after to left/right mapping depending on the language (LTR or RTL)
+        before = "left" if not lang == "ar" else "right"
+        after = "right" if not lang == "ar" else "left"
+
         # Determine if there are any validation steps
         no_validation_steps = len(self.validation_info) == 0
 
@@ -8417,13 +8444,13 @@ class Validate:
                 GT(df, id="pb_tbl")
                 .fmt_markdown(columns=["pass", "fail", "extract_upd"])
                 .opt_table_font(font=google_font(name="IBM Plex Sans"))
-                .opt_align_table_header(align="left")
+                .opt_align_table_header(align=before)
                 .tab_style(style=style.css("height: 20px;"), locations=loc.body())
                 .tab_style(
                     style=style.text(weight="bold", color="#666666"), locations=loc.column_labels()
                 )
                 .tab_style(
-                    style=style.text(size="28px", weight="bold", align="left", color="#444444"),
+                    style=style.text(size="28px", weight="bold", align=before, color="#444444"),
                     locations=loc.title(),
                 )
                 .tab_style(
@@ -8433,6 +8460,10 @@ class Validate:
                         style.css("overflow-x: visible; white-space: nowrap;"),
                     ],
                     locations=loc.body(),
+                )
+                .tab_style(
+                    style=style.text(align=before),
+                    locations=[loc.title(), loc.subtitle(), loc.footer()],
                 )
                 .cols_label(
                     cases={
@@ -8475,24 +8506,8 @@ class Validate:
                     columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"],
                 )
                 .cols_align(align="right", columns=["test_units", "pass", "fail"])
-                .cols_move_to_start(
-                    [
-                        "status_color",
-                        "i",
-                        "type_upd",
-                        "columns_upd",
-                        "values_upd",
-                        "tbl",
-                        "eval",
-                        "test_units",
-                        "pass",
-                        "fail",
-                        "w_upd",
-                        "e_upd",
-                        "c_upd",
-                        "extract_upd",
-                    ]
-                )
+                .cols_align(align=before, columns=["type_upd", "columns_upd", "values_upd"])
+                .cols_move_to_start(columns=column_order)
                 .tab_options(table_font_size="90%")
                 .tab_source_note(
                     source_note=html(
@@ -8900,32 +8915,6 @@ class Validate:
         # Create a DataFrame from the validation information using whatever the `df_lib` library is;
         # (it is either Polars or Pandas)
         df = df_lib.DataFrame(validation_info_dict)
-
-        # Set up left/right depending on the language (LTR or RTL)
-        before = "left" if not lang == "ar" else "right"
-        after = "right" if not lang == "ar" else "left"
-
-        # Define the order of columns
-        column_order = [
-            "status_color",
-            "i",
-            "type_upd",
-            "columns_upd",
-            "values_upd",
-            "tbl",
-            "eval",
-            "test_units",
-            "pass",
-            "fail",
-            "w_upd",
-            "e_upd",
-            "c_upd",
-            "extract_upd",
-        ]
-
-        if lang == "ar":
-            # Reverse the order of the columns for RTL languages
-            column_order.reverse()
 
         # Return the DataFrame as a Great Tables table
         gt_tbl = (
@@ -10236,19 +10225,35 @@ def _get_title_text(
     if interrogation_performed:
         return title
 
-    html_str = (
-        "<div>"
-        '<span style="float: left;">'
-        f"{title}"
-        "</span>"
-        '<span style="float: right; text-decoration-line: underline; '
-        "text-underline-position: under;"
-        "font-size: 16px; text-decoration-color: #9C2E83;"
-        'padding-top: 0.1em; padding-right: 0.4em;">'
-        "No Interrogation Peformed"
-        "</span>"
-        "</div>"
-    )
+    reverse = True if lang in RTL_LANGUAGES else False
+
+    # If no interrogation was performed, return title text indicating that
+    if not reverse:
+        html_str = (
+            "<div>"
+            f'<span style="float: left;">'
+            f"{title}"
+            "</span>"
+            f'<span style="float: right; text-decoration-line: underline; '
+            "text-underline-position: under;"
+            "font-size: 16px; text-decoration-color: #9C2E83;"
+            'padding-top: 0.1em; padding-right: 0.4em;">'
+            "No Interrogation Peformed"
+            "</span>"
+            "</div>"
+        )
+    else:
+        html_str = (
+            "<div>"
+            f'<span style="float: left; text-decoration-line: underline; '
+            "text-underline-position: under;"
+            "font-size: 16px; text-decoration-color: #9C2E83;"
+            'padding-top: 0.1em; padding-left: 0.4em;">'
+            "No Interrogation Peformed"
+            "</span>"
+            f'<span style="float: right;">{title}</span>'
+            "</div>"
+        )
 
     return html_str
 
