@@ -24,6 +24,7 @@ from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
     CHECK_MARK_SPAN,
     COMPARISON_OPERATORS,
+    COMPARISON_OPERATORS_AR,
     COMPATIBLE_DTYPES,
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
@@ -9915,7 +9916,10 @@ def _create_text_comparison(
 ) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
-    operator = COMPARISON_OPERATORS[assertion_type]
+    if lang == "ar":  # pragma: no cover
+        operator = COMPARISON_OPERATORS_AR[assertion_type]
+    else:
+        operator = COMPARISON_OPERATORS[assertion_type]
 
     column_text = _prep_column_text(column=column)
 
