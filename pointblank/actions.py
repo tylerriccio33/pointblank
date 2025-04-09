@@ -16,7 +16,7 @@ def send_slack_notification(
     summary_msg: str | None = None,
     debug: bool = False,
 ) -> Callable:
-    r"""
+    """
     Creates a Slack notification function using a webhook URL.
 
     This function can be used in two ways:
@@ -66,7 +66,7 @@ def send_slack_notification(
     Here's an example of how to construct a `step_msg=` template:
 
     ```python
-    step_msg = \"\"\"🚨 *Validation Step Alert*
+    step_msg = '''🚨 *Validation Step Alert*
     • Step Number: {step}
     • Column: {column}
     • Test Type: {type}
@@ -74,7 +74,7 @@ def send_slack_notification(
     • Severity: {level} (level {level_num})
     • Brief: {autobrief}
     • Details: {failure_text}
-    • Time: {time}\"\"\"
+    • Time: {time}'''
     ```
 
     This template will be filled with the relevant information when a validation step fails. The
@@ -104,7 +104,7 @@ def send_slack_notification(
     Here's an example of how to put together a `summary_msg=` template:
 
     ```python
-    summary_msg = \"\"\"📊 *Validation Summary Report*
+    summary_msg = '''📊 *Validation Summary Report*
     *Overview*
     • Status: {highest_severity}
     • All Passed: {all_passed}
@@ -124,7 +124,7 @@ def send_slack_notification(
 
     *Timing*
     • Duration: {validation_duration}s
-    • Completed: {time}\"\"\"
+    • Completed: {time}'''
     ```
 
     This template will be filled with the relevant information when the validation summary is
@@ -167,17 +167,17 @@ def send_slack_notification(
     # Create a Slack notification function with custom templates
     notify_slack = pb.send_slack_notification(
         webhook_url=None, # Leave as None for dry run
-        step_msg=\"\"\"*Data Validation Alert*
+        step_msg='''*Data Validation Alert*
         • Type: {type}
         • Level: {level}
         • Step: {step}
         • Column: {column}
-        • Time: {time}\"\"\",
-        summary_msg=\"\"\"*Data Validation Summary*
+        • Time: {time}''',
+        summary_msg='''*Data Validation Summary*
         • Highest Severity: {highest_severity}
         • Total Steps: {n_steps}
         • Failed Steps: {n_failing_steps}
-        • Time: {time}\"\"\",
+        • Time: {time}''',
         debug=True,  # Enable debug mode to print message previews
     )
     ```
@@ -225,6 +225,7 @@ def send_slack_notification(
     When using a `FinalActions` object, the notification will be sent after all validation steps
     have been completed. This is useful for providing a summary of the validation process. Here is
     an example of how to set up a summary notification:
+
     ```python
     import pointblank as pb
 
@@ -265,7 +266,7 @@ def send_slack_notification(
 
     notify_slack = pb.send_slack_notification(
         webhook_url="https://hooks.slack.com/services/your/webhook/url",
-        step_msg=\"\"\"
+        step_msg='''
         🚨 *Validation Step Alert*
         • Step Number: {step}
         • Column: {column}
@@ -274,8 +275,8 @@ def send_slack_notification(
         • Severity: {level} (level {level_num})
         • Brief: {autobrief}
         • Details: {failure_text}
-        • Time: {time}\"\"\",
-        summary_msg=\"\"\"
+        • Time: {time}''',
+        summary_msg='''
         📊 *Validation Summary Report*
         *Overview*
         • Status: {highest_severity}
@@ -296,7 +297,7 @@ def send_slack_notification(
 
         *Timing*
         • Duration: {validation_duration}s
-        • Completed: {time}\"\"\",
+        • Completed: {time}''',
     )
 
     # Create a validation plan
