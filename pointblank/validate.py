@@ -10225,10 +10225,8 @@ def _get_title_text(
     if interrogation_performed:
         return title
 
-    reverse = True if lang in RTL_LANGUAGES else False
-
     # If no interrogation was performed, return title text indicating that
-    if not reverse:
+    if lang not in RTL_LANGUAGES:
         html_str = (
             "<div>"
             f'<span style="float: left;">'
@@ -10238,7 +10236,7 @@ def _get_title_text(
             "text-underline-position: under;"
             "font-size: 16px; text-decoration-color: #9C2E83;"
             'padding-top: 0.1em; padding-right: 0.4em;">'
-            "No Interrogation Peformed"
+            "No Interrogation Performed"
             "</span>"
             "</div>"
         )
