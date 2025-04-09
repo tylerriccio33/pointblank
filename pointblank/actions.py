@@ -17,12 +17,13 @@ def send_slack_notification(
     debug: bool = False,
 ) -> Callable:
     """
-    Creates a Slack notification function using a webhook URL.
+    Create a Slack notification function using a webhook URL.
 
     This function can be used in two ways:
 
-    1. With `Actions` to notify about individual validation step failures
-    2. With `FinalActions` to provide a summary after all validation steps complete
+    1. With [`Actions`](`pointblank.Actions`) to notify about individual validation step failures
+    2. With [`FinalActions`](`pointblank.FinalActions`) to provide a summary notification after all
+    validation steps have undergone interrogation
 
     The function creates a callable that sends notifications through a Slack webhook. Message
     formatting can be customized using templates for both individual steps and summary reports.
@@ -30,18 +31,25 @@ def send_slack_notification(
     Parameters
     ----------
     webhook_url
-        The Slack webhook URL. If `None`, performs a dry run.
+        The Slack webhook URL. If `None` (and `debug=True`), a dry run is performed (see the
+        *Offline Testing* section below for information on this).
     step_msg
         Template string for step notifications. Some of the available variables include: `"{step}"`,
         `"{column}"`, `"{value}"`, `"{type}"`, `"{time}"`, `"{level}"`, etc. See the *Available
-        Template Variables for Step Notifications* section below for more details.
+        Template Variables for Step Notifications* section below for more details. If not provided,
+        a default step message template will be used.
     summary_msg
         Template string for summary notifications. Some of the available variables are:
         `"{n_steps}"`, `"{n_passing_steps}"`, `"{n_failing_steps}"`, `"{all_passed}"`,
         `"{highest_severity}"`, etc. See the *Available Template Variables for Summary
-        Notifications* section below for more details.
+        Notifications* section below for more details. If not provided, a default summary message
+        template will be used.
     debug
-        Print debug information and message previews.
+        Print debug information if `True`. This includes the message content and the response from
+        Slack. This is useful for testing and debugging the notification function. If `webhook_url`
+        is `None`, the function will print the message to the console instead of sending it to
+        Slack. This is useful for debugging and ensuring that your templates are formatted
+        correctly.
 
     Returns
     -------
@@ -134,7 +142,7 @@ def send_slack_notification(
     Offline Testing
     ---------------
     If you want to test the function without sending actual notifications, you can leave the
-    `webhook_url` as `None` and set `debug=True`. This will print the message to the console
+    `webhook_url=` as `None` and set `debug=True`. This will print the message to the console
     instead of sending it to Slack. This is useful for debugging and ensuring that your templates
     are formatted correctly. Furthermore, the function could be run globally (i.e., outside of the
     context of a validation plan) to show the message templates with all possible variables. Here's
@@ -188,11 +196,11 @@ def send_slack_notification(
 
     Examples
     --------
-    When using an Action with one or more validation steps, you typically provide callables that
+    When using an action with one or more validation steps, you typically provide callables that
     fire when a matched threshold of failed test units is exceeded. The callable can be
     a function or a lambda. The `send_slack_notification()` function creates a callable that sends
     a Slack notification when the validation step fails. Here is how it can be set up to work for
-    multiple validation steps:
+    multiple validation steps by using of [Actions](`pointblank.Actions`):
 
     ```python
     import pointblank as pb
@@ -222,9 +230,9 @@ def send_slack_notification(
     set here, when 15% or more of the test units fail). The notification will include information
     about the validation step that triggered the alert.
 
-    When using a `FinalActions` object, the notification will be sent after all validation steps
-    have been completed. This is useful for providing a summary of the validation process. Here is
-    an example of how to set up a summary notification:
+    When using a [`FinalActions`](`pointblank.FinalActions`) object, the notification will be sent
+    after all validation steps have been completed. This is useful for providing a summary of the
+    validation process. Here is an example of how to set up a summary notification:
 
     ```python
     import pointblank as pb
@@ -316,11 +324,10 @@ def send_slack_notification(
     ```
 
     In this example, we have customized the templates for both step and summary notifications. The
-    step notification includes details about the validation step, including the step number,
-    column name, test type, value tested, severity level, brief description, and time of the
-    notification. The summary notification includes an overview of the validation process,
-    including the status, number of steps, passing and failing steps, table information, and
-    timing details.
+    step notification includes details about the validation step, including the step number, column
+    name, test type, value tested, severity level, brief description, and time of the notification.
+    The summary notification includes an overview of the validation process, including the status,
+    number of steps, passing and failing steps, table information, and timing details.
     """
     # Default templates
     default_step = """*Data Validation Alert*
