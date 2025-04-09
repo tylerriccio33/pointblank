@@ -76,6 +76,15 @@ COMPARISON_OPERATORS = {
     "col_vals_ne": "!=",
 }
 
+COMPARISON_OPERATORS_AR = {
+    "col_vals_gt": "أكبر من",
+    "col_vals_ge": "أكبر من أو يساوي",
+    "col_vals_lt": "أصغر من",
+    "col_vals_le": "أصغر من أو يساوي",
+    "col_vals_eq": "يساوي",
+    "col_vals_ne": "لا يساوي",
+}
+
 ROW_BASED_VALIDATION_TYPES = [
     "col_vals_gt",
     "col_vals_lt",
@@ -175,6 +184,7 @@ REPORTING_LANGUAGES = [
     "nl",
     "fi",
     "is",
+    "ar",
 ]
 
 SEVERITY_LEVEL_COLORS = {
