@@ -2099,6 +2099,7 @@ class Validate:
     - Romanian (`"ro"`)
     - Russian (`"ru"`)
     - Turkish (`"tr"`)
+    - Arabic (`"ar"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
     - Japanese (`"ja"`)
