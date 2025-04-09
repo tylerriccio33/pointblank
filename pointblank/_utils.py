@@ -463,6 +463,7 @@ def _get_api_text() -> str:
         "Validate",
         "Thresholds",
         "Actions",
+        "FinalActions",
         "Schema",
         "DraftValidation",
     ]
@@ -508,6 +509,7 @@ def _get_api_text() -> str:
         "Validate.get_sundered_data",
         "Validate.get_data_extracts",
         "Validate.all_passed",
+        "Validate.assert_passing",
         "Validate.n",
         "Validate.n_passed",
         "Validate.n_failed",
@@ -523,11 +525,20 @@ def _get_api_text() -> str:
         "preview",
         "col_summary_tbl",
         "missing_vals_tbl",
+        "assistant",
+        "load_dataset",
+    ]
+
+    utility_exported = [
         "get_column_count",
         "get_row_count",
-        "load_dataset",
+        "get_action_metadata",
+        "get_validation_summary",
         "config",
-        "assistant",
+    ]
+
+    prebuilt_actions_exported = [
+        "send_slack_notification",
     ]
 
     validate_desc = """When peforming data validation, you'll need the `Validate` class to get the
@@ -562,6 +573,17 @@ datasets included in the package can be accessed via the `load_dataset()` functi
 `config()` utility lets us set global configuration parameters. Want to chat with an assistant? Use
 the `assistant()` function to get help with Pointblank."""
 
+    utility_desc = """The Utility Functions group contains functions that are useful for accessing
+metadata about the target data. Use `get_column_count()` or `get_row_count()` to get the number of
+columns or rows in a table. The `get_action_metadata()` function is useful when building custom
+actions since it returns metadata about the validation step that's triggering the action. Lastly,
+the `config()` utility lets us set global configuration parameters."""
+
+    prebuilt_actions_desc = """The Prebuilt Actions group contains a function that can be used to
+send a Slack notification when validation steps exceed failure threshold levels or just to provide a
+summary of the validation results, including the status, number of steps, passing and failing steps,
+table information, and timing details."""
+
     #
     # Add headings (`*_desc` text) and API details for each family of functions/methods
     #
@@ -578,8 +600,14 @@ the `assistant()` function to get help with Pointblank."""
     api_text += f"""\n## The Interrogation and Reporting family\n\n{interrogation_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=interrogation_exported)
 
-    api_text += f"""\n## The Utilities family\n\n{inspect_desc}\n\n"""
+    api_text += f"""\n## The Inspection and Assistance family\n\n{inspect_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=inspect_exported)
+
+    api_text += f"""\n## The Utility Functions family\n\n{utility_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=utility_exported)
+
+    api_text += f"""\n## The Prebuilt Actions family\n\n{prebuilt_actions_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=prebuilt_actions_exported)
 
     # Modify language syntax in all code cells
     api_text = api_text.replace("{python}", "python")

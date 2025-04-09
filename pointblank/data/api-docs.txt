@@ -11,7 +11,7 @@ failure thresholds (using the `Thresholds` class or through shorthands for this 
 `Validate` class has numerous methods for defining validation steps and for obtaining
 post-interrogation metrics and data.
 
-Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, lang: 'str | None' = None, locale: 'str | None' = None) -> None
+Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds | None' = None, actions: 'Actions | None' = None, final_actions: 'FinalActions | None' = None, brief: 'str | bool | None' = None, lang: 'str | None' = None, locale: 'str | None' = None) -> None
 
     Workflow for defining a set of validations on a table and interrogating for results.
 
@@ -59,9 +59,21 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
         `thresholds=` parameter). The default is `None`, which means that no thresholds will be set.
         Look at the *Thresholds* section for information on how to set threshold levels.
     actions
-        The actions to take when validation steps meet or exceed any set threshold levels. This
-        should be provided in the form of an `Actions` object. If `None` then no global actions
-        will be set.
+        The actions to take when validation steps meet or exceed any set threshold levels. These
+        actions are paired with the threshold levels and are executed during the interrogation
+        process when there are exceedances. The actions are executed right after each step is
+        evaluated. Such actions should be provided in the form of an `Actions` object. If `None`
+        then no global actions will be set. View the *Actions* section for information on how to set
+        actions.
+    final_actions
+        The actions to take when the validation process is complete and the final results are
+        available. This is useful for sending notifications or reporting the overall status of the
+        validation process. The final actions are executed after all validation steps have been
+        processed and the results have been collected. The final actions are not tied to any
+        threshold levels, they are executed regardless of the validation results. Such actions
+        should be provided in the form of a `FinalActions` object. If `None` then no finalizing
+        actions will be set. Please see the *Actions* section for information on how to set final
+        actions.
     brief
         A global setting for briefs, which are optional brief descriptions for validation steps
         (they be displayed in the reporting table). For such a global setting, templating elements
@@ -129,6 +141,85 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
 
     Aside from reporting failure conditions, thresholds can be used to determine the actions to take
     for each level of failure (using the `actions=` parameter).
+
+    Actions
+    -------
+    The `actions=` and `final_actions=` parameters provide mechanisms to respond to validation
+    results. These actions can be used to notify users of validation failures, log issues, or
+    trigger other processes when problems are detected.
+
+    *Step Actions*
+
+    The `actions=` parameter allows you to define actions that are triggered when validation steps
+    exceed specific threshold levels (warning, error, or critical). These actions are executed
+    during the interrogation process, right after each step is evaluated.
+
+    Step actions should be provided using the [`Actions`](`pointblank.Actions`) class, which lets
+    you specify different actions for different severity levels:
+
+    ```python
+    # Define an action that logs a message when warning threshold is exceeded
+    def log_warning():
+        metadata = pb.get_action_metadata()
+        print(f"WARNING: Step {metadata['step']} failed with type {metadata['type']}")
+
+    # Define actions for different threshold levels
+    actions = pb.Actions(
+        warning = log_warning,
+        error = lambda: send_email("Error in validation"),
+        critical = "CRITICAL FAILURE DETECTED"
+    )
+
+    # Use in Validate
+    validation = pb.Validate(
+        data=my_data,
+        actions=actions  # Global actions for all steps
+    )
+    ```
+
+    You can also provide step-specific actions in individual validation methods:
+
+    ```python
+    validation.col_vals_gt(
+        columns="revenue",
+        value=0,
+        actions=pb.Actions(warning=log_warning)  # Only applies to this step
+    )
+    ```
+
+    Step actions have access to step-specific context through the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which provides details
+    about the current validation step that triggered the action.
+
+    *Final Actions*
+
+    The `final_actions=` parameter lets you define actions that execute after all validation steps
+    have completed. These are useful for providing summaries, sending notifications based on
+    overall validation status, or performing cleanup operations.
+
+    Final actions should be provided using the [`FinalActions`](`pointblank.FinalActions`) class:
+
+    ```python
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary["status"] == "CRITICAL":
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary['table_name']}",
+                body=f"{summary['critical_steps']} steps failed with critical severity."
+            )
+
+    validation = pb.Validate(
+        data=my_data,
+        final_actions=pb.FinalActions(send_report)
+    )
+    ```
+
+    Final actions have access to validation-wide summary information through the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function, which provides a
+    comprehensive overview of the entire validation process.
+
+    The combination of step actions and final actions provides a flexible system for responding to
+    data quality issues at both the individual step level and the overall validation level.
 
     Reporting Languages
     -------------------
@@ -298,7 +389,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
 
     The sundered data is a DataFrame that contains the rows that passed or failed the validation.
     The default behavior is to return the rows that failed the validation, as shown above.
-
+    
 
 Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bool | None' = None, critical: 'int | float | bool | None' = None) -> None
 
@@ -377,7 +468,7 @@ Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bo
     As can be seen, the last step ([`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)) has its own
     thresholds, which override the global thresholds set at the beginning of the validation workflow
     (in the [`Validate`](`pointblank.Validate`) class).
-
+    
 
 Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: 'str | Callable | list[str | Callable] | None' = None, critical: 'str | Callable | list[str | Callable] | None' = None, default: 'str | Callable | list[str | Callable] | None' = None, highest_only: 'bool' = True) -> None
 
@@ -461,6 +552,15 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
     displayed as `"WARNING: 'col_vals_gt' threshold exceeded for column a."` when the 'warning'
     threshold is exceeded in a 'col_vals_gt' validation step involving column `a`.
 
+    Crafting Callables with `get_action_metadata()`
+    -----------------------------------------------
+    When creating a callable function to be used as an action, you can use the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function to retrieve metadata about
+    the step where the action is executed. This metadata contains information about the validation
+    step, including the step type, level, step number, column name, and associated value. You can
+    use this information to craft your action message or to take specific actions based on the
+    metadata provided.
+
     Examples
     --------
     Let's define both threshold values and actions for a data validation workflow. We'll set these
@@ -524,7 +624,102 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
     all three thresholds are exceeded in step 3, the 'warning' action of executing the function
     occurs (resulting in a message being printed to the console). If actions were set for the other
     two threshold levels, they would also be executed.
+    
 
+FinalActions(*args)
+
+    Define actions to be taken after validation is complete.
+
+    Final actions are executed after all validation steps have been completed. They provide a
+    mechanism to respond to the overall validation results, such as sending alerts when critical
+    failures are detected or generating summary reports.
+
+    Parameters
+    ----------
+    *actions
+        One or more actions to execute after validation. An action can be (1) a callable function
+        that will be executed with no arguments, or (2) a string message that will be printed to the
+        console.
+
+    Returns
+    -------
+    FinalActions
+        An `FinalActions` object. This can be used when using the
+        [`Validate`](`pointblank.Validate`) class (to set final actions for the validation
+        workflow).
+
+    Types of Actions
+    ----------------
+    Final actions can be defined in two different ways:
+
+    1. **String**: A message to be displayed when the validation is complete.
+    2. **Callable**: A function that is called when the validation is complete.
+
+    The actions are executed at the end of the validation workflow. When providing a string, it will
+    simply be printed to the console. A callable will also be executed at the time of validation
+    completion. Several strings and callables can be provided to the `FinalActions` class, and
+    they will be executed in the order they are provided.
+
+    Crafting Callables with `get_validation_summary()`
+    -------------------------------------------------
+    When creating a callable function to be used as a final action, you can use the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function to retrieve the
+    summary of the validation results. This summary contains information about the validation
+    workflow, including the number of test units, the number of failing test units, and the
+    threshold levels that were exceeded. You can use this information to craft your final action
+    message or to take specific actions based on the validation results.
+
+    Examples
+    --------
+    Final actions provide a powerful way to respond to the overall results of a validation workflow.
+    They're especially useful for sending notifications, generating reports, or taking corrective
+    actions based on the complete validation outcome.
+
+    The following example shows how to create a final action that checks for critical failures
+    and sends an alert:
+
+    ```python
+    import pointblank as pb
+
+    def send_alert():
+        summary = pb.get_validation_summary()
+        if summary["highest_severity"] == "critical":
+            print(f"ALERT: Critical validation failures found in {summary['table_name']}")
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_alert)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    In this example, the `send_alert()` function is defined to check the validation summary for
+    critical failures. If any are found, an alert message is printed to the console. The function is
+    passed to the `FinalActions` class, which ensures it will be executed after all validation steps
+    are complete. Note that we used the `get_validation_summary()` function to retrieve the summary
+    of the validation results to help craft the alert message.
+
+    Multiple final actions can be provided in a sequence. They will be executed in the order they
+    are specified after all validation steps have completed:
+
+    ```python
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(
+                "Validation complete.",  # a string message
+                send_alert,              # a callable function
+                generate_report          # another callable function
+            )
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+    
 
 Schema(columns: 'str | list[str] | list[tuple[str, str]] | list[tuple[str]] | dict[str, str] | None' = None, tbl: 'any | None' = None, **kwargs)
 Definition of a schema object.
@@ -770,7 +965,7 @@ Definition of a schema object.
     --------
     The [`col_schema_match()`](`pointblank.Validate.col_schema_match`) validation method, where a
     `Schema` object is used in a validation workflow.
-
+    
 
 DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None) -> None
 
@@ -946,7 +1141,7 @@ DraftValidation(data: 'FrameT | Any', model: 'str', api_key: 'str | None' = None
     Note that the output does not know how the data was obtained, so it uses the placeholder
     `your_data` in the `data=` argument of the `Validate` class. When adapted for use, this should
     be replaced with the actual data variable.
-
+    
 
 
 ## The Validation Steps family
@@ -1133,7 +1328,7 @@ col_vals_gt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         - Row 1: `c` is `1` and `b` is `2`.
         - Row 3: `c` is `2` and `b` is `2`.
-
+        
 
 col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -1313,7 +1508,7 @@ col_vals_lt(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         - Row 1: `b` is `2` and `c` is `1`.
         - Row 2: `b` is `1` and `c` is `1`.
-
+        
 
 col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -1493,7 +1688,7 @@ col_vals_ge(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         - Row 0: `b` is `2` and `c` is `3`.
         - Row 4: `b` is `3` and `c` is `4`.
-
+        
 
 col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -1673,7 +1868,7 @@ col_vals_le(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         - Row 0: `c` is `2` and `b` is `1`.
         - Row 4: `c` is `3` and `b` is `2`.
-
+        
 
 col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -1851,7 +2046,7 @@ col_vals_eq(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         - Row 3: `a` is `5` and `b` is `6`.
         - Row 5: `a` is `5` and `b` is `4`.
-
+        
 
 col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', value: 'float | int | Column', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2027,7 +2222,7 @@ col_vals_ne(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSe
 
         The validation table reports two failing test units. The specific failing cases are in rows
         0 and 4, where `a` is `5` and `b` is `5` in both cases (i.e., they are equal to each other).
-
+        
 
 col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2227,7 +2422,7 @@ col_vals_between(self, columns: 'str | list[str] | Column | ColumnSelector | Col
 
         - Row 2: `b` is `1` but the bounds are `2` (`a`) and `8` (`c`).
         - Row 4: `b` is `8` but the bounds are `3` (`a`) and `7` (`c`).
-
+        
 
 col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', left: 'float | int | Column', right: 'float | int | Column', inclusive: 'tuple[bool, bool]' = (True, True), na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2427,7 +2622,7 @@ col_vals_outside(self, columns: 'str | list[str] | Column | ColumnSelector | Col
 
         - Row 2: `b` is `6` and the bounds are `5` (`a`) and `8` (`c`).
         - Row 5: `b` is `6` and the bounds are `5` (`a`) and `7` (`c`).
-
+        
 
 col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2572,7 +2767,7 @@ col_vals_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | Colu
 
         The validation table reports two failing test units. The specific failing cases are for the
         column `b` values of `8` and `1`, which are not in the set of `[2, 3, 4, 5, 6]`.
-
+        
 
 col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', set: 'list[float | int]', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2718,7 +2913,7 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
 
         The validation table reports two failing test units. The specific failing cases are for the
         column `b` values of `2` and `6`, both of which are in the set of `[2, 3, 4, 5, 6]`.
-
+        
 
 col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -2859,7 +3054,7 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
 
         The validation table reports two failing test units. The specific failing cases are for the
         two non-Null values in column `b`.
-
+        
 
 col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3000,7 +3195,7 @@ col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | Co
 
         The validation table reports two failing test units. The specific failing cases are for the
         two Null values in column `b`.
-
+        
 
 col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pattern: 'str', na_pass: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3148,7 +3343,7 @@ col_vals_regex(self, columns: 'str | list[str] | Column | ColumnSelector | Colum
 
         The validation table reports two failing test units. The specific failing cases are for the
         string values of rows 1 and 2 in column `b`.
-
+        
 
 col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3274,7 +3469,7 @@ col_vals_expr(self, expr: 'any', pre: 'Callable | None' = None, thresholds: 'int
         Printing the `validation` object shows the validation table in an HTML viewing environment.
         The validation table shows the single entry that corresponds to the validation step created
         by using `col_vals_expr()`. All test units passed, with no failing test units.
-
+        
 
 col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3396,7 +3591,7 @@ col_exists(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSel
 
         The validation table reports one passing validation step (the check for column `b`) and one
         failing validation step (the check for column `c`, which doesn't exist).
-
+        
 
 rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3541,7 +3736,7 @@ rows_distinct(self, columns_subset: 'str | list[str] | None' = None, pre: 'Calla
         duplicated when considering only the values in columns `col_2` and `col_3`. There's only
         one set of duplicates but there are two failing test units since each row is compared to all
         others.
-
+        
 
 col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'bool' = True, case_sensitive_colnames: 'bool' = True, case_sensitive_dtypes: 'bool' = True, full_match_dtypes: 'bool' = True, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3701,7 +3896,7 @@ col_schema_match(self, schema: 'Schema', complete: 'bool' = True, in_order: 'boo
 
         The validation table shows that the schema matches the table. The single test unit passed
         since the table columns and their types match the schema.
-
+        
 
 row_count_match(self, count: 'int | FrameT | Any', tol: 'Tolerance' = 0, inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3855,7 +4050,7 @@ row_count_match(self, count: 'int | FrameT | Any', tol: 'Tolerance' = 0, inverse
         validation
         ```
 
-
+        
 
 col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre: 'Callable | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
@@ -3970,7 +4165,7 @@ col_count_match(self, count: 'int | FrameT | Any', inverse: 'bool' = False, pre:
 
         The validation table shows that the expectation value of `11` matches the actual count of
         columns in the target table. So, the single test unit passed.
-
+        
 
 
 ## The Column Selection family
@@ -4251,7 +4446,7 @@ col(exprs: 'str | ColumnSelector | ColumnSelectorNarwhals') -> 'Column | ColumnL
     [`matches()`](`pointblank.matches`) column selector functions from Narwhals, combined with the
     `&` operator. This is necessary to specify the set of columns that are numeric *and* match the
     text `"2023"` or `"2024"`.
-
+    
 
 starts_with(text: 'str', case_sensitive: 'bool' = False) -> 'StartsWith'
 
@@ -4402,7 +4597,7 @@ starts_with(text: 'str', case_sensitive: 'bool' = False) -> 'StartsWith'
 
     From the results of the validation table we get two validation steps, one for `paid_2023` and
     one for `paid_2024`.
-
+    
 
 ends_with(text: 'str', case_sensitive: 'bool' = False) -> 'EndsWith'
 
@@ -4552,7 +4747,7 @@ ends_with(text: 'str', case_sensitive: 'bool' = False) -> 'EndsWith'
 
     From the results of the validation table we get two validation steps, one for `2023_pay` and one
     for `2024_pay`.
-
+    
 
 contains(text: 'str', case_sensitive: 'bool' = False) -> 'Contains'
 
@@ -4703,7 +4898,7 @@ contains(text: 'str', case_sensitive: 'bool' = False) -> 'Contains'
 
     From the results of the validation table we get two validation steps, one for `2023_pay_total`
     and one for `2024_pay_total`.
-
+    
 
 matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
 
@@ -4854,7 +5049,7 @@ matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
 
     From the results of the validation table we get two validation steps, one for `2023_pay_total`
     and one for `2024_pay_total`.
-
+    
 
 everything() -> 'Everything'
 
@@ -4979,7 +5174,7 @@ everything() -> 'Everything'
 
     From the results of the validation table we get two validation steps, one for `2024_hours` and
     one for `2024_pay_total`.
-
+    
 
 first_n(n: 'int', offset: 'int' = 0) -> 'FirstN'
 
@@ -5126,7 +5321,7 @@ first_n(n: 'int', offset: 'int' = 0) -> 'FirstN'
 
     From the results of the validation table we get three validation steps, one for `paid_2021`,
     `paid_2022`, and `paid_2024`.
-
+    
 
 last_n(n: 'int', offset: 'int' = 0) -> 'LastN'
 
@@ -5273,7 +5468,7 @@ last_n(n: 'int', offset: 'int' = 0) -> 'LastN'
 
     From the results of the validation table we get three validation steps, one for `paid_2021`,
     `paid_2022`, and `paid_2024`.
-
+    
 
 
 ## The Interrogation and Reporting family
@@ -5383,7 +5578,7 @@ interrogate(self, collect_extracts: 'bool' = True, collect_tbl_checked: 'bool' =
         into the [`preview()`](`pointblank.preview`) function for a better display). There are
         actually 18 rows that failed but we limited the collection of extracts with
         `get_first_n=10`.
-
+        
 
 get_tabular_report(self, title: 'str | None' = ':default:', incl_header: 'bool' = None, incl_footer: 'bool' = None) -> 'GT'
 
@@ -5460,7 +5655,7 @@ get_tabular_report(self, title: 'str | None' = ':default:', incl_header: 'bool' 
 
         The title of the report is now set to 'Report for Table XY'. This can be useful if you want
         to provide a more descriptive title for the report.
-
+        
 
 get_step_report(self, i: 'int', columns_subset: 'str | list[str] | Column | None' = None, header: 'str' = ':default:', limit: 'int | None' = 10) -> 'GT'
 
@@ -5574,7 +5769,7 @@ get_step_report(self, i: 'int', columns_subset: 'str | list[str] | Column | None
 
         Step 3 actually had 7 failing test units, but only the first 5 rows are shown in the step
         report because of the `limit=5` parameter.
-
+        
 
 get_json_report(self, use_fields: 'list[str] | None' = None, exclude_fields: 'list[str] | None' = None) -> 'str'
 
@@ -5591,7 +5786,7 @@ get_json_report(self, use_fields: 'list[str] | None' = None, exclude_fields: 'li
         -------
         str
             A JSON-formatted string representing the validation report.
-
+        
 
 get_sundered_data(self, type='pass') -> 'FrameT'
 
@@ -5672,7 +5867,7 @@ get_sundered_data(self, type='pass') -> 'FrameT'
         input DataFrame, the first two rows and the last two rows had test units that failed
         validation. Thus the middle two rows are the only ones that passed all validation steps and
         that's what we see in the returned DataFrame.
-
+        
 
 get_data_extracts(self, i: 'int | list[int] | None' = None, frame: 'bool' = False) -> 'dict[int, FrameT | None] | FrameT | None'
 
@@ -5790,7 +5985,7 @@ get_data_extracts(self, i: 'int | list[int] | None' = None, frame: 'bool' = Fals
         The extracted table is now a DataFrame, which can serve as a more convenient format for
         further analysis or visualization. We further used the [`preview()`](`pointblank.preview`)
         function to show the DataFrame in an HTML view.
-
+        
 
 all_passed(self) -> 'bool'
 
@@ -5844,7 +6039,54 @@ all_passed(self) -> 'bool'
 
         The returned value is `False` since the second validation step had a failing test unit. If
         it weren't for that one failing test unit, the return value would have been `True`.
+        
 
+assert_passing(self) -> 'None'
+
+        Raise an `AssertionError` if all tests are not passing.
+
+        The `assert_passing()` method will raise an `AssertionError` if a test does not pass. This
+        method simply wraps `all_passed` for more ready use in test suites. The step number and
+        assertion made is printed in the `AssertionError` message if a failure occurs, ensuring
+        some details are preserved.
+
+        Raises
+        -------
+        AssertionError
+            If any validation step has failing test units.
+
+        Examples
+        --------
+        In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
+        `c`). There will be three validation steps, and the second step will have a failing test
+        unit (the value `10` isn't less than `9`). After interrogation, the `assert_passing()`
+        method is used to assert that all validation steps passed perfectly.
+
+        ```python
+        #| error: True
+
+        import pointblank as pb
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+            "a": [1, 2, 9, 5],
+            "b": [5, 6, 10, 3],
+            "c": ["a", "b", "a", "a"],
+            }
+        )
+
+        validation = (
+            pb.Validate(data=tbl)
+            .col_vals_gt(columns="a", value=0)
+            .col_vals_lt(columns="b", value=9) # this assertion is false
+            .col_vals_in_set(columns="c", set=["a", "b"])
+            .interrogate()
+        )
+
+        validation.assert_passing()
+        ```
+        
 
 n(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, int] | int'
 
@@ -5948,7 +6190,7 @@ n(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int
         ```python
         validation.n()
         ```
-
+        
 
 n_passed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, int] | int'
 
@@ -6026,7 +6268,7 @@ n_passed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
         ```
 
         The returned value of `4` is the number of passing test units for the first validation step.
-
+        
 
 n_failed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, int] | int'
 
@@ -6103,7 +6345,7 @@ n_failed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
         ```
 
         The returned value of `1` is the number of failing test units for the first validation step.
-
+        
 
 f_passed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, float] | float'
 
@@ -6182,7 +6424,7 @@ f_passed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
 
         The returned value is the proportion of passing test units for the first validation step
         (5 passing test units out of 7 total test units).
-
+        
 
 f_failed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, float] | float'
 
@@ -6261,7 +6503,7 @@ f_failed(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
 
         The returned value is the proportion of failing test units for the first validation step
         (2 failing test units out of 7 total test units).
-
+        
 
 warning(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, bool] | bool'
 
@@ -6360,7 +6602,7 @@ warning(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'di
 
         The returned value is `True`, indicating that the first validation step had met the
         'warning' threshold.
-
+        
 
 error(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, bool] | bool'
 
@@ -6460,7 +6702,7 @@ error(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict
 
         The returned value is `True`, indicating that the first validation step had the 'error'
         threshold met.
-
+        
 
 critical(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'dict[int, bool] | bool'
 
@@ -6560,10 +6802,10 @@ critical(self, i: 'int | list[int] | None' = None, scalar: 'bool' = False) -> 'd
 
         The returned value is `True`, indicating that the first validation step had the 'critical'
         threshold met.
+        
 
 
-
-## The Utilities family
+## The Inspection and Assistance family
 
 The *Inspection and Assistance* group contains functions that are helpful for
 getting to grips on a new data table. Use the `DataScan` class to get a quick overview of the data,
@@ -6666,7 +6908,7 @@ DataScan(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> None
     -------
     DataScan
         A DataScan object.
-
+    
 
 preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' = None, n_head: 'int' = 5, n_tail: 'int' = 5, limit: 'int' = 50, show_row_numbers: 'bool' = True, max_col_width: 'int' = 250, min_tbl_width: 'int' = 500, incl_header: 'bool' = None) -> 'GT'
 
@@ -6799,7 +7041,7 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
       columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
     )
     ```
-
+    
 
 col_summary_tbl(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> 'GT'
 
@@ -6870,7 +7112,7 @@ col_summary_tbl(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> 'GT'
 
     pb.col_summary_tbl(data=small_table_duckdb, tbl_name="nycflights")
     ```
-
+    
 
 missing_vals_tbl(data: 'FrameT | Any') -> 'GT'
 
@@ -6935,224 +7177,7 @@ missing_vals_tbl(data: 'FrameT | Any') -> 'GT'
     around 34,000 rows per sector). The proportion of missing values in each sector is calculated
     for each column. The various shades of gray indicate the proportion of missing values in each
     sector. Many columns have no missing values at all, and those sectors are colored light blue.
-
-
-get_column_count(data: 'FrameT | Any') -> 'int'
-
-    Get the number of columns in a table.
-
-    The `get_column_count()` function returns the number of columns in a table. The function works
-    with any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
-    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
-
-    Parameters
-    ----------
-    data
-        The table for which to get the column count, which could be a DataFrame object or an Ibis
-        table object. Read the *Supported Input Table Types* section for details on the supported
-        table types.
-
-    Returns
-    -------
-    int
-        The number of columns in the table.
-
-    Supported Input Table Types
-    ---------------------------
-    The `data=` parameter can be given any of the following table types:
-
-    - Polars DataFrame (`"polars"`)
-    - Pandas DataFrame (`"pandas"`)
-    - DuckDB table (`"duckdb"`)*
-    - MySQL table (`"mysql"`)*
-    - PostgreSQL table (`"postgresql"`)*
-    - SQLite table (`"sqlite"`)*
-    - Parquet table (`"parquet"`)*
-
-    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
-    `ibis.expr.types.relations.Table`). Furthermore, using `get_column_count()` with these types of
-    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
-    Polars or Pandas DataFrame, the availability of Ibis is not needed.
-
-    Examples
-    --------
-    To get the number of columns in a table, we can use the `get_column_count()` function. Here's an
-    example using the `small_table` dataset (itself loaded using the
-    [`load_dataset()`](`pointblank.load_dataset`) function):
-
-    This table is a Polars DataFrame, but the `get_column_count()` function works with any table
-    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
-    example using a DuckDB table handled by Ibis:
-
-    ```python
-    small_table_duckdb = pb.load_dataset("small_table", tbl_type="duckdb")
-
-    pb.get_column_count(small_table_duckdb)
-    ```
-
-    The function always returns the number of columns in the table as an integer value, which is
-    `8` for the `small_table` dataset.
-
-
-get_row_count(data: 'FrameT | Any') -> 'int'
-
-    Get the number of rows in a table.
-
-    The `get_row_count()` function returns the number of rows in a table. The function works with
-    any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
-    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
-
-    Parameters
-    ----------
-    data
-        The table for which to get the row count, which could be a DataFrame object or an Ibis table
-        object. Read the *Supported Input Table Types* section for details on the supported table
-        types.
-
-    Returns
-    -------
-    int
-        The number of rows in the table.
-
-    Supported Input Table Types
-    ---------------------------
-    The `data=` parameter can be given any of the following table types:
-
-    - Polars DataFrame (`"polars"`)
-    - Pandas DataFrame (`"pandas"`)
-    - DuckDB table (`"duckdb"`)*
-    - MySQL table (`"mysql"`)*
-    - PostgreSQL table (`"postgresql"`)*
-    - SQLite table (`"sqlite"`)*
-    - Parquet table (`"parquet"`)*
-
-    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
-    `ibis.expr.types.relations.Table`). Furthermore, using `get_row_count()` with these types of
-    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
-    Polars or Pandas DataFrame, the availability of Ibis is not needed.
-
-    Examples
-    --------
-    Getting the number of rows in a table is easily done by using the `get_row_count()` function.
-    Here's an example using the `game_revenue` dataset (itself loaded using the
-    [`load_dataset()`](`pointblank.load_dataset`) function):
-
-    This table is a Polars DataFrame, but the `get_row_count()` function works with any table
-    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
-    example using a DuckDB table handled by Ibis:
-
-    ```python
-    game_revenue_duckdb = pb.load_dataset("game_revenue", tbl_type="duckdb")
-
-    pb.get_row_count(game_revenue_duckdb)
-    ```
-
-    The function always returns the number of rows in the table as an integer value, which is `2000`
-    for the `game_revenue` dataset.
-
-
-load_dataset(dataset: "Literal['small_table', 'game_revenue', 'nycflights']" = 'small_table', tbl_type: "Literal['polars', 'pandas', 'duckdb']" = 'polars') -> 'FrameT | Any'
-
-    Load a dataset hosted in the library as specified table type.
-
-    The Pointblank library includes several datasets that can be loaded using the `load_dataset()`
-    function. The datasets can be loaded as a Polars DataFrame, a Pandas DataFrame, or as a DuckDB
-    table (which uses the Ibis library backend). These datasets are used throughout the
-    documentation's examples to demonstrate the functionality of the library. They're also useful
-    for experimenting with the library and trying out different validation scenarios.
-
-    Parameters
-    ----------
-    dataset
-        The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
-        and `"nycflights"`.
-    tbl_type
-        The type of table to generate from the dataset. The named options are `"polars"`,
-        `"pandas"`, and `"duckdb"`.
-
-    Returns
-    -------
-    FrameT | Any
-        The dataset for the `Validate` object. This could be a Polars DataFrame, a Pandas DataFrame,
-        or a DuckDB table as an Ibis table.
-
-    Included Datasets
-    -----------------
-    There are three included datasets that can be loaded using the `load_dataset()` function:
-
-    - `"small_table"`: A small dataset with 13 rows and 8 columns. This dataset is useful for
-    testing and demonstration purposes.
-    - `"game_revenue"`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
-    development company. For the particular game, there are records of player sessions, the items
-    they purchased, ads viewed, and the revenue generated.
-    - `"nycflights"`: A dataset with 336,776 rows and 18 columns. This dataset provides information
-    about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
-
-    Supported DataFrame Types
-    -------------------------
-    The `tbl_type=` parameter can be set to one of the following:
-
-    - `"polars"`: A Polars DataFrame.
-    - `"pandas"`: A Pandas DataFrame.
-    - `"duckdb"`: An Ibis table for a DuckDB database.
-
-    Examples
-    --------
-    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with its
-    defaults:
-
-    Note that the `"small_table"` dataset is a simple Polars DataFrame and using the
-    [`preview()`](`pointblank.preview`) function will display the table in an HTML viewing
-    environment.
-
-    The `"game_revenue"` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
-    and setting `tbl_type="pandas"`:
-
-    ```python
-    game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
-
-    pb.preview(game_revenue)
-    ```
-
-    The `"game_revenue"` dataset is a more real-world dataset with a mix of data types, and it's
-    significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
-
-    The `"nycflights"` dataset can be loaded as a DuckDB table by specifying the dataset name and
-    setting `tbl_type="duckdb"`:
-
-    ```python
-    nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
-
-    pb.preview(nycflights)
-    ```
-
-    The `"nycflights"` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
-    truly a real-world dataset and provides information about flights originating from New York City
-    airports in 2013.
-
-
-config(report_incl_header: 'bool' = True, report_incl_footer: 'bool' = True, preview_incl_header: 'bool' = True) -> 'PointblankConfig'
-
-    Configuration settings for the Pointblank library.
-
-    Parameters
-    ----------
-    report_incl_header
-        This controls whether the header should be present in the validation table report. The
-        header contains the table name, label information, and might contain global failure
-        threshold levels (if set).
-    report_incl_footer
-        Should the footer of the validation table report be displayed? The footer contains the
-        starting and ending times of the interrogation.
-    preview_incl_header
-        Whether the header should be present in any preview table (generated via the
-        [`preview()`](`pointblank.preview`) function).
-
-    Returns
-    -------
-    PointblankConfig
-        A `PointblankConfig` object with the specified configuration settings.
-
+    
 
 assistant(model: 'str', data: 'FrameT | Any | None' = None, tbl_name: 'str | None' = None, api_key: 'str | None' = None, display: 'str | None' = None) -> 'None'
 
@@ -7282,7 +7307,714 @@ assistant(model: 'str', data: 'FrameT | Any | None' = None, tbl_name: 'str | Non
     `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
     requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
     Pandas DataFrame, the availability of Ibis is not needed.
+    
 
+load_dataset(dataset: "Literal['small_table', 'game_revenue', 'nycflights']" = 'small_table', tbl_type: "Literal['polars', 'pandas', 'duckdb']" = 'polars') -> 'FrameT | Any'
+
+    Load a dataset hosted in the library as specified table type.
+
+    The Pointblank library includes several datasets that can be loaded using the `load_dataset()`
+    function. The datasets can be loaded as a Polars DataFrame, a Pandas DataFrame, or as a DuckDB
+    table (which uses the Ibis library backend). These datasets are used throughout the
+    documentation's examples to demonstrate the functionality of the library. They're also useful
+    for experimenting with the library and trying out different validation scenarios.
+
+    Parameters
+    ----------
+    dataset
+        The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
+        and `"nycflights"`.
+    tbl_type
+        The type of table to generate from the dataset. The named options are `"polars"`,
+        `"pandas"`, and `"duckdb"`.
+
+    Returns
+    -------
+    FrameT | Any
+        The dataset for the `Validate` object. This could be a Polars DataFrame, a Pandas DataFrame,
+        or a DuckDB table as an Ibis table.
+
+    Included Datasets
+    -----------------
+    There are three included datasets that can be loaded using the `load_dataset()` function:
+
+    - `"small_table"`: A small dataset with 13 rows and 8 columns. This dataset is useful for
+    testing and demonstration purposes.
+    - `"game_revenue"`: A dataset with 2000 rows and 11 columns. Provides revenue data for a game
+    development company. For the particular game, there are records of player sessions, the items
+    they purchased, ads viewed, and the revenue generated.
+    - `"nycflights"`: A dataset with 336,776 rows and 18 columns. This dataset provides information
+    about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
+
+    Supported DataFrame Types
+    -------------------------
+    The `tbl_type=` parameter can be set to one of the following:
+
+    - `"polars"`: A Polars DataFrame.
+    - `"pandas"`: A Pandas DataFrame.
+    - `"duckdb"`: An Ibis table for a DuckDB database.
+
+    Examples
+    --------
+    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with its
+    defaults:
+
+    Note that the `"small_table"` dataset is a simple Polars DataFrame and using the
+    [`preview()`](`pointblank.preview`) function will display the table in an HTML viewing
+    environment.
+
+    The `"game_revenue"` dataset can be loaded as a Pandas DataFrame by specifying the dataset name
+    and setting `tbl_type="pandas"`:
+
+    ```python
+    game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="pandas")
+
+    pb.preview(game_revenue)
+    ```
+
+    The `"game_revenue"` dataset is a more real-world dataset with a mix of data types, and it's
+    significantly larger than the `small_table` dataset at 2000 rows and 11 columns.
+
+    The `"nycflights"` dataset can be loaded as a DuckDB table by specifying the dataset name and
+    setting `tbl_type="duckdb"`:
+
+    ```python
+    nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
+
+    pb.preview(nycflights)
+    ```
+
+    The `"nycflights"` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
+    truly a real-world dataset and provides information about flights originating from New York City
+    airports in 2013.
+    
+
+
+## The Utility Functions family
+
+The Utility Functions group contains functions that are useful for accessing
+metadata about the target data. Use `get_column_count()` or `get_row_count()` to get the number of
+columns or rows in a table. The `get_action_metadata()` function is useful when building custom
+actions since it returns metadata about the validation step that's triggering the action. Lastly,
+the `config()` utility lets us set global configuration parameters.
+
+get_column_count(data: 'FrameT | Any') -> 'int'
+
+    Get the number of columns in a table.
+
+    The `get_column_count()` function returns the number of columns in a table. The function works
+    with any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the column count, which could be a DataFrame object or an Ibis
+        table object. Read the *Supported Input Table Types* section for details on the supported
+        table types.
+
+    Returns
+    -------
+    int
+        The number of columns in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_column_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    To get the number of columns in a table, we can use the `get_column_count()` function. Here's an
+    example using the `small_table` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
+
+    This table is a Polars DataFrame, but the `get_column_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```python
+    small_table_duckdb = pb.load_dataset("small_table", tbl_type="duckdb")
+
+    pb.get_column_count(small_table_duckdb)
+    ```
+
+    The function always returns the number of columns in the table as an integer value, which is
+    `8` for the `small_table` dataset.
+    
+
+get_row_count(data: 'FrameT | Any') -> 'int'
+
+    Get the number of rows in a table.
+
+    The `get_row_count()` function returns the number of rows in a table. The function works with
+    any table that is supported by the `pointblank` library, including Pandas, Polars, and Ibis
+    backend tables (e.g., DuckDB, MySQL, PostgreSQL, SQLite, Parquet, etc.).
+
+    Parameters
+    ----------
+    data
+        The table for which to get the row count, which could be a DataFrame object or an Ibis table
+        object. Read the *Supported Input Table Types* section for details on the supported table
+        types.
+
+    Returns
+    -------
+    int
+        The number of rows in the table.
+
+    Supported Input Table Types
+    ---------------------------
+    The `data=` parameter can be given any of the following table types:
+
+    - Polars DataFrame (`"polars"`)
+    - Pandas DataFrame (`"pandas"`)
+    - DuckDB table (`"duckdb"`)*
+    - MySQL table (`"mysql"`)*
+    - PostgreSQL table (`"postgresql"`)*
+    - SQLite table (`"sqlite"`)*
+    - Parquet table (`"parquet"`)*
+
+    The table types marked with an asterisk need to be prepared as Ibis tables (with type of
+    `ibis.expr.types.relations.Table`). Furthermore, using `get_row_count()` with these types of
+    tables requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a
+    Polars or Pandas DataFrame, the availability of Ibis is not needed.
+
+    Examples
+    --------
+    Getting the number of rows in a table is easily done by using the `get_row_count()` function.
+    Here's an example using the `game_revenue` dataset (itself loaded using the
+    [`load_dataset()`](`pointblank.load_dataset`) function):
+
+    This table is a Polars DataFrame, but the `get_row_count()` function works with any table
+    supported by `pointblank`, including Pandas DataFrames and Ibis backend tables. Here's an
+    example using a DuckDB table handled by Ibis:
+
+    ```python
+    game_revenue_duckdb = pb.load_dataset("game_revenue", tbl_type="duckdb")
+
+    pb.get_row_count(game_revenue_duckdb)
+    ```
+
+    The function always returns the number of rows in the table as an integer value, which is `2000`
+    for the `game_revenue` dataset.
+    
+
+get_action_metadata()
+Access step-level metadata when authoring custom actions.
+
+    Get the metadata for the validation step where an action was triggered. This can be called by
+    user functions to get the metadata for the current action.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the metadata for the current step.
+
+    Description of the Metadata Fields
+    ----------------------------------
+    The metadata dictionary contains the following fields for a given validation step:
+
+    - `step`: The step number.
+    - `column`: The column name.
+    - `value`: The value being compared (only available in certain validation steps).
+    - `type`: The assertion type (e.g., `"col_vals_gt"`, etc.).
+    - `time`: The time the validation step was executed (in ISO format).
+    - `level`: The severity level (`"warning"`, `"error"`, or `"critical"`).
+    - `level_num`: The severity level as a numeric value (`30`, `40`, or `50`).
+    - `autobrief`: A localized and brief statement of the expectation for the step.
+    - `failure_text`: Localized text that explains how the validation step failed.
+
+    Examples
+    --------
+    When creating a custom action, you can access the metadata for the current step using the
+    `get_action_metadata()` function. Here's an example of a custom action that logs the metadata
+    for the current step:
+
+    ```python
+    import pointblank as pb
+
+    def log_issue():
+        metadata = pb.get_action_metadata()
+        print(f"Type: {metadata['type']}, Step: {metadata['step']}")
+
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(warning=log_issue),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(
+            columns="session_duration",
+            value=15,
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Key pieces to note in the above example:
+
+    - `log_issue()` (the custom action) collects `metadata` by calling `get_action_metadata()`
+    - the `metadata` is a dictionary that is used to craft the log message
+    - the action is passed as a bare function to the `Actions` object within the `Validate` object
+    (placing it within `Validate(actions=)` ensures it's set as an action for every validation step)
+    
+
+get_validation_summary()
+Access validation summary information when authoring final actions.
+
+    This function provides a convenient way to access summary information about the validation
+    process within a final action. It returns a dictionary with key metrics from the validation
+    process.
+
+    Returns
+    -------
+    dict | None
+        A dictionary containing validation metrics, or None if called outside a final action.
+
+    Description of the Summary Fields
+    --------------------------------
+    The summary dictionary contains the following fields:
+
+    - `n_steps` (`int`): The total number of validation steps.
+    - `n_passing_steps` (`int`): The number of validation steps where all test units passed.
+    - `n_failing_steps` (`int`): The number of validation steps that had some failing test units.
+    - `n_warning_steps` (`int`): The number of steps that exceeded a 'warning' threshold.
+    - `n_error_steps` (`int`): The number of steps that exceeded an 'error' threshold.
+    - `n_critical_steps` (`int`): The number of steps that exceeded a 'critical' threshold.
+    - `list_passing_steps` (`list[int]`): List of step numbers where all test units passed.
+    - `list_failing_steps` (`list[int]`): List of step numbers for steps having failing test units.
+    - `dict_n` (`dict`): The number of test units for each validation step.
+    - `dict_n_passed` (`dict`): The number of test units that passed for each validation step.
+    - `dict_n_failed` (`dict`): The number of test units that failed for each validation step.
+    - `dict_f_passed` (`dict`): The fraction of test units that passed for each validation step.
+    - `dict_f_failed` (`dict`): The fraction of test units that failed for each validation step.
+    - `dict_warning` (`dict`): The 'warning' level status for each validation step.
+    - `dict_error` (`dict`): The 'error' level status for each validation step.
+    - `dict_critical` (`dict`): The 'critical' level status for each validation step.
+    - `all_passed` (`bool`): Whether or not every validation step had no failing test units.
+    - `highest_severity` (`str`): The highest severity level encountered during validation. This can
+      be one of the following: `"warning"`, `"error"`, or `"critical"`, `"some failing"`, or
+      `"all passed"`.
+    - `tbl_row_count` (`int`): The number of rows in the target table.
+    - `tbl_column_count` (`int`): The number of columns in the target table.
+    - `tbl_name` (`str`): The name of the target table.
+    - `validation_duration` (`float`): The duration of the validation in seconds.
+
+    Note that the summary dictionary is only available within the context of a final action. If
+    called outside of a final action (i.e., when no final action is being executed), this function
+    will return `None`.
+
+    Examples
+    --------
+    Final actions are executed after the completion of all validation steps. They provide an
+    opportunity to take appropriate actions based on the overall validation results. Here's an
+    example of a final action function (`send_report()`) that sends an alert when critical
+    validation failures are detected:
+
+    ```python
+    import pointblank as pb
+
+    def send_report():
+        summary = pb.get_validation_summary()
+        if summary["highest_severity"] == "critical":
+            # Send an alert email
+            send_alert_email(
+                subject=f"CRITICAL validation failures in {summary['tbl_name']}",
+                body=f"{summary['n_critical_steps']} steps failed with critical severity."
+            )
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_report)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    Note that `send_alert_email()` in the example above is a placeholder function that would be
+    implemented by the user to send email alerts. This function is not provided by the Pointblank
+    package.
+
+    The `get_validation_summary()` function can also be used to create custom reporting for
+    validation results:
+
+    ```python
+    def log_validation_results():
+        summary = pb.get_validation_summary()
+
+        print(f"Validation completed with status: {summary['highest_severity'].upper()}")
+        print(f"Steps: {summary['n_steps']} total")
+        print(f"  - {summary['n_passing_steps']} passing, {summary['n_failing_steps']} failing")
+        print(
+            f"  - Severity: {summary['n_warning_steps']} warnings, "
+            f"{summary['n_error_steps']} errors, "
+            f"{summary['n_critical_steps']} critical"
+        )
+
+        if summary['highest_severity'] in ["error", "critical"]:
+            print("⚠️ Action required: Please review failing validation steps!")
+    ```
+
+    Final actions work well with both simple logging and more complex notification systems, allowing
+    you to integrate validation results into your broader data quality workflows.
+    
+
+config(report_incl_header: 'bool' = True, report_incl_footer: 'bool' = True, preview_incl_header: 'bool' = True) -> 'PointblankConfig'
+
+    Configuration settings for the Pointblank library.
+
+    Parameters
+    ----------
+    report_incl_header
+        This controls whether the header should be present in the validation table report. The
+        header contains the table name, label information, and might contain global failure
+        threshold levels (if set).
+    report_incl_footer
+        Should the footer of the validation table report be displayed? The footer contains the
+        starting and ending times of the interrogation.
+    preview_incl_header
+        Whether the header should be present in any preview table (generated via the
+        [`preview()`](`pointblank.preview`) function).
+
+    Returns
+    -------
+    PointblankConfig
+        A `PointblankConfig` object with the specified configuration settings.
+    
+
+
+## The Prebuilt Actions family
+
+The Prebuilt Actions group contains a function that can be used to
+send a Slack notification when validation steps exceed failure threshold levels or just to provide a
+summary of the validation results, including the status, number of steps, passing and failing steps,
+table information, and timing details.
+
+send_slack_notification(webhook_url: 'str | None' = None, step_msg: 'str | None' = None, summary_msg: 'str | None' = None, debug: 'bool' = False) -> 'Callable'
+
+    Creates a Slack notification function using a webhook URL.
+
+    This function can be used in two ways:
+
+    1. With `Actions` to notify about individual validation step failures
+    2. With `FinalActions` to provide a summary after all validation steps complete
+
+    The function creates a callable that sends notifications through a Slack webhook. Message
+    formatting can be customized using templates for both individual steps and summary reports.
+
+    Parameters
+    ----------
+    webhook_url
+        The Slack webhook URL. If `None`, performs a dry run.
+    step_msg
+        Template string for step notifications. Some of the available variables include: `"{step}"`,
+        `"{column}"`, `"{value}"`, `"{type}"`, `"{time}"`, `"{level}"`, etc. See the *Available
+        Template Variables for Step Notifications* section below for more details.
+    summary_msg
+        Template string for summary notifications. Some of the available variables are:
+        `"{n_steps}"`, `"{n_passing_steps}"`, `"{n_failing_steps}"`, `"{all_passed}"`,
+        `"{highest_severity}"`, etc. See the *Available Template Variables for Summary
+        Notifications* section below for more details.
+    debug
+        Print debug information and message previews.
+
+    Returns
+    -------
+    Callable
+        A function that sends notifications to Slack.
+
+    Available Template Variables for Step Notifications
+    ---------------------------------------------------
+    When creating a custom template for validation step alerts (`step_msg=`), the following
+    templating strings can be used:
+
+    - `"{step}"`: The step number.
+    - `"{column}"`: The column name.
+    - `"{value}"`: The value being compared (only available in certain validation steps).
+    - `"{type}"`: The assertion type (e.g., `"col_vals_gt"`, etc.).
+    - `"{level}"`: The severity level (`"warning"`, `"error"`, or `"critical"`).
+    - `"{level_num}"`: The severity level as a numeric value (`30`, `40`, or `50`).
+    - `"{autobrief}"`: A localized and brief statement of the expectation for the step.
+    - `"{failure_text}"`: Localized text that explains how the validation step failed.
+    - `"{time}"`: The time of the notification.
+
+    Here's an example of how to construct a `step_msg=` template:
+
+    ```python
+    step_msg = \"\"\"🚨 *Validation Step Alert*
+    • Step Number: {step}
+    • Column: {column}
+    • Test Type: {type}
+    • Value Tested: {value}
+    • Severity: {level} (level {level_num})
+    • Brief: {autobrief}
+    • Details: {failure_text}
+    • Time: {time}\"\"\"
+    ```
+
+    This template will be filled with the relevant information when a validation step fails. The
+    placeholders will be replaced with actual values when the Slack notification is sent.
+
+    Available Template Variables for Summary Notifications
+    ------------------------------------------------------
+    When creating a custom template for a validation summary (`summary_msg=`), the following
+    templating strings can be used:
+
+    - `"{n_steps}"`: The total number of validation steps.
+    - `"{n_passing_steps}"`: The number of validation steps where all test units passed.
+    - `"{n_failing_steps}"`: The number of validation steps that had some failing test units.
+    - `"{n_warning_steps}"`: The number of steps that exceeded a 'warning' threshold.
+    - `"{n_error_steps}"`: The number of steps that exceeded an 'error' threshold.
+    - `"{n_critical_steps}"`: The number of steps that exceeded a 'critical' threshold.
+    - `"{all_passed}"`: Whether or not every validation step had no failing test units.
+    - `"{highest_severity}"`: The highest severity level encountered during validation. This can be
+    one of the following: `"warning"`, `"error"`, or `"critical"`, `"some failing"`, or
+    `"all passed"`.
+    - `"{tbl_row_count}"`: The number of rows in the target table.
+    - `"{tbl_column_count}"`: The number of columns in the target table.
+    - `"{tbl_name}"`: The name of the target table.
+    - `"{validation_duration}"`: The duration of the validation in seconds.
+    - `"{time}"`: The time of the notification.
+
+    Here's an example of how to put together a `summary_msg=` template:
+
+    ```python
+    summary_msg = \"\"\"📊 *Validation Summary Report*
+    *Overview*
+    • Status: {highest_severity}
+    • All Passed: {all_passed}
+    • Total Steps: {n_steps}
+
+    *Step Results*
+    • Passing Steps: {n_passing_steps}
+    • Failing Steps: {n_failing_steps}
+    • Warning Level: {n_warning_steps}
+    • Error Level: {n_error_steps}
+    • Critical Level: {n_critical_steps}
+
+    *Table Info*
+    • Table Name: {tbl_name}
+    • Row Count: {tbl_row_count}
+    • Column Count: {tbl_column_count}
+
+    *Timing*
+    • Duration: {validation_duration}s
+    • Completed: {time}\"\"\"
+    ```
+
+    This template will be filled with the relevant information when the validation summary is
+    generated. The placeholders will be replaced with actual values when the Slack notification is
+    sent.
+
+    Offline Testing
+    ---------------
+    If you want to test the function without sending actual notifications, you can leave the
+    `webhook_url` as `None` and set `debug=True`. This will print the message to the console
+    instead of sending it to Slack. This is useful for debugging and ensuring that your templates
+    are formatted correctly. Furthermore, the function could be run globally (i.e., outside of the
+    context of a validation plan) to show the message templates with all possible variables. Here's
+    an example of how to do this:
+
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function
+    notify_slack = pb.send_slack_notification(
+        webhook_url=None,  # Leave as None for dry run
+        debug=True,  # Enable debug mode to print message previews
+    )
+    # Call the function to see the message previews
+    notify_slack()
+    ```
+
+    This will print the step and summary message previews to the console, allowing you to see how
+    the templates will look when filled with actual data. You can then adjust your templates as
+    needed before using them in a real validation plan.
+
+    When `step_msg=` and `summary_msg=` are not provided, the function will use default templates.
+    However, you can customize the templates to include additional information or change the format
+    to better suit your needs. Iterating on the templates can help you create more informative and
+    visually appealing messages. Here's an example of that:
+
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function with custom templates
+    notify_slack = pb.send_slack_notification(
+        webhook_url=None, # Leave as None for dry run
+        step_msg=\"\"\"*Data Validation Alert*
+        • Type: {type}
+        • Level: {level}
+        • Step: {step}
+        • Column: {column}
+        • Time: {time}\"\"\",
+        summary_msg=\"\"\"*Data Validation Summary*
+        • Highest Severity: {highest_severity}
+        • Total Steps: {n_steps}
+        • Failed Steps: {n_failing_steps}
+        • Time: {time}\"\"\",
+        debug=True,  # Enable debug mode to print message previews
+    )
+    ```
+
+    These templates will be used with sample data when the function is called. The combination of
+    `webhook_url=None` and `debug=True` allows you to test your custom templates without having to
+    send actual notifications to Slack.
+
+    Examples
+    --------
+    When using an Action with one or more validation steps, you typically provide callables that
+    fire when a matched threshold of failed test units is exceeded. The callable can be
+    a function or a lambda. The `send_slack_notification()` function creates a callable that sends
+    a Slack notification when the validation step fails. Here is how it can be set up to work for
+    multiple validation steps:
+
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function
+    notify_slack = pb.send_slack_notification(
+        webhook_url="https://hooks.slack.com/services/your/webhook/url"
+    )
+    # Create a validation plan
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(critical=notify_slack),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(columns="session_duration", value=15)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    By placing the `notify_slack` function in the `Validate(actions=Actions(critical=))` argument,
+    you can ensure that the notification is sent whenever the 'critical' threshold is reached (as
+    set here, when 15% or more of the test units fail). The notification will include information
+    about the validation step that triggered the alert.
+
+    When using a `FinalActions` object, the notification will be sent after all validation steps
+    have been completed. This is useful for providing a summary of the validation process. Here is
+    an example of how to set up a summary notification:
+    ```python
+    import pointblank as pb
+
+    # Create a Slack notification function
+    notify_slack = pb.send_slack_notification(
+        webhook_url="https://hooks.slack.com/services/your/webhook/url"
+    )
+    # Create a validation plan
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            final_actions=pb.FinalActions(notify_slack),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(columns="session_duration", value=15)
+        .interrogate()
+    )
+    ```
+
+    In this case, the same `notify_slack` function is used, but it is placed in
+    `Validate(final_actions=FinalActions())`. This results in the summary notification being sent
+    after all validation steps are completed, regardless of whether any steps failed or not.
+
+    This simplicity is possible because the `send_slack_notification()` function creates a callable
+    that can be used in both contexts. The function will automatically determine whether to send a
+    step notification or a summary notification based on the context in which it is called.
+
+    We can customize the message templates for both step and summary notifications. In that way,
+    it's possible to create a more informative and visually appealing message. For example, we can
+    use Markdown formatting to make the message more readable and visually appealing. Here is an
+    example of how to customize the templates:
+
+    ```python
+    import pointblank as pb
+    # Create a Slack notification function
+
+    notify_slack = pb.send_slack_notification(
+        webhook_url="https://hooks.slack.com/services/your/webhook/url",
+        step_msg=\"\"\"
+        🚨 *Validation Step Alert*
+        • Step Number: {step}
+        • Column: {column}
+        • Test Type: {type}
+        • Value Tested: {value}
+        • Severity: {level} (level {level_num})
+        • Brief: {autobrief}
+        • Details: {failure_text}
+        • Time: {time}\"\"\",
+        summary_msg=\"\"\"
+        📊 *Validation Summary Report*
+        *Overview*
+        • Status: {highest_severity}
+        • All Passed: {all_passed}
+        • Total Steps: {n_steps}
+
+        *Step Results*
+        • Passing Steps: {n_passing_steps}
+        • Failing Steps: {n_failing_steps}
+        • Warning Level: {n_warning_steps}
+        • Error Level: {n_error_steps}
+        • Critical Level: {n_critical_steps}
+
+        *Table Info*
+        • Table Name: {tbl_name}
+        • Row Count: {tbl_row_count}
+        • Column Count: {tbl_column_count}
+
+        *Timing*
+        • Duration: {validation_duration}s
+        • Completed: {time}\"\"\",
+    )
+
+    # Create a validation plan
+    validation = (
+        pb.Validate(
+            data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+            actions=pb.Actions(default=notify_slack),
+            final_actions=pb.FinalActions(notify_slack),
+        )
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_gt(columns="item_revenue", value=0.05)
+        .col_vals_gt(columns="session_duration", value=15)
+        .interrogate()
+    )
+    ```
+
+    In this example, we have customized the templates for both step and summary notifications. The
+    step notification includes details about the validation step, including the step number,
+    column name, test type, value tested, severity level, brief description, and time of the
+    notification. The summary notification includes an overview of the validation process,
+    including the status, number of steps, passing and failing steps, table information, and
+    timing details.
+    
 
 
 
@@ -7827,5 +8559,4 @@ validation = (
 
 validation
 ```
-
 
