@@ -2099,6 +2099,7 @@ class Validate:
     - Polish (`"pl"`)
     - Czech (`"cs"`)
     - Romanian (`"ro"`)
+    - Greek (`"el"`)
     - Russian (`"ru"`)
     - Turkish (`"tr"`)
     - Arabic (`"ar"`)
