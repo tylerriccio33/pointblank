@@ -24,6 +24,7 @@ from pointblank._constants import (
     ASSERTION_TYPE_METHOD_MAP,
     CHECK_MARK_SPAN,
     COMPARISON_OPERATORS,
+    COMPARISON_OPERATORS_AR,
     COMPATIBLE_DTYPES,
     CROSS_MARK_SPAN,
     IBIS_BACKENDS,
@@ -31,6 +32,7 @@ from pointblank._constants import (
     METHOD_CATEGORY_MAP,
     REPORTING_LANGUAGES,
     ROW_BASED_VALIDATION_TYPES,
+    RTL_LANGUAGES,
     SEVERITY_LEVEL_COLORS,
     SVG_ICONS_FOR_ASSERTION_TYPES,
     SVG_ICONS_FOR_TBL_STATUS,
@@ -2099,6 +2101,7 @@ class Validate:
     - Romanian (`"ro"`)
     - Russian (`"ru"`)
     - Turkish (`"tr"`)
+    - Arabic (`"ar"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
     - Japanese (`"ja"`)
@@ -8362,6 +8365,32 @@ class Validate:
         # Get the locale for the report
         locale = self.locale
 
+        # Define the order of columns
+        column_order = [
+            "status_color",
+            "i",
+            "type_upd",
+            "columns_upd",
+            "values_upd",
+            "tbl",
+            "eval",
+            "test_units",
+            "pass",
+            "fail",
+            "w_upd",
+            "e_upd",
+            "c_upd",
+            "extract_upd",
+        ]
+
+        if lang in RTL_LANGUAGES:
+            # Reverse the order of the columns for RTL languages
+            column_order.reverse()
+
+        # Set up before/after to left/right mapping depending on the language (LTR or RTL)
+        before = "left" if lang not in RTL_LANGUAGES else "right"
+        after = "right" if lang not in RTL_LANGUAGES else "left"
+
         # Determine if there are any validation steps
         no_validation_steps = len(self.validation_info) == 0
 
@@ -8415,13 +8444,13 @@ class Validate:
                 GT(df, id="pb_tbl")
                 .fmt_markdown(columns=["pass", "fail", "extract_upd"])
                 .opt_table_font(font=google_font(name="IBM Plex Sans"))
-                .opt_align_table_header(align="left")
+                .opt_align_table_header(align=before)
                 .tab_style(style=style.css("height: 20px;"), locations=loc.body())
                 .tab_style(
                     style=style.text(weight="bold", color="#666666"), locations=loc.column_labels()
                 )
                 .tab_style(
-                    style=style.text(size="28px", weight="bold", align="left", color="#444444"),
+                    style=style.text(size="28px", weight="bold", align=before, color="#444444"),
                     locations=loc.title(),
                 )
                 .tab_style(
@@ -8432,6 +8461,10 @@ class Validate:
                     ],
                     locations=loc.body(),
                 )
+                .tab_style(
+                    style=style.text(align=before),
+                    locations=[loc.title(), loc.subtitle(), loc.footer()],
+                )
                 .cols_label(
                     cases={
                         "status_color": "",
@@ -8441,9 +8474,9 @@ class Validate:
                         "values_upd": VALIDATION_REPORT_TEXT["report_col_values"][lang],
                         "tbl": "TBL",
                         "eval": "EVAL",
-                        "test_units": "UNITS",
-                        "pass": "PASS",
-                        "fail": "FAIL",
+                        "test_units": VALIDATION_REPORT_TEXT["report_col_units"][lang],
+                        "pass": VALIDATION_REPORT_TEXT["report_col_pass"][lang],
+                        "fail": VALIDATION_REPORT_TEXT["report_col_fail"][lang],
                         "w_upd": "W",
                         "e_upd": "E",
                         "c_upd": "C",
@@ -8473,32 +8506,18 @@ class Validate:
                     columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"],
                 )
                 .cols_align(align="right", columns=["test_units", "pass", "fail"])
-                .cols_move_to_start(
-                    [
-                        "status_color",
-                        "i",
-                        "type_upd",
-                        "columns_upd",
-                        "values_upd",
-                        "tbl",
-                        "eval",
-                        "test_units",
-                        "pass",
-                        "fail",
-                        "w_upd",
-                        "e_upd",
-                        "c_upd",
-                        "extract_upd",
-                    ]
-                )
+                .cols_align(align=before, columns=["type_upd", "columns_upd", "values_upd"])
+                .cols_move_to_start(columns=column_order)
                 .tab_options(table_font_size="90%")
                 .tab_source_note(
-                    source_note=html(
-                        "Use validation methods (like <code>col_vals_gt()</code>) to add"
-                        " steps to the validation plan."
-                    )
+                    source_note=VALIDATION_REPORT_TEXT["use_validation_methods_text"][lang]
                 )
             )
+
+            if lang in RTL_LANGUAGES:
+                gt_tbl = gt_tbl.tab_style(
+                    style=style.css("direction: rtl;"), locations=loc.source_notes()
+                )
 
             if incl_header:
                 gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
@@ -8526,6 +8545,7 @@ class Validate:
             assertion_str=validation_info_dict["assertion_type"],
             brief_str=validation_info_dict["brief"],
             autobrief_str=validation_info_dict["autobrief"],
+            lang=lang,
         )
 
         # Remove the `brief` entry from the dictionary
@@ -8904,7 +8924,7 @@ class Validate:
             GT(df, id="pb_tbl")
             .fmt_markdown(columns=["pass", "fail", "extract_upd"])
             .opt_table_font(font=google_font(name="IBM Plex Sans"))
-            .opt_align_table_header(align="left")
+            .opt_align_table_header(align=before)
             .tab_style(style=style.css("height: 40px;"), locations=loc.body())
             .tab_style(
                 style=style.text(weight="bold", color="#666666", size="13px"),
@@ -8914,7 +8934,7 @@ class Validate:
                 style=style.text(weight="bold", color="#666666"), locations=loc.column_labels()
             )
             .tab_style(
-                style=style.text(size="28px", weight="bold", align="left", color="#444444"),
+                style=style.text(size="28px", weight="bold", align=before, color="#444444"),
                 locations=loc.title(),
             )
             .tab_style(
@@ -8926,24 +8946,32 @@ class Validate:
                 ),
             )
             .tab_style(
-                style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
+                locations=loc.body(columns=["w_upd", "e_upd", "c_upd"]),
+            )
+            .tab_style(
+                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
+                locations=loc.body(columns=["tbl", "eval"]),
+            )
+            .tab_style(
+                style=style.borders(sides=before, color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=["columns_upd", "values_upd"]),
             )
             .tab_style(
+                style=style.text(align=before),
+                locations=[loc.title(), loc.subtitle(), loc.footer()],
+            )
+            .tab_style(
                 style=style.borders(
-                    sides="left",
+                    sides=before,
                     color="#E5E5E5",
                     style="dashed" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns=["pass", "fail"]),
             )
             .tab_style(
-                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
-                locations=loc.body(columns=["w_upd", "e_upd", "c_upd"]),
-            )
-            .tab_style(
                 style=style.borders(
-                    sides="right",
+                    sides=after,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
@@ -8951,26 +8979,22 @@ class Validate:
             )
             .tab_style(
                 style=style.borders(
-                    sides="left",
+                    sides=before,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns="w_upd"),
             )
             .tab_style(
-                style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
-                locations=loc.body(columns=["tbl", "eval"]),
-            )
-            .tab_style(
                 style=style.borders(
-                    sides="right",
+                    sides=after,
                     color="#D3D3D3",
                     style="solid" if interrogation_performed else "none",
                 ),
                 locations=loc.body(columns="eval"),
             )
             .tab_style(
-                style=style.borders(sides="left", color="#D3D3D3", style="solid"),
+                style=style.borders(sides=before, color="#D3D3D3", style="solid"),
                 locations=loc.body(columns="tbl"),
             )
             .tab_style(
@@ -8996,9 +9020,9 @@ class Validate:
                     "values_upd": VALIDATION_REPORT_TEXT["report_col_values"][lang],
                     "tbl": "TBL",
                     "eval": "EVAL",
-                    "test_units": "UNITS",
-                    "pass": "PASS",
-                    "fail": "FAIL",
+                    "test_units": VALIDATION_REPORT_TEXT["report_col_units"][lang],
+                    "pass": VALIDATION_REPORT_TEXT["report_col_pass"][lang],
+                    "fail": VALIDATION_REPORT_TEXT["report_col_fail"][lang],
                     "w_upd": "W",
                     "e_upd": "E",
                     "c_upd": "C",
@@ -9027,24 +9051,8 @@ class Validate:
                 align="center", columns=["tbl", "eval", "w_upd", "e_upd", "c_upd", "extract_upd"]
             )
             .cols_align(align="right", columns=["test_units", "pass", "fail"])
-            .cols_move_to_start(
-                [
-                    "status_color",
-                    "i",
-                    "type_upd",
-                    "columns_upd",
-                    "values_upd",
-                    "tbl",
-                    "eval",
-                    "test_units",
-                    "pass",
-                    "fail",
-                    "w_upd",
-                    "e_upd",
-                    "c_upd",
-                    "extract_upd",
-                ]
-            )
+            .cols_align(align=before, columns=["type_upd", "columns_upd", "values_upd"])
+            .cols_move_to_start(columns=column_order)
             .tab_options(table_font_size="90%")
         )
 
@@ -9914,7 +9922,10 @@ def _create_text_comparison(
 ) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
-    operator = COMPARISON_OPERATORS[assertion_type]
+    if lang == "ar":  # pragma: no cover
+        operator = COMPARISON_OPERATORS_AR[assertion_type]
+    else:
+        operator = COMPARISON_OPERATORS[assertion_type]
 
     column_text = _prep_column_text(column=column)
 
@@ -10217,19 +10228,35 @@ def _get_title_text(
     if interrogation_performed:
         return title
 
-    html_str = (
-        "<div>"
-        '<span style="float: left;">'
-        f"{title}"
-        "</span>"
-        '<span style="float: right; text-decoration-line: underline; '
-        "text-underline-position: under;"
-        "font-size: 16px; text-decoration-color: #9C2E83;"
-        'padding-top: 0.1em; padding-right: 0.4em;">'
-        "No Interrogation Peformed"
-        "</span>"
-        "</div>"
-    )
+    no_interrogation_text = VALIDATION_REPORT_TEXT["no_interrogation_performed_text"][lang]
+
+    # If no interrogation was performed, return title text indicating that
+    if lang not in RTL_LANGUAGES:
+        html_str = (
+            "<div>"
+            f'<span style="float: left;">'
+            f"{title}"
+            "</span>"
+            f'<span style="float: right; text-decoration-line: underline; '
+            "text-underline-position: under;"
+            "font-size: 16px; text-decoration-color: #9C2E83;"
+            'padding-top: 0.1em; padding-right: 0.4em;">'
+            f"{no_interrogation_text}"
+            "</span>"
+            "</div>"
+        )
+    else:
+        html_str = (
+            "<div>"
+            f'<span style="float: left; text-decoration-line: underline; '
+            "text-underline-position: under;"
+            "font-size: 16px; text-decoration-color: #9C2E83;"
+            'padding-top: 0.1em; padding-left: 0.4em;">'
+            f"{no_interrogation_text}"
+            "</span>"
+            f'<span style="float: right;">{title}</span>'
+            "</div>"
+        )
 
     return html_str
 
@@ -10375,27 +10402,34 @@ def _transform_w_e_c(values, color, interrogation_performed):
 
 
 def _transform_assertion_str(
-    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str]
+    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str], lang: str
 ) -> list[str]:
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
+
     # Append `()` to the `assertion_str`
     assertion_str = [x + "()" for x in assertion_str]
 
     # Make every None value in `brief_str` an empty string
     brief_str = ["" if x is None else x for x in brief_str]
 
-    # If the template text `{auto}` is in the `brief_str` then replace it with the corresponding
-    # `autobrief_str` entry
-    brief_str = [
-        brief_str[i].replace("{auto}", autobrief_str[i])
-        if "{auto}" in brief_str[i]
-        else brief_str[i]
-        for i in range(len(brief_str))
-    ]
+    # If the `autobrief_str` list contains only None values, then set `brief_str` to a
+    # list of empty strings (this is the case when `interrogate()` hasn't be called)`
+    if all(x is None for x in autobrief_str):
+        autobrief_str = [""] * len(brief_str)
 
-    # Use Markdown-to-HTML conversion to format the `brief_str` text
-    brief_str = [commonmark.commonmark(x) for x in brief_str]
+    else:
+        # If the template text `{auto}` is in the `brief_str` then replace it with
+        # the corresponding `autobrief_str` entry
+        brief_str = [
+            brief_str[i].replace("{auto}", autobrief_str[i])
+            if "{auto}" in brief_str[i]
+            else brief_str[i]
+            for i in range(len(brief_str))
+        ]
+
+        # Use Markdown-to-HTML conversion to format the `brief_str` text
+        brief_str = [commonmark.commonmark(x) for x in brief_str]
 
     # Obtain the number of characters contained in the assertion
     # string; this is important for sizing components appropriately
@@ -10404,9 +10438,12 @@ def _transform_assertion_str(
     # Declare the text size based on the length of `assertion_str`
     text_size = [10 if nchar + 2 >= 20 else 11 for nchar in assertion_type_nchar]
 
+    # Prepare the CSS style for right-to-left languages
+    rtl_css_style = " direction: rtl;" if lang in RTL_LANGUAGES else ""
+
     # Define the brief's HTML div tag for each row
     brief_divs = [
-        f"<div style=\"font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;\">{brief}</div>"
+        f"<div style=\"font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;{rtl_css_style}\">{brief}</div>"
         if brief.strip()
         else ""
         for brief in brief_str
