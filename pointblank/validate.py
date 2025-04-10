@@ -10225,6 +10225,8 @@ def _get_title_text(
     if interrogation_performed:
         return title
 
+    no_interrogation_text = VALIDATION_REPORT_TEXT["no_interrogation_performed_text"][lang]
+
     # If no interrogation was performed, return title text indicating that
     if lang not in RTL_LANGUAGES:
         html_str = (
@@ -10236,7 +10238,7 @@ def _get_title_text(
             "text-underline-position: under;"
             "font-size: 16px; text-decoration-color: #9C2E83;"
             'padding-top: 0.1em; padding-right: 0.4em;">'
-            "No Interrogation Performed"
+            f"{no_interrogation_text}"
             "</span>"
             "</div>"
         )
@@ -10247,7 +10249,7 @@ def _get_title_text(
             "text-underline-position: under;"
             "font-size: 16px; text-decoration-color: #9C2E83;"
             'padding-top: 0.1em; padding-left: 0.4em;">'
-            "No Interrogation Peformed"
+            f"{no_interrogation_text}"
             "</span>"
             f'<span style="float: right;">{title}</span>'
             "</div>"
