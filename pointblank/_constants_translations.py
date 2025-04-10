@@ -24,6 +24,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Forskilyrði beitt",
         "ar": "تم تطبيق الشرط المسبق",
         "hi": "पूर्व शर्त लागू की गई",
+        "el": "Εφαρμόστηκε προϋπόθεση",
     },
     "column_computed_text": {
         "en": "computed column",
@@ -50,6 +51,7 @@ EXPECT_FAIL_TEXT = {
         "is": "reiknaður dálkur",
         "ar": "عمود محسوب",
         "hi": "परिकलित स्तंभ",
+        "el": "υπολογισμένη στήλη",
     },
     "values_text": {
         "en": "and {num_omitted} more",
@@ -76,6 +78,7 @@ EXPECT_FAIL_TEXT = {
         "is": "og {num_omitted} fleiri",
         "ar": "و{num_omitted} أكثر",
         "hi": "और {num_omitted} अधिक",
+        "el": "και {num_omitted} περισσότερα",
     },
     "compare_expectation_text": {
         "en": "Expect that values in {column_text} should be {operator} {values_text}.",
@@ -102,6 +105,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} séu {operator} {values_text}.",
         "ar": "توقع أن القيم في {column_text} تحقق الشرط التالي: ({operator} {values_text})",
         "hi": "अपेक्षा है कि {column_text} में मान {operator} {values_text} होने चाहिए।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να είναι {operator} {values_text}.",
     },
     "compare_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been {operator} {values_text}.",
@@ -128,6 +132,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera {operator} {values_text}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تحقق القيم في {column_text} الشرط التالي: ({operator} {values_text})",
         "hi": "{column_text} में मान {operator} {values_text} होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} θα έπρεπε να ήταν {operator} {values_text}.",
     },
     "in_set_expectation_text": {
         "en": "Expect that values in {column_text} should be in the set of {values_text}.",
@@ -154,6 +159,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} séu í mengi {values_text}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تكون القيم في {column_text} ضمن مجموعة {values_text}.",
         "hi": "अपेक्षा है कि {column_text} में मान {values_text} समूह में होने चाहिए।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να ανήκουν στο σύνολο {values_text}.",
     },
     "in_set_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been in the set of {values_text}.",
@@ -180,6 +186,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera í mengi {values_text}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تكون القيم في {column_text} ضمن مجموعة {values_text}.",
         "hi": "{column_text} में मान {values_text} समूह में होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} θα έπρεπε να ανήκουν στο σύνολο {values_text}.",
     },
     "not_in_set_expectation_text": {
         "en": "Expect that values in {column_text} should not be in the set of {values_text}.",
@@ -206,6 +213,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} séu ekki í mengi {values_text}.",
         "ar": "توقع أن القيم في {column_text} يجب ألا تكون ضمن مجموعة {values_text}.",
         "hi": "अपेक्षा है कि {column_text} में मान {values_text} समूह में नहीं होने चाहिए।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να μην ανήκουν στο σύνολο {values_text}.",
     },
     "not_in_set_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been in the set of {values_text}.",
@@ -232,6 +240,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera í mengi {values_text}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب ألا تكون القيم في {column_text} ضمن مجموعة {values_text}.",
         "hi": "{column_text} में मान {values_text} समूह में नहीं होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} δε θα έπρεπε να ανήκουν στο σύνολο {values_text}.",
     },
     "between_expectation_text": {
         "en": "Expect that values in {column_text} should be between {value_1} and {value_2}.",
@@ -258,6 +267,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} séu á milli {value_1} og {value_2}.",
         "ar": "توقع أن تكون القيم في {column_text} بين {value_1} و {value_2}.",
         "hi": "अपेक्षा है कि {column_text} में मान {value_1} और {value_2} के बीच होने चाहिए।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να είναι μεταξύ {value_1} και {value_2}.",
     },
     "between_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been between {value_1} and {value_2}.",
@@ -284,6 +294,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera á milli {value_1} og {value_2}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تكون القيم في {column_text} بين {value_1} و {value_2}.",
         "hi": "{column_text} में मान {value_1} और {value_2} के बीच होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} θα έπρεπε να είναι μεταξύ {value_1} και {value_2}.",
     },
     "not_between_expectation_text": {
         "en": "Expect that values in {column_text} should not be between {value_1} and {value_2}.",
@@ -310,6 +321,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} séu ekki á milli {value_1} og {value_2}.",
         "ar": "توقع أن القيم في {column_text} يجب ألا تكون بين {value_1} و {value_2}.",
         "hi": "अपेक्षा है कि {column_text} में मान {value_1} और {value_2} के बीच नहीं होने चाहिए।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να μην είναι μεταξύ {value_1} και {value_2}.",
     },
     "not_between_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been between {value_1} and {value_2}.",
@@ -336,6 +348,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera á milli {value_1} og {value_2}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب ألا تكون القيم في {column_text} بين {value_1} و {value_2}.",
         "hi": "{column_text} में मान {value_1} और {value_2} के बीच नहीं होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} δε θα έπρεπε να είναι μεταξύ {value_1} και {value_2}.",
     },
     "null_expectation_text": {
         "en": "Expect that all values in {column_text} should be Null.",
@@ -362,6 +375,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að öll gildi í {column_text} séu Null.",
         "ar": "توقع أن جميع القيم في {column_text} يجب أن تكون خالية.",
         "hi": "अपेक्षा है कि {column_text} में सभी मान Null होने चाहिए।",
+        "el": "Αναμένεται όλες οι τιμές στη στήλη {column_text} να είναι Null.",
     },
     "null_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have been Null.",
@@ -388,6 +402,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að vera Null.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تكون القيم في {column_text} خالية.",
         "hi": "{column_text} में सभी मान Null होने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} θα έπρεπε να είναι Null.",
     },
     "not_null_expectation_text": {
         "en": "Expect that all values in {column_text} should not be Null.",
@@ -414,6 +429,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að engin gildi í {column_text} séu Null.",
         "ar": "توقع أن جميع القيم في {column_text} يجب ألا تكون خالية.",
         "hi": "अपेक्षा है कि {column_text} में सभी मान Null नहीं होने चाहिए।",
+        "el": "Αναμένεται όλες οι τιμές στη στήλη {column_text} να μην είναι Null.",
     },
     "not_null_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should not have been Null.",
@@ -440,6 +456,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu ekki átt að vera Null.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب ألا تكون القيم في {column_text} خالية.",
         "hi": "{column_text} में कोई भी मान Null नहीं होना चाहिए था, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} δε θα έπρεπε να είναι Null.",
     },
     "regex_expectation_text": {
         "en": "Expect that values in {column_text} should match the regular expression: {values_text}.",
@@ -466,6 +483,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi í {column_text} passi við reglulega segðina: {values_text}.",
         "ar": "توقع أن تتطابق القيم في {column_text} مع التعبير المنتظم: {values_text}.",
         "hi": "अपेक्षा है कि {column_text} में मान नियमित अभिव्यक्ति से मेल खाने चाहिए: {values_text}।",
+        "el": "Αναμένεται οι τιμές στη στήλη {column_text} να ταιριάζουν με την κανονική έκφραση: {values_text}.",
     },
     "regex_failure_text": {
         "en": "Exceedance of failed test units where values in {column_text} should have matched the regular expression: {values_text}.",
@@ -492,6 +510,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi í {column_text} hefðu átt að passa við reglulega segðina: {values_text}.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تتطابق القيم في {column_text} مع التعبير المنتظم: {values_text}.",
         "hi": "{column_text} में मान नियमित अभिव्यक्ति से मेल खाने चाहिए थे: {values_text}, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές στη στήλη {column_text} θα έπρεπε να ταιριάζουν με την κανονική έκφραση: {values_text}.",
     },
     "col_vals_expr_expectation_text": {
         "en": "Expect that values should agree with the given Python expression.",
@@ -518,6 +537,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að gildi samræmist gefnu Python-segðinni.",
         "ar": "توقع أن تتوافق القيم مع تعبير بايثون المعطى.",
         "hi": "अपेक्षा है कि मान दिए गए Python अभिव्यक्ति से मेल खाने चाहिए।",
+        "el": "Αναμένεται οι τιμές να συμφωνούν με τη δοθείσα έκφραση Python.",
     },
     "col_vals_expr_failure_text": {
         "en": "Exceedance of failed test units where values should have agreed with the given Python expression.",
@@ -544,6 +564,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem gildi hefðu átt að samræmast gefnu Python-segðinni.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث كان يجب أن تتوافق القيم مع تعبير بايثون المعطى.",
         "hi": "मान दिए गए Python अभिव्यक्ति से मेल खाने चाहिए थे, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου οι τιμές θα έπρεπε να συμφωνούν με τη δοθείσα έκφραση Python.",
     },
     "col_exists_expectation_text": {
         "en": "Expect that column {column_text} exists.",
@@ -570,6 +591,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að dálkurinn {column_text} sé til.",
         "ar": "توقع وجود العمود {column_text}.",
         "hi": "अपेक्षा है कि स्तंभ {column_text} मौजूद होना चाहिए।",
+        "el": "Αναμένεται η στήλη {column_text} να υπάρχει.",
     },
     "col_exists_failure_text": {
         "en": "Failure to validate that column {column_text} exists.",
@@ -596,6 +618,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Mistókst að staðfesta að dálkurinn {column_text} sé til.",
         "ar": "فشل في التحقق من وجود العمود {column_text}.",
         "hi": "स्तंभ {column_text} के अस्तित्व को सत्यापित करने में विफलता।",
+        "el": "Αποτυχία επιβεβαίωσης ότι η στήλη {column_text} υπάρχει.",
     },
     "all_row_distinct_expectation_text": {
         "en": "Expect entirely distinct rows across all columns.",
@@ -622,6 +645,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að allar raðir séu aðskildar yfir alla dálka.",
         "ar": "توقع صفوف متميزة تمامًا عبر جميع الأعمدة.",
         "hi": "अपेक्षा है कि सभी स्तंभों में पंक्तियां पूरी तरह से अलग होनी चाहिए।",
+        "el": "Αναμένεται πλήρως διακριτές γραμμές σε όλες τις στήλες.",
     },
     "all_row_distinct_failure_text": {
         "en": "Exceedance of failed test units where there weren't distinct rows across all columns.",
@@ -648,6 +672,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem raðir voru ekki aðskildar yfir alla dálka.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث لم تكن هناك صفوف متميزة عبر جميع الأعمدة.",
         "hi": "सभी स्तंभों में पंक्तियां पूरी तरह से अलग नहीं थीं, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου δεν υπήρχαν διακριτές γραμμές σε όλες τις στήλες.",
     },
     "across_row_distinct_expectation_text": {
         "en": "Expect entirely distinct rows across {column_text}.",
@@ -674,6 +699,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að allar raðir séu aðskildar yfir {column_text}.",
         "ar": "توقع صفوف متميزة تمامًا عبر {column_text}.",
         "hi": "अपेक्षा है कि {column_text} में पंक्तियां पूरी तरह से अलग होनी चाहिए।",
+        "el": "Αναμένεται πλήρως διακριτές γραμμές στις στήλες {column_text}.",
     },
     "across_row_distinct_failure_text": {
         "en": "Exceedance of failed test units where there weren't distinct rows across selected columns.",
@@ -700,6 +726,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Of mörg misheppnuð próf þar sem raðir voru ekki aðskildar yfir valda dálka.",
         "ar": "تجاوز وحدات الاختبار الفاشلة حيث لم تكن هناك صفوف متميزة عبر الأعمدة المحددة.",
         "hi": "चयनित स्तंभों में पंक्तियां पूरी तरह से अलग नहीं थीं, ऐसे असफल परीक्षण इकाइयों की अधिकता।",
+        "el": "Υπέρβαση αποτυχημένων μονάδων δοκιμής όπου δεν υπήρχαν διακριτές γραμμές στις επιλεγμένες στήλες.",
     },
     "col_schema_match_expectation_text": {
         "en": "Expect that column schemas match.",
@@ -726,6 +753,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að dálkaskema passi.",
         "ar": "توقع تطابق مخططات الأعمدة.",
         "hi": "अपेक्षा है कि स्तंभ योजनाएं मेल खानी चाहिए।",
+        "el": "Αναμένεται τα σχήματα των στηλών να ταιριάζουν.",
     },
     "col_schema_match_failure_text": {
         "en": "Failure to validate that column schemas match.",
@@ -752,6 +780,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Mistókst að staðfesta að dálkaskema passi.",
         "ar": "فشل في التحقق من تطابق مخططات الأعمدة.",
         "hi": "स्तंभ योजनाओं के मेल खाने को सत्यापित करने में विफलता।",
+        "el": "Αποτυχία επιβεβαίωσης ότι τα σχήματα των στηλών ταιριάζουν.",
     },
     "row_count_match_expectation_text": {
         "en": "Expect that row counts for two tables match.",
@@ -778,6 +807,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að raðafjöldi tveggja taflna passi.",
         "ar": "توقع تطابق عدد الصفوف للجدولين.",
         "hi": "अपेक्षा है कि दो तालिकाओं की पंक्ति संख्या मेल खानी चाहिए।",
+        "el": "Αναμένεται ο αριθμός γραμμών για τους δύο πίνακες να ταιριάζει.",
     },
     "row_count_match_failure_text": {
         "en": "Row counts for the two tables did not match.",
@@ -804,6 +834,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Raðafjöldi tveggja taflna passaði ekki.",
         "ar": "لم يتطابق عدد الصفوف للجدولين.",
         "hi": "दो तालिकाओं की पंक्ति संख्या मेल नहीं खाती।",
+        "el": "Ο αριθμός γραμμών για τους δύο πίνακες δεν ταίριαζε.",
     },
     "row_count_match_n_expectation_text": {
         "en": "Expect that the row count is exactly {values_text}.",
@@ -830,6 +861,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að raðafjöldi sé nákvæmlega {values_text}.",
         "ar": "توقع أن يكون عدد الصفوف بالضبط {values_text}.",
         "hi": "अपेक्षा है कि पंक्ति संख्या बिल्कुल {values_text} होनी चाहिए।",
+        "el": "Αναμένεται ο αριθμός γραμμών να είναι ακριβώς {values_text}.",
     },
     "row_count_match_n_failure_text": {
         "en": "The row count did not match {values_text}.",
@@ -856,6 +888,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Raðafjöldi passaði ekki við {values_text}.",
         "ar": "لم يتطابق عدد الصفوف مع {values_text}.",
         "hi": "पंक्ति संख्या {values_text} से मेल नहीं खाती।",
+        "el": "Ο αριθμός γραμμών δεν ταίριαζε με το {values_text}.",
     },
     "col_count_match_expectation_text": {
         "en": "Expect that column counts for two tables match.",
@@ -882,6 +915,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að dálkafjöldi tveggja taflna passi.",
         "ar": "توقع تطابق عدد الأعمدة للجدولين.",
         "hi": "अपेक्षा है कि दो तालिकाओं की स्तंभ संख्या मेल खानी चाहिए।",
+        "el": "Αναμένεται ο αριθμός στηλών για τους δύο πίνακες να ταιριάζει.",
     },
     "col_count_match_failure_text": {
         "en": "Column counts for the two tables did not match.",
@@ -908,6 +942,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Dálkafjöldi tveggja taflna passaði ekki.",
         "ar": "لم يتطابق عدد الأعمدة للجدولين.",
         "hi": "दो तालिकाओं की स्तंभ संख्या मेल नहीं खाती।",
+        "el": "Ο αριθμός στηλών για τους δύο πίνακες δεν ταίριαζε.",
     },
     "col_count_match_n_expectation_text": {
         "en": "Expect that the column count is exactly {values_text}.",
@@ -934,6 +969,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Væntir þess að dálkafjöldi sé nákvæmlega {values_text}.",
         "ar": "توقع أن يكون عدد الأعمدة بالضبط {values_text}.",
         "hi": "अपेक्षा है कि स्तंभ संख्या बिल्कुल {values_text} होनी चाहिए।",
+        "el": "Αναμένεται ο αριθμός στηλών να είναι ακριβώς {values_text}.",
     },
     "col_count_match_n_failure_text": {
         "en": "The column count did not match {values_text}.",
@@ -960,6 +996,7 @@ EXPECT_FAIL_TEXT = {
         "is": "Dálkafjöldi passaði ekki við {values_text}.",
         "ar": "لم يتطابق عدد الأعمدة مع {values_text}.",
         "hi": "स्तंभ संख्या {values_text} से मेल नहीं खाती।",
+        "el": "Ο αριθμός στηλών δεν ταίριαζε με το {values_text}.",
     },
 }
 
@@ -990,6 +1027,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Pointblank Gildisstaðfesting",
         "ar": "تحقق بوينتبلانك",
         "hi": "पॉइंटब्लैंक सत्यापन",
+        "el": "Επικύρωση Pointblank",
     },
     "pointblank_validation_plan_text": {
         "en": "Pointblank Validation Plan",
@@ -1016,6 +1054,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Pointblank Gildisstaðfestingaráætlun",
         "ar": "خطة تحقق بوينتبلانك",
         "hi": "पॉइंटब्लैंक सत्यापन योजना",
+        "el": "Σχέδιο Επικύρωσης Pointblank",
     },
     "no_interrogation_performed_text": {
         "en": "No Interrogation Performed",
@@ -1042,6 +1081,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Engin yfirheyrsla framkvæmd",
         "ar": "لم يتم إجراء استجواب",
         "hi": "कोई पूछताछ नहीं की गई",
+        "el": "Δεν πραγματοποιήθηκε ερώτηση",
     },
     "no_validation_steps_text": {
         "en": "NO VALIDATION STEPS",
@@ -1068,6 +1108,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "ENGIN GILDISSTAÐFESTINGARSKREF",
         "ar": "لا توجد خطوات تحقق",
         "hi": "कोई सत्यापन चरण नहीं",
+        "el": "ΧΩΡΙΣ ΒΗΜΑΤΑ ΕΠΙΚΥΡΩΣΗΣ",
     },
     "use_validation_methods_text": {
         "en": "Use validation methods to add steps to the validation plan.",
@@ -1094,6 +1135,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Notaðu gildisstaðfestingaraðferðir til að bæta skrefum við gildisstaðfestingaráætlunina.",
         "ar": "استخدم طرق التحقق لإضافة خطوات إلى خطة التحقق.",
         "hi": "सत्यापन योजना में चरण जोड़ने के लिए सत्यापन विधियों का उपयोग करें।",
+        "el": "Χρησιμοποιήστε μεθόδους επικύρωσης για να προσθέσετε βήματα στο σχέδιο επικύρωσης.",
     },
     "report_fail_rows_available": {
         "en": "There are {fail_rows_extract} 'fail' rows available as a CSV file.",
@@ -1120,6 +1162,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Það eru {fail_rows_extract} 'misheppnaðar' raðir fáanlegar sem CSV-skrá.",
         "ar": "هناك {fail_rows_extract} صفوف 'فاشلة' متاحة كملف CSV.",
         "hi": "CSV फ़ाइल के रूप में {fail_rows_extract} 'असफल' पंक्तियां उपलब्ध हैं।",
+        "el": "Υπάρχουν {fail_rows_extract} 'αποτυχημένες' γραμμές διαθέσιμες ως αρχείο CSV.",
     },
     "report_no_table_preconditions": {
         "en": "No modifications of the table.",
@@ -1146,6 +1189,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Engar breytingar á töflunni.",
         "ar": "لا تعديلات على الجدول.",
         "hi": "तालिका में कोई परिवर्तन नहीं।",
+        "el": "Καμία τροποποίηση του πίνακα.",
     },
     "report_some_table_preconditions": {
         "en": "The data table was modified for this step.",
@@ -1172,6 +1216,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Gagnataflan var breytt fyrir þetta skref.",
         "ar": "تم تعديل جدول البيانات لهذه الخطوة.",
         "hi": "इस चरण के लिए डेटा तालिका को संशोधित किया गया था।",
+        "el": "Ο πίνακας δεδομένων τροποποιήθηκε για αυτό το βήμα.",
     },
     "report_on_segmentation": {
         "en": "Using segment associated with value '{seg_val_x}' from column '{seg_col_x}'.",
@@ -1198,6 +1243,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Notar hluta tengt við gildið '{seg_val_x}' úr dálki '{seg_col_x}'.",
         "ar": "استخدام القطاع المرتبط بالقيمة '{seg_val_x}' من العمود '{seg_col_x}'.",
         "hi": "स्तंभ '{seg_col_x}' से मूल्य '{seg_val_x}' से जुड़े खंड का उपयोग कर रहा है।",
+        "el": "Χρησιμοποιείται τμήμα που σχετίζεται με την τιμή '{seg_val_x}' από τη στήλη '{seg_col_x}'.",
     },
     "report_no_evaluation_issues": {
         "en": "No evaluation issues.",
@@ -1224,6 +1270,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Engin matsleg vandamál.",
         "ar": "لا توجد مشكلات تقييم.",
         "hi": "कोई मूल्यांकन समस्या नहीं।",
+        "el": "Κανένα πρόβλημα αξιολόγησης.",
     },
     "report_col_step": {
         "en": "STEP",
@@ -1250,6 +1297,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "SKREF",
         "ar": "خطوة",
         "hi": "चरण",
+        "el": "ΒΗΜΑ",
     },
     "report_col_steps": {
         "en": "STEPS",
@@ -1276,6 +1324,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "SKREF",
         "ar": "خطوات",
         "hi": "चरण",
+        "el": "ΒΗΜΑΤΑ",
     },
     "report_col_columns": {
         "en": "COLUMNS",
@@ -1302,6 +1351,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "DÁLKAR",
         "ar": "أعمدة",
         "hi": "स्तंभ",
+        "el": "ΣΤΗΛΕΣ",
     },
     "report_col_values": {
         "en": "VALUES",
@@ -1328,6 +1378,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "GILDI",
         "ar": "قيم",
         "hi": "मान",
+        "el": "ΤΙΜΕΣ",
     },
     "report_col_units": {
         "en": "UNITS",
@@ -1354,6 +1405,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "EINH.",
         "ar": "وحدات",
         "hi": "इकाइयाँ",
+        "el": "ΜΟΝ.",
     },
     "report_col_pass": {
         "en": "PASS",
@@ -1380,6 +1432,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "STAÐ.",
         "ar": "ناجح",
         "hi": "सफल",
+        "el": "ΕΠΙΤ.",
     },
     "report_col_fail": {
         "en": "FAIL",
@@ -1406,6 +1459,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "FALL.",
         "ar": "فشل",
         "hi": "असफल",
+        "el": "ΑΠΟΤ.",
     },
     "report_column_schema": {
         "en": "SCHEMA",
@@ -1432,6 +1486,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "SKEMA",
         "ar": "مخطط",
         "hi": "स्कीमा",
+        "el": "ΣΧΗΜΑ",
     },
     "report_r_col_types": {
         "en": "Python TYPES",
@@ -1458,6 +1513,7 @@ VALIDATION_REPORT_TEXT = {
         "is": "Python TEGUNDIR",
         "ar": "أنواع بايثون",
         "hi": "Python प्रकार",
+        "el": "ΤΥΠΟΙ Python",
     },
     "report_r_sql_types": {
         "en": "SQL TYPES",
@@ -1484,5 +1540,6 @@ VALIDATION_REPORT_TEXT = {
         "is": "SQL TEGUNDIR",
         "ar": "أنواع SQL",
         "hi": "SQL प्रकार",
+        "el": "ΤΥΠΟΙ SQL",
     },
 }
