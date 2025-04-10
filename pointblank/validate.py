@@ -8383,13 +8383,13 @@ class Validate:
             "extract_upd",
         ]
 
-        if lang == "ar":
+        if lang in RTL_LANGUAGES:
             # Reverse the order of the columns for RTL languages
             column_order.reverse()
 
         # Set up before/after to left/right mapping depending on the language (LTR or RTL)
-        before = "left" if not lang == "ar" else "right"
-        after = "right" if not lang == "ar" else "left"
+        before = "left" if lang not in RTL_LANGUAGES else "right"
+        after = "right" if lang not in RTL_LANGUAGES else "left"
 
         # Determine if there are any validation steps
         no_validation_steps = len(self.validation_info) == 0
@@ -8510,12 +8510,14 @@ class Validate:
                 .cols_move_to_start(columns=column_order)
                 .tab_options(table_font_size="90%")
                 .tab_source_note(
-                    source_note=html(
-                        "Use validation methods (like <code>col_vals_gt()</code>) to add"
-                        " steps to the validation plan."
-                    )
+                    source_note=VALIDATION_REPORT_TEXT["use_validation_methods_text"][lang]
                 )
             )
+
+            if lang in RTL_LANGUAGES:
+                gt_tbl = gt_tbl.tab_style(
+                    style=style.css("direction: rtl;"), locations=loc.source_notes()
+                )
 
             if incl_header:
                 gt_tbl = gt_tbl.tab_header(title=html(title_text), subtitle=html(combined_subtitle))
