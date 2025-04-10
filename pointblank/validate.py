@@ -2102,6 +2102,7 @@ class Validate:
     - Russian (`"ru"`)
     - Turkish (`"tr"`)
     - Arabic (`"ar"`)
+    - Hindi (`"hi"`)
     - Simplified Chinese (`"zh-Hans"`)
     - Traditional Chinese (`"zh-Hant"`)
     - Japanese (`"ja"`)

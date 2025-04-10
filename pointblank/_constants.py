@@ -185,6 +185,7 @@ REPORTING_LANGUAGES = [
     "fi",
     "is",
     "ar",
+    "hi",
 ]
 
 RTL_LANGUAGES = [
