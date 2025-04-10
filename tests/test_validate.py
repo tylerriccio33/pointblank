@@ -21,6 +21,8 @@ import ibis
 import great_tables as GT
 import narwhals as nw
 
+from pointblank._constants import REPORTING_LANGUAGES
+
 from pointblank.validate import (
     Actions,
     FinalActions,
@@ -771,6 +773,39 @@ def test_validation_report_json_no_steps(request, tbl_fixture):
 
     assert Validate(tbl).get_json_report() == "[]"
     assert Validate(tbl).interrogate().get_json_report() == "[]"
+
+
+@pytest.mark.parametrize("lang", REPORTING_LANGUAGES)
+def test_validation_langs_all_working(lang):
+    validation = (
+        Validate(
+            data=load_dataset(dataset="small_table", tbl_type="polars"),
+            thresholds=Thresholds(warning=1, error=0.10, critical=0.15),
+            brief=True,
+            lang=lang,
+        )
+        .col_vals_lt(columns="c", value=0)
+        .col_vals_eq(columns="a", value=3)
+        .col_vals_ne(columns="c", value=10)
+        .col_vals_le(columns="a", value=7)
+        .col_vals_ge(columns="d", value=500, na_pass=True)
+        .col_vals_between(columns="c", left=0, right=5, na_pass=True)
+        .col_vals_outside(columns="a", left=0, right=9, inclusive=(False, True))
+        .col_vals_eq(columns="a", value=1)
+        .col_vals_in_set(columns="f", set=["lows", "mids", "highs"])
+        .col_vals_not_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_null(columns="c")
+        .col_vals_not_null(columns="c")
+        .col_vals_regex(columns="f", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns="z")
+        .rows_distinct()
+        .rows_distinct(columns_subset=["a", "b", "c"])
+        .col_count_match(count=14)
+        .row_count_match(count=20)
+        .interrogate()
+    )
+
+    assert isinstance(validation.get_tabular_report(), GT.GT)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
