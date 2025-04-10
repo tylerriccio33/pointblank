@@ -10406,23 +10406,30 @@ def _transform_assertion_str(
 ) -> list[str]:
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
+
     # Append `()` to the `assertion_str`
     assertion_str = [x + "()" for x in assertion_str]
 
     # Make every None value in `brief_str` an empty string
     brief_str = ["" if x is None else x for x in brief_str]
 
-    # If the template text `{auto}` is in the `brief_str` then replace it with the corresponding
-    # `autobrief_str` entry
-    brief_str = [
-        brief_str[i].replace("{auto}", autobrief_str[i])
-        if "{auto}" in brief_str[i]
-        else brief_str[i]
-        for i in range(len(brief_str))
-    ]
+    # If the `autobrief_str` list contains only None values, then set `brief_str` to a
+    # list of empty strings (this is the case when `interrogate()` hasn't be called)`
+    if all(x is None for x in autobrief_str):
+        autobrief_str = [""] * len(brief_str)
 
-    # Use Markdown-to-HTML conversion to format the `brief_str` text
-    brief_str = [commonmark.commonmark(x) for x in brief_str]
+    else:
+        # If the template text `{auto}` is in the `brief_str` then replace it with
+        # the corresponding `autobrief_str` entry
+        brief_str = [
+            brief_str[i].replace("{auto}", autobrief_str[i])
+            if "{auto}" in brief_str[i]
+            else brief_str[i]
+            for i in range(len(brief_str))
+        ]
+
+        # Use Markdown-to-HTML conversion to format the `brief_str` text
+        brief_str = [commonmark.commonmark(x) for x in brief_str]
 
     # Obtain the number of characters contained in the assertion
     # string; this is important for sizing components appropriately
