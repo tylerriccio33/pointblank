@@ -8545,6 +8545,7 @@ class Validate:
             assertion_str=validation_info_dict["assertion_type"],
             brief_str=validation_info_dict["brief"],
             autobrief_str=validation_info_dict["autobrief"],
+            lang=lang,
         )
 
         # Remove the `brief` entry from the dictionary
@@ -10401,7 +10402,7 @@ def _transform_w_e_c(values, color, interrogation_performed):
 
 
 def _transform_assertion_str(
-    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str]
+    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str], lang: str
 ) -> list[str]:
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
@@ -10430,9 +10431,12 @@ def _transform_assertion_str(
     # Declare the text size based on the length of `assertion_str`
     text_size = [10 if nchar + 2 >= 20 else 11 for nchar in assertion_type_nchar]
 
+    # Prepare the CSS style for right-to-left languages
+    rtl_css_style = " direction: rtl;" if lang in RTL_LANGUAGES else ""
+
     # Define the brief's HTML div tag for each row
     brief_divs = [
-        f"<div style=\"font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;\">{brief}</div>"
+        f"<div style=\"font-size: 9px; font-family: 'IBM Plex Sans'; text-wrap: balance; margin-top: 3px;{rtl_css_style}\">{brief}</div>"
         if brief.strip()
         else ""
         for brief in brief_str
