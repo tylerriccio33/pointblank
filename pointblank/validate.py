@@ -38,7 +38,11 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank._constants_translations import EXPECT_FAIL_TEXT, VALIDATION_REPORT_TEXT
+from pointblank._constants_translations import (
+    EXPECT_FAIL_TEXT,
+    STEP_REPORT_TEXT,
+    VALIDATION_REPORT_TEXT,
+)
 from pointblank._interrogation import (
     ColCountMatch,
     ColExistsHasType,
@@ -10692,11 +10696,11 @@ def _step_report_row_based(
         elements = ", ".join(values)
         text = f"{column} &NotElement; {{{elements}}}"
     elif assertion_type == "col_vals_regex":
-        text = f"{column} matches regex {values}"
+        text = STEP_REPORT_TEXT["column_matches_regex"][lang].format(column=column, values=values)
     elif assertion_type == "col_vals_null":
-        text = f"{column} is Null"
+        text = STEP_REPORT_TEXT["column_is_null"][lang].format(column=column)
     elif assertion_type == "col_vals_not_null":
-        text = f"{column} is not Null"
+        text = STEP_REPORT_TEXT["column_is_not_null"][lang].format(column=column)
 
     # Wrap assertion text in a <code> tag
     text = (
