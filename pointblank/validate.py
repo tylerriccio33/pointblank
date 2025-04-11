@@ -9340,13 +9340,21 @@ class Validate:
             # CASE I: where ordering of columns is required (`in_order=True`)
             if in_order:
                 step_report = _step_report_schema_in_order(
-                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
+                    step=i,
+                    schema_info=val_info,
+                    header=header,
+                    lang=lang,
+                    debug_return_df=debug_return_df,
                 )
 
             # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
                 step_report = _step_report_schema_any_order(
-                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
+                    step=i,
+                    schema_info=val_info,
+                    header=header,
+                    lang=lang,
+                    debug_return_df=debug_return_df,
                 )
 
         else:
@@ -10743,8 +10751,6 @@ def _step_report_row_based(
         if header is None:
             return step_report
 
-        # TODO: localize all text fragments according to `lang=` parameter
-
         title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i) + " " + CHECK_MARK_SPAN
         assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
 
@@ -10884,12 +10890,16 @@ def _step_report_row_based(
 
 
 def _step_report_schema_in_order(
-    step: int, schema_info: dict, header: str, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, lang: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is supposed to have the same column
     order as the target table.
     """
+
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
 
     all_passed = schema_info["passed"]
     complete = schema_info["params"]["complete"]
@@ -11043,6 +11053,12 @@ def _step_report_schema_in_order(
     if debug_return_df:
         return schema_combined
 
+    target_str = STEP_REPORT_TEXT["schema_target"][lang]
+    expected_str = STEP_REPORT_TEXT["schema_expected"][lang]
+    column_str = STEP_REPORT_TEXT["schema_column"][lang]
+    data_type_str = STEP_REPORT_TEXT["schema_data_type"][lang]
+    supplied_column_schema_str = STEP_REPORT_TEXT["supplied_column_schema"][lang]
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -11051,12 +11067,12 @@ def _step_report_schema_in_order(
         .cols_label(
             cases={
                 "index_target": "",
-                "col_name_target": "COLUMN",
-                "dtype_target": "DTYPE",
+                "col_name_target": column_str,
+                "dtype_target": data_type_str,
                 "index_exp": "",
-                "col_name_exp": "COLUMN",
+                "col_name_exp": column_str,
                 "col_name_exp_correct": "",
-                "dtype_exp": "DTYPE",
+                "dtype_exp": data_type_str,
                 "dtype_exp_correct": "",
             }
         )
@@ -11093,11 +11109,11 @@ def _step_report_schema_in_order(
             ),
         )
         .tab_spanner(
-            label="TARGET",
+            label=target_str,
             columns=["index_target", "col_name_target", "dtype_target"],
         )
         .tab_spanner(
-            label="EXPECTED",
+            label=expected_str,
             columns=[
                 "index_exp",
                 "col_name_exp",
@@ -11121,7 +11137,7 @@ def _step_report_schema_in_order(
         )
         .tab_source_note(
             source_note=html(
-                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='padding-bottom: 2px;'>{supplied_column_schema_str}</div>"
                 "<div style='border-style: solid; border-width: thin; border-color: lightblue; "
                 "padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code "
                 "style='color: #303030; font-family: monospace; font-size: 8px;'>"
@@ -11184,10 +11200,11 @@ def _step_report_schema_in_order(
     passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Generate the title for the step report
-    title = f"Report for Validation Step {step} {passing_symbol}"
+    title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=step) + " " + passing_symbol
 
     # Generate the details for the step report
     details = _create_col_schema_match_params_html(
+        lang=lang,
         complete=complete,
         in_order=True,
         case_sensitive_colnames=case_sensitive_colnames,
@@ -11212,12 +11229,16 @@ def _step_report_schema_in_order(
 
 
 def _step_report_schema_any_order(
-    step: int, schema_info: dict, header: str, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, lang: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is permitted to not have to be in the
     same column order as the target table.
     """
+
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
 
     all_passed = schema_info["passed"]
     complete = schema_info["params"]["complete"]
@@ -11473,6 +11494,12 @@ def _step_report_schema_any_order(
     if debug_return_df:
         return schema_combined
 
+    target_str = STEP_REPORT_TEXT["schema_target"][lang]
+    expected_str = STEP_REPORT_TEXT["schema_expected"][lang]
+    column_str = STEP_REPORT_TEXT["schema_column"][lang]
+    data_type_str = STEP_REPORT_TEXT["schema_data_type"][lang]
+    supplied_column_schema_str = STEP_REPORT_TEXT["supplied_column_schema"][lang]
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -11481,12 +11508,12 @@ def _step_report_schema_any_order(
         .cols_label(
             cases={
                 "index_target": "",
-                "col_name_target": "COLUMN",
-                "dtype_target": "DTYPE",
+                "col_name_target": column_str,
+                "dtype_target": data_type_str,
                 "index_exp": "",
-                "col_name_exp": "COLUMN",
+                "col_name_exp": column_str,
                 "col_name_exp_correct": "",
-                "dtype_exp": "DTYPE",
+                "dtype_exp": data_type_str,
                 "dtype_exp_correct": "",
             }
         )
@@ -11524,11 +11551,11 @@ def _step_report_schema_any_order(
             ),
         )
         .tab_spanner(
-            label="TARGET",
+            label=target_str,
             columns=["index_target", "col_name_target", "dtype_target"],
         )
         .tab_spanner(
-            label="EXPECTED",
+            label=expected_str,
             columns=[
                 "index_exp",
                 "col_name_exp",
@@ -11552,7 +11579,7 @@ def _step_report_schema_any_order(
         )
         .tab_source_note(
             source_note=html(
-                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='padding-bottom: 2px;'>{supplied_column_schema_str}</div>"
                 "<div style='border-style: solid; border-width: thin; border-color: lightblue; "
                 "padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code "
                 "style='color: #303030; font-family: monospace; font-size: 8px;'>"
@@ -11593,10 +11620,11 @@ def _step_report_schema_any_order(
     passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Generate the title for the step report
-    title = f"Report for Validation Step {step} {passing_symbol}"
+    title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=step) + " " + passing_symbol
 
     # Generate the details for the step report
     details = _create_col_schema_match_params_html(
+        lang=lang,
         complete=complete,
         in_order=False,
         case_sensitive_colnames=case_sensitive_colnames,
@@ -11646,20 +11674,25 @@ def _create_label_text_html(
 
 
 def _create_col_schema_match_params_html(
+    lang: str,
     complete: bool = True,
     in_order: bool = True,
     case_sensitive_colnames: bool = True,
     case_sensitive_dtypes: bool = True,
     full_match_dtypes: bool = True,
 ) -> str:
+    complete_str = STEP_REPORT_TEXT["schema_complete"][lang]
+    in_order_str = STEP_REPORT_TEXT["schema_in_order"][lang]
+    column_schema_match_str = STEP_REPORT_TEXT["column_schema_match_str"][lang]
+
     complete_text = _create_label_text_html(
-        text="COMPLETE",
+        text=complete_str,
         strikethrough=not complete,
         strikethrough_color="steelblue",
     )
 
     in_order_text = _create_label_text_html(
-        text="IN ORDER",
+        text=in_order_str,
         strikethrough=not in_order,
         strikethrough_color="steelblue",
     )
@@ -11693,7 +11726,7 @@ def _create_col_schema_match_params_html(
 
     return (
         '<div style="display: flex; font-size: 13.7px; padding-top: 7px;">'
-        '<div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>'
+        f'<div style="margin-right: 5px;">{column_schema_match_str}</div>'
         f"{complete_text}"
         f"{in_order_text}"
         f"{case_sensitive_colnames_text}"
