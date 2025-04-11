@@ -9250,6 +9250,10 @@ class Validate:
         # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
+        # Obtain the language and locale
+        lang = self.lang
+        locale = self.locale
+
         # Filter the dictionary to include only the information for the selected step
         validation_step = {
             key: value[i - 1] for key, value in validation_info_dict.items() if key != "i"
