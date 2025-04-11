@@ -9323,6 +9323,7 @@ class Validate:
                 tbl_preview=tbl_preview,
                 header=header,
                 limit=limit,
+                lang=lang,
             )
 
         elif assertion_type == "col_schema_match":
@@ -10658,6 +10659,7 @@ def _step_report_row_based(
     tbl_preview: GT,
     header: str,
     limit: int | None,
+    lang: str,
 ):
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
