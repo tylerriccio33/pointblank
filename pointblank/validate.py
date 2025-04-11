@@ -10664,7 +10664,7 @@ def _step_report_row_based(
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
 
-    # Generate explantory text for the validation step
+    # Generate text that indicates the assertion for the validation step
     if assertion_type == "col_vals_gt":
         text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {values}</code>"
     elif assertion_type == "col_vals_lt":
