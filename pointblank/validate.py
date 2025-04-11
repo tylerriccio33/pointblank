@@ -10668,6 +10668,10 @@ def _step_report_row_based(
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
 
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
+
     # Generate text that indicates the assertion for the validation step
     if assertion_type == "col_vals_gt":
         text = f"{column} > {values}"
@@ -10741,11 +10745,13 @@ def _step_report_row_based(
 
         # TODO: localize all text fragments according to `lang=` parameter
 
-        title = f"Report for Validation Step {i} {CHECK_MARK_SPAN}"
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i) + " " + CHECK_MARK_SPAN
+        assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
+
         details = (
             "<div style='font-size: 13.6px;'>"
             "<div style='padding-top: 7px;'>"
-            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            f"{assertion_header_text} <span style='border-style: solid; border-width: thin; "
             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
             "<code style='color: #303030; background-color: transparent; "
             f"position: relative; bottom: 1px;'>{text}</code></span>"
@@ -10788,14 +10794,6 @@ def _step_report_row_based(
             mark_missing_values=False,
         )
 
-        if limit < extract_length:
-            extract_length_resolved = limit
-            extract_of_x_rows = "FIRST"
-
-        else:
-            extract_length_resolved = extract_length
-            extract_of_x_rows = "ALL"
-
         # Style the target column in green and add borders but only if that column is present
         # in the `extract_tbl` (i.e., it may not be present if `columns_subset=` didn't include it)
         extract_tbl_columns = extract_tbl._boxhead._get_columns()
@@ -10819,29 +10817,45 @@ def _step_report_row_based(
             )
 
             not_shown = ""
-            shown_failures = "WITH <span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>"
+            shown_failures = STEP_REPORT_TEXT["shown_failures"][lang]
         else:
             step_report = extract_tbl
-            not_shown = " (NOT SHOWN)"
+            not_shown = STEP_REPORT_TEXT["not_shown"][lang]
             shown_failures = ""
 
-        title = f"Report for Validation Step {i}"
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i)
+        assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
+        failure_rate_metrics = f"<strong>{n_failed}</strong> / <strong>{n}</strong>"
+
+        failure_rate_stmt = STEP_REPORT_TEXT["failure_rate_summary"][lang].format(
+            failure_rate=failure_rate_metrics,
+            column_position=column_position,
+        )
+
+        if limit < extract_length:
+            extract_length_resolved = limit
+            extract_text = STEP_REPORT_TEXT["extract_text_first"][lang].format(
+                extract_length_resolved=extract_length_resolved, shown_failures=shown_failures
+            )
+
+        else:
+            extract_length_resolved = extract_length
+            extract_text = STEP_REPORT_TEXT["extract_text_all"][lang].format(
+                extract_length_resolved=extract_length_resolved, shown_failures=shown_failures
+            )
+
         details = (
-            "<div style='font-size: 13.6px;'>"
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
             "<div style='padding-top: 7px;'>"
-            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            f"{assertion_header_text} <span style='border-style: solid; border-width: thin; "
             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
             "<code style='color: #303030; background-color: transparent; "
             f"position: relative; bottom: 1px;'>{text}</code></span>"
             "</div>"
             "<div style='padding-top: 7px;'>"
-            f"<strong>{n_failed}</strong> / "
-            f"<strong>{n}</strong> TEST UNIT FAILURES "
-            f"IN COLUMN <strong>{column_position}</strong>{not_shown}"
+            f"{failure_rate_stmt} {not_shown}"
             "</div>"
-            f"<div>EXTRACT OF {extract_of_x_rows} "
-            f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
-            "</div>"
+            f"{extract_text}"
             "</div>"
         )
 
