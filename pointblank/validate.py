@@ -38,7 +38,11 @@ from pointblank._constants import (
     SVG_ICONS_FOR_TBL_STATUS,
     VALIDATION_REPORT_FIELDS,
 )
-from pointblank._constants_translations import EXPECT_FAIL_TEXT, VALIDATION_REPORT_TEXT
+from pointblank._constants_translations import (
+    EXPECT_FAIL_TEXT,
+    STEP_REPORT_TEXT,
+    VALIDATION_REPORT_TEXT,
+)
 from pointblank._interrogation import (
     ColCountMatch,
     ColExistsHasType,
@@ -9250,6 +9254,10 @@ class Validate:
         # Convert the `validation_info` object to a dictionary
         validation_info_dict = _validation_info_as_dict(validation_info=self.validation_info)
 
+        # Obtain the language and locale
+        lang = self.lang
+        locale = self.locale
+
         # Filter the dictionary to include only the information for the selected step
         validation_step = {
             key: value[i - 1] for key, value in validation_info_dict.items() if key != "i"
@@ -9319,6 +9327,7 @@ class Validate:
                 tbl_preview=tbl_preview,
                 header=header,
                 limit=limit,
+                lang=lang,
             )
 
         elif assertion_type == "col_schema_match":
@@ -9331,13 +9340,21 @@ class Validate:
             # CASE I: where ordering of columns is required (`in_order=True`)
             if in_order:
                 step_report = _step_report_schema_in_order(
-                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
+                    step=i,
+                    schema_info=val_info,
+                    header=header,
+                    lang=lang,
+                    debug_return_df=debug_return_df,
                 )
 
             # CASE II: where ordering of columns is not required (`in_order=False`)
             if not in_order:
                 step_report = _step_report_schema_any_order(
-                    step=i, schema_info=val_info, header=header, debug_return_df=debug_return_df
+                    step=i,
+                    schema_info=val_info,
+                    header=header,
+                    lang=lang,
+                    debug_return_df=debug_return_df,
                 )
 
         else:
@@ -10654,43 +10671,53 @@ def _step_report_row_based(
     tbl_preview: GT,
     header: str,
     limit: int | None,
+    lang: str,
 ):
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
 
-    # Generate explantory text for the validation step
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
+
+    # Generate text that indicates the assertion for the validation step
     if assertion_type == "col_vals_gt":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {values}</code>"
+        text = f"{column} > {values}"
     elif assertion_type == "col_vals_lt":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} < {values}</code>"
+        text = f"{column} < {values}"
     elif assertion_type == "col_vals_eq":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} = {values}</code>"
+        text = f"{column} = {values}"
     elif assertion_type == "col_vals_ne":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ne; {values}</code>"
+        text = f"{column} &ne; {values}"
     elif assertion_type == "col_vals_ge":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ge; {values}</code>"
+        text = f"{column} &ge; {values}"
     elif assertion_type == "col_vals_le":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &le; {values}</code>"
+        text = f"{column} &le; {values}"
     elif assertion_type == "col_vals_between":
         symbol_left = "&le;" if inclusive[0] else "&lt;"
         symbol_right = "&le;" if inclusive[1] else "&lt;"
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{values[0]} {symbol_left} {column} {symbol_right} {values[1]}</code>"
+        text = f"{values[0]} {symbol_left} {column} {symbol_right} {values[1]}"
     elif assertion_type == "col_vals_outside":
         symbol_left = "&lt;" if inclusive[0] else "&le;"
         symbol_right = "&gt;" if inclusive[1] else "&ge;"
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}</code>"
+        text = f"{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}"
     elif assertion_type == "col_vals_in_set":
         elements = ", ".join(map(str, values))
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
+        text = f"{column} &isinv; {{{elements}}}"
     elif assertion_type == "col_vals_not_in_set":
         elements = ", ".join(values)
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &NotElement; {{{elements}}}</code>"
+        text = f"{column} &NotElement; {{{elements}}}"
     elif assertion_type == "col_vals_regex":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> matches regex <code style='color: #303030; font-family: monospace; font-size: smaller;'>{values}</code>"
+        text = STEP_REPORT_TEXT["column_matches_regex"][lang].format(column=column, values=values)
     elif assertion_type == "col_vals_null":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+        text = STEP_REPORT_TEXT["column_is_null"][lang].format(column=column)
     elif assertion_type == "col_vals_not_null":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+        text = STEP_REPORT_TEXT["column_is_not_null"][lang].format(column=column)
+
+    # Wrap assertion text in a <code> tag
+    text = (
+        f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{text}</code>"
+    )
 
     if all_passed:
         # Style the target column in green and add borders but only if that column is present
@@ -10724,23 +10751,27 @@ def _step_report_row_based(
         if header is None:
             return step_report
 
-        # TODO: localize all text fragments according to `lang=` parameter
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i) + " " + CHECK_MARK_SPAN
+        assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
 
-        title = f"Report for Validation Step {i} {CHECK_MARK_SPAN}"
+        success_stmt = STEP_REPORT_TEXT["success_statement"][lang].format(
+            n=n,
+            column_position=column_position,
+        )
+        preview_stmt = STEP_REPORT_TEXT["preview_statement"][lang]
+
         details = (
-            "<div style='font-size: 13.6px;'>"
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
             "<div style='padding-top: 7px;'>"
-            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            f"{assertion_header_text} <span style='border-style: solid; border-width: thin; "
             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
             "<code style='color: #303030; background-color: transparent; "
             f"position: relative; bottom: 1px;'>{text}</code></span>"
             "</div>"
             "<div style='padding-top: 7px;'>"
-            f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
-            f"IN COLUMN <strong>{column_position}</strong>"
+            f"{success_stmt}"
             "</div>"
-            "<div>PREVIEW OF TARGET TABLE:"
-            "</div>"
+            f"{preview_stmt}"
             "</div>"
         )
 
@@ -10773,14 +10804,6 @@ def _step_report_row_based(
             mark_missing_values=False,
         )
 
-        if limit < extract_length:
-            extract_length_resolved = limit
-            extract_of_x_rows = "FIRST"
-
-        else:
-            extract_length_resolved = extract_length
-            extract_of_x_rows = "ALL"
-
         # Style the target column in green and add borders but only if that column is present
         # in the `extract_tbl` (i.e., it may not be present if `columns_subset=` didn't include it)
         extract_tbl_columns = extract_tbl._boxhead._get_columns()
@@ -10804,29 +10827,45 @@ def _step_report_row_based(
             )
 
             not_shown = ""
-            shown_failures = "WITH <span style='color: #B22222;'>TEST UNIT FAILURES IN RED</span>"
+            shown_failures = STEP_REPORT_TEXT["shown_failures"][lang]
         else:
             step_report = extract_tbl
-            not_shown = " (NOT SHOWN)"
+            not_shown = STEP_REPORT_TEXT["not_shown"][lang]
             shown_failures = ""
 
-        title = f"Report for Validation Step {i}"
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i)
+        assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
+        failure_rate_metrics = f"<strong>{n_failed}</strong> / <strong>{n}</strong>"
+
+        failure_rate_stmt = STEP_REPORT_TEXT["failure_rate_summary"][lang].format(
+            failure_rate=failure_rate_metrics,
+            column_position=column_position,
+        )
+
+        if limit < extract_length:
+            extract_length_resolved = limit
+            extract_text = STEP_REPORT_TEXT["extract_text_first"][lang].format(
+                extract_length_resolved=extract_length_resolved, shown_failures=shown_failures
+            )
+
+        else:
+            extract_length_resolved = extract_length
+            extract_text = STEP_REPORT_TEXT["extract_text_all"][lang].format(
+                extract_length_resolved=extract_length_resolved, shown_failures=shown_failures
+            )
+
         details = (
-            "<div style='font-size: 13.6px;'>"
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
             "<div style='padding-top: 7px;'>"
-            "ASSERTION <span style='border-style: solid; border-width: thin; "
+            f"{assertion_header_text} <span style='border-style: solid; border-width: thin; "
             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
             "<code style='color: #303030; background-color: transparent; "
             f"position: relative; bottom: 1px;'>{text}</code></span>"
             "</div>"
             "<div style='padding-top: 7px;'>"
-            f"<strong>{n_failed}</strong> / "
-            f"<strong>{n}</strong> TEST UNIT FAILURES "
-            f"IN COLUMN <strong>{column_position}</strong>{not_shown}"
+            f"{failure_rate_stmt} {not_shown}"
             "</div>"
-            f"<div>EXTRACT OF {extract_of_x_rows} "
-            f"<strong>{extract_length_resolved}</strong> ROWS {shown_failures}:"
-            "</div>"
+            f"{extract_text}"
             "</div>"
         )
 
@@ -10851,12 +10890,16 @@ def _step_report_row_based(
 
 
 def _step_report_schema_in_order(
-    step: int, schema_info: dict, header: str, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, lang: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is supposed to have the same column
     order as the target table.
     """
+
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
 
     all_passed = schema_info["passed"]
     complete = schema_info["params"]["complete"]
@@ -11010,6 +11053,12 @@ def _step_report_schema_in_order(
     if debug_return_df:
         return schema_combined
 
+    target_str = STEP_REPORT_TEXT["schema_target"][lang]
+    expected_str = STEP_REPORT_TEXT["schema_expected"][lang]
+    column_str = STEP_REPORT_TEXT["schema_column"][lang]
+    data_type_str = STEP_REPORT_TEXT["schema_data_type"][lang]
+    supplied_column_schema_str = STEP_REPORT_TEXT["supplied_column_schema"][lang]
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -11018,12 +11067,12 @@ def _step_report_schema_in_order(
         .cols_label(
             cases={
                 "index_target": "",
-                "col_name_target": "COLUMN",
-                "dtype_target": "DTYPE",
+                "col_name_target": column_str,
+                "dtype_target": data_type_str,
                 "index_exp": "",
-                "col_name_exp": "COLUMN",
+                "col_name_exp": column_str,
                 "col_name_exp_correct": "",
-                "dtype_exp": "DTYPE",
+                "dtype_exp": data_type_str,
                 "dtype_exp_correct": "",
             }
         )
@@ -11060,11 +11109,11 @@ def _step_report_schema_in_order(
             ),
         )
         .tab_spanner(
-            label="TARGET",
+            label=target_str,
             columns=["index_target", "col_name_target", "dtype_target"],
         )
         .tab_spanner(
-            label="EXPECTED",
+            label=expected_str,
             columns=[
                 "index_exp",
                 "col_name_exp",
@@ -11088,7 +11137,7 @@ def _step_report_schema_in_order(
         )
         .tab_source_note(
             source_note=html(
-                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='padding-bottom: 2px;'>{supplied_column_schema_str}</div>"
                 "<div style='border-style: solid; border-width: thin; border-color: lightblue; "
                 "padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code "
                 "style='color: #303030; font-family: monospace; font-size: 8px;'>"
@@ -11151,10 +11200,11 @@ def _step_report_schema_in_order(
     passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Generate the title for the step report
-    title = f"Report for Validation Step {step} {passing_symbol}"
+    title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=step) + " " + passing_symbol
 
     # Generate the details for the step report
     details = _create_col_schema_match_params_html(
+        lang=lang,
         complete=complete,
         in_order=True,
         case_sensitive_colnames=case_sensitive_colnames,
@@ -11179,12 +11229,16 @@ def _step_report_schema_in_order(
 
 
 def _step_report_schema_any_order(
-    step: int, schema_info: dict, header: str, debug_return_df: bool = False
+    step: int, schema_info: dict, header: str, lang: str, debug_return_df: bool = False
 ) -> GT | any:
     """
     This is the case for schema validation where the schema is permitted to not have to be in the
     same column order as the target table.
     """
+
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
 
     all_passed = schema_info["passed"]
     complete = schema_info["params"]["complete"]
@@ -11440,6 +11494,12 @@ def _step_report_schema_any_order(
     if debug_return_df:
         return schema_combined
 
+    target_str = STEP_REPORT_TEXT["schema_target"][lang]
+    expected_str = STEP_REPORT_TEXT["schema_expected"][lang]
+    column_str = STEP_REPORT_TEXT["schema_column"][lang]
+    data_type_str = STEP_REPORT_TEXT["schema_data_type"][lang]
+    supplied_column_schema_str = STEP_REPORT_TEXT["supplied_column_schema"][lang]
+
     step_report = (
         GT(schema_combined, id="pb_step_tbl")
         .fmt_markdown(columns=None)
@@ -11448,12 +11508,12 @@ def _step_report_schema_any_order(
         .cols_label(
             cases={
                 "index_target": "",
-                "col_name_target": "COLUMN",
-                "dtype_target": "DTYPE",
+                "col_name_target": column_str,
+                "dtype_target": data_type_str,
                 "index_exp": "",
-                "col_name_exp": "COLUMN",
+                "col_name_exp": column_str,
                 "col_name_exp_correct": "",
-                "dtype_exp": "DTYPE",
+                "dtype_exp": data_type_str,
                 "dtype_exp_correct": "",
             }
         )
@@ -11491,11 +11551,11 @@ def _step_report_schema_any_order(
             ),
         )
         .tab_spanner(
-            label="TARGET",
+            label=target_str,
             columns=["index_target", "col_name_target", "dtype_target"],
         )
         .tab_spanner(
-            label="EXPECTED",
+            label=expected_str,
             columns=[
                 "index_exp",
                 "col_name_exp",
@@ -11519,7 +11579,7 @@ def _step_report_schema_any_order(
         )
         .tab_source_note(
             source_note=html(
-                "<div style='padding-bottom: 2px;'>Supplied Column Schema:</div>"
+                f"<div style='padding-bottom: 2px;'>{supplied_column_schema_str}</div>"
                 "<div style='border-style: solid; border-width: thin; border-color: lightblue; "
                 "padding-left: 2px; padding-right: 2px; padding-bottom: 3px;'><code "
                 "style='color: #303030; font-family: monospace; font-size: 8px;'>"
@@ -11560,10 +11620,11 @@ def _step_report_schema_any_order(
     passing_symbol = CHECK_MARK_SPAN if all_passed else CROSS_MARK_SPAN
 
     # Generate the title for the step report
-    title = f"Report for Validation Step {step} {passing_symbol}"
+    title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=step) + " " + passing_symbol
 
     # Generate the details for the step report
     details = _create_col_schema_match_params_html(
+        lang=lang,
         complete=complete,
         in_order=False,
         case_sensitive_colnames=case_sensitive_colnames,
@@ -11613,20 +11674,25 @@ def _create_label_text_html(
 
 
 def _create_col_schema_match_params_html(
+    lang: str,
     complete: bool = True,
     in_order: bool = True,
     case_sensitive_colnames: bool = True,
     case_sensitive_dtypes: bool = True,
     full_match_dtypes: bool = True,
 ) -> str:
+    complete_str = STEP_REPORT_TEXT["schema_complete"][lang]
+    in_order_str = STEP_REPORT_TEXT["schema_in_order"][lang]
+    column_schema_match_str = STEP_REPORT_TEXT["column_schema_match_str"][lang]
+
     complete_text = _create_label_text_html(
-        text="COMPLETE",
+        text=complete_str,
         strikethrough=not complete,
         strikethrough_color="steelblue",
     )
 
     in_order_text = _create_label_text_html(
-        text="IN ORDER",
+        text=in_order_str,
         strikethrough=not in_order,
         strikethrough_color="steelblue",
     )
@@ -11660,7 +11726,7 @@ def _create_col_schema_match_params_html(
 
     return (
         '<div style="display: flex; font-size: 13.7px; padding-top: 7px;">'
-        '<div style="margin-right: 5px;">COLUMN SCHEMA MATCH</div>'
+        f'<div style="margin-right: 5px;">{column_schema_match_str}</div>'
         f"{complete_text}"
         f"{in_order_text}"
         f"{case_sensitive_colnames_text}"
