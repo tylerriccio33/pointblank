@@ -10666,37 +10666,42 @@ def _step_report_row_based(
 
     # Generate text that indicates the assertion for the validation step
     if assertion_type == "col_vals_gt":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} > {values}</code>"
+        text = f"{column} > {values}"
     elif assertion_type == "col_vals_lt":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} < {values}</code>"
+        text = f"{column} < {values}"
     elif assertion_type == "col_vals_eq":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} = {values}</code>"
+        text = f"{column} = {values}"
     elif assertion_type == "col_vals_ne":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ne; {values}</code>"
+        text = f"{column} &ne; {values}"
     elif assertion_type == "col_vals_ge":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &ge; {values}</code>"
+        text = f"{column} &ge; {values}"
     elif assertion_type == "col_vals_le":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &le; {values}</code>"
+        text = f"{column} &le; {values}"
     elif assertion_type == "col_vals_between":
         symbol_left = "&le;" if inclusive[0] else "&lt;"
         symbol_right = "&le;" if inclusive[1] else "&lt;"
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{values[0]} {symbol_left} {column} {symbol_right} {values[1]}</code>"
+        text = f"{values[0]} {symbol_left} {column} {symbol_right} {values[1]}"
     elif assertion_type == "col_vals_outside":
         symbol_left = "&lt;" if inclusive[0] else "&le;"
         symbol_right = "&gt;" if inclusive[1] else "&ge;"
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}</code>"
+        text = f"{column} {symbol_left} {values[0]}, {column} {symbol_right} {values[1]}"
     elif assertion_type == "col_vals_in_set":
         elements = ", ".join(map(str, values))
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &isinv; {{{elements}}}</code>"
+        text = f"{column} &isinv; {{{elements}}}"
     elif assertion_type == "col_vals_not_in_set":
         elements = ", ".join(values)
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column} &NotElement; {{{elements}}}</code>"
+        text = f"{column} &NotElement; {{{elements}}}"
     elif assertion_type == "col_vals_regex":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> matches regex <code style='color: #303030; font-family: monospace; font-size: smaller;'>{values}</code>"
+        text = f"{column} matches regex {values}"
     elif assertion_type == "col_vals_null":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+        text = f"{column} is Null"
     elif assertion_type == "col_vals_not_null":
-        text = f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{column}</code> is not <code style='color: #303030; font-family: monospace; font-size: smaller;'>Null</code>"
+        text = f"{column} is not Null"
+
+    # Wrap assertion text in a <code> tag
+    text = (
+        f"<code style='color: #303030; font-family: monospace; font-size: smaller;'>{text}</code>"
+    )
 
     if all_passed:
         # Style the target column in green and add borders but only if that column is present
