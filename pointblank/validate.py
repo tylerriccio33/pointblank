@@ -10748,8 +10748,14 @@ def _step_report_row_based(
         title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i) + " " + CHECK_MARK_SPAN
         assertion_header_text = STEP_REPORT_TEXT["assertion_header_text"][lang]
 
+        success_stmt = STEP_REPORT_TEXT["success_statement"][lang].format(
+            n=n,
+            column_position=column_position,
+        )
+        preview_stmt = STEP_REPORT_TEXT["preview_statement"][lang]
+
         details = (
-            "<div style='font-size: 13.6px;'>"
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
             "<div style='padding-top: 7px;'>"
             f"{assertion_header_text} <span style='border-style: solid; border-width: thin; "
             "border-color: lightblue; padding-left: 2px; padding-right: 2px;'>"
@@ -10757,11 +10763,9 @@ def _step_report_row_based(
             f"position: relative; bottom: 1px;'>{text}</code></span>"
             "</div>"
             "<div style='padding-top: 7px;'>"
-            f"<strong>{n}</strong> TEST UNITS <em>ALL PASSED</em> "
-            f"IN COLUMN <strong>{column_position}</strong>"
+            f"{success_stmt}"
             "</div>"
-            "<div>PREVIEW OF TARGET TABLE:"
-            "</div>"
+            f"{preview_stmt}"
             "</div>"
         )
 
