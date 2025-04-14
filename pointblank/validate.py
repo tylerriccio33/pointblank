@@ -7012,7 +7012,7 @@ class Validate:
             # TODO: Add support for extraction of rows for Ibis backends
             if (
                 collect_extracts
-                and assertion_type in ROW_BASED_VALIDATION_TYPES
+                and assertion_type in ROW_BASED_VALIDATION_TYPES + ["rows_distinct"]
                 and tbl_type not in IBIS_BACKENDS
             ):
                 # Add row numbers to the results table
@@ -7038,6 +7038,33 @@ class Validate:
                 if len(validation_extract_nw) > extract_limit:
                     validation_extract_nw = validation_extract_nw.head(extract_limit)
 
+                # If a 'rows_distinct' validation step, then the extract should have the
+                # duplicate rows arranged together
+                if assertion_type == "rows_distinct":
+                    # Get the list of column names in the extract, excluding the `_row_num_` column
+                    column_names = validation_extract_nw.columns
+                    column_names.remove("_row_num_")
+
+                    # Only include the columns that were defined in `rows_distinct(columns_subset=)`
+                    # (stored here in `column`), if supplied
+                    if column is not None:
+                        column_names = column
+                        column_names_subset = ["_row_num_"] + column
+                        validation_extract_nw = validation_extract_nw.select(column_names_subset)
+
+                    validation_extract_nw = (
+                        validation_extract_nw.with_columns(
+                            group_min_row=nw.min("_row_num_").over(*column_names)
+                        )
+                        # First sort by the columns to group duplicates and by row numbers within groups
+                        # This sort preserves the original order in a single operation
+                        .sort(by=["group_min_row"] + column_names + ["_row_num_"])
+                        .drop("group_min_row")
+                    )
+
+                    print(validation_extract_nw)
+
+                # Ensure that the extract is set to its native format
                 validation.extract = nw.to_native(validation_extract_nw)
 
             # Get the end time for this step
@@ -7976,6 +8003,7 @@ class Validate:
         - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
         - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
         - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+        - [`rows_distinct()`](`pointblank.Validate.rows_distinct`)
 
         An extracted row means that a test unit failed for that row in the validation step. The
         extracted rows are a subset of the original table and are useful for further analysis or for
