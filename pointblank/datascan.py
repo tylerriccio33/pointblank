@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any
@@ -235,6 +236,8 @@ class DataScan:
         non_stat_cols = ("icon", "colname")  # TODO: need a better place for this
         present_stat_cols: set[str] = set(data.columns) - set(non_stat_cols)
         present_stat_cols.remove("coltype")
+        with contextlib.suppress(KeyError):
+            present_stat_cols.remove("freqs")  # TODO: currently used for html but no displayed?
 
         ## Assemble the target order and find what columns need borders.
         ## Borders should be placed to divide the stat "groups" and create a
@@ -270,20 +273,85 @@ class DataScan:
                     nw.col("coltype"),
                     nw.lit("</div>"),
                 ),
-                # TODO: This is a very temporary solution
+                # TODO: This is a temporary solution?
                 __frac_n_unique=(nw.col("n_unique") / nw.lit(self.profile.row_count)).round(2),
                 __frac_n_missing=(nw.col("n_missing") / nw.lit(self.profile.row_count)).round(2),
             )
+            # Format the unique and missing pct strings
             .with_columns(
                 n_unique=nw.concat_str(
-                    nw.col("n_unique"), nw.lit("<br>"), nw.col("__frac_n_unique")
+                    nw.col("n_unique"),
+                    nw.lit("<br>"),
+                    nw.col("__frac_n_unique"),
                 ),
                 n_missing=nw.concat_str(
-                    nw.col("n_missing"), nw.lit("<br>"), nw.col("__frac_n_missing")
+                    nw.col("n_missing"),
+                    nw.lit("<br>"),
+                    nw.col("__frac_n_missing"),
                 ),
             )
+            # TODO: Should be able to use selectors for this
             .drop("__frac_n_unique", "__frac_n_missing", "coltype")
         )
+
+        if "freqs" in formatted_data.columns:  # TODO: don't love this arbitrary check
+            # Extract HTML freqs:
+            try:
+                formatted_data = formatted_data.with_columns(
+                    __freq_true=nw.col("freqs").struct.field("True"),
+                    __freq_false=nw.col("freqs").struct.field("False"),
+                )
+            except Exception as e:
+                pass  # struct not available in the implementation, ie. numpy Pandas
+            else:
+                freq_ser: nw.Series = formatted_data["freqs"]
+                trues: list[int | None] = []
+                falses: list[int | None] = []
+                for freq in freq_ser:
+                    try:
+                        trues.append(freq["True"])
+                        falses.append(freq["False"])
+                    except (KeyError, TypeError):
+                        trues.append(None)
+                        falses.append(None)
+                true_ser: nw.Series = nw.new_series(
+                    name="__freq_true", values=trues, backend=self.profile.implementation
+                )
+                false_ser: nw.Series = nw.new_series(
+                    name="__freq_false", values=falses, backend=self.profile.implementation
+                )
+                formatted_data = formatted_data.with_columns(
+                    __freq_true=true_ser, __freq_false=false_ser
+                )
+
+            formatted_data = (
+                formatted_data.with_columns(
+                    # for bools, UQs are represented as percentages
+                    __pct_true=(nw.col("__freq_true") / self.profile.row_count).round(2),
+                    __pct_false=(nw.col("__freq_false") / self.profile.row_count).round(2),
+                )
+                .with_columns(
+                    __bool_unique_html=nw.concat_str(
+                        nw.lit("<span style='font-weight: bold;'>T</span>"),
+                        nw.col("__pct_true"),
+                        nw.lit("<br><span style='font-weight: bold;'>F</span>"),
+                        nw.col("__pct_false"),
+                    ),
+                )
+                .with_columns(
+                    n_unique=nw.when(~nw.col("__bool_unique_html").is_null())
+                    .then(nw.col("__bool_unique_html"))
+                    .otherwise(nw.col("n_unique"))
+                )
+                .drop(
+                    "__freq_true",
+                    "__freq_false",
+                    "__bool_unique_html",
+                    "freqs",
+                    "__pct_true",
+                    "__pct_false",
+                )
+            )
 
         ## Determine Value Formatting Selectors:
         fmt_int: list[str] = formatted_data.select(nw.selectors.by_dtype(nw.dtypes.Int64)).columns
@@ -314,7 +382,6 @@ class DataScan:
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(columns=fmt_float, decimals=2)
-            .sub_missing(missing_text="-")
             ## Generic Styling
             .tab_style(
                 style=style.text(size="10px"),
@@ -333,16 +400,24 @@ class DataScan:
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=list(present_stat_cols)),
             )
-            ## Formatting
+            # ## Formatting
             .cols_width(
                 icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
             )
         )
 
+        if "PYARROW" != formatted_data.implementation.name:
+            # TODO: this is more proactive than it should be IMO; would like to see EAFP
+            gt_tbl = gt_tbl.sub_missing(missing_text="-")
+            # https://github.com/posit-dev/great-tables/issues/667
+
         # TODO:
         # - T/F in the UQ for bools (can remove them as stat types)
         # - datetime value formatting weirdness
         # - datetime column formatting weirdness
+        # - very small percentages should get a less than
+        # - ANY .00 should be rounded to int, ie. 1.00 -> 1
+        # - add the SL back
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":

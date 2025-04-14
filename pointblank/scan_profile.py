@@ -13,14 +13,13 @@ from narwhals.dataframe import DataFrame
 from pointblank._constants import SVG_ICONS_FOR_DATA_TYPES
 from pointblank._utils import transpose_dicts
 from pointblank.scan_profile_stats import (
+    FreqStat,
     IQRStat,
     MaxStat,
     MeanStat,
     MedianStat,
     MinStat,
-    NFalse,
     NMissing,
-    NTrue,
     NUnique,
     P05Stat,
     P95Stat,
@@ -148,16 +147,21 @@ class _BoolProfile(ColumnProfile):
     _type: _TypeMap = _TypeMap.BOOL
 
     def calc_stats(self, data: Frame) -> None:
-        res = data.rename({self.colname: "_col"}).select(_ntrue=NTrue.expr, _nfalse=NFalse.expr)
-
-        physical = _as_physical(res).to_dict()
-
-        self.statistics.extend(
-            [
-                NTrue(physical["_ntrue"].item()),
-                NFalse(physical["_nfalse"].item()),
-            ]
+        group_by_contexts = (
+            data.rename({self.colname: "_col"}).group_by("_col").agg(_freq=FreqStat.expr)
         )
+
+        summarized_groupby = _as_physical(group_by_contexts).to_dict()
+
+        # TODO: Need a real way to do this
+        col_vals: list[Any] = summarized_groupby["_col"].to_list()
+        freqs: list[int] = summarized_groupby["_freq"].to_list()
+
+        freq_dict: dict[str, int] = {
+            str(colval): freq for colval, freq in zip(col_vals, freqs, strict=True)
+        }
+
+        self.statistics.extend([FreqStat(freq_dict)])
 
 
 class _StringProfile(ColumnProfile):
@@ -165,6 +169,8 @@ class _StringProfile(ColumnProfile):
 
     def calc_stats(self, data: Frame):
         str_data = data.select(nw.all().cast(nw.String).str.len_chars())
+
+        # TODO: We should get an FreqStat here; estimate cardinality first
 
         summarized = (
             str_data.rename({self.colname: "_col"})
@@ -218,13 +224,11 @@ class _NumericProfile(ColumnProfile):
                 _q_3=Q3Stat.expr,
                 _p_95=P95Stat.expr,
             )
-            .with_columns(
-                _iqr=IQRStat.expr,  # TODO: Need something to indicate this consistently
-            )
+            # TODO: need a consistent way to indicate this
+            .with_columns(_iqr=IQRStat.expr)
         )
 
         summarized = _as_physical(res).to_dict()
-
         self.statistics.extend(
             [
                 MeanStat(summarized["_mean"].item()),

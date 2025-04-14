@@ -50,7 +50,7 @@ class MeanStat(Stat):
     val: str
     name: ClassVar[str] = "mean"
     group = StatGroup.SUMMARY
-    expr: ClassVar[nw.Expr] = nw.col("_col").mean().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").mean()
     label: ClassVar[str] = "Mean"
 
 
@@ -59,7 +59,7 @@ class StdStat(Stat):  # TODO: Rename this SD for consistency
     val: str
     name: ClassVar[str] = "std"
     group = StatGroup.SUMMARY
-    expr: ClassVar[nw.Expr] = nw.col("_col").std().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").std()
     label: ClassVar[str] = "SD"
 
 
@@ -86,9 +86,7 @@ class P05Stat(Stat):
     val: str
     name: ClassVar[str] = "p05"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = (
-        nw.col("_col").quantile(0.005, interpolation="linear").cast(nw.Float64)
-    )
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.005, interpolation="linear")
     label: ClassVar[str] = _make_sublabel("P", "5")
 
 
@@ -97,7 +95,7 @@ class Q1Stat(Stat):
     val: str
     name: ClassVar[str] = "q_1"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.25, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.25, interpolation="linear")
     label: ClassVar[str] = _make_sublabel("Q", "1")
 
 
@@ -106,7 +104,7 @@ class MedianStat(Stat):
     val: str
     name: ClassVar[str] = "median"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.col("_col").median().cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").median()
     label: ClassVar[str] = "Med"
 
 
@@ -115,7 +113,7 @@ class Q3Stat(Stat):
     val: str
     name: ClassVar[str] = "q_3"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.75, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.75, interpolation="linear")
     label: ClassVar[str] = _make_sublabel("Q", "3")
 
 
@@ -124,7 +122,7 @@ class P95Stat(Stat):
     val: str
     name: ClassVar[str] = "p95"
     group = StatGroup.DESCR
-    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.95, interpolation="linear").cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col("_col").quantile(0.95, interpolation="linear")
     label: ClassVar[str] = _make_sublabel("P", "95")
 
 
@@ -133,43 +131,17 @@ class IQRStat(Stat):
     val: str
     name: ClassVar[str] = "iqr"
     group = StatGroup.IQR
-    expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(
-        Q1Stat._fetch_priv_name()
-    ).cast(nw.Float64)
+    expr: ClassVar[nw.Expr] = nw.col(Q3Stat._fetch_priv_name()) - nw.col(Q1Stat._fetch_priv_name())
     label: ClassVar[str] = "IQR"
 
 
 @dataclass(frozen=True)
-class NTrue(Stat):
-    val: int
-    name: ClassVar[str] = "n_true"
-    group = StatGroup.LOGIC
-    expr: ClassVar[nw.Expr] = nw.col("_col").sum().cast(nw.Int64)
-    label: ClassVar[str] = _make_sublabel("True", "N")
-
-
-@dataclass(frozen=True)
-class NFalse(Stat):  # TODO remove this ?
-    val: int
-    name: ClassVar[str] = "n_false"
-    group = StatGroup.LOGIC
-    ## Indirection to the point of absurdity:
-    ## - Reversing the bool results in inconsistent unsigned types, ie. False is max hexidecimal
-    ## - Filtering on `nw.all` is generally unavailable, at least for polars
-    ## - Replacing T/F w/Null is not interpreted correctly by Narwhals
-    ## - Swapping 0 -> 1 and 1 -> 0 is the most consistent, albiet odd
-    expr: ClassVar[nw.Expr] = (
-        nw.all().cast(nw.Int64).replace_strict([1, 0], new=[0, 1]).sum().cast(nw.Int64)
-    )
-    label: ClassVar[str] = _make_sublabel("False", "N")
-
-
-@dataclass(frozen=True)
-class FreqStats(Stat):
-    val: list[dict[str, int]]
+class FreqStat(Stat):
+    val: dict[str, int]  # the key must be stringified
     name: ClassVar[str] = "freqs"
     group = StatGroup.FREQ
-    expr: ClassVar[nw.Expr] = nw.len().over("_col")
+    expr: ClassVar[nw.Expr] = nw.len()
+    label: ClassVar[str] = "Freq"
 
 
 @dataclass(frozen=True)
@@ -191,8 +163,8 @@ class NUnique(Stat):
 
 
 COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
-    NUnique,
     NMissing,
+    NUnique,
     MeanStat,
     StdStat,
     MinStat,
@@ -202,7 +174,6 @@ COLUMN_ORDER_REGISTRY: tuple[type[Stat], ...] = (
     Q3Stat,
     P95Stat,
     MaxStat,
-    NTrue,
-    NFalse,
+    FreqStat,
     IQRStat,
 )

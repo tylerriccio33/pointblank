@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 import narwhals as nw
 
+import polars.selectors as cs
 from hypothesis import given, settings, strategies as st, example
 import polars.testing.parametric as ptp
 from great_tables import GT
@@ -120,6 +121,7 @@ class _Case(NamedTuple):
 case1 = _Case(
     data=pl.DataFrame(
         {
+            # TODO: Make the bool tri-valent
             "bool_col": [True, False, True, False, True],
             "numeric_col": [1.5, 2.3, 3.1, 4.7, 5.2],
         }
@@ -133,14 +135,13 @@ case1 = _Case(
             "q_1": [None, 2.3],
             "p95": [None, 5.1],
             "n_missing": [0, 0],
-            "n_false": [2, None],
             "median": [None, 3.1],
-            "n_true": [3, None],
             "iqr": [None, 2.4],
             "p05": [None, 1.516],
             "n_unique": [2, 5],
             "q_3": [None, 4.7],
             "min": [None, 1.5],
+            "freqs": [{"True": 3, "False": 2}, None],
         }
     ),
 )
@@ -152,14 +153,19 @@ def test_deterministic_calculations(case: _Case) -> None:
 
     output = scanner.summary_data.drop("icon", "coltype", "sample_data")
 
-    pt.assert_frame_equal(
-        case.should_be,
-        output,
-        check_row_order=False,
-        check_column_order=False,
-        check_exact=False,
-        atol=0.01,
-    )
+    check_settings = {
+        "check_row_order": False,
+        "check_column_order": False,
+        "check_exact": False,
+        "atol": 0.01,
+    }
+
+    pt.assert_frame_equal(case.should_be, output, check_dtypes=False, **check_settings)
+
+    output_clean = output.drop("freqs")  # TODO: make this dynamic, ie. a a struct?
+    should_be_clean = case.should_be.drop("freqs")
+
+    pt.assert_frame_equal(should_be_clean, output_clean, check_dtypes=True, **check_settings)
 
 
 @given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
@@ -181,9 +187,7 @@ def test_datascan_json_output(df):
     assert isinstance(profile_json, str)
 
 
-# TODO: paramaterize the whole 9 yards, ie. all datasets/types plus happy paths
-
-
+@example(pb.load_dataset("nycflights", "duckdb"))  # ! move this back to the normal spot
 @given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
 @example(pb.load_dataset("small_table", "polars"))
 @example(pb.load_dataset("small_table", "pandas"))
@@ -193,7 +197,6 @@ def test_datascan_json_output(df):
 @example(pb.load_dataset("game_revenue", "duckdb"))
 @example(pb.load_dataset("nycflights", "polars"))
 @example(pb.load_dataset("nycflights", "pandas"))
-@example(pb.load_dataset("nycflights", "duckdb"))
 @settings(deadline=None)
 def test_col_summary_tbl(df):
     col_summary = col_summary_tbl(df)
