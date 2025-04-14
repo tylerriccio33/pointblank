@@ -7063,8 +7063,6 @@ class Validate:
                         .drop("group_min_row")
                     )
 
-                    print(validation_extract_nw)
-
                 # Ensure that the extract is set to its native format
                 validation.extract = nw.to_native(validation_extract_nw)
 
