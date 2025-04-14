@@ -7056,8 +7056,9 @@ class Validate:
                         validation_extract_nw.with_columns(
                             group_min_row=nw.min("_row_num_").over(*column_names)
                         )
-                        # First sort by the columns to group duplicates and by row numbers within groups
-                        # This sort preserves the original order in a single operation
+                        # First sort by the columns to group duplicates and by row numbers
+                        # within groups; this type of sorting will preserve the original order in a
+                        # single operation
                         .sort(by=["group_min_row"] + column_names + ["_row_num_"])
                         .drop("group_min_row")
                     )
