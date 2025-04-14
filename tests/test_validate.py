@@ -6059,25 +6059,31 @@ def test_get_data_extracts(tbl_missing_pd):
         Validate(tbl_missing_pd)
         .col_vals_gt(columns="x", value=1)
         .col_vals_lt(columns="y", value=10)
+        .rows_distinct(columns_subset=["z"])
         .interrogate()
     )
 
     extracts_all = validation.get_data_extracts()
     extracts_1 = validation.get_data_extracts(i=1)
     extracts_2 = validation.get_data_extracts(i=2)
+    extracts_3 = validation.get_data_extracts(i=3)
 
     assert isinstance(extracts_all, dict)
     assert isinstance(extracts_1, dict)
     assert isinstance(extracts_2, dict)
-    assert len(extracts_all) == 2
+    assert isinstance(extracts_3, dict)
+    assert len(extracts_all) == 3
     assert len(extracts_1) == 1
     assert len(extracts_2) == 1
+    assert len(extracts_3) == 1
 
     extracts_1_df = validation.get_data_extracts(i=1, frame=True)
     extracts_2_df = validation.get_data_extracts(i=2, frame=True)
+    extracts_3_df = validation.get_data_extracts(i=3, frame=True)
 
     assert isinstance(extracts_1_df, pd.DataFrame)
     assert isinstance(extracts_2_df, pd.DataFrame)
+    assert isinstance(extracts_3_df, pd.DataFrame)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
