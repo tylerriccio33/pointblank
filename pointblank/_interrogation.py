@@ -2159,63 +2159,6 @@ class ConjointlyValidation:
         return results_tbl
 
 
-def _convert_expr_to_polars(self, expr):
-    """Convert a ColumnExpression to a Polars expression."""
-    import polars as pl
-
-    # Base case: not an operation, just a column reference
-    if not hasattr(expr, "operation") or expr.operation is None:
-        return pl.col(expr.column_name)
-
-    # For operations, we need to recursively process the expressions
-    if expr.operation == "gt":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) > pl.col(expr.other_column)
-        return pl.col(expr.column_name) > expr.value
-    elif expr.operation == "lt":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) < pl.col(expr.other_column)
-        return pl.col(expr.column_name) < expr.value
-    elif expr.operation == "eq":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) == pl.col(expr.other_column)
-        return pl.col(expr.column_name) == expr.value
-    elif expr.operation == "ne":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) != pl.col(expr.other_column)
-        return pl.col(expr.column_name) != expr.value
-    elif expr.operation == "ge":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) >= pl.col(expr.other_column)
-        return pl.col(expr.column_name) >= expr.value
-    elif expr.operation == "le":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) <= pl.col(expr.other_column)
-        return pl.col(expr.column_name) <= expr.value
-    elif expr.operation == "add":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) + pl.col(expr.other_column)
-        return pl.col(expr.column_name) + expr.value
-    elif expr.operation == "sub":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) - pl.col(expr.other_column)
-        return pl.col(expr.column_name) - expr.value
-    elif expr.operation == "mul":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) * pl.col(expr.other_column)
-        return pl.col(expr.column_name) * expr.value
-    elif expr.operation == "div":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) / pl.col(expr.other_column)
-        return pl.col(expr.column_name) / expr.value
-    elif expr.operation == "and":
-        if expr.other_column is not None:
-            return pl.col(expr.column_name) & pl.col(expr.other_column)
-        return pl.col(expr.column_name) & expr.value
-    else:
-        raise ValueError(f"Unsupported operation: {expr.operation}")
-
-
 @dataclass
 class NumberOfTestUnits:
     """
