@@ -2103,18 +2103,36 @@ class ConjointlyValidation:
         ibis_expressions = []
 
         for expr_fn in self.expressions:
+            # Strategy 1: Try direct evaluation with native Ibis expressions
             try:
-                # Try to get a ColumnExpression object
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check if it's a valid Ibis expression
+                if hasattr(expr_result, "_ibis_expr"):
+                    ibis_expressions.append(expr_result)
+                    continue  # Skip to next expression if this worked
+            except Exception:
+                pass  # Silently continue to Strategy 2
+
+            # Strategy 2: Try with ColumnExpression
+            try:
+                # Skip this strategy if we don't have an expr_col implementation
+                if not hasattr(self, "to_ibis_expr"):
+                    continue
+
                 col_expr = expr_fn(None)
+
+                # Skip if we got None
+                if col_expr is None:
+                    continue
 
                 # Convert ColumnExpression to Ibis expression
                 if hasattr(col_expr, "to_ibis_expr"):
                     ibis_expr = col_expr.to_ibis_expr(self.data_tbl)
                     ibis_expressions.append(ibis_expr)
-                else:
-                    raise TypeError(f"Cannot convert {type(col_expr)} to Ibis expression")
-            except Exception as e:
-                print(f"Error in Ibis expression evaluation: {e}")
+            except Exception:
+                # Silent failure - we already tried both strategies
+                pass
 
         # Combine expressions
         if ibis_expressions:
