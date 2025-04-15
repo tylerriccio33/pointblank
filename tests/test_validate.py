@@ -2732,6 +2732,13 @@ def test_conjointly_duckdb_expr_col():
     assert validation.n_passed(i=1, scalar=True) == 13
 
 
+def test_conjointly_error_no_expr():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
+
+    with pytest.raises(ValueError):
+        Validate(data=tbl).conjointly()
+
+
 def test_col_schema_match():
     tbl = pl.DataFrame(
         {
