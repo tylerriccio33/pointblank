@@ -11024,7 +11024,7 @@ def _step_report_rows_distinct(
             column_position=column_position,
         )
 
-        if limit < extract_length:
+        if limit < extract_length:  # pragma: no cover
             extract_length_resolved = limit
             extract_text = STEP_REPORT_TEXT["extract_text_first_rows_distinct"][lang].format(
                 extract_length_resolved=extract_length_resolved
