@@ -1620,6 +1620,19 @@ class ColumnExpression:
         if self.operation is None and self.column_name is not None:
             return pl.col(self.column_name)
 
+        # Handle unary operations like is_null
+        if self.operation == "is_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_polars_expr()
+            return left_expr.is_null()
+
+        if self.operation == "is_not_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_polars_expr()
+            return left_expr.is_not_null()
+
         # Handle nested expressions through recursive evaluation
         if self.operation is None:
             # This shouldn't happen in normal use

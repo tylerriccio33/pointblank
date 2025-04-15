@@ -2051,7 +2051,6 @@ class ConjointlyValidation:
         for expr_fn in self.expressions:
             try:
                 # First try direct evaluation with pandas DataFrame
-                # This is the case for lambda df: df["a"] > 2 style expressions
                 expr_result = expr_fn(self.data_tbl)
 
                 # Check that it's a pandas Series with bool dtype
@@ -2071,10 +2070,18 @@ class ConjointlyValidation:
                     col_expr = expr_fn(None)
 
                     if hasattr(col_expr, "to_pandas_expr"):
-                        pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
-                        pandas_series.append(pandas_expr)
+                        # Watch for NotImplementedError here and re-raise it
+                        try:
+                            pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
+                            pandas_series.append(pandas_expr)
+                        except NotImplementedError as nie:
+                            # Re-raise NotImplementedError with the original message
+                            raise NotImplementedError(str(nie))
                     else:
                         raise TypeError(f"Cannot convert {type(col_expr)} to pandas Series")
+                except NotImplementedError as nie:
+                    # Re-raise NotImplementedError
+                    raise NotImplementedError(str(nie))
                 except Exception as nested_e:
                     print(f"Error evaluating pandas expression: {e} -> {nested_e}")
 
