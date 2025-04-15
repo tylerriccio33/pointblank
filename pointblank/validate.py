@@ -9357,6 +9357,24 @@ class Validate:
                 lang=lang,
             )
 
+        elif assertion_type == "rows_distinct":
+            extract = self.get_data_extracts(i=i, frame=True)
+
+            step_report = _step_report_rows_distinct(
+                i=i,
+                column=column,
+                column_position=column_position,
+                columns_subset=columns_subset,
+                n=n,
+                n_failed=n_failed,
+                all_passed=all_passed,
+                extract=extract,
+                tbl_preview=tbl_preview,
+                header=header,
+                limit=limit,
+                lang=lang,
+            )
+
         elif assertion_type == "col_schema_match":
             # Get the parameters for column-schema matching
             values_dict = validation_step["values"]
@@ -10891,6 +10909,140 @@ def _step_report_row_based(
             "</div>"
             "<div style='padding-top: 7px;'>"
             f"{failure_rate_stmt} {not_shown}"
+            "</div>"
+            f"{extract_text}"
+            "</div>"
+        )
+
+        # If `header` is None then don't add a header and just return the step report
+        if header is None:
+            return step_report
+
+        # Generate the default template text for the header when `":default:"` is used
+        if header == ":default:":
+            header = "{title}{details}"
+
+        # Use commonmark to convert the header text to HTML
+        header = commonmark.commonmark(header)
+
+        # Place any templated text in the header
+        header = header.format(title=title, details=details)
+
+        # Create the header with `header` string
+        step_report = step_report.tab_header(title=md(header))
+
+    return step_report
+
+
+def _step_report_rows_distinct(
+    i: int,
+    column: list[str],
+    column_position: list[int],
+    columns_subset: list[str] | None,
+    n: int,
+    n_failed: int,
+    all_passed: bool,
+    extract: any,
+    tbl_preview: GT,
+    header: str,
+    limit: int | None,
+    lang: str,
+) -> GT:
+    # Get the length of the extracted data for the step
+    extract_length = get_row_count(extract)
+
+    # Determine whether the `lang` value represents a right-to-left language
+    is_rtl_lang = lang in RTL_LANGUAGES
+    direction_rtl = " direction: rtl;" if is_rtl_lang else ""
+
+    if column is None:
+        text = STEP_REPORT_TEXT["rows_distinct_all"][lang].format(column=column)
+    else:
+        columns_list = ", ".join(column)
+        text = STEP_REPORT_TEXT["rows_distinct_subset"][lang].format(columns_subset=columns_list)
+
+    if all_passed:
+        step_report = tbl_preview
+
+        if header is None:
+            return step_report
+
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i) + " " + CHECK_MARK_SPAN
+
+        success_stmt = STEP_REPORT_TEXT["success_statement_no_column"][lang].format(
+            n=n,
+            column_position=column_position,
+        )
+        preview_stmt = STEP_REPORT_TEXT["preview_statement"][lang]
+
+        details = (
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
+            "<div style='padding-top: 7px;'>"
+            f"{text}"
+            "</div>"
+            "<div style='padding-top: 7px;'>"
+            f"{success_stmt}"
+            "</div>"
+            f"{preview_stmt}"
+            "</div>"
+        )
+
+        # Generate the default template text for the header when `":default:"` is used
+        if header == ":default:":
+            header = "{title}{details}"
+
+        # Use commonmark to convert the header text to HTML
+        header = commonmark.commonmark(header)
+
+        # Place any templated text in the header
+        header = header.format(title=title, details=details)
+
+        # Create the header with `header` string
+        step_report = step_report.tab_header(title=md(header))
+
+    else:
+        if limit is None:
+            limit = extract_length
+
+        # Create a preview of the extracted data
+        step_report = _generate_display_table(
+            data=extract,
+            columns_subset=columns_subset,
+            n_head=limit,
+            n_tail=0,
+            limit=limit,
+            min_tbl_width=600,
+            incl_header=False,
+            mark_missing_values=False,
+        )
+
+        title = STEP_REPORT_TEXT["report_for_step_i"][lang].format(i=i)
+        failure_rate_metrics = f"<strong>{n_failed}</strong> / <strong>{n}</strong>"
+
+        failure_rate_stmt = STEP_REPORT_TEXT["failure_rate_summary_rows_distinct"][lang].format(
+            failure_rate=failure_rate_metrics,
+            column_position=column_position,
+        )
+
+        if limit < extract_length:
+            extract_length_resolved = limit
+            extract_text = STEP_REPORT_TEXT["extract_text_first_rows_distinct"][lang].format(
+                extract_length_resolved=extract_length_resolved
+            )
+
+        else:
+            extract_length_resolved = extract_length
+            extract_text = STEP_REPORT_TEXT["extract_text_all_rows_distinct"][lang].format(
+                extract_length_resolved=extract_length_resolved
+            )
+
+        details = (
+            f"<div style='font-size: 13.6px; {direction_rtl}'>"
+            "<div style='padding-top: 7px;'>"
+            f"{text}"
+            "</div>"
+            "<div style='padding-top: 7px;'>"
+            f"{failure_rate_stmt}"
             "</div>"
             f"{extract_text}"
             "</div>"
