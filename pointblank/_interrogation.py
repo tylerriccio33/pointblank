@@ -1977,6 +1977,122 @@ class ColCountMatch:
         return self.test_unit_res
 
 
+class ConjointlyValidation:
+    def __init__(self, data_tbl, expressions, threshold, tbl_type):
+        self.data_tbl = data_tbl
+        self.expressions = expressions
+        self.threshold = threshold
+        self.tbl_type = tbl_type
+
+    def get_test_results(self):
+        """Evaluate all expressions and combine them conjointly."""
+
+        if self.tbl_type == "polars" or self.tbl_type == "local":
+            import polars as pl
+
+            # Process expressions
+            polars_expressions = []
+
+            for expr_fn in self.expressions:
+                try:
+                    # First try direct evaluation (for pl.col() expressions)
+                    expr_result = expr_fn(self.data_tbl)
+                    if not isinstance(expr_result, pl.Expr):
+                        raise TypeError("Expected Polars expression")
+                    polars_expressions.append(expr_result)
+                except Exception:
+                    try:
+                        # Try to get a ColumnExpression object
+                        col_expr = expr_fn(None)
+
+                        # Convert ColumnExpression to Polars expression
+                        if hasattr(col_expr, "to_polars_expr"):
+                            polars_expr = col_expr.to_polars_expr()
+                            polars_expressions.append(polars_expr)
+                        else:
+                            raise TypeError(f"Cannot convert {type(col_expr)} to Polars expression")
+                    except Exception as e:
+                        print(f"Warning: Failed to evaluate expression: {e}")
+
+            # Combine results with AND logic
+            if polars_expressions:
+                final_result = polars_expressions[0]
+                for expr in polars_expressions[1:]:
+                    final_result = final_result & expr
+
+                # Create results table with boolean column
+                results_tbl = self.data_tbl.with_columns(pb_is_good_=final_result)
+                return results_tbl
+
+            # Default case if no expressions could be processed
+            results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))
+            return results_tbl
+
+        elif self.tbl_type == "pandas":
+            # Similar implementation for pandas
+            # ...
+            raise NotImplementedError("Pandas support not yet implemented")
+        else:
+            raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
+
+
+def _convert_expr_to_polars(self, expr):
+    """Convert a ColumnExpression to a Polars expression."""
+    import polars as pl
+
+    # Base case: not an operation, just a column reference
+    if not hasattr(expr, "operation") or expr.operation is None:
+        return pl.col(expr.column_name)
+
+    # For operations, we need to recursively process the expressions
+    if expr.operation == "gt":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) > pl.col(expr.other_column)
+        return pl.col(expr.column_name) > expr.value
+    elif expr.operation == "lt":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) < pl.col(expr.other_column)
+        return pl.col(expr.column_name) < expr.value
+    elif expr.operation == "eq":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) == pl.col(expr.other_column)
+        return pl.col(expr.column_name) == expr.value
+    elif expr.operation == "ne":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) != pl.col(expr.other_column)
+        return pl.col(expr.column_name) != expr.value
+    elif expr.operation == "ge":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) >= pl.col(expr.other_column)
+        return pl.col(expr.column_name) >= expr.value
+    elif expr.operation == "le":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) <= pl.col(expr.other_column)
+        return pl.col(expr.column_name) <= expr.value
+    elif expr.operation == "add":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) + pl.col(expr.other_column)
+        return pl.col(expr.column_name) + expr.value
+    elif expr.operation == "sub":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) - pl.col(expr.other_column)
+        return pl.col(expr.column_name) - expr.value
+    elif expr.operation == "mul":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) * pl.col(expr.other_column)
+        return pl.col(expr.column_name) * expr.value
+    elif expr.operation == "div":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) / pl.col(expr.other_column)
+        return pl.col(expr.column_name) / expr.value
+    elif expr.operation == "and":
+        if expr.other_column is not None:
+            return pl.col(expr.column_name) & pl.col(expr.other_column)
+        return pl.col(expr.column_name) & expr.value
+    else:
+        raise ValueError(f"Unsupported operation: {expr.operation}")
+
+
 @dataclass
 class NumberOfTestUnits:
     """
