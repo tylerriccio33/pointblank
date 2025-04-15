@@ -140,6 +140,8 @@ def df_pd():
             "b": [6, 3, 0, 5, 8, 2],
             "c": [10, 4, 8, 9, 10, 5],
             "d": [8, 2, None, 1, 7, 6],
+            "e": [True, False, True, False, True, False],
+            "f": [False, True, False, True, False, True],
         }
     )
 
@@ -152,6 +154,8 @@ def df_pl():
             "b": [6, 3, 0, 5, 8, 2],
             "c": [10, 4, 8, 9, 10, 5],
             "d": [8, 2, None, 1, 7, 6],
+            "e": [True, False, True, False, True, False],
+            "f": [False, True, False, True, False, True],
         }
     )
 
@@ -164,6 +168,8 @@ def df_ibis():
             "b": [6, 3, 0, 5, 8, 2],
             "c": [10, 4, 8, 9, 10, 5],
             "d": [8, 2, None, 1, 7, 6],
+            "e": [True, False, True, False, True, False],
+            "f": [False, True, False, True, False, True],
         }
     )
     return ibis.memtable(df)
@@ -1800,3 +1806,350 @@ def test_ibis_evaluation(df_ibis):
     expr = (expr_col("a") > 4) & (expr_col("b") < 6)
     result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
     assert len(result) == 1
+
+
+def test_eq_operation_polars(df_pl):
+    # Test equality operation
+    expr = expr_col("a") == 5
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 1
+    assert result["a"][0] == 5
+
+    # Test equality between columns
+    expr = expr_col("a") == expr_col("b")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 0  # No rows where a equals b
+
+
+def test_eq_operation_pandas(df_pd):
+    # Test equality operation
+    expr = expr_col("a") == 5
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 1
+    assert result["a"].iloc[0] == 5
+
+    # Test equality between columns
+    expr = expr_col("a") == expr_col("b")
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 0  # No rows where a equals b
+
+
+def test_eq_operation_ibis(df_ibis):
+    # Test equality operation
+    expr = expr_col("a") == 5
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 1
+    assert result["a"].iloc[0] == 5
+
+    # Test equality between columns
+    expr = expr_col("a") == expr_col("b")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 0  # No rows where a equals b
+
+
+def test_ne_operation_polars(df_pl):
+    # Test inequality operation
+    expr = expr_col("a") != 5
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 4  # All non-null rows except where a=5
+
+    # Test inequality between columns
+    expr = expr_col("a") != expr_col("b")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 5  # All non-null rows since no a equals b
+
+
+def test_ne_operation_pandas(df_pd):
+    # Test inequality operation
+    expr = expr_col("a") != 5
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 5  # All non-null rows except where a=5
+
+    # Test inequality between columns
+    expr = expr_col("a") != expr_col("b")
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 6  # All non-null rows since no a equals b
+
+
+def test_ne_operation_ibis(df_ibis):
+    # Test inequality operation
+    expr = expr_col("a") != 5
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 4  # All non-null rows except where a=5
+
+    # Test inequality between columns
+    expr = expr_col("a") != expr_col("b")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 5  # All non-null rows since no a equals b
+
+
+def test_ge_operation_polars(df_pl):
+    # Test greater than or equal operation
+    expr = expr_col("a") >= 5
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where a >= 5
+
+    # Test greater than or equal between columns
+    expr = expr_col("a") >= expr_col("b")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where a >= b
+
+
+def test_ge_operation_pandas(df_pd):
+    # Test greater than or equal operation
+    expr = expr_col("a") >= 5
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where a >= 5
+
+    # Test greater than or equal between columns
+    expr = expr_col("a") >= expr_col("b")
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where a >= b
+
+
+def test_ge_operation_ibis(df_ibis):
+    # Test greater than or equal operation
+    expr = expr_col("a") >= 5
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where a >= 5
+
+    # Test greater than or equal between columns
+    expr = expr_col("a") >= expr_col("b")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where a >= b
+
+
+def test_le_operation_polars(df_pl):
+    # Test less than or equal operation
+    expr = expr_col("a") <= 5
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where a <= 5
+
+    # Test less than or equal between columns
+    expr = expr_col("a") <= expr_col("b")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 2  # Rows where a <= b
+
+
+def test_le_operation_pandas(df_pd):
+    # Test less than or equal operation
+    expr = expr_col("a") <= 5
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where a <= 5
+
+    # Test less than or equal between columns
+    expr = expr_col("a") <= expr_col("b")
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 2  # Rows where a <= b
+
+
+def test_le_operation_ibis(df_ibis):
+    # Test less than or equal operation
+    expr = expr_col("a") <= 5
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where a <= 5
+
+    # Test less than or equal between columns
+    expr = expr_col("a") <= expr_col("b")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 2  # Rows where a <= b
+
+
+def test_sub_operation_polars(df_pl):
+    # Test subtraction operation with filter
+    expr = (expr_col("a") - 3) > 2
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 2  # Rows where (a - 3) > 2
+
+    # Test subtraction between columns
+    expr = (expr_col("a") - expr_col("b")) > 0
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where (a - b) > 0
+
+    # Test direct subtraction result
+    expr = expr_col("a") - expr_col("b")
+    result = df_pl.with_columns(result=expr.to_polars_expr())
+    assert result["result"][1] == 4  # 7 - 3 = 4
+
+
+def test_sub_operation_pandas(df_pd):
+    # Test subtraction operation with filter
+    expr = (expr_col("a") - 3) > 2
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 2  # Rows where (a - 3) > 2
+
+    # Test subtraction between columns
+    expr = (expr_col("a") - expr_col("b")) > 0
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where (a - b) > 0
+
+    # Test direct subtraction result
+    expr = expr_col("a") - expr_col("b")
+    result = expr.to_pandas_expr(df_pd)
+    assert result.iloc[1] == 4  # 7 - 3 = 4
+
+
+def test_sub_operation_ibis(df_ibis):
+    # Test subtraction operation with filter
+    expr = (expr_col("a") - 3) > 2
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 2  # Rows where (a - 3) > 2
+
+    # Test subtraction between columns
+    expr = (expr_col("a") - expr_col("b")) > 0
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where (a - b) > 0
+
+
+def test_mul_operation_polars(df_pl):
+    # Test multiplication operation with filter
+    expr = (expr_col("a") * 2) > 10
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 2  # Rows where (a * 2) > 10
+
+    # Test multiplication between columns
+    expr = (expr_col("a") * expr_col("b")) > 20
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where (a * b) > 20
+
+    # Test direct multiplication result
+    expr = expr_col("a") * 2
+    result = df_pl.with_columns(result=expr.to_polars_expr())
+    assert result["result"][0] == 10  # 5 * 2 = 10
+
+
+def test_mul_operation_pandas(df_pd):
+    # Test multiplication operation with filter
+    expr = (expr_col("a") * 2) > 10
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 2  # Rows where (a * 2) > 10
+
+    # Test multiplication between columns
+    expr = (expr_col("a") * expr_col("b")) > 20
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where (a * b) > 20
+
+    # Test direct multiplication result
+    expr = expr_col("a") * 2
+    result = expr.to_pandas_expr(df_pd)
+    assert result.iloc[0] == 10  # 5 * 2 = 10
+
+
+def test_mul_operation_ibis(df_ibis):
+    # Test multiplication operation with filter
+    expr = (expr_col("a") * 2) > 10
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 2  # Rows where (a * 2) > 10
+
+    # Test multiplication between columns
+    expr = (expr_col("a") * expr_col("b")) > 20
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where (a * b) > 20
+
+
+def test_div_operation_polars(df_pl):
+    # Test division operation with filter
+    expr = (expr_col("a") / 2) > 3
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 2  # Rows where (a / 2) > 3
+
+    # Test division between columns
+    expr = (expr_col("a") / expr_col("b")) > 1
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 3  # Rows where (a / b) > 1
+
+    # Test direct division result
+    expr = expr_col("a") / 5
+    result = df_pl.with_columns(result=expr.to_polars_expr())
+    assert result["result"][0] == 1.0  # 5 / 5 = 1.0
+
+
+def test_div_operation_pandas(df_pd):
+    # Test division operation with filter
+    expr = (expr_col("a") / 2) > 3
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 2  # Rows where (a / 2) > 3
+
+    # Test division between columns
+    expr = (expr_col("a") / expr_col("b")) > 1
+    result = df_pd[expr.to_pandas_expr(df_pd)]
+    assert len(result) == 3  # Rows where (a / b) > 1
+
+    # Test direct division result
+    expr = expr_col("a") / 5
+    result = expr.to_pandas_expr(df_pd)
+    assert result.iloc[0] == 1.0  # 5 / 5 = 1.0
+
+
+def test_div_operation_ibis(df_ibis):
+    # Test division operation with filter
+    expr = (expr_col("a") / 2) > 3
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 2  # Rows where (a / 2) > 3
+
+    # Test division between columns
+    expr = (expr_col("a") / expr_col("b")) > 1
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 3  # Rows where (a / b) > 1
+
+
+def test_and_operation_polars(df_pl):
+    # Test logical AND operation
+    expr = (expr_col("a") > 5) & (expr_col("b") < 6)
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 1  # Rows where a > 5 AND b < 6
+
+    # Test logical AND with boolean columns
+    expr = expr_col("e") & expr_col("f")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 0  # No rows where both e and f are True
+
+
+def test_and_operation_ibis(df_ibis):
+    # Test logical AND operation
+    expr = (expr_col("a") > 5) & (expr_col("b") < 6)
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 1  # Rows where a > 5 AND b < 6
+
+    # Test logical AND with boolean columns
+    expr = expr_col("e") & expr_col("f")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 0  # No rows where both e and f are True
+
+
+def test_or_operation_polars(df_pl):
+    # Test logical OR operation
+    expr = (expr_col("a") > 8) | (expr_col("b") < 1)
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 2  # Rows where a > 8 OR b < 1
+
+    # Test logical OR with boolean columns
+    expr = expr_col("e") | expr_col("f")
+    result = df_pl.filter(expr.to_polars_expr())
+    assert len(result) == 6  # All rows have either e or f as True
+
+
+def test_or_operation_ibis(df_ibis):
+    # Test logical OR operation
+    expr = (expr_col("a") > 8) | (expr_col("b") < 1)
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 2  # Rows where a > 8 OR b < 1
+
+    # Test logical OR with boolean columns
+    expr = expr_col("e") | expr_col("f")
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 6  # All rows have either e or f as True
+
+
+def test_and_operation_pandas_raises_error(df_pd):
+    # Test that logical AND raises ValueError for pandas
+    expr = (expr_col("a") > 5) & (expr_col("b") < 6)
+    with pytest.raises(ValueError):
+        df_pd[expr.to_pandas_expr(df_pd)]
+
+
+def test_or_operation_pandas_raises_error(df_pd):
+    # Test that logical OR raises ValueError for pandas
+    expr = (expr_col("a") > 8) | (expr_col("b") < 1)
+    with pytest.raises(ValueError):
+        df_pd[expr.to_pandas_expr(df_pd)]
