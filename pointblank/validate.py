@@ -10699,7 +10699,7 @@ def _step_report_row_based(
     header: str,
     limit: int | None,
     lang: str,
-):
+) -> GT:
     # Get the length of the extracted data for the step
     extract_length = get_row_count(extract)
 
