@@ -1721,8 +1721,63 @@ class ColumnExpression:
 
     def to_ibis_expr(self, table):
         """Convert this expression to an Ibis expression."""
-        # Similar implementation for ibis...
-        pass
+
+        # Base case: simple column reference
+        if self.operation is None and self.column_name is not None:
+            return table[self.column_name]
+
+        # Handle nested expressions through recursive evaluation
+        if self.operation is None:
+            # This shouldn't happen in normal use
+            raise ValueError("Invalid expression state: No operation or column name")
+
+        # Get the left operand
+        if self.left is None and self.column_name is not None:
+            # Column name as left operand
+            left_expr = table[self.column_name]
+        elif isinstance(self.left, ColumnExpression):
+            # Nested expression as left operand
+            left_expr = self.left.to_ibis_expr(table)
+        else:
+            # Literal value as left operand (rare)
+            left_expr = self.left
+
+        # Get the right operand
+        if isinstance(self.right, ColumnExpression):
+            # Nested expression as right operand
+            right_expr = self.right.to_ibis_expr(table)
+        elif isinstance(self.right, str) and self.right in table.columns:
+            # Column name as right operand
+            right_expr = table[self.right]
+        else:
+            # Literal value as right operand
+            right_expr = self.right
+
+        # Apply the operation
+        if self.operation == "gt":
+            return left_expr > right_expr
+        elif self.operation == "lt":
+            return left_expr < right_expr
+        elif self.operation == "eq":
+            return left_expr == right_expr
+        elif self.operation == "ne":
+            return left_expr != right_expr
+        elif self.operation == "ge":
+            return left_expr >= right_expr
+        elif self.operation == "le":
+            return left_expr <= right_expr
+        elif self.operation == "add":
+            return left_expr + right_expr
+        elif self.operation == "sub":
+            return left_expr - right_expr
+        elif self.operation == "mul":
+            return left_expr * right_expr
+        elif self.operation == "div":
+            return left_expr / right_expr
+        elif self.operation == "and":
+            return left_expr & right_expr
+        else:
+            raise ValueError(f"Unsupported operation: {self.operation}")
 
     def __gt__(self, other):
         return ColumnExpression(operation="gt", left=self, right=other)

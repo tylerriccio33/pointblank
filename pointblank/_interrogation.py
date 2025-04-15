@@ -1997,6 +1997,8 @@ class ConjointlyValidation:
             return self._get_polars_results()
         elif "pandas" in self.tbl_type:
             return self._get_pandas_results()
+        elif "duckdb" in self.tbl_type or "ibis" in self.tbl_type:
+            return self._get_ibis_results()
         else:
             raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
 
@@ -2092,6 +2094,43 @@ class ConjointlyValidation:
         results_tbl["pb_is_good_"] = pd.Series(
             [True] * len(self.data_tbl), index=self.data_tbl.index
         )
+        return results_tbl
+
+    def _get_ibis_results(self):
+        """Process expressions for Ibis tables (including DuckDB)."""
+        import ibis
+
+        ibis_expressions = []
+
+        for expr_fn in self.expressions:
+            try:
+                # Try to get a ColumnExpression object
+                col_expr = expr_fn(None)
+
+                # Convert ColumnExpression to Ibis expression
+                if hasattr(col_expr, "to_ibis_expr"):
+                    ibis_expr = col_expr.to_ibis_expr(self.data_tbl)
+                    ibis_expressions.append(ibis_expr)
+                else:
+                    raise TypeError(f"Cannot convert {type(col_expr)} to Ibis expression")
+            except Exception as e:
+                print(f"Error in Ibis expression evaluation: {e}")
+
+        # Combine expressions
+        if ibis_expressions:
+            try:
+                final_result = ibis_expressions[0]
+                for expr in ibis_expressions[1:]:
+                    final_result = final_result & expr
+
+                # Create results table with boolean column
+                results_tbl = self.data_tbl.mutate(pb_is_good_=final_result)
+                return results_tbl
+            except Exception as e:
+                print(f"Error combining Ibis expressions: {e}")
+
+        # Default case
+        results_tbl = self.data_tbl.mutate(pb_is_good_=ibis.literal(True))
         return results_tbl
 
 
