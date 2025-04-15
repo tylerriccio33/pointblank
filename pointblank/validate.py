@@ -6849,9 +6849,18 @@ class Validate:
             ]:
                 # Extract the `pb_is_good_` column from the table as a results list
                 if tbl_type in IBIS_BACKENDS:
-                    results_list = (
-                        results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
-                    )
+                    # Select the DataFrame library to use for getting the results list
+                    df_lib = _select_df_lib(preference="polars")
+                    df_lib_name = df_lib.__name__
+
+                    if df_lib_name == "pandas":
+                        results_list = (
+                            results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
+                        )
+                    else:
+                        results_list = (
+                            results_tbl.select("pb_is_good_").to_polars()["pb_is_good_"].to_list()
+                        )
 
                 else:
                     results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
@@ -8384,6 +8393,7 @@ class Validate:
         # Do we have a DataFrame library to work with?
         _check_any_df_lib(method_used="get_tabular_report")
 
+        # Select the DataFrame library
         df_lib = _select_df_lib(preference="polars")
 
         # Get information on the input data table
