@@ -52,6 +52,7 @@ from pointblank._interrogation import (
     ColValsCompareTwo,
     ColValsExpr,
     ColValsRegex,
+    ConjointlyValidation,
     NumberOfTestUnits,
     RowCountMatch,
     RowsDistinct,
@@ -6462,6 +6463,213 @@ class Validate:
 
         return self
 
+    def conjointly(
+        self,
+        *exprs: Callable,
+        pre: Callable | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
+        brief: str | bool | None = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Perform multiple row-wise validations for joint validity.
+
+        The `conjointly()` validation method checks whether each row in the table passes multiple
+        validation conditions simultaneously. This enables compound validation logic where a test unit
+        (typically a row) must satisfy all specified conditions to pass the validation.
+
+        This method accepts multiple validation expressions as callables, which should return boolean
+        expressions when applied to the data. You can use lambdas that incorporate Polars/Pandas
+        expressions or create more complex validation functions. The validation will operate over the
+        number of test units that is equal to the number of rows in the table (determined after any
+        `pre=` mutation has been applied).
+
+        Parameters
+        ----------
+        *exprs
+            Multiple validation expressions provided as callable functions. Each callable should accept
+            a table as its single argument and return a boolean expression or Series/Column that
+            evaluates to boolean values for each row.
+        pre
+            An optional preprocessing function or lambda to apply to the data table during
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
+        thresholds
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
+        brief
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+
+        For the examples here, we'll use a simple Polars DataFrame with three numeric columns (`a`,
+        `b`, and `c`). The table is shown below:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 7, 1, 3, 9, 4],
+                "b": [6, 3, 0, 5, 8, 2],
+                "c": [10, 4, 8, 9, 10, 5],
+            }
+        )
+
+        pb.preview(tbl)
+        ```
+
+        Let's validate that the values in each row satisfy multiple conditions simultaneously:
+        1. Column `a` should be greater than 2
+        2. Column `b` should be less than 7
+        3. The sum of `a` and `b` should be less than the value in column `c`
+
+        We'll use `conjointly()` to check all these conditions together:
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .conjointly(
+                lambda df: pl.col("a") > 2,
+                lambda df: pl.col("b") < 7,
+                lambda df: pl.col("a") + pl.col("b") < pl.col("c")
+            )
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table shows that not all rows satisfy all three conditions together. For a row
+        to pass the conjoint validation, all three conditions must be true for that row.
+
+        We can also use preprocessing to filter the data before applying the conjoint validation:
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .conjointly(
+                lambda df: pl.col("a") > 2,
+                lambda df: pl.col("b") < 7,
+                lambda df: pl.col("a") + pl.col("b") < pl.col("c"),
+                pre=lambda df: df.filter(pl.col("c") > 5)
+            )
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        This allows for more complex validation scenarios where the data is first prepared and then
+        validated against multiple conditions simultaneously.
+        """
+
+        assertion_type = _get_fn_name()
+
+        if len(exprs) == 0:
+            raise ValueError("At least one validation expression must be provided")
+
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
+
+        # Package the validation expressions for later evaluation
+        values = {"expressions": exprs}
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            column=None,  # This is a rowwise validation, not specific to any column
+            values=values,
+            pre=pre,
+            thresholds=thresholds,
+            actions=actions,
+            brief=brief,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
     def interrogate(
         self,
         collect_extracts: bool = True,
@@ -6840,6 +7048,14 @@ class Validate:
                 validation.n_failed = 1 - result_bool
 
                 results_tbl = None
+
+            if assertion_category == "CONJOINTLY":
+                results_tbl = ConjointlyValidation(
+                    data_tbl=data_tbl_step,
+                    expressions=value["expressions"],
+                    threshold=threshold,
+                    tbl_type=tbl_type,
+                ).get_test_results()
 
             if assertion_category not in [
                 "COL_EXISTS_HAS_TYPE",
@@ -8623,6 +8839,9 @@ class Validate:
                 else:
                     # With a column subset list, format with commas between the column names
                     columns_upd.append(", ".join(column))
+
+            elif assertion_type[i] in ["conjointly"]:
+                columns_upd.append("")
             else:
                 columns_upd.append(str(column))
 
@@ -8693,6 +8912,9 @@ class Validate:
                     count = f"&ne; {count}"
 
                 values_upd.append(str(count))
+
+            elif assertion_type[i] in ["conjointly"]:
+                values_upd.append("COLUMN EXPR")
 
             # If the assertion type is not recognized, add the value as a string
             else:
