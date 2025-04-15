@@ -2668,6 +2668,70 @@ def test_conjointly_polars_expr_col():
     assert validation.n_passed(i=1, scalar=True) == 13
 
 
+def test_conjointly_pandas_native():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_pandas_expr_col():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_duckdb_native():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_duckdb_expr_col():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
 def test_col_schema_match():
     tbl = pl.DataFrame(
         {
