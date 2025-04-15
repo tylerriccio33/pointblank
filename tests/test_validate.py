@@ -6397,6 +6397,11 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
         .col_vals_expr(expr=pl.col("d") > pl.col("a"))
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
         .interrogate()
     )
 
