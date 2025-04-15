@@ -2141,6 +2141,28 @@ def test_or_operation_ibis(df_ibis):
     assert len(result) == 6  # All rows have either e or f as True
 
 
+def test_is_not_null_operation_ibis(df_ibis):
+    """Test is_not_null operation specifically for Ibis backend."""
+    # Test basic is_not_null operation
+    expr = expr_col("a").is_not_null()
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 5  # Should match all non-null values in column "a"
+
+    # Test is_not_null in combination with other operations
+    expr = expr_col("a").is_not_null() & (expr_col("b") > 2)
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 4  # Non-null "a" values where "b" > 2
+
+    # Test compound expression with is_not_null
+    expr = (expr_col("a") > 4) | expr_col("a").is_not_null()
+    result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
+    assert len(result) == 5  # All non-null values (condition always true for non-nulls)
+
+    # Test that the result doesn't include null values
+    has_nulls = any(pd.isna(result["a"]))
+    assert not has_nulls
+
+
 def test_and_operation_pandas_raises_error(df_pd):
     # Test that logical AND raises ValueError for pandas
     expr = (expr_col("a") > 5) & (expr_col("b") < 6)
