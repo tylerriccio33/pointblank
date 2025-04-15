@@ -6059,25 +6059,31 @@ def test_get_data_extracts(tbl_missing_pd):
         Validate(tbl_missing_pd)
         .col_vals_gt(columns="x", value=1)
         .col_vals_lt(columns="y", value=10)
+        .rows_distinct(columns_subset=["z"])
         .interrogate()
     )
 
     extracts_all = validation.get_data_extracts()
     extracts_1 = validation.get_data_extracts(i=1)
     extracts_2 = validation.get_data_extracts(i=2)
+    extracts_3 = validation.get_data_extracts(i=3)
 
     assert isinstance(extracts_all, dict)
     assert isinstance(extracts_1, dict)
     assert isinstance(extracts_2, dict)
-    assert len(extracts_all) == 2
+    assert isinstance(extracts_3, dict)
+    assert len(extracts_all) == 3
     assert len(extracts_1) == 1
     assert len(extracts_2) == 1
+    assert len(extracts_3) == 1
 
     extracts_1_df = validation.get_data_extracts(i=1, frame=True)
     extracts_2_df = validation.get_data_extracts(i=2, frame=True)
+    extracts_3_df = validation.get_data_extracts(i=3, frame=True)
 
     assert isinstance(extracts_1_df, pd.DataFrame)
     assert isinstance(extracts_2_df, pd.DataFrame)
+    assert isinstance(extracts_3_df, pd.DataFrame)
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -6919,31 +6925,35 @@ def test_get_step_report_no_fail(tbl_type):
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=True, in_order=False)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=True)
         .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
+        .rows_distinct()
+        .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_distinct(pre=lambda x: x.head(4))
+        .rows_distinct(columns_subset=["a", "b"], pre=lambda x: x.head(4))
         .interrogate()
     )
 
     # Test every step report and ensure it's a GT object
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
     # Test with a fixed limit of `2`
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i, limit=2), GT.GT)
 
     # Test with `limit=None`
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
 
     # Test with a custom header using static text
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i, header="Custom header"), GT.GT)
 
     # Test with a custom header using templating elements
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i, header="Title {title} {details}"), GT.GT)
 
     # Test with header removal
-    for i in range(1, 18):
+    for i in range(1, 23):
         assert isinstance(validation.get_step_report(i=i, header=None), GT.GT)
 
     #
@@ -7023,17 +7033,6 @@ def test_get_step_report_inactive_step():
     validation = Validate(small_table).col_vals_gt(columns="a", value=0, active=False).interrogate()
 
     assert validation.get_step_report(i=1) == "This validation step is inactive."
-
-
-def test_get_step_report_non_supported_steps():
-    small_table = load_dataset(dataset="small_table", tbl_type="pandas")
-
-    validation = (
-        Validate(small_table).rows_distinct().rows_distinct(columns_subset=["a", "b"]).interrogate()
-    )
-
-    assert validation.get_step_report(i=1) is None
-    assert validation.get_step_report(i=2) is None
 
 
 @pytest.mark.parametrize(
