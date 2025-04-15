@@ -1683,27 +1683,44 @@ class ColumnExpression:
             return left_expr / right_expr
         elif self.operation == "and":
             return left_expr & right_expr
+        elif self.operation == "or":
+            return left_expr | right_expr
         else:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
     def to_pandas_expr(self, df):
-        """Convert this expression to a Pandas expression."""
+        """Convert this expression to a Pandas Series of booleans."""
+
+        # Handle is_null as a special case - but raise an error
+        if self.operation == "is_null":
+            raise NotImplementedError(
+                "is_null() is not supported with pandas DataFrames. "
+                "Please use native pandas syntax with pd.isna() instead: "
+                "lambda df: pd.isna(df['column_name'])"
+            )
+
+        if self.operation == "is_not_null":
+            raise NotImplementedError(
+                "is_not_null() is not supported with pandas DataFrames. "
+                "Please use native pandas syntax with ~pd.isna() instead: "
+                "lambda df: ~pd.isna(df['column_name'])"
+            )
 
         # Base case: simple column reference
         if self.operation is None and self.column_name is not None:
             return df[self.column_name]
 
-        # For operations, recursively process operands
+        # For other operations, recursively process operands
         left_expr = self.left
         if isinstance(left_expr, ColumnExpression):
             left_expr = left_expr.to_pandas_expr(df)
-        elif isinstance(left_expr, str):
+        elif isinstance(left_expr, str) and left_expr in df.columns:
             left_expr = df[left_expr]
 
         right_expr = self.right
         if isinstance(right_expr, ColumnExpression):
             right_expr = right_expr.to_pandas_expr(df)
-        elif isinstance(right_expr, str):
+        elif isinstance(right_expr, str) and right_expr in df.columns:
             right_expr = df[right_expr]
 
         # Apply the operation
@@ -1727,8 +1744,6 @@ class ColumnExpression:
             return left_expr * right_expr
         elif self.operation == "div":
             return left_expr / right_expr
-        elif self.operation == "and":
-            return left_expr & right_expr
         else:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
@@ -1738,6 +1753,19 @@ class ColumnExpression:
         # Base case: simple column reference
         if self.operation is None and self.column_name is not None:
             return table[self.column_name]
+
+        # Handle unary operations
+        if self.operation == "is_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_ibis_expr(table)
+            return left_expr.isnull()
+
+        if self.operation == "is_not_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_ibis_expr(table)
+            return ~left_expr.isnull()
 
         # Handle nested expressions through recursive evaluation
         if self.operation is None:
@@ -1789,6 +1817,8 @@ class ColumnExpression:
             return left_expr / right_expr
         elif self.operation == "and":
             return left_expr & right_expr
+        elif self.operation == "or":
+            return left_expr | right_expr
         else:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
@@ -1822,7 +1852,20 @@ class ColumnExpression:
     def __truediv__(self, other):
         return ColumnExpression(operation="div", left=self, right=other)
 
+    def is_null(self):
+        """Check if values are null."""
+        return ColumnExpression(operation="is_null", left=self, right=None)
+
+    def is_not_null(self):
+        """Check if values are not null."""
+        return ColumnExpression(operation="is_not_null", left=self, right=None)
+
+    def __or__(self, other):
+        """Logical OR operation."""
+        return ColumnExpression(operation="or", left=self, right=other)
+
     def __and__(self, other):
+        """Logical AND operation."""
         return ColumnExpression(operation="and", left=self, right=other)
 
 
