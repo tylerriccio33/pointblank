@@ -2008,95 +2008,95 @@ class ConjointlyValidation:
         """Process expressions for Polars DataFrames."""
         import polars as pl
 
-        # First try direct evaluation with native Polars expressions
-        try:
-            direct_results = []
-            for expr_fn in self.expressions:
+        polars_expressions = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with native Polars expressions
+                expr_result = expr_fn(self.data_tbl)
+                if isinstance(expr_result, pl.Expr):
+                    polars_expressions.append(expr_result)
+                else:
+                    raise TypeError("Not a valid Polars expression")
+            except Exception as e:
                 try:
-                    expr_result = expr_fn(self.data_tbl)
-                    # Make sure it's a valid Polars expression
-                    if not isinstance(expr_result, pl.Expr):
-                        raise TypeError("Not a Polars expression")
-                    direct_results.append(expr_result)
-                except Exception:
-                    raise ValueError("Not all expressions could be directly evaluated")
-
-            # If we got here, we successfully evaluated all expressions directly
-            final_result = direct_results[0]
-            for expr in direct_results[1:]:
-                final_result = final_result & expr
-
-            # Create results table
-            results_tbl = self.data_tbl.with_columns(pb_is_good_=final_result)
-            return results_tbl
-        except Exception:
-            # If direct evaluation fails, try with ColumnExpression conversion
-            pass
-
-        # Try with ColumnExpression conversion
-        try:
-            column_expressions = []
-            for expr_fn in self.expressions:
-                try:
-                    # Get the ColumnExpression object
+                    # Try to get a ColumnExpression
                     col_expr = expr_fn(None)
-                    if not hasattr(col_expr, "to_polars_expr"):
-                        raise TypeError("Not a valid ColumnExpression")
-
-                    # Convert to Polars expression
-                    polars_expr = col_expr.to_polars_expr()
-                    column_expressions.append(polars_expr)
+                    if hasattr(col_expr, "to_polars_expr"):
+                        polars_expr = col_expr.to_polars_expr()
+                        polars_expressions.append(polars_expr)
+                    else:
+                        raise TypeError(f"Cannot convert {type(col_expr)} to Polars expression")
                 except Exception as e:
-                    raise ValueError(f"Failed to convert expression: {e}")
+                    print(f"Error evaluating expression: {e}")
 
-            # Combine expressions
-            final_result = column_expressions[0]
-            for expr in column_expressions[1:]:
+        # Combine results with AND logic
+        if polars_expressions:
+            final_result = polars_expressions[0]
+            for expr in polars_expressions[1:]:
                 final_result = final_result & expr
 
-            # Create results table
+            # Create results table with boolean column
             results_tbl = self.data_tbl.with_columns(pb_is_good_=final_result)
             return results_tbl
-        except Exception as e:
-            # Both approaches failed, return default
-            print(f"Error in Polars expression evaluation: {e}")
-            results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))
-            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))
+        return results_tbl
 
     def _get_pandas_results(self):
         """Process expressions for pandas DataFrames."""
         import pandas as pd
 
-        try:
-            pandas_expressions = []
-            for expr_fn in self.expressions:
-                # Get the ColumnExpression
-                col_expr = expr_fn(None)
+        pandas_series = []
 
-                if not hasattr(col_expr, "to_pandas_expr"):
-                    raise TypeError("Not a valid ColumnExpression")
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with pandas DataFrame
+                # This is the case for lambda df: df["a"] > 2 style expressions
+                expr_result = expr_fn(self.data_tbl)
 
-                # Convert to pandas Series of booleans
-                pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
-                pandas_expressions.append(pandas_expr)
+                # Check that it's a pandas Series with bool dtype
+                if isinstance(expr_result, pd.Series):
+                    if expr_result.dtype == bool or pd.api.types.is_bool_dtype(expr_result):
+                        pandas_series.append(expr_result)
+                    else:
+                        raise TypeError(
+                            f"Expression returned Series of type {expr_result.dtype}, expected bool"
+                        )
+                else:
+                    raise TypeError(f"Expression returned {type(expr_result)}, expected pd.Series")
 
-            # Combine expressions
-            final_result = pandas_expressions[0]
-            for expr in pandas_expressions[1:]:
-                final_result = final_result & expr
+            except Exception as e:
+                try:
+                    # Try as a ColumnExpression (for pb.expr_col style)
+                    col_expr = expr_fn(None)
 
-            # Create results table
+                    if hasattr(col_expr, "to_pandas_expr"):
+                        pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
+                        pandas_series.append(pandas_expr)
+                    else:
+                        raise TypeError(f"Cannot convert {type(col_expr)} to pandas Series")
+                except Exception as nested_e:
+                    print(f"Error evaluating pandas expression: {e} -> {nested_e}")
+
+        # Combine results with AND logic
+        if pandas_series:
+            final_result = pandas_series[0]
+            for series in pandas_series[1:]:
+                final_result = final_result & series
+
+            # Create results table with boolean column
             results_tbl = self.data_tbl.copy()
             results_tbl["pb_is_good_"] = final_result
             return results_tbl
-        except Exception as e:
-            # Return default result on failure
-            print(f"Error in pandas expression evaluation: {e}")
-            results_tbl = self.data_tbl.copy()
-            results_tbl["pb_is_good_"] = pd.Series(
-                [True] * len(self.data_tbl), index=self.data_tbl.index
-            )
-            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.copy()
+        results_tbl["pb_is_good_"] = pd.Series(
+            [True] * len(self.data_tbl), index=self.data_tbl.index
+        )
+        return results_tbl
 
 
 def _convert_expr_to_polars(self, expr):
