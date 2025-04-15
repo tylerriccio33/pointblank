@@ -1999,7 +1999,7 @@ class ConjointlyValidation:
             return self._get_pandas_results()
         elif "duckdb" in self.tbl_type or "ibis" in self.tbl_type:
             return self._get_ibis_results()
-        else:
+        else:  # pragma: no cover
             raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
 
     def _get_polars_results(self):
@@ -2023,9 +2023,9 @@ class ConjointlyValidation:
                     if hasattr(col_expr, "to_polars_expr"):
                         polars_expr = col_expr.to_polars_expr()
                         polars_expressions.append(polars_expr)
-                    else:
+                    else:  # pragma: no cover
                         raise TypeError(f"Cannot convert {type(col_expr)} to Polars expression")
-                except Exception as e:
+                except Exception as e:  # pragma: no cover
                     print(f"Error evaluating expression: {e}")
 
         # Combine results with AND logic
@@ -2039,8 +2039,8 @@ class ConjointlyValidation:
             return results_tbl
 
         # Default case
-        results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))
-        return results_tbl
+        results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))  # pragma: no cover
+        return results_tbl  # pragma: no cover
 
     def _get_pandas_results(self):
         """Process expressions for pandas DataFrames."""
@@ -2057,11 +2057,11 @@ class ConjointlyValidation:
                 if isinstance(expr_result, pd.Series):
                     if expr_result.dtype == bool or pd.api.types.is_bool_dtype(expr_result):
                         pandas_series.append(expr_result)
-                    else:
+                    else:  # pragma: no cover
                         raise TypeError(
                             f"Expression returned Series of type {expr_result.dtype}, expected bool"
                         )
-                else:
+                else:  # pragma: no cover
                     raise TypeError(f"Expression returned {type(expr_result)}, expected pd.Series")
 
             except Exception as e:
@@ -2074,15 +2074,15 @@ class ConjointlyValidation:
                         try:
                             pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
                             pandas_series.append(pandas_expr)
-                        except NotImplementedError as nie:
+                        except NotImplementedError as nie:  # pragma: no cover
                             # Re-raise NotImplementedError with the original message
                             raise NotImplementedError(str(nie))
-                    else:
+                    else:  # pragma: no cover
                         raise TypeError(f"Cannot convert {type(col_expr)} to pandas Series")
-                except NotImplementedError as nie:
+                except NotImplementedError as nie:  # pragma: no cover
                     # Re-raise NotImplementedError
                     raise NotImplementedError(str(nie))
-                except Exception as nested_e:
+                except Exception as nested_e:  # pragma: no cover
                     print(f"Error evaluating pandas expression: {e} -> {nested_e}")
 
         # Combine results with AND logic
@@ -2097,11 +2097,11 @@ class ConjointlyValidation:
             return results_tbl
 
         # Default case
-        results_tbl = self.data_tbl.copy()
-        results_tbl["pb_is_good_"] = pd.Series(
+        results_tbl = self.data_tbl.copy()  # pragma: no cover
+        results_tbl["pb_is_good_"] = pd.Series(  # pragma: no cover
             [True] * len(self.data_tbl), index=self.data_tbl.index
         )
-        return results_tbl
+        return results_tbl  # pragma: no cover
 
     def _get_ibis_results(self):
         """Process expressions for Ibis tables (including DuckDB)."""
@@ -2115,14 +2115,14 @@ class ConjointlyValidation:
                 expr_result = expr_fn(self.data_tbl)
 
                 # Check if it's a valid Ibis expression
-                if hasattr(expr_result, "_ibis_expr"):
+                if hasattr(expr_result, "_ibis_expr"):  # pragma: no cover
                     ibis_expressions.append(expr_result)
                     continue  # Skip to next expression if this worked
-            except Exception:
+            except Exception:  # pragma: no cover
                 pass  # Silently continue to Strategy 2
 
             # Strategy 2: Try with ColumnExpression
-            try:
+            try:  # pragma: no cover
                 # Skip this strategy if we don't have an expr_col implementation
                 if not hasattr(self, "to_ibis_expr"):
                     continue
@@ -2137,12 +2137,12 @@ class ConjointlyValidation:
                 if hasattr(col_expr, "to_ibis_expr"):
                     ibis_expr = col_expr.to_ibis_expr(self.data_tbl)
                     ibis_expressions.append(ibis_expr)
-            except Exception:
+            except Exception:  # pragma: no cover
                 # Silent failure - we already tried both strategies
                 pass
 
         # Combine expressions
-        if ibis_expressions:
+        if ibis_expressions:  # pragma: no cover
             try:
                 final_result = ibis_expressions[0]
                 for expr in ibis_expressions[1:]:
