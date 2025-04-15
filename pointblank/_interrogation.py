@@ -1983,23 +1983,19 @@ class ConjointlyValidation:
         self.expressions = expressions
         self.threshold = threshold
 
-        # Auto-detect the table type if not provided or if "local"
-        import pandas as pd
-        import polars as pl
-
-        if isinstance(data_tbl, pd.DataFrame):
-            self.tbl_type = "pandas"
-        elif isinstance(data_tbl, pl.DataFrame):
-            self.tbl_type = "polars"
+        # Detect the table type
+        if tbl_type in (None, "local"):
+            # Detect the table type using _get_tbl_type()
+            self.tbl_type = _get_tbl_type(data=data_tbl)
         else:
             self.tbl_type = tbl_type
 
     def get_test_results(self):
         """Evaluate all expressions and combine them conjointly."""
 
-        if self.tbl_type == "polars":
+        if "polars" in self.tbl_type:
             return self._get_polars_results()
-        elif self.tbl_type == "pandas":
+        elif "pandas" in self.tbl_type:
             return self._get_pandas_results()
         else:
             raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
