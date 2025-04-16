@@ -4195,18 +4195,20 @@ col(exprs: 'str | ColumnSelector | ColumnSelectorNarwhals') -> 'Column | ColumnL
     [`interrogate()`](`pointblank.Validate.interrogate`) is called), Pointblank will then check that
     the column exists in the input table.
 
+    For creating expressions to use with the `conjointly()` validation method, use the
+    [`expr_col()`](`pointblank.expr_col`) function instead.
+
     Parameters
     ----------
     exprs
         Either the name of a single column in the target table, provided as a string, or, an
         expression involving column selector functions (e.g., `starts_with("a")`,
-        `ends_with("e") | starts_with("a")`, etc.). Please read the documentation for further
-        details on which input forms are valid depending on the context.
+        `ends_with("e") | starts_with("a")`, etc.).
 
     Returns
     -------
-    Column
-        A `Column` object representing the column.
+    Column | ColumnLiteral | ColumnSelectorNarwhals:
+        A column object or expression representing the column reference.
 
     Usage with the `columns=` Argument
     -----------------------------------
@@ -4450,6 +4452,11 @@ col(exprs: 'str | ColumnSelector | ColumnSelectorNarwhals') -> 'Column | ColumnL
     [`matches()`](`pointblank.matches`) column selector functions from Narwhals, combined with the
     `&` operator. This is necessary to specify the set of columns that are numeric *and* match the
     text `"2023"` or `"2024"`.
+
+    See Also
+    --------
+    Create a column expression for use in `conjointly()` validation with the
+    [`expr_col()`](`pointblank.expr_col`) function.
     
 
 starts_with(text: 'str', case_sensitive: 'bool' = False) -> 'StartsWith'
@@ -5916,6 +5923,7 @@ get_data_extracts(self, i: 'int | list[int] | None' = None, frame: 'bool' = Fals
         - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
         - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
         - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+        - [`rows_distinct()`](`pointblank.Validate.rows_distinct`)
 
         An extracted row means that a test unit failed for that row in the validation step. The
         extracted rows are a subset of the original table and are useful for further analysis or for
