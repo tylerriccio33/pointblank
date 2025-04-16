@@ -6476,21 +6476,22 @@ class Validate:
         Perform multiple row-wise validations for joint validity.
 
         The `conjointly()` validation method checks whether each row in the table passes multiple
-        validation conditions simultaneously. This enables compound validation logic where a test unit
-        (typically a row) must satisfy all specified conditions to pass the validation.
+        validation conditions simultaneously. This enables compound validation logic where a test
+        unit (typically a row) must satisfy all specified conditions to pass the validation.
 
-        This method accepts multiple validation expressions as callables, which should return boolean
-        expressions when applied to the data. You can use lambdas that incorporate Polars/Pandas
-        expressions or create more complex validation functions. The validation will operate over the
-        number of test units that is equal to the number of rows in the table (determined after any
-        `pre=` mutation has been applied).
+        This method accepts multiple validation expressions as callables, which should return
+        boolean expressions when applied to the data. You can use lambdas that incorporate
+        Polars/Pandas/Ibis expressions (based on the target table type) or create more complex
+        validation functions. The validation will operate over the number of test units that is
+        equal to the number of rows in the table (determined after any `pre=` mutation has been
+        applied).
 
         Parameters
         ----------
         *exprs
-            Multiple validation expressions provided as callable functions. Each callable should accept
-            a table as its single argument and return a boolean expression or Series/Column that
-            evaluates to boolean values for each row.
+            Multiple validation expressions provided as callable functions. Each callable should
+            accept a table as its single argument and return a boolean expression or Series/Column
+            that evaluates to boolean values for each row.
         pre
             An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
@@ -6611,8 +6612,8 @@ class Validate:
         validation
         ```
 
-        The validation table shows that not all rows satisfy all three conditions together. For a row
-        to pass the conjoint validation, all three conditions must be true for that row.
+        The validation table shows that not all rows satisfy all three conditions together. For a
+        row to pass the conjoint validation, all three conditions must be true for that row.
 
         We can also use preprocessing to filter the data before applying the conjoint validation:
 
@@ -6633,6 +6634,37 @@ class Validate:
 
         This allows for more complex validation scenarios where the data is first prepared and then
         validated against multiple conditions simultaneously.
+
+        Or, you can use the backend-agnostic column expression helper
+        [`expr_col()`](`pointblank.expr_col`) to write expressions that work across different table
+        backends:
+
+        ```{python}
+        tbl = pl.DataFrame(
+            {
+                "a": [5, 7, 1, 3, 9, 4],
+                "b": [6, 3, 0, 5, 8, 2],
+                "c": [10, 4, 8, 9, 10, 5],
+            }
+        )
+
+        # Using backend-agnostic syntax with expr_col()
+        validation = (
+            pb.Validate(data=tbl)
+            .conjointly(
+                lambda df: pb.expr_col("a") > 2,
+                lambda df: pb.expr_col("b") < 7,
+                lambda df: pb.expr_col("a") + pb.expr_col("b") < pb.expr_col("c")
+            )
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Using [`expr_col()`](`pointblank.expr_col`) allows your validation code to work consistently
+        across Pandas, Polars, and Ibis table backends without changes, making your validation
+        pipelines more portable.
         """
 
         assertion_type = _get_fn_name()
