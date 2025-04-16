@@ -1878,8 +1878,8 @@ def expr_col(column_name: str) -> ColumnExpression:
 
     Parameters
     ----------
-    column_name : str
-        Name of the column to reference
+    column_name
+        Tbe name of the column to reference.
 
     Returns
     -------
