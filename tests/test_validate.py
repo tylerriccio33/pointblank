@@ -803,6 +803,11 @@ def test_validation_langs_all_working(lang):
         .rows_distinct(columns_subset=["a", "b", "c"])
         .col_count_match(count=14)
         .row_count_match(count=20)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
         .interrogate()
     )
 
