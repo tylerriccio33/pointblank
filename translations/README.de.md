@@ -22,11 +22,11 @@ _Datenvalidierung, schön und leistungsstark_
 
 <div align="right">
    <a href="../README.md">English</a> |
-   <a href="translations/README.fr.md">Français</a> |
-   <a href="translations/README.it.md">Italiano</a> |
-   <a href="translations/README.es.md">Español</a> |
-   <a href="translations/README.pt-BR.md">Português</a> |
-   <a href="translations/README.zh-CN.md">简体中文</a>
+   <a href="README.fr.md">Français</a> |
+   <a href="README.it.md">Italiano</a> |
+   <a href="README.es.md">Español</a> |
+   <a href="README.pt-BR.md">Português</a> |
+   <a href="README.zh-CN.md">简体中文</a>
 </div>
 
 ## Was ist Pointblank?
