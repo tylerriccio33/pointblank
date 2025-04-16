@@ -23,7 +23,7 @@ _Data validation made beautiful and powerful_
 <div align="right">
    <a href="translations/README.fr.md">Français</a> |
    <a href="translations/README.de.md">Deutsch</a> |
-   <a href="translations/README.it.md">Italiano</a>
+   <a href="translations/README.it.md">Italiano</a> |
    <a href="translations/README.es.md">Español</a> |
    <a href="translations/README.pt-BR.md">Português</a> |
    <a href="translations/README.zh-CN.md">简体中文</a>
