@@ -32,11 +32,11 @@ Whether you're a data scientist, data engineer, or analyst, Pointblank helps you
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_gt(columns="d", value=100)             # Validate values > 100
-    .col_vals_le(columns="c", value=5)               # Validate values <= 5
-    .col_exists(columns=["date", "date_time"])       # Check columns exist
-    .interrogate()                                   # Execute and collect results
+   pb.Validate(data=pb.load_dataset(dataset="small_table"))
+   .col_vals_gt(columns="d", value=100)             # Validate values > 100
+   .col_vals_le(columns="c", value=5)               # Validate values <= 5
+   .col_exists(columns=["date", "date_time"])       # Check columns exist
+   .interrogate()                                   # Execute and collect results
 )
 
 # Get the validation report from the REPL with:
@@ -116,7 +116,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-real-world-example.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data-example.png" width="800px">
 </div>
 
 ```python
