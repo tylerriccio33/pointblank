@@ -1888,6 +1888,12 @@ def expr_col(column_name: str) -> ColumnExpression:
 
     Examples
     --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+    ```
     Let's say we have a table with three columns: `a`, `b`, and `c`. We want to validate that:
 
     - The values in column `a` are greater than `2`.
