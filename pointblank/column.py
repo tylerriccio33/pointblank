@@ -1934,7 +1934,7 @@ def expr_col(column_name: str) -> ColumnExpression:
 
     See Also
     --------
-    The [`conjointly()`](`pointblank.Validate.conjointly`) method, which is where this function is
-    to be used.
+    The [`conjointly()`](`pointblank.Validate.conjointly`) validation method, which is where this
+    function should be used.
     """
     return ColumnExpression(column_name=column_name)
