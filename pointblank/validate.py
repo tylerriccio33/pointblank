@@ -6592,6 +6592,7 @@ class Validate:
         ```
 
         Let's validate that the values in each row satisfy multiple conditions simultaneously:
+
         1. Column `a` should be greater than 2
         2. Column `b` should be less than 7
         3. The sum of `a` and `b` should be less than the value in column `c`
