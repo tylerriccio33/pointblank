@@ -1873,22 +1873,30 @@ def expr_col(column_name: str) -> ColumnExpression:
     """
     Create a column expression for use in `conjointly()` validation.
 
-    This function returns a ColumnExpression object that supports operations
-    like >, <, +, etc. for use in conjointly() validation expressions.
+    This function returns a ColumnExpression object that supports operations like `>`, `<`, `+`,
+    etc. for use in [`conjointly()`](`pointblank.Validate.conjointly`) validation expressions.
 
     Parameters
     ----------
     column_name
-        Tbe name of the column to reference.
+        The name of the column to reference.
 
     Returns
     -------
     ColumnExpression
-        A column expression that can be used in comparisons and operations
+        A column expression that can be used in comparisons and operations.
 
     Examples
     --------
-    ```python
+    Let's say we have a table with three columns: `a`, `b`, and `c`. We want to validate that:
+
+    - The values in column `a` are greater than `2`.
+    - The values in column `b` are less than `7`.
+    - The sum of columns `a` and `b` is less than the values in column `c`.
+
+    We can use the `expr_col()` function to create a column expression for each of these conditions.
+
+    ```{python}
     import pointblank as pb
     import polars as pl
 
@@ -1910,6 +1918,17 @@ def expr_col(column_name: str) -> ColumnExpression:
         )
         .interrogate()
     )
+
+    validation
     ```
+
+    The above code creates a validation object that checks the specified conditions using the
+    `expr_col()` function. The resulting validation table will show whether each condition was
+    satisfied for each row in the table.
+
+    See Also
+    --------
+    The [`conjointly()`](`pointblank.Validate.conjointly`) method, which is where this function is
+    to be used.
     """
     return ColumnExpression(column_name=column_name)
