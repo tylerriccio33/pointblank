@@ -20,6 +20,12 @@ _Data validation made beautiful and powerful_
 
 </div>
 
+<div align="right">
+  <a href="translations/README.es.md">Español</a> |
+  <a href="translations/README.zh-CN.md">简体中文</a> |
+  <a href="translations/README.fr.md">Français</a>
+</div>
+
 ## What is Pointblank?
 
 Pointblank is a powerful, yet elegant data validation framework for Python that transforms how you ensure data quality. With its intuitive, chainable API, you can quickly validate your data against comprehensive quality checks and visualize results through stunning, interactive reports that make data issues immediately actionable.
