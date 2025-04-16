@@ -129,6 +129,7 @@ quartodoc:
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
         - name: Validate.col_count_match
+        - name: Validate.conjointly
     - title: Column Selection
       desc: >
         A flexible way to select columns for validation is to use the `col()` function along with
@@ -146,6 +147,7 @@ quartodoc:
         - name: everything
         - name: first_n
         - name: last_n
+        - name: expr_col
     - title: Interrogation and Reporting
       desc: >
         The validation plan is put into action when `interrogate()` is called. The workflow for
