@@ -15,6 +15,7 @@ __all__ = [
     "everything",
     "first_n",
     "last_n",
+    "expr_col",
 ]
 
 
@@ -234,18 +235,20 @@ def col(
     [`interrogate()`](`pointblank.Validate.interrogate`) is called), Pointblank will then check that
     the column exists in the input table.
 
+    For creating expressions to use with the `conjointly()` validation method, use the
+    [`expr_col()`](`pointblank.expr_col`) function instead.
+
     Parameters
     ----------
     exprs
         Either the name of a single column in the target table, provided as a string, or, an
         expression involving column selector functions (e.g., `starts_with("a")`,
-        `ends_with("e") | starts_with("a")`, etc.). Please read the documentation for further
-        details on which input forms are valid depending on the context.
+        `ends_with("e") | starts_with("a")`, etc.).
 
     Returns
     -------
-    Column
-        A `Column` object representing the column.
+    Column | ColumnLiteral | ColumnSelectorNarwhals:
+        A column object or expression representing the column reference.
 
     Usage with the `columns=` Argument
     -----------------------------------
@@ -496,6 +499,11 @@ def col(
     [`matches()`](`pointblank.matches`) column selector functions from Narwhals, combined with the
     `&` operator. This is necessary to specify the set of columns that are numeric *and* match the
     text `"2023"` or `"2024"`.
+
+    See Also
+    --------
+    Create a column expression for use in `conjointly()` validation with the
+    [`expr_col()`](`pointblank.expr_col`) function.
     """
     if isinstance(exprs, str):
         return ColumnLiteral(exprs=exprs)
@@ -1590,3 +1598,337 @@ def last_n(n: int, offset: int = 0) -> LastN:
     `paid_2022`, and `paid_2024`.
     """
     return LastN(n=n, offset=offset)
+
+
+class ColumnExpression:
+    """
+    A class representing a column expression for use in conjointly() validation.
+    Supports operations like >, <, +, etc. for creating backend-agnostic validation expressions.
+    """
+
+    def __init__(self, column_name=None, operation=None, left=None, right=None):
+        self.column_name = column_name  # Name of the column (for leaf nodes)
+        self.operation = operation  # Operation type (gt, lt, add, etc.)
+        self.left = left  # Left operand (ColumnExpression or None for column reference)
+        self.right = right  # Right operand (ColumnExpression, value, or None)
+
+    def to_polars_expr(self):
+        """Convert this expression to a Polars expression."""
+        import polars as pl
+
+        # Base case: simple column reference
+        if self.operation is None and self.column_name is not None:
+            return pl.col(self.column_name)
+
+        # Handle unary operations like is_null
+        if self.operation == "is_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_polars_expr()
+            return left_expr.is_null()
+
+        if self.operation == "is_not_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_polars_expr()
+            return left_expr.is_not_null()
+
+        # Handle nested expressions through recursive evaluation
+        if self.operation is None:
+            # This shouldn't happen in normal use
+            raise ValueError("Invalid expression state: No operation or column name")
+
+        # Get the left operand
+        if self.left is None and self.column_name is not None:
+            # Column name as left operand
+            left_expr = pl.col(self.column_name)  # pragma: no cover
+        elif isinstance(self.left, ColumnExpression):
+            # Nested expression as left operand
+            left_expr = self.left.to_polars_expr()  # pragma: no cover
+        else:
+            # Literal value as left operand
+            left_expr = self.left  # pragma: no cover
+
+        # Get the right operand
+        if isinstance(self.right, ColumnExpression):
+            # Nested expression as right operand
+            right_expr = self.right.to_polars_expr()  # pragma: no cover
+        elif isinstance(self.right, str):
+            # Column name as right operand
+            right_expr = pl.col(self.right)  # pragma: no cover
+        else:
+            # Literal value as right operand
+            right_expr = self.right  # pragma: no cover
+
+        # Apply the operation
+        if self.operation == "gt":
+            return left_expr > right_expr
+        elif self.operation == "lt":
+            return left_expr < right_expr
+        elif self.operation == "eq":
+            return left_expr == right_expr
+        elif self.operation == "ne":
+            return left_expr != right_expr
+        elif self.operation == "ge":
+            return left_expr >= right_expr
+        elif self.operation == "le":
+            return left_expr <= right_expr
+        elif self.operation == "add":
+            return left_expr + right_expr
+        elif self.operation == "sub":
+            return left_expr - right_expr
+        elif self.operation == "mul":
+            return left_expr * right_expr
+        elif self.operation == "div":
+            return left_expr / right_expr
+        elif self.operation == "and":
+            return left_expr & right_expr
+        elif self.operation == "or":
+            return left_expr | right_expr
+        else:
+            raise ValueError(f"Unsupported operation: {self.operation}")
+
+    def to_pandas_expr(self, df):
+        """Convert this expression to a Pandas Series of booleans."""
+
+        # Handle is_null as a special case - but raise an error
+        if self.operation == "is_null":
+            raise NotImplementedError(
+                "is_null() is not supported with pandas DataFrames. "
+                "Please use native pandas syntax with pd.isna() instead: "
+                "lambda df: pd.isna(df['column_name'])"
+            )
+
+        if self.operation == "is_not_null":
+            raise NotImplementedError(
+                "is_not_null() is not supported with pandas DataFrames. "
+                "Please use native pandas syntax with ~pd.isna() instead: "
+                "lambda df: ~pd.isna(df['column_name'])"
+            )
+
+        # Base case: simple column reference
+        if self.operation is None and self.column_name is not None:
+            return df[self.column_name]
+
+        # For other operations, recursively process operands
+        left_expr = self.left
+        if isinstance(left_expr, ColumnExpression):
+            left_expr = left_expr.to_pandas_expr(df)
+        elif isinstance(left_expr, str) and left_expr in df.columns:  # pragma: no cover
+            left_expr = df[left_expr]
+
+        right_expr = self.right
+        if isinstance(right_expr, ColumnExpression):
+            right_expr = right_expr.to_pandas_expr(df)
+        elif isinstance(right_expr, str) and right_expr in df.columns:  # pragma: no cover
+            right_expr = df[right_expr]
+
+        # Apply the operation
+        if self.operation == "gt":
+            return left_expr > right_expr
+        elif self.operation == "lt":
+            return left_expr < right_expr
+        elif self.operation == "eq":
+            return left_expr == right_expr
+        elif self.operation == "ne":
+            return left_expr != right_expr
+        elif self.operation == "ge":
+            return left_expr >= right_expr
+        elif self.operation == "le":
+            return left_expr <= right_expr
+        elif self.operation == "add":
+            return left_expr + right_expr
+        elif self.operation == "sub":
+            return left_expr - right_expr
+        elif self.operation == "mul":
+            return left_expr * right_expr
+        elif self.operation == "div":
+            return left_expr / right_expr
+        else:
+            raise ValueError(f"Unsupported operation: {self.operation}")
+
+    def to_ibis_expr(self, table):
+        """Convert this expression to an Ibis expression."""
+
+        # Base case: simple column reference
+        if self.operation is None and self.column_name is not None:
+            return table[self.column_name]
+
+        # Handle unary operations
+        if self.operation == "is_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_ibis_expr(table)
+            return left_expr.isnull()
+
+        if self.operation == "is_not_null":
+            left_expr = self.left
+            if isinstance(left_expr, ColumnExpression):
+                left_expr = left_expr.to_ibis_expr(table)
+            return ~left_expr.isnull()
+
+        # Handle nested expressions through recursive evaluation
+        if self.operation is None:
+            # This shouldn't happen in normal use
+            raise ValueError("Invalid expression state: No operation or column name")
+
+        # Get the left operand
+        if self.left is None and self.column_name is not None:
+            # Column name as left operand
+            left_expr = table[self.column_name]  # pragma: no cover
+        elif isinstance(self.left, ColumnExpression):
+            # Nested expression as left operand
+            left_expr = self.left.to_ibis_expr(table)  # pragma: no cover
+        else:
+            # Literal value as left operand
+            left_expr = self.left  # pragma: no cover
+
+        # Get the right operand
+        if isinstance(self.right, ColumnExpression):
+            # Nested expression as right operand
+            right_expr = self.right.to_ibis_expr(table)  # pragma: no cover
+        elif isinstance(self.right, str) and self.right in table.columns:
+            # Column name as right operand
+            right_expr = table[self.right]  # pragma: no cover
+        else:
+            # Literal value as right operand
+            right_expr = self.right  # pragma: no cover
+
+        # Apply the operation
+        if self.operation == "gt":
+            return left_expr > right_expr
+        elif self.operation == "lt":
+            return left_expr < right_expr
+        elif self.operation == "eq":
+            return left_expr == right_expr
+        elif self.operation == "ne":
+            return left_expr != right_expr
+        elif self.operation == "ge":
+            return left_expr >= right_expr
+        elif self.operation == "le":
+            return left_expr <= right_expr
+        elif self.operation == "add":
+            return left_expr + right_expr
+        elif self.operation == "sub":
+            return left_expr - right_expr
+        elif self.operation == "mul":
+            return left_expr * right_expr
+        elif self.operation == "div":
+            return left_expr / right_expr
+        elif self.operation == "and":
+            return left_expr & right_expr
+        elif self.operation == "or":
+            return left_expr | right_expr
+        else:
+            raise ValueError(f"Unsupported operation: {self.operation}")
+
+    def __gt__(self, other):
+        return ColumnExpression(operation="gt", left=self, right=other)
+
+    def __lt__(self, other):
+        return ColumnExpression(operation="lt", left=self, right=other)
+
+    def __eq__(self, other):
+        return ColumnExpression(operation="eq", left=self, right=other)
+
+    def __ne__(self, other):
+        return ColumnExpression(operation="ne", left=self, right=other)
+
+    def __ge__(self, other):
+        return ColumnExpression(operation="ge", left=self, right=other)
+
+    def __le__(self, other):
+        return ColumnExpression(operation="le", left=self, right=other)
+
+    def __add__(self, other):
+        return ColumnExpression(operation="add", left=self, right=other)
+
+    def __sub__(self, other):
+        return ColumnExpression(operation="sub", left=self, right=other)
+
+    def __mul__(self, other):
+        return ColumnExpression(operation="mul", left=self, right=other)
+
+    def __truediv__(self, other):
+        return ColumnExpression(operation="div", left=self, right=other)
+
+    def is_null(self):
+        """Check if values are null."""
+        return ColumnExpression(operation="is_null", left=self, right=None)
+
+    def is_not_null(self):
+        """Check if values are not null."""
+        return ColumnExpression(operation="is_not_null", left=self, right=None)
+
+    def __or__(self, other):
+        """Logical OR operation."""
+        return ColumnExpression(operation="or", left=self, right=other)
+
+    def __and__(self, other):
+        """Logical AND operation."""
+        return ColumnExpression(operation="and", left=self, right=other)
+
+
+def expr_col(column_name: str) -> ColumnExpression:
+    """
+    Create a column expression for use in `conjointly()` validation.
+
+    This function returns a ColumnExpression object that supports operations like `>`, `<`, `+`,
+    etc. for use in [`conjointly()`](`pointblank.Validate.conjointly`) validation expressions.
+
+    Parameters
+    ----------
+    column_name
+        The name of the column to reference.
+
+    Returns
+    -------
+    ColumnExpression
+        A column expression that can be used in comparisons and operations.
+
+    Examples
+    --------
+    Let's say we have a table with three columns: `a`, `b`, and `c`. We want to validate that:
+
+    - The values in column `a` are greater than `2`.
+    - The values in column `b` are less than `7`.
+    - The sum of columns `a` and `b` is less than the values in column `c`.
+
+    We can use the `expr_col()` function to create a column expression for each of these conditions.
+
+    ```{python}
+    import pointblank as pb
+    import polars as pl
+
+    tbl = pl.DataFrame(
+        {
+            "a": [5, 7, 1, 3, 9, 4],
+            "b": [6, 3, 0, 5, 8, 2],
+            "c": [10, 4, 8, 9, 10, 5],
+        }
+    )
+
+    # Using expr_col() to create backend-agnostic validation expressions
+    validation = (
+        pb.Validate(data=tbl)
+        .conjointly(
+            lambda df: pb.expr_col("a") > 2,
+            lambda df: pb.expr_col("b") < 7,
+            lambda df: pb.expr_col("a") + pb.expr_col("b") < pb.expr_col("c")
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    The above code creates a validation object that checks the specified conditions using the
+    `expr_col()` function. The resulting validation table will show whether each condition was
+    satisfied for each row in the table.
+
+    See Also
+    --------
+    The [`conjointly()`](`pointblank.Validate.conjointly`) method, which is where this function is
+    to be used.
+    """
+    return ColumnExpression(column_name=column_name)

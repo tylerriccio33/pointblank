@@ -61,6 +61,7 @@ from pointblank.column import (
     everything,
     first_n,
     last_n,
+    expr_col,
 )
 
 from typing import TYPE_CHECKING
@@ -2633,6 +2634,109 @@ def test_rows_distinct(request, tbl_fixture):
         Validate(tbl).rows_distinct(columns_subset="z").interrogate().n_passed(i=1, scalar=True)
         == 0
     )
+
+
+def test_conjointly_polars_native():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: pl.col("d") > pl.col("a"),
+            lambda df: pl.col("a") > 0,
+            lambda df: pl.col("a") + pl.col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_polars_expr_col():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_pandas_native():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_pandas_expr_col():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_duckdb_native():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_duckdb_expr_col():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    validation = (
+        Validate(data=tbl)
+        .conjointly(
+            lambda df: expr_col("d") > expr_col("a"),
+            lambda df: expr_col("a") > 0,
+            lambda df: expr_col("a") + expr_col("d") < 12000,
+        )
+        .interrogate()
+    )
+
+    assert validation.n_passed(i=1, scalar=True) == 13
+
+
+def test_conjointly_error_no_expr():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
+
+    with pytest.raises(ValueError):
+        Validate(data=tbl).conjointly()
 
 
 def test_col_schema_match():
@@ -6293,6 +6397,11 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
         .col_vals_expr(expr=pl.col("d") > pl.col("a"))
+        .conjointly(
+            lambda df: df["d"] > df["a"],
+            lambda df: df["a"] > 0,
+            lambda df: df["a"] + df["d"] < 12000,
+        )
         .interrogate()
     )
 

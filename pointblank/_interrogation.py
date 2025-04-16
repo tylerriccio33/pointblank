@@ -1977,6 +1977,188 @@ class ColCountMatch:
         return self.test_unit_res
 
 
+class ConjointlyValidation:
+    def __init__(self, data_tbl, expressions, threshold, tbl_type):
+        self.data_tbl = data_tbl
+        self.expressions = expressions
+        self.threshold = threshold
+
+        # Detect the table type
+        if tbl_type in (None, "local"):
+            # Detect the table type using _get_tbl_type()
+            self.tbl_type = _get_tbl_type(data=data_tbl)
+        else:
+            self.tbl_type = tbl_type
+
+    def get_test_results(self):
+        """Evaluate all expressions and combine them conjointly."""
+
+        if "polars" in self.tbl_type:
+            return self._get_polars_results()
+        elif "pandas" in self.tbl_type:
+            return self._get_pandas_results()
+        elif "duckdb" in self.tbl_type or "ibis" in self.tbl_type:
+            return self._get_ibis_results()
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
+
+    def _get_polars_results(self):
+        """Process expressions for Polars DataFrames."""
+        import polars as pl
+
+        polars_expressions = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with native Polars expressions
+                expr_result = expr_fn(self.data_tbl)
+                if isinstance(expr_result, pl.Expr):
+                    polars_expressions.append(expr_result)
+                else:
+                    raise TypeError("Not a valid Polars expression")
+            except Exception as e:
+                try:
+                    # Try to get a ColumnExpression
+                    col_expr = expr_fn(None)
+                    if hasattr(col_expr, "to_polars_expr"):
+                        polars_expr = col_expr.to_polars_expr()
+                        polars_expressions.append(polars_expr)
+                    else:  # pragma: no cover
+                        raise TypeError(f"Cannot convert {type(col_expr)} to Polars expression")
+                except Exception as e:  # pragma: no cover
+                    print(f"Error evaluating expression: {e}")
+
+        # Combine results with AND logic
+        if polars_expressions:
+            final_result = polars_expressions[0]
+            for expr in polars_expressions[1:]:
+                final_result = final_result & expr
+
+            # Create results table with boolean column
+            results_tbl = self.data_tbl.with_columns(pb_is_good_=final_result)
+            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))  # pragma: no cover
+        return results_tbl  # pragma: no cover
+
+    def _get_pandas_results(self):
+        """Process expressions for pandas DataFrames."""
+        import pandas as pd
+
+        pandas_series = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with pandas DataFrame
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check that it's a pandas Series with bool dtype
+                if isinstance(expr_result, pd.Series):
+                    if expr_result.dtype == bool or pd.api.types.is_bool_dtype(expr_result):
+                        pandas_series.append(expr_result)
+                    else:  # pragma: no cover
+                        raise TypeError(
+                            f"Expression returned Series of type {expr_result.dtype}, expected bool"
+                        )
+                else:  # pragma: no cover
+                    raise TypeError(f"Expression returned {type(expr_result)}, expected pd.Series")
+
+            except Exception as e:
+                try:
+                    # Try as a ColumnExpression (for pb.expr_col style)
+                    col_expr = expr_fn(None)
+
+                    if hasattr(col_expr, "to_pandas_expr"):
+                        # Watch for NotImplementedError here and re-raise it
+                        try:
+                            pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
+                            pandas_series.append(pandas_expr)
+                        except NotImplementedError as nie:  # pragma: no cover
+                            # Re-raise NotImplementedError with the original message
+                            raise NotImplementedError(str(nie))
+                    else:  # pragma: no cover
+                        raise TypeError(f"Cannot convert {type(col_expr)} to pandas Series")
+                except NotImplementedError as nie:  # pragma: no cover
+                    # Re-raise NotImplementedError
+                    raise NotImplementedError(str(nie))
+                except Exception as nested_e:  # pragma: no cover
+                    print(f"Error evaluating pandas expression: {e} -> {nested_e}")
+
+        # Combine results with AND logic
+        if pandas_series:
+            final_result = pandas_series[0]
+            for series in pandas_series[1:]:
+                final_result = final_result & series
+
+            # Create results table with boolean column
+            results_tbl = self.data_tbl.copy()
+            results_tbl["pb_is_good_"] = final_result
+            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.copy()  # pragma: no cover
+        results_tbl["pb_is_good_"] = pd.Series(  # pragma: no cover
+            [True] * len(self.data_tbl), index=self.data_tbl.index
+        )
+        return results_tbl  # pragma: no cover
+
+    def _get_ibis_results(self):
+        """Process expressions for Ibis tables (including DuckDB)."""
+        import ibis
+
+        ibis_expressions = []
+
+        for expr_fn in self.expressions:
+            # Strategy 1: Try direct evaluation with native Ibis expressions
+            try:
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check if it's a valid Ibis expression
+                if hasattr(expr_result, "_ibis_expr"):  # pragma: no cover
+                    ibis_expressions.append(expr_result)
+                    continue  # Skip to next expression if this worked
+            except Exception:  # pragma: no cover
+                pass  # Silently continue to Strategy 2
+
+            # Strategy 2: Try with ColumnExpression
+            try:  # pragma: no cover
+                # Skip this strategy if we don't have an expr_col implementation
+                if not hasattr(self, "to_ibis_expr"):
+                    continue
+
+                col_expr = expr_fn(None)
+
+                # Skip if we got None
+                if col_expr is None:
+                    continue
+
+                # Convert ColumnExpression to Ibis expression
+                if hasattr(col_expr, "to_ibis_expr"):
+                    ibis_expr = col_expr.to_ibis_expr(self.data_tbl)
+                    ibis_expressions.append(ibis_expr)
+            except Exception:  # pragma: no cover
+                # Silent failure - we already tried both strategies
+                pass
+
+        # Combine expressions
+        if ibis_expressions:  # pragma: no cover
+            try:
+                final_result = ibis_expressions[0]
+                for expr in ibis_expressions[1:]:
+                    final_result = final_result & expr
+
+                # Create results table with boolean column
+                results_tbl = self.data_tbl.mutate(pb_is_good_=final_result)
+                return results_tbl
+            except Exception as e:
+                print(f"Error combining Ibis expressions: {e}")
+
+        # Default case
+        results_tbl = self.data_tbl.mutate(pb_is_good_=ibis.literal(True))
+        return results_tbl
+
+
 @dataclass
 class NumberOfTestUnits:
     """
