@@ -7,13 +7,13 @@ html-table-processing: none
 
 ![](/assets/pointblank_logo.svg){width=75%}
 
-_Find out if your data is what you think it is_
+_Data validation made beautiful and powerful_
 
 </div>
 
-Pointblank is a table validation and testing library for Python. It helps you ensure that your
-tabular data meets certain expectations and constraints and it presents the results in a beautiful
-validation report table.
+Pointblank is a modern data validation framework for Python that helps you trust your data with confidence. It provides a fluent, expressive API to validate your data against a wide range of constraints and presents results in beautiful, interactive reports.
+
+Whether you're a data scientist, data engineer, or analyst, Pointblank helps you catch data quality issues before they impact your analyses or downstream systems.
 
 ## Getting Started
 
@@ -40,31 +40,54 @@ validation
 
 </div>
 
-The rows in the validation report table correspond to each of the validation steps. One of the key
-concepts is that validation steps can be broken down into atomic test cases (test units), where each
-of these test units is given either of pass/fail status based on the validation constraints. You'll
-see these tallied up in the reporting table (in the `UNITS`, `PASS`, and `FAIL` columns).
+## Real-World Example
 
-The tabular reporting view is just one way to see the results. You can also obtain fine-grained
-results of the interrogation as individual step reports or via methods that provide key metrics.
-It's also possible to use the validation results for downstream processing, such as filtering the
-input table based on the pass/fail status of the rows.
+```python
+import pointblank as pb
+import polars as pl
 
-On the input side, we can use the following types of tables:
+# Load your data
+sales_data = pl.read_csv("sales_data.csv")
 
-- Polars DataFrame
-- Pandas DataFrame
-- DuckDB table
-- MySQL table
-- PostgreSQL table
-- SQLite table
-- Parquet
+# Create a comprehensive validation
+validation = (
+    pb.Validate(data=sales_data)
+    .col_vals_between(            # Check numeric ranges with precision
+        columns=["price", "quantity"],
+        left=0, right=1000
+    )
+    .col_vals_not_null(           # Ensure required fields don't have nulls
+        columns=["product_id", "customer_id", "timestamp"]
+    )
+    .col_vals_regex(              # Validate patterns with regex
+        columns="email",
+        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    )
+    .col_vals_in_set(             # Check categorical values
+        columns="status",
+        set=["pending", "shipped", "delivered", "returned"]
+    )
+    .conjointly(                  # Combine multiple conditions
+        lambda df: pb.expr_col("revenue") == pb.expr_col("price") * pb.expr_col("quantity"),
+        lambda df: pb.expr_col("tax") >= pb.expr_col("revenue") * 0.05
+    )
+    .interrogate()
+)
+```
 
-To make this all work seamlessly, we use [Narwhals](https://github.com/narwhals-dev/narwhals) to
-work with Polars and Pandas DataFrames. We also integrate with
-[Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite,
-Parquet, and more! In doing all of this, we can provide an ergonomic and consistent API for
-validating tabular data from various sources.
+```python
+# Get an HTML report you can share with your team
+validation.get_tabular_report().show("browser")
+```
+
+![](/assets/pointblank-real-world-example.png){width=100%}
+
+```python
+# Get a report of failing records from a specific step
+validation.get_step_report(i=3).show("browser")  # Get failing records from step 3
+```
+
+![](/assets/pointblank-step-report.png){width=100%}
 
 ## Features
 
