@@ -54,7 +54,7 @@ validation
 
 ## Why Choose Pointblank?
 
-- **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, Parquet, and more!
+- **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, Parquet, PySpark, Snowflake, and more!
 - **Beautiful, interactive reports** - Crystal-clear validation results that highlight issues and help communicate data quality
 - **Composable validation pipeline** - Chain validation steps into a complete data quality workflow
 - **Threshold-based alerts** - Set 'warning', 'error', and 'critical' thresholds with custom actions
