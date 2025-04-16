@@ -6665,6 +6665,11 @@ class Validate:
         Using [`expr_col()`](`pointblank.expr_col`) allows your validation code to work consistently
         across Pandas, Polars, and Ibis table backends without changes, making your validation
         pipelines more portable.
+
+        See Also
+        --------
+        Look at the documentation of the [`expr_col()`](`pointblank.expr_col`) function for more
+        information on how to use it with different table backends.
         """
 
         assertion_type = _get_fn_name()
