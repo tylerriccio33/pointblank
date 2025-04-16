@@ -52,7 +52,7 @@ validation
 
 <br>
 
-Why Choose Pointblank?
+## Why Choose Pointblank?
 
 - **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, Parquet, and more!
 - **Beautiful, interactive reports** - Crystal-clear validation results that highlight issues and help communicate data quality
