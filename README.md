@@ -83,7 +83,8 @@ validation = (
          pb.send_slack_notification(
             webhook_url="https://hooks.slack.com/services/your/webhook/url"
          )
-      )
+      ),
+      brief=True,                      # Add automatically-generated briefs for each step
    )
    .col_vals_between(            # Check numeric ranges with precision
       columns=["price", "quantity"],
@@ -118,7 +119,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data-example.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
 </div>
 
 ```python
