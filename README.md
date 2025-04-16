@@ -115,10 +115,6 @@ Major data quality issue found in step 7 (2025-04-16 15:03:04.685612+00:00).
 validation.get_tabular_report().show("browser")
 ```
 
-<div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-real-world-example.png" width="800px">
-</div>
-
 ```python
 # Get a report of failing records from a specific step
 validation.get_step_report(i=3).show("browser")  # Get failing records from step 3
