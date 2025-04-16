@@ -2,7 +2,7 @@
 
 <a href="https://posit-dev.github.io/pointblank/"><img src="https://posit-dev.github.io/pointblank/assets/pointblank_logo.svg" width="75%"/></a>
 
-_Find out if your data is what you think it is._
+_Data validation made beautiful and powerful_
 
 [![Python Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
 [![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
@@ -20,24 +20,23 @@ _Find out if your data is what you think it is._
 
 </div>
 
-Pointblank is a table validation and testing library for Python. It helps you ensure that your
-tabular data meets certain expectations and constraints and it presents the results in a beautiful
-validation report table.
+## What is Pointblank?
 
-## Getting Started
+Pointblank is a modern data validation framework for Python that helps you trust your data with confidence. It provides a fluent, expressive API to validate your data against a wide range of constraints and presents results in beautiful, interactive reports.
 
-Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the
-`Validate` class along with adding validation steps:
+Whether you're a data scientist, data engineer, or analyst, Pointblank helps you catch data quality issues before they impact your analyses or downstream systems.
+
+## Getting Started in 30 Seconds
 
 ```python
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use Validate() to start
-    .col_vals_gt(columns="d", value=100)       # STEP 1      |
-    .col_vals_le(columns="c", value=5)         # STEP 2      | <-- Build up a validation plan
-    .col_exists(columns=["date", "date_time"]) # STEPS 3 & 4 |
-    .interrogate() # This will execute all validation steps and collect intel
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_gt(columns="d", value=100)             # Validate values > 100
+    .col_vals_le(columns="c", value=5)               # Validate values <= 5
+    .col_exists(columns=["date", "date_time"])       # Check columns exist
+    .interrogate()                                   # Execute and collect results
 )
 
 validation
@@ -47,46 +46,94 @@ validation
 <img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
 </div>
 
-The rows in the validation report table correspond to each of the validation steps. One of the key
-concepts is that validation steps can be broken down into atomic test cases (test units), where each
-of these test units is given either of pass/fail status based on the validation constraints. You'll
-see these tallied up in the reporting table (in the `UNITS`, `PASS`, and `FAIL` columns).
+Note that if you want the validation report from the REPL, you have to run `validation.get_tabular_report().show()`. (The above example works great in notebooks.)
 
-The tabular reporting view is just one way to see the results. You can also obtain fine-grained
-results of the interrogation as individual step reports or via methods that provide key metrics.
-It's also possible to use the validation results for downstream processing, such as filtering the
-input table based on the pass/fail status of the rows.
+Why Choose Pointblank?
 
-On the input side, we can use the following types of tables:
+- **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, and Parquet
+- **Beautiful, interactive reports** - Crystal-clear validation results that highlight issues and help communicate data quality
+- **Composable validation pipeline** - Chain validation steps into a complete data quality workflow
+- **Threshold-based alerts** - Set 'warning', 'error', and 'critical' thresholds with custom actions
+- **Practical outputs** - Use validation results to filter tables, extract problematic data, or trigger downstream processes
 
-- Polars DataFrame
-- Pandas DataFrame
-- DuckDB table
-- MySQL table
-- PostgreSQL table
-- SQLite table
-- Parquet
+## Real-World Example
 
-To make this all work seamlessly, we use [Narwhals](https://github.com/narwhals-dev/narwhals) to
-work with Polars and Pandas DataFrames. We also integrate with
-[Ibis](https://github.com/ibis-project/ibis) to enable the use of DuckDB, MySQL, PostgreSQL, SQLite,
-Parquet, and more! In doing all of this, we can provide an ergonomic and consistent API for
-validating tabular data from various sources.
+```python
+import pointblank as pb
+import polars as pl
 
-Note: if you want the validation report from the REPL, you have to run `validation.get_tabular_report().show()`.
+# Load your data
+sales_data = pl.read_csv("sales_data.csv")
 
-## Features
+# Create a comprehensive validation
+validation = (
+    pb.Validate(data=sales_data)
+    .col_vals_between(            # Check numeric ranges with precision
+        columns=["price", "quantity"],
+        left=0, right=1000
+    )
+    .col_vals_not_null(           # Ensure required fields don't have nulls
+        columns=["product_id", "customer_id", "timestamp"]
+    )
+    .col_vals_regex(              # Validate patterns with regex
+        columns="email",
+        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    )
+    .col_vals_in_set(             # Check categorical values
+        columns="status",
+        set=["pending", "shipped", "delivered", "returned"]
+    )
+    .conjointly(                  # Combine multiple conditions
+        lambda df: pb.expr_col("revenue") == pb.expr_col("price") * pb.expr_col("quantity"),
+        lambda df: pb.expr_col("tax") >= pb.expr_col("revenue") * 0.05
+    )
+    .interrogate()
+)
+```
 
-Here's a short list of what we think makes Pointblank a great tool for data validation:
+```python
+# Get an HTML report you can share with your team
+validation.get_tabular_report().show("browser")
+```
 
-- **Flexible**: We support tables from Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, and Parquet
-- **Beautiful Reports**: Generate beautiful HTML table reports of your data validation results
-- **Functional Output**: Easily pull the specific data validation outputs you need for further processing
-- **Easy to Use**: Get started quickly with a straightforward API and clear documentation examples
-- **Powerful**: You can make complex data validation rules with flexible options for composition
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-real-world-example.png" width="800px">
+</div>
 
-There's a lot of [interesting examples](https://posit-dev.github.io/pointblank/demos/) you can
-check out in the documentation website.
+```python
+# Get a report of failing records from a specific step
+validation.get_step_report(i=3).show("browser")  # Get failing records from step 3
+```
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-step-report.png" width="800px">
+</div>
+
+## Features That Set Pointblank Apartd
+
+- **Complete validation workflow** - From data access to validation to reporting in a single pipeline
+- **Built for collaboration** - Share results with colleagues through beautiful interactive reports
+- **Practical outputs** - Get exactly what you need: counts, extracts, summaries, or full reports
+- **Flexible deployment** - Use in notebooks, scripts, or data pipelines
+- **Customizable** - Tailor validation steps and reporting to your specific needs
+- **Internationalization** - Reports can be generated in over 20 languages, including English, Spanish, French, and German
+
+## Documentation and Examples
+
+Visit our [documentation site](https://posit-dev.github.io/pointblank) for:
+
+- [The User Guide](https://posit-dev.github.io/pointblank/user-guide/)
+- [API reference](https://posit-dev.github.io/pointblank/reference/)
+- [Example gallery](https://posit-dev.github.io/pointblank/demos/)
+- [The Pointblog](https://posit-dev.github.io/pointblank/blog/)
+
+## Join the Community
+
+We'd love to hear from you! Connect with us:
+
+- [GitHub Issues](https://github.com/posit-dev/pointblank/issues) for bug reports and feature requests
+- [_Discord server_](https://discord.com/invite/YH7CybCNCQ) for discussions and help
+- [Contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) if you'd like to help improve Pointblank
 
 ## Installation
 
@@ -96,8 +143,7 @@ You can install Pointblank using pip:
 pip install pointblank
 ```
 
-You can also install [Pointblank from Conda-Forge](https://anaconda.org/conda-forge/pointblank) by
-using:
+You can also install Pointblank from Conda-Forge by using:
 
 ```bash
 conda install conda-forge::pointblank
@@ -110,8 +156,7 @@ pip install "pointblank[pl]" # Install Pointblank with Polars
 pip install "pointblank[pd]" # Install Pointblank with Pandas
 ```
 
-To use Pointblank with DuckDB, MySQL, PostgreSQL, or SQLite, install Ibis with the appropriate
-backend:
+To use Pointblank with DuckDB, MySQL, PostgreSQL, or SQLite, install Ibis with the appropriate backend:
 
 ```bash
 pip install "pointblank[duckdb]"   # Install Pointblank with Ibis + DuckDB
@@ -120,59 +165,35 @@ pip install "pointblank[postgres]" # Install Pointblank with Ibis + PostgreSQL
 pip install "pointblank[sqlite]"   # Install Pointblank with Ibis + SQLite
 ```
 
-## Getting in Touch
+## Technical Details
 
-If you encounter a bug, have usage questions, or want to share ideas to make this package better,
-please feel free to file an [issue](https://github.com/posit-dev/pointblank/issues).
-
-Wanna talk about data validation in a more relaxed setting? Join our
-[_Discord server_](https://discord.com/invite/YH7CybCNCQ)! This is a great option for asking about
-the development of Pointblank, pitching ideas that may become features, and just sharing your ideas!
-
-[![Discord Server](https://img.shields.io/badge/Discord-Chat%20with%20us-blue?style=social&logo=discord&logoColor=purple)](https://discord.com/invite/YH7CybCNCQ)
+Pointblank uses [Narwhals](https://github.com/narwhals-dev/narwhals) to work with Polars and Pandas DataFrames, and integrates with [Ibis](https://github.com/ibis-project/ibis) for database and file format support. This architecture provides a consistent API for validating tabular data from various sources.
 
 ## Contributing to Pointblank
 
-There are many ways to contribute to the ongoing development of Pointblank. Some contributions can
-be simple (like fixing typos, improving documentation, filing issues for feature requests or
-problems, etc.) and others might take more time and care (like answering questions and submitting
-PRs with code changes). Just know that anything you can do to help would be very much appreciated!
+There are many ways to contribute to the ongoing development of Pointblank. Some contributions can be simple (like fixing typos, improving documentation, filing issues for feature requests or problems, etc.) and others might take more time and care (like answering questions and submitting PRs with code changes). Just know that anything you can do to help would be very much appreciated!
 
-Please read over the
-[contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) for
+Please read over the [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) for
 information on how to get started.
 
 ## Roadmap
 
-There is much to do to make Pointblank a dependable and useful tool for data validation. To that
-end, we have a roadmap that will serve as a guide for the development of the library. Here are some
-of the things we are working on or plan to work on in the near future:
+We're actively working on enhancing Pointblank with:
 
-1. more validation methods to cover a wider range of data validation needs
-2. easy-to-use but powerful logging functionality
-3. messaging actions (e.g., Slack, emailing, etc.) to better react to threshold exceedances
-4. additional functionality for building more complex validations via LLMs (extension of ideas from
-   the current `DraftValidation` class)
-5. a feature for quickly obtaining summary information on any dataset (tying together existing and
-   future dataset summary-generation pieces)
-6. ensuring there are text/dict/JSON/HTML versions of all reports
-7. supporting the writing and reading of YAML validation config files
-8. a cli utility for Pointblank that can be used to run validations from the command line
-9. complete testing of validations across all compatible backends (for certification of those
-   backends as fully supported)
-10. completion of the **User Guide** in the project website
-11. functionality for creating and publishing data dictionaries, which could: (a) use LLMs to more
-    quickly draft column-level descriptions, and (b) incorporate templating features to make it
-    easier to keep descriptions consistent and up to date
+1. Additional validation methods for comprehensive data quality checks
+2. Advanced logging capabilities
+3. Messaging actions (Slack, email) for threshold exceedances
+4. LLM-powered validation suggestions and data dictionary generation
+5. JSON/YAML configuration for pipeline portability
+6. CLI utility for validation from the command line
+7. Expanded backend support and certification
+8. High-quality documentation and examples
 
-If you have any ideas for features or improvements, don't hesitate to share them with us! We are
-always looking for ways to make Pointblank better.
+If you have any ideas for features or improvements, don't hesitate to share them with us! We are always looking for ways to make Pointblank better.
 
 ## Code of Conduct
 
-Please note that the Pointblank project is released with a
-[contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
-<br>By participating in this project you agree to abide by its terms.
+Please note that the Pointblank project is released with a [contributor code of conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). <br>By participating in this project you agree to abide by its terms.
 
 ## 📄 License
 
