@@ -50,6 +50,8 @@ validation
 <img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
 </div>
 
+<br>
+
 Why Choose Pointblank?
 
 - **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, Parquet, and more!
