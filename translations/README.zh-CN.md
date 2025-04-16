@@ -21,10 +21,11 @@ _数据验证，既美观又强大_
 </div>
 
 <div align="right">
-  <a href="../README.md">English</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.zh-CN.md">简体中文</a> |
-  <a href="README.fr.md">Français</a> 
+   <a href="../README.md">English</a> |
+   <a href="translations/README.de.md">Deutsch</a> |
+   <a href="translations/README.it.md">Italiano</a>
+   <a href="translations/README.es.md">Español</a> |
+   <a href="translations/README.pt-BR.md">Português</a>
 </div>
 
 ## Pointblank 是什么？
