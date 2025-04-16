@@ -109,7 +109,7 @@ validation.get_step_report(i=3).show("browser")  # Get failing records from step
 <img src="https://posit-dev.github.io/pointblank/assets/pointblank-step-report.png" width="800px">
 </div>
 
-## Features That Set Pointblank Apartd
+## Features That Set Pointblank Apart
 
 - **Complete validation workflow** - From data access to validation to reporting in a single pipeline
 - **Built for collaboration** - Share results with colleagues through beautiful interactive reports
