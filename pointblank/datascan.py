@@ -381,7 +381,9 @@ class DataScan:
             )
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
-            .fmt_number(columns=fmt_float, decimals=2)
+            .fmt_number(
+                columns=fmt_float, decimals=2, drop_trailing_dec_mark=True, drop_trailing_zeros=True
+            )
             ## Generic Styling
             .tab_style(
                 style=style.text(size="10px"),
@@ -411,13 +413,10 @@ class DataScan:
             gt_tbl = gt_tbl.sub_missing(missing_text="-")
             # https://github.com/posit-dev/great-tables/issues/667
 
-        # TODO:
-        # - T/F in the UQ for bools (can remove them as stat types)
-        # - datetime value formatting weirdness
-        # - datetime column formatting weirdness
-        # - very small percentages should get a less than
-        # - ANY .00 should be rounded to int, ie. 1.00 -> 1
-        # - add the SL back
+        # TODO: datetime value formatting weirdness
+        # TODO: datetime column formatting weirdness
+        # TODO: very small percentages should get a less than
+        # TODO: add the SL back
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":
