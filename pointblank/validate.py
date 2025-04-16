@@ -10239,6 +10239,9 @@ def _create_autobrief_or_failure_text(
             for_failure=for_failure,
         )
 
+    if assertion_type == "conjointly":
+        return _create_text_conjointly(lang=lang, for_failure=for_failure)
+
     return None  # pragma: no cover
 
 
@@ -10411,6 +10414,12 @@ def _create_text_col_count_match(lang: str, value: int, for_failure: bool = Fals
     values_text = _prep_values_text(value["count"], lang=lang)
 
     return EXPECT_FAIL_TEXT[f"col_count_match_n_{type_}_text"][lang].format(values_text=values_text)
+
+
+def _create_text_conjointly(lang: str, for_failure: bool = False) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
+    return EXPECT_FAIL_TEXT[f"conjointly_{type_}_text"][lang]
 
 
 def _prep_column_text(column: str | list[str]) -> str:
