@@ -15,22 +15,23 @@ Pointblank is a modern data validation framework for Python that helps you trust
 
 Whether you're a data scientist, data engineer, or analyst, Pointblank helps you catch data quality issues before they impact your analyses or downstream systems.
 
-## Getting Started
-
-Let's take a Polars DataFrame and validate it against a set of constraints. We do that by using the
-`Validate` class along with adding validation steps:
+## Getting Started in 30 Seconds
 
 ```python
 import pointblank as pb
 
 validation = (
-    pb.Validate(data=pb.load_dataset(dataset="small_table")) # Use Validate() to start
-    .col_vals_gt(columns="d", value=100)       # STEP 1      |
-    .col_vals_le(columns="c", value=5)         # STEP 2      | <-- Build up a validation plan
-    .col_exists(columns=["date", "date_time"]) # STEPS 3 & 4 |
-    .interrogate() # This will execute all validation steps and collect intel
+   pb.Validate(data=pb.load_dataset(dataset="small_table"))
+   .col_vals_gt(columns="d", value=100)             # Validate values > 100
+   .col_vals_le(columns="c", value=5)               # Validate values <= 5
+   .col_exists(columns=["date", "date_time"])       # Check columns exist
+   .interrogate()                                   # Execute and collect results
 )
 
+# Get the validation report from the REPL with:
+validation.get_tabular_report().show()
+
+# From a notebook simply use:
 validation
 ```
 
@@ -114,6 +115,13 @@ validation.get_step_report(i=3).show("browser")  # Get failing records from step
 
 </div>
 
+## Join the Community
+
+We'd love to hear from you! Connect with us:
+
+- [GitHub Issues](https://github.com/posit-dev/pointblank/issues) for bug reports and feature requests
+- [_Discord server_](https://discord.com/invite/YH7CybCNCQ) for discussions and help
+- [Contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) if you'd like to help improve Pointblank
 
 ## Installation
 
@@ -145,16 +153,9 @@ pip install "pointblank[postgres]" # Install Pointblank with Ibis + PostgreSQL
 pip install "pointblank[sqlite]"   # Install Pointblank with Ibis + SQLite
 ```
 
-## Getting in Touch
+## Technical Details
 
-If you encounter a bug, have usage questions, or want to share ideas to make this package better,
-please feel free to file an [issue](https://github.com/posit-dev/pointblank/issues).
-
-Wanna talk about data validation in a more relaxed setting? Join our
-[_Discord server_](https://discord.com/invite/YH7CybCNCQ)! This is a great option for asking about
-the development of Pointblank, pitching ideas that may become features, and just sharing your ideas!
-
-[![](https://img.shields.io/badge/Discord-Chat%20with%20us-blue?style=social&logo=discord&logoColor=purple)](https://discord.com/invite/YH7CybCNCQ)
+Pointblank uses [Narwhals](https://github.com/narwhals-dev/narwhals) to work with Polars and Pandas DataFrames, and integrates with [Ibis](https://github.com/ibis-project/ibis) for database and file format support. This architecture provides a consistent API for validating tabular data from various sources.
 
 ## Contributing to Pointblank
 
@@ -165,6 +166,21 @@ PRs with code changes). Just know that anything you can do to help would be very
 
 Please read over the [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md)
 for information on how to get started.
+
+## Roadmap
+
+We're actively working on enhancing Pointblank with:
+
+1. Additional validation methods for comprehensive data quality checks
+2. Advanced logging capabilities
+3. Messaging actions (Slack, email) for threshold exceedances
+4. LLM-powered validation suggestions and data dictionary generation
+5. JSON/YAML configuration for pipeline portability
+6. CLI utility for validation from the command line
+7. Expanded backend support and certification
+8. High-quality documentation and examples
+
+If you have any ideas for features or improvements, don't hesitate to share them with us! We are always looking for ways to make Pointblank better.
 
 ## Code of Conduct
 
