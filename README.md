@@ -39,6 +39,10 @@ validation = (
     .interrogate()                                   # Execute and collect results
 )
 
+# Get the validation report from the REPL with:
+validation.get_tabular_report().show()
+
+# From a notebook simply use:
 validation
 ```
 
@@ -46,11 +50,9 @@ validation
 <img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
 </div>
 
-Note that if you want the validation report from the REPL, you have to run `validation.get_tabular_report().show()`. (The above example works great in notebooks.)
-
 Why Choose Pointblank?
 
-- **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, and Parquet
+- **Works with your existing stack** - Seamlessly integrates with Polars, Pandas, DuckDB, MySQL, PostgreSQL, SQLite, Parquet, and more!
 - **Beautiful, interactive reports** - Crystal-clear validation results that highlight issues and help communicate data quality
 - **Composable validation pipeline** - Chain validation steps into a complete data quality workflow
 - **Threshold-based alerts** - Set 'warning', 'error', and 'critical' thresholds with custom actions
@@ -67,28 +69,45 @@ sales_data = pl.read_csv("sales_data.csv")
 
 # Create a comprehensive validation
 validation = (
-    pb.Validate(data=sales_data)
-    .col_vals_between(            # Check numeric ranges with precision
-        columns=["price", "quantity"],
-        left=0, right=1000
-    )
-    .col_vals_not_null(           # Ensure required fields don't have nulls
-        columns=["product_id", "customer_id", "timestamp"]
-    )
-    .col_vals_regex(              # Validate patterns with regex
-        columns="email",
-        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-    )
-    .col_vals_in_set(             # Check categorical values
-        columns="status",
-        set=["pending", "shipped", "delivered", "returned"]
-    )
-    .conjointly(                  # Combine multiple conditions
-        lambda df: pb.expr_col("revenue") == pb.expr_col("price") * pb.expr_col("quantity"),
-        lambda df: pb.expr_col("tax") >= pb.expr_col("revenue") * 0.05
-    )
-    .interrogate()
+   pb.Validate(
+      data=sales_data,
+      tbl_name="sales_data",           # Name of the table for reporting
+      label="Real-world example.",     # Label for the validation, appears in reports
+      thresholds=(0.01, 0.02, 0.05),   # Set thresholds for warnings, errors, and critical issues
+      actions=pb.Actions(              # Define actions for any threshold exceedance
+         critical="Major data quality issue found in step {step} ({time})."
+      ),
+      final_actions=pb.FinalActions(   # Define final actions for the entire validation
+         pb.send_slack_notification(
+            webhook_url="https://hooks.slack.com/services/your/webhook/url"
+         )
+      )
+   )
+   .col_vals_between(            # Check numeric ranges with precision
+      columns=["price", "quantity"],
+      left=0, right=1000
+   )
+   .col_vals_not_null(           # Ensure that columns ending with '_id' don't have null values
+      columns=pb.ends_with("_id")
+   )
+   .col_vals_regex(              # Validate patterns with regex
+      columns="email",
+      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+   )
+   .col_vals_in_set(             # Check categorical values
+      columns="status",
+      set=["pending", "shipped", "delivered", "returned"]
+   )
+   .conjointly(                  # Combine multiple conditions
+      lambda df: pb.expr_col("revenue") == pb.expr_col("price") * pb.expr_col("quantity"),
+      lambda df: pb.expr_col("tax") >= pb.expr_col("revenue") * 0.05
+   )
+   .interrogate()
 )
+```
+
+```
+Major data quality issue found in step 7 (2025-04-16 15:03:04.685612+00:00).
 ```
 
 ```python
