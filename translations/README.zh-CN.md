@@ -148,7 +148,7 @@ validation.get_step_report(i=3).show("browser")  # 获取步骤 3 的失败记�
 
 ## 文档和示例
 
-访问我们的(文档站点)[(https://posit-dev.github.io/pointblank)]获取：
+访问我们的[文档站点](https://posit-dev.github.io/pointblank)获取：
 
 - [用户指南](https://posit-dev.github.io/pointblank/user-guide/)
 - [API 参考](https://posit-dev.github.io/pointblank/reference/)
