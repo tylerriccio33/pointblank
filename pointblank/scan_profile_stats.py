@@ -68,7 +68,7 @@ class StdStat(Stat):  # TODO: Rename this SD for consistency
 class MinStat(Stat):
     val: str
     name: ClassVar[str] = "min"
-    group = StatGroup.BOUNDS
+    group = StatGroup.BOUNDS  # TODO: These should get put back in DESCR once datetime p*
     expr: ClassVar[nw.Expr] = nw.col("_col").min()  # don't cast as float, can be date
     label: ClassVar[str] = "Min"
 
@@ -77,7 +77,7 @@ class MinStat(Stat):
 class MaxStat(Stat):
     val: str
     name: ClassVar[str] = "max"
-    group = StatGroup.BOUNDS
+    group = StatGroup.BOUNDS  # TODO: These should get put back in DESCR once datetime p*
     expr: ClassVar[nw.Expr] = nw.col("_col").max()  # don't cast as float, can be date
     label: ClassVar[str] = "Max"
 

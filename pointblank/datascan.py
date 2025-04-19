@@ -351,13 +351,19 @@ class DataScan:
                     __freq_true=true_ser, __freq_false=false_ser
                 )
 
+            ## format pct true values
+            formatted_data = formatted_data.with_columns(
+                # for bools, UQs are represented as percentages
+                __pct_true=nw.col("__freq_true") / self.profile.row_count,
+                __pct_false=nw.col("__freq_false") / self.profile.row_count,
+            )
+            for _fmt_col in ("__pct_true", "__pct_false"):
+                formatted: nw.Series = _fmt_frac(formatted_data[_fmt_col])
+                formatted_data = formatted_data.drop(_fmt_col)
+                formatted_data = formatted_data.with_columns(formatted.alias(_fmt_col))
+
             formatted_data = (
                 formatted_data.with_columns(
-                    # for bools, UQs are represented as percentages
-                    __pct_true=(nw.col("__freq_true") / self.profile.row_count),
-                    __pct_false=(nw.col("__freq_false") / self.profile.row_count),
-                )
-                .with_columns(
                     __bool_unique_html=nw.concat_str(
                         nw.lit("<span style='font-weight: bold;'>T</span>"),
                         nw.col("__pct_true"),
