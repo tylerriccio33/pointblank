@@ -43,18 +43,23 @@ def _compact_decimal_fmt(value: float | int) -> str:
     return formatted
 
 
-def _compact_0_1_fmt(value: float | int) -> str:
-    if value == 0:
-        formatted = " 0.00"
-    elif value == 1:
-        formatted = " 1.00"
-    elif abs(value) < 1 and abs(value) >= 0.01:
-        formatted = " " + fmt_number(value, decimals=2)[0]
-    elif abs(value) < 0.01:
-        formatted = "<0.01"
-    elif abs(value) > 0.99:
-        formatted = ">0.99"
-    else:
-        formatted = fmt_number(value, n_sigfig=3)[0]
+def _compact_0_1_fmt(value: float | int | None) -> str | None:
+    if value is None:
+        return value
 
-    return formatted
+    if value == 0:
+        return " 0.00"
+
+    if value == 1:
+        return " 1.00"
+
+    if abs(value) < 1 and abs(value) >= 0.01:
+        return " " + fmt_number(value, decimals=2)[0]
+
+    if abs(value) < 0.01:
+        return "<0.01"
+
+    if abs(value) > 0.99:
+        return ">0.99"
+
+    return fmt_number(value, n_sigfig=3)[0]
