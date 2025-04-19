@@ -438,7 +438,6 @@ class DataScan:
 
         # TODO: datetime value formatting weirdness
         # TODO: datetime column formatting weirdness
-        # TODO: very small percentages should get a less than
         # TODO: add the SL back
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
