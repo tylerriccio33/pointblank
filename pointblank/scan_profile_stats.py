@@ -20,6 +20,7 @@ class StatGroup(Enum):
     LOGIC = auto()
     IQR = auto()
     FREQ = auto()
+    BOUNDS = auto()
 
 
 # TODO: Make sure all these subclasses are suffixed w/`Stat`
@@ -67,7 +68,7 @@ class StdStat(Stat):  # TODO: Rename this SD for consistency
 class MinStat(Stat):
     val: str
     name: ClassVar[str] = "min"
-    group = StatGroup.DESCR
+    group = StatGroup.BOUNDS
     expr: ClassVar[nw.Expr] = nw.col("_col").min()  # don't cast as float, can be date
     label: ClassVar[str] = "Min"
 
@@ -76,7 +77,7 @@ class MinStat(Stat):
 class MaxStat(Stat):
     val: str
     name: ClassVar[str] = "max"
-    group = StatGroup.DESCR
+    group = StatGroup.BOUNDS
     expr: ClassVar[nw.Expr] = nw.col("_col").max()  # don't cast as float, can be date
     label: ClassVar[str] = "Max"
 

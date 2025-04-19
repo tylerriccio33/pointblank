@@ -109,7 +109,8 @@ def test_datascan_class_parametric(df) -> None:
             col for col in stats_that_should_be_present if col in summary_res.columns
         )
         if any_in_summary:
-            assert all(stat in summary_res.columns for stat in stats_that_should_be_present), msg
+            for stat in stats_that_should_be_present:
+                assert stat in summary_res.columns, f"{msg}: Missing {stat}"
 
 
 ## Deterministic Casing:
