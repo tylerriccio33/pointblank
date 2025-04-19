@@ -261,24 +261,51 @@ class DataScan:
 
         label_map: dict[str, Any] = self._build_label_map(target_order)
 
+        def _fmt_frac(vec) -> list[str | None]:  # TODO: rename, document, to utils?
+            res: list[str | None] = []
+            for x in vec:
+                if x is None:
+                    res.append(x)
+                    continue
+
+                if x < 0.01:
+                    res.append("<.01")
+                    continue
+
+                if int(x) == x:  # can remove trailing 0s w/o loss
+                    res.append(str(int(x)))
+                    continue
+
+                res.append(str(round(x, 2)))
+
+            return nw.new_series("foo", values=res, backend=self.profile.implementation)
+
         ## Final Formatting:
-        formatted_data = (
-            data.with_columns(
-                colname=nw.concat_str(
-                    nw.lit(
-                        "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
-                    ),
-                    nw.col("colname"),
-                    nw.lit("</div><div style='font-size: 11px; color: gray;'>"),
-                    nw.col("coltype"),
-                    nw.lit("</div>"),
+        formatted_data = data.with_columns(
+            colname=nw.concat_str(
+                nw.lit(
+                    "<div style='font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;'>"
                 ),
-                # TODO: This is a temporary solution?
-                __frac_n_unique=(nw.col("n_unique") / nw.lit(self.profile.row_count)).round(2),
-                __frac_n_missing=(nw.col("n_missing") / nw.lit(self.profile.row_count)).round(2),
-            )
+                nw.col("colname"),
+                nw.lit("</div><div style='font-size: 11px; color: gray;'>"),
+                nw.col("coltype"),
+                nw.lit("</div>"),
+            ),
+            __frac_n_unique=nw.col("n_unique") / nw.lit(self.profile.row_count),
+            __frac_n_missing=nw.col("n_missing") / nw.lit(self.profile.row_count),
+        )
+
+        # format fractions:
+        # this is an anti-pattern but there's no serious alternative
+        for _fmt_col in ("__frac_n_unique", "__frac_n_missing"):
+            formatted: nw.Series = _fmt_frac(formatted_data[_fmt_col])
+            formatted_data = formatted_data.drop(_fmt_col)
+            formatted_data = formatted_data.with_columns(formatted.alias(_fmt_col))
+
+        formatted_data = (
+            # TODO: This is a temporary solution?
             # Format the unique and missing pct strings
-            .with_columns(
+            formatted_data.with_columns(
                 n_unique=nw.concat_str(
                     nw.col("n_unique"),
                     nw.lit("<br>"),
@@ -301,7 +328,7 @@ class DataScan:
                     __freq_true=nw.col("freqs").struct.field("True"),
                     __freq_false=nw.col("freqs").struct.field("False"),
                 )
-            except Exception as e:
+            except Exception:  # TODO: should be narrowed if possible
                 pass  # struct not available in the implementation, ie. numpy Pandas
             else:
                 freq_ser: nw.Series = formatted_data["freqs"]
@@ -327,8 +354,8 @@ class DataScan:
             formatted_data = (
                 formatted_data.with_columns(
                     # for bools, UQs are represented as percentages
-                    __pct_true=(nw.col("__freq_true") / self.profile.row_count).round(2),
-                    __pct_false=(nw.col("__freq_false") / self.profile.row_count).round(2),
+                    __pct_true=(nw.col("__freq_true") / self.profile.row_count),
+                    __pct_false=(nw.col("__freq_false") / self.profile.row_count),
                 )
                 .with_columns(
                     __bool_unique_html=nw.concat_str(
@@ -366,10 +393,7 @@ class DataScan:
             .cols_align(align="right", columns=list(present_stat_cols))
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
-            .tab_style(
-                style=style.text(font=google_font("IBM Plex Mono")),
-                locations=loc.body(),
-            )
+            .tab_style(style=style.text(font=google_font("IBM Plex Mono")), locations=loc.body())
             ## Order
             .cols_move_to_start(target_order)
             ## Labeling
@@ -382,17 +406,16 @@ class DataScan:
             ## Value Formatting
             .fmt_integer(columns=fmt_int)
             .fmt_number(
-                columns=fmt_float, decimals=2, drop_trailing_dec_mark=True, drop_trailing_zeros=True
+                columns=fmt_float,
+                decimals=2,
+                drop_trailing_dec_mark=True,
+                drop_trailing_zeros=True,  ## Generic Styling
             )
-            ## Generic Styling
             .tab_style(
                 style=style.text(size="10px"),
                 locations=loc.body(columns=list(present_stat_cols)),
             )
-            .tab_style(
-                style=style.text(size="12px"),
-                locations=loc.body(columns="colname"),
-            )
+            .tab_style(style=style.text(size="12px"), locations=loc.body(columns="colname"))
             ## Borders
             .tab_style(
                 style=style.borders(sides="right", color="#D3D3D3", style="solid"),
