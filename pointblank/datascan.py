@@ -342,7 +342,10 @@ class DataScan:
                 __pct_false=nw.col("__freq_false") / self.profile.row_count,
             )
             for _fmt_col in ("__pct_true", "__pct_false"):
-                formatted: nw.Series = _fmt_frac(formatted_data[_fmt_col])
+                _formatted: list[str] = _fmt_frac(formatted_data[_fmt_col])
+                formatted = nw.new_series(
+                    name=_fmt_col, values=_formatted, backend=self.profile.implementation
+                )
                 formatted_data = formatted_data.drop(_fmt_col)
                 formatted_data = formatted_data.with_columns(formatted.alias(_fmt_col))
 
