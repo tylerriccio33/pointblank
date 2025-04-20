@@ -23,8 +23,14 @@ def _fmt_frac(vec) -> list[str | None]:
             res.append("<.01")
             continue
 
-        if int(x) == x:  # can remove trailing 0s w/o loss
-            res.append(str(int(x)))
+        try:
+            intx: int = int(x)
+        except ValueError:  # generic object, ie. NaN
+            res.append(str(x))
+            continue
+
+        if intx == x:  # can remove trailing 0s w/o loss
+            res.append(str(intx))
             continue
 
         res.append(str(round(x, 2)))
