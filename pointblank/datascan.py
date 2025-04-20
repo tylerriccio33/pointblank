@@ -313,8 +313,7 @@ class DataScan:
                     __freq_false=nw.col("freqs").struct.field("False"),
                 )
             except Exception:  # TODO: should be narrowed if possible
-                pass  # struct not available in the implementation, ie. numpy Pandas
-            else:
+                # if no struct implimentation exists, it must be done manually
                 freq_ser: nw.Series = formatted_data["freqs"]
                 trues: list[int | None] = []
                 falses: list[int | None] = []
@@ -342,7 +341,7 @@ class DataScan:
                 __pct_false=nw.col("__freq_false") / self.profile.row_count,
             )
             for _fmt_col in ("__pct_true", "__pct_false"):
-                _formatted: list[str] = _fmt_frac(formatted_data[_fmt_col])
+                _formatted: list[str | None] = _fmt_frac(formatted_data[_fmt_col])
                 formatted = nw.new_series(
                     name=_fmt_col, values=_formatted, backend=self.profile.implementation
                 )
