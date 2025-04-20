@@ -15,6 +15,10 @@ def _fmt_frac(vec) -> list[str | None]:
             res.append(x)
             continue
 
+        if x == 0:
+            res.append("0")
+            continue
+
         if x < 0.01:
             res.append("<.01")
             continue
