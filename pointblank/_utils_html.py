@@ -8,6 +8,26 @@ from pointblank._constants import TABLE_TYPE_STYLES
 from pointblank._utils import _format_to_integer_value
 
 
+def _fmt_frac(vec) -> list[str | None]:
+    res: list[str | None] = []
+    for x in vec:
+        if x is None:
+            res.append(x)
+            continue
+
+        if x < 0.01:
+            res.append("<.01")
+            continue
+
+        if int(x) == x:  # can remove trailing 0s w/o loss
+            res.append(str(int(x)))
+            continue
+
+        res.append(str(round(x, 2)))
+
+    return res
+
+
 def _make_sublabel(major: str, minor: str) -> Any:
     return html(
         f'{major!s}<span style="font-size: 0.75em; vertical-align: sub; position: relative; line-height: 0.5em;">{minor!s}</span>'

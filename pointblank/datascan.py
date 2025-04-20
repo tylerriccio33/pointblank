@@ -10,7 +10,7 @@ from great_tables import GT, google_font, html, loc, style
 from narwhals.dataframe import LazyFrame
 from narwhals.typing import FrameT
 
-from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
+from pointblank._utils_html import _create_table_dims_html, _create_table_type_html, _fmt_frac
 from pointblank.scan_profile import ColumnProfile, _as_physical, _DataProfile, _TypeMap
 from pointblank.scan_profile_stats import COLUMN_ORDER_REGISTRY
 
@@ -261,25 +261,6 @@ class DataScan:
 
         label_map: dict[str, Any] = self._build_label_map(target_order)
 
-        def _fmt_frac(vec) -> list[str | None]:  # TODO: rename, document, to utils?
-            res: list[str | None] = []
-            for x in vec:
-                if x is None:
-                    res.append(x)
-                    continue
-
-                if x < 0.01:
-                    res.append("<.01")
-                    continue
-
-                if int(x) == x:  # can remove trailing 0s w/o loss
-                    res.append(str(int(x)))
-                    continue
-
-                res.append(str(round(x, 2)))
-
-            return nw.new_series("foo", values=res, backend=self.profile.implementation)
-
         ## Final Formatting:
         formatted_data = data.with_columns(
             colname=nw.concat_str(
@@ -298,7 +279,10 @@ class DataScan:
         # format fractions:
         # this is an anti-pattern but there's no serious alternative
         for _fmt_col in ("__frac_n_unique", "__frac_n_missing"):
-            formatted: nw.Series = _fmt_frac(formatted_data[_fmt_col])
+            _formatted: list[str | None] = _fmt_frac(formatted_data[_fmt_col])
+            formatted: nw.Series = nw.new_series(
+                "foo", values=_formatted, backend=self.profile.implementation
+            )
             formatted_data = formatted_data.drop(_fmt_col)
             formatted_data = formatted_data.with_columns(formatted.alias(_fmt_col))
 
@@ -433,18 +417,17 @@ class DataScan:
             )
             # ## Formatting
             .cols_width(
-                icon="35px", colname="200px", **{stat_col: "50px" for stat_col in present_stat_cols}
+                icon="35px", colname="200px", **{stat_col: "60px" for stat_col in present_stat_cols}
             )
         )
 
         if "PYARROW" != formatted_data.implementation.name:
-            # TODO: this is more proactive than it should be IMO; would like to see EAFP
+            # TODO: this is more proactive than it should be
             gt_tbl = gt_tbl.sub_missing(missing_text="-")
             # https://github.com/posit-dev/great-tables/issues/667
 
         # TODO: datetime value formatting weirdness
         # TODO: datetime column formatting weirdness
-        # TODO: add the SL back
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":
