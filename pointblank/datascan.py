@@ -281,7 +281,7 @@ class DataScan:
         for _fmt_col in ("__frac_n_unique", "__frac_n_missing"):
             _formatted: list[str | None] = _fmt_frac(formatted_data[_fmt_col])
             formatted: nw.Series = nw.new_series(
-                "foo", values=_formatted, backend=self.profile.implementation
+                _fmt_col, values=_formatted, backend=self.profile.implementation
             )
             formatted_data = formatted_data.drop(_fmt_col)
             formatted_data = formatted_data.with_columns(formatted.alias(_fmt_col))
