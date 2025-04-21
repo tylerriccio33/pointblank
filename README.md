@@ -26,7 +26,10 @@ _Data validation made beautiful and powerful_
    <a href="translations/README.it.md">Italiano</a> |
    <a href="translations/README.es.md">Español</a> |
    <a href="translations/README.pt-BR.md">Português</a> |
-   <a href="translations/README.zh-CN.md">简体中文</a>
+   <a href="translations/README.nl.md">Nederlands</a> |
+   <a href="translations/README.zh-CN.md">简体中文</a> |
+   <a href="translations/README.ja.md">日本語</a> |
+   <a href="translations/README.ko.md">한국어</a>
 </div>
 
 ## What is Pointblank?

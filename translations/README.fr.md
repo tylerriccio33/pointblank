@@ -26,7 +26,10 @@ _La validation des données, élégante et performante_
    <a href="README.it.md">Italiano</a> |
    <a href="README.es.md">Español</a> |
    <a href="README.pt-BR.md">Português</a> |
-   <a href="README.zh-CN.md">简体中文</a>
+   <a href="README.nl.md">Nederlands</a> |
+   <a href="README.zh-CN.md">简体中文</a> |
+   <a href="README.ja.md">日本語</a> |
+   <a href="README.ko.md">한국어</a>
 </div>
 
 ## C'est quoi Pointblank?
