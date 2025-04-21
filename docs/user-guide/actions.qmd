@@ -222,3 +222,150 @@ The metadata dictionary contains the following fields for a given validation ste
 - `level_num`: The severity level as a numeric value (`30`, `40`, or `50`).
 - `autobrief`: A localized and brief statement of the expectation for the step.
 - `failure_text`: Localized text that explains how the validation step failed.
+
+## Final Actions with `FinalActions`
+
+When you need to execute actions after all validation steps are complete, Pointblank provides the
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) class. Unlike
+[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) which triggers on a
+per-step basis during the validation process,
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) executes after
+the entire validation is complete, giving you a way to respond to the overall validation results.
+
+Here's how to use
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html):
+
+```{python}
+import pointblank as pb
+
+def send_alert():
+    summary = pb.get_validation_summary()
+    if summary["highest_severity"] == "critical":
+        print(f"ALERT: Critical validation failures found in {summary['table_name']}")
+
+validation_with_final = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+        final_actions=pb.FinalActions(
+            "Validation complete.",  # a string message
+            send_alert             # a callable function
+        )
+    )
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .col_vals_gt(columns="item_revenue", value=0.05)
+    .interrogate()
+)
+
+validation_with_final
+```
+
+In this example:
+
+- We define the function `send_alert()` that checks the validation summary for critical failures
+- We provide a simple string message `"Validation complete."` that will print to the console
+- Both actions will execute in order after all validation steps have completed
+
+### Creating Final Actions
+
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) accepts any
+number of actions as positional arguments. Each argument can be:
+
+1. **String**: A message to be displayed in the console
+2. **Callable**: A function to be called with no arguments
+3. **List of Strings/Callables**: Multiple actions to execute in sequence
+
+All actions will be executed in the order they are provided after all validation steps have
+completed.
+
+### Using `get_validation_summary()` in Final Actions
+
+When creating a callable function to use with
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html), you can access
+information about the overall validation results using the
+[`get_validation_summary()`](https://posit-dev.github.io/pointblank/reference/get_validation_summary.html)
+function. This gives you a dictionary with comprehensive information about the validation:
+
+```{python}
+def comprehensive_report():
+    summary = pb.get_validation_summary()
+    print(f"Validation Report for {summary['tbl_name']}:")
+    print(f"- Steps: {summary['n_steps']}")
+    print(f"- Passing steps: {summary['n_passing_steps']}")
+    print(f"- Failing steps: {summary['n_failing_steps']}")
+
+    # Take additional actions based on results
+    if summary["n_failing_steps"] > 0:
+        # Create and execute a Slack notification
+        notify = pb.send_slack_notification(
+            webhook_url="https://hooks.slack.com/services/your/webhook/url",
+            summary_msg="""
+            🚨 *Validation Failure Alert*
+            • Table: {tbl_name}
+            • Failed Steps: {n_failing_steps} of {n_steps}
+            • Highest Severity: {highest_severity}
+            • Time: {time}
+            """,
+        )
+        notify()  # Execute the notification function
+
+
+validation = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+        tbl_name="game_revenue",
+        final_actions=pb.FinalActions(comprehensive_report),
+    )
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .col_vals_gt(columns="item_revenue", value=0.05)
+    .interrogate()
+)
+```
+
+Here we used the [`send_slack_notification()`](https://posit-dev.github.io/pointblank/reference/send_slack_notification.html)
+function, which is available in Pointblank as a pre-built action. It can be used by itself in
+`final_actions=` but here it's integrated into the user's `comprehensive_report()` function.
+
+### Combining the Two Types of Actions
+
+You can use both [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) and
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) together for
+comprehensive validation control:
+
+```{python}
+def log_step_failure():
+    m = pb.get_action_metadata()
+    print(f"Step {m['step']} failed with {m['level']}")
+
+
+def generate_summary():
+    summary = pb.get_validation_summary()
+    # Sum up total failed test units across all steps
+    total_failed = sum(summary["dict_n_failed"].values())
+    # Sum up total test units across all steps
+    total_units = sum(summary["dict_n"].values())
+    print(f"Validation complete: {total_failed} failures out of {total_units} tests")
+
+
+validation_combined = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+        thresholds=pb.Thresholds(warning=0.05, error=0.10),
+        actions=pb.Actions(default=log_step_failure),
+        final_actions=pb.FinalActions(generate_summary),
+    )
+    .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+    .col_vals_gt(columns="item_revenue", value=0.05)
+    .interrogate()
+)
+```
+
+This approach allows you to:
+
+1. Log individual step failures during the validation process using
+[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html)
+2. Generate a comprehensive report after all validation steps are complete using
+[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html)
+
+Using both action types gives you fine-grained control over when and how notifications and other
+actions are triggered in your validation workflow.
