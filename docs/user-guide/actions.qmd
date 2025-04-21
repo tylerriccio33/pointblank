@@ -334,7 +334,6 @@ validation = (
     pb.Validate(
         data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
         tbl_name="game_revenue",
-        final_actions=pb.FinalActions(comprehensive_report),
     )
     .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
     .col_vals_gt(columns="item_revenue", value=0.05)
