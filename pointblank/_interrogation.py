@@ -1089,14 +1089,20 @@ class Interrogator:
     def isin(self) -> FrameT | Any:
         # Ibis backends ---------------------------------------------
 
+        can_be_null: bool = None in self.set
+
         if self.tbl_type in IBIS_BACKENDS:
-            return self.x.mutate(pb_is_good_=self.x[self.column].isin(self.set))
+            base_expr = self.x[self.column].isin(self.set)
+            if can_be_null:
+                base_expr = base_expr | self.x[self.column].isnull()
+            return self.x.mutate(pb_is_good_=base_expr)
 
         # Local backends (Narwhals) ---------------------------------
+        base_expr: nw.Expr = nw.col(self.column).is_in(self.set)
+        if can_be_null:
+            base_expr = base_expr | nw.col(self.column).is_null()
 
-        return self.x.with_columns(
-            pb_is_good_=nw.col(self.column).is_in(self.set),
-        ).to_native()
+        return self.x.with_columns(pb_is_good_=base_expr).to_native()
 
     def notin(self) -> FrameT | Any:
         # Ibis backends ---------------------------------------------
