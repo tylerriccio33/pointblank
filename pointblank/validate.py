@@ -87,6 +87,8 @@ from pointblank.thresholds import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from pointblank._typing import AbsoluteBounds, Tolerance
 
 __all__ = [
@@ -4311,7 +4313,7 @@ class Validate:
     def col_vals_in_set(
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
-        set: list[float | int],
+        set: Collection[Any],
         pre: Callable | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
@@ -4471,7 +4473,13 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_column(column=columns)
-        _check_set_types(set=set)
+
+        for val in set:
+            if val is None:
+                continue
+            if not isinstance(val, (float, int, str)):
+                raise ValueError("`set=` must be a list of floats, integers, or strings.")
+
         _check_pre(pre=pre)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")

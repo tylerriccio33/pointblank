@@ -14,6 +14,7 @@ import contextlib
 import datetime
 
 import pandas as pd
+
 import polars as pl
 import ibis
 
@@ -345,6 +346,30 @@ def test_validate_class_lang_locale():
     # Raise if `lang` value is invalid
     with pytest.raises(ValueError):
         Validate(tbl_pd, lang="invalid")
+
+
+@pytest.mark.parametrize(
+    "data",
+    (
+        pl.from_dict({"foo": [1, 2, None], "bar": ["winston", "cat", None]}).to_pandas(),
+        pl.from_dict({"foo": [1, 2, None], "bar": ["winston", "cat", None]}),
+        ibis.memtable(pl.from_dict({"foo": [1, 2, None], "bar": ["winston", "cat", None]})),
+    ),
+)
+def test_null_vals_in_set(data: Any) -> None:
+    validate = (
+        Validate(data)
+        .col_vals_in_set(["foo"], set=[1, 2, None])
+        .col_vals_in_set(["bar"], set=["winston", "cat", None])
+        .interrogate()
+    )
+
+    validate.assert_passing()
+
+    validate = Validate(data).col_vals_in_set("foo", [1, 2]).interrogate()
+
+    with pytest.raises(AssertionError):
+        validate.assert_passing()
 
 
 def test_validation_info():
