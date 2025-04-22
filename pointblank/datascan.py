@@ -867,9 +867,9 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
     Here's an example using a DuckDB table handled by Ibis:
 
     ```{python}
-    small_table_duckdb = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
+    nycflights = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
 
-    pb.col_summary_tbl(data=small_table_duckdb, tbl_name="nycflights")
+    pb.col_summary_tbl(data=nycflights, tbl_name="nycflights")
     ```
     """
 
