@@ -9463,6 +9463,35 @@ class Validate:
         GT
             A GT table object that represents the detailed report for the validation step.
 
+        Types of Step Reports
+        ---------------------
+        The `get_step_report()` method produces a report based on the *type* of validation step.
+        The following row-based validation methods will produce a report that shows the rows of the
+        data that failed because of failing test units within one or more columns failed:
+
+        - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+        - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+        - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
+        - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
+        - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
+        - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
+        - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
+        - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
+        - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
+        - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
+        - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+        - [`col_vals_null()`](`pointblank.Validate.col_vals_null()`)
+        - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null()`)
+        - [`conjointly()`](`pointblank.Validate.conjointly()`)
+
+        The [`rows_distinct()`](`pointblank.Validate.rows_distinct`) validation step will produce a
+        report that shows duplicate rows (or duplicate values in one or a set of columns as defined
+        in that method's `columns_subset=` parameter.
+
+        The [`col_schema_match()`](`pointblank.Validate.col_schema_match`) validation step will
+        produce a report that shows the schema of the data table and the schema of the validation
+        step. The report will indicate whether the schemas match or not.
+
         Examples
         --------
         ```{python}
