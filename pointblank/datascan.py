@@ -857,9 +857,9 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
     ```{python}
     import pointblank as pb
 
-    small_table_polars = pb.load_dataset(dataset="small_table", tbl_type="polars")
+    small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
-    pb.col_summary_tbl(data=small_table_polars)
+    pb.col_summary_tbl(data=small_table)
     ```
 
     This table used above was a Polars DataFrame, but the `col_summary_tbl()` function works with
