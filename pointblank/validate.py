@@ -9480,9 +9480,9 @@ class Validate:
         - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
         - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
         - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
-        - [`col_vals_null()`](`pointblank.Validate.col_vals_null()`)
-        - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null()`)
-        - [`conjointly()`](`pointblank.Validate.conjointly()`)
+        - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
+        - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+        - [`conjointly()`](`pointblank.Validate.conjointly`)
 
         The [`rows_distinct()`](`pointblank.Validate.rows_distinct`) validation step will produce a
         report that shows duplicate rows (or duplicate values in one or a set of columns as defined
