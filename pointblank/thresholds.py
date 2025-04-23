@@ -452,6 +452,11 @@ class Actions:
     all three thresholds are exceeded in step 3, the 'warning' action of executing the function
     occurs (resulting in a message being printed to the console). If actions were set for the other
     two threshold levels, they would also be executed.
+
+    See Also
+    --------
+    The [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which can be used to
+    retrieve metadata about the step where the action is executed.
     """
 
     warning: str | Callable | list[str | Callable] | None = None
@@ -589,6 +594,11 @@ class FinalActions:
         .interrogate()
     )
     ```
+
+    See Also
+    --------
+    The [`get_validation_summary()`](`pointblank.get_validation_summary`) function, which can be
+    used to retrieve the summary of the validation results.
     """
 
     actions: list | str | Callable
