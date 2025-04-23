@@ -211,17 +211,19 @@ def _final_action_context_manager(summary):
             delattr(_final_action_context, "summary")
 
 
-def get_validation_summary():
+def get_validation_summary() -> dict | None:
     """Access validation summary information when authoring final actions.
 
     This function provides a convenient way to access summary information about the validation
     process within a final action. It returns a dictionary with key metrics from the validation
-    process.
+    process. This function can only be used within callables crafted for the
+    [`FinalActions`](`pointblank.FinalActions`) class.
 
     Returns
     -------
     dict | None
-        A dictionary containing validation metrics, or None if called outside a final action.
+        A dictionary containing validation metrics. If called outside of an final action context,
+        this function will return `None`.
 
     Description of the Summary Fields
     --------------------------------
@@ -311,6 +313,11 @@ def get_validation_summary():
 
     Final actions work well with both simple logging and more complex notification systems, allowing
     you to integrate validation results into your broader data quality workflows.
+
+    See Also
+    --------
+    Have a look at [`FinalActions`](`pointblank.FinalActions`) for more information on how to create
+    custom actions that are executed after all validation steps have been completed.
     """
     if hasattr(_final_action_context, "summary"):
         return _final_action_context.summary
