@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
+<meta name="generator" content="quarto-1.6.43">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -36,7 +36,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-d4d76bf8491c20bad77d141916dc28e1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-7a20cca8b90711b4aa27f23ac0648a9c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -111,6 +111,10 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
     <a class="nav-link active" href="../reference/index.html" aria-current="page"> 
 <span class="menu-text">API Reference</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog/index.html"> 
+<span class="menu-text">Pointblog</span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -145,7 +149,9 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
   <li><a href="#validation-steps" id="toc-validation-steps" class="nav-link" data-scroll-target="#validation-steps">Validation Steps</a></li>
   <li><a href="#column-selection" id="toc-column-selection" class="nav-link" data-scroll-target="#column-selection">Column Selection</a></li>
   <li><a href="#interrogation-and-reporting" id="toc-interrogation-and-reporting" class="nav-link" data-scroll-target="#interrogation-and-reporting">Interrogation and Reporting</a></li>
-  <li><a href="#inspect" id="toc-inspect" class="nav-link" data-scroll-target="#inspect">Inspect</a></li>
+  <li><a href="#inspection-and-assistance" id="toc-inspection-and-assistance" class="nav-link" data-scroll-target="#inspection-and-assistance">Inspection and Assistance</a></li>
+  <li><a href="#utility-functions" id="toc-utility-functions" class="nav-link" data-scroll-target="#utility-functions">Utility Functions</a></li>
+  <li><a href="#prebuilt-actions" id="toc-prebuilt-actions" class="nav-link" data-scroll-target="#prebuilt-actions">Prebuilt Actions</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -176,10 +182,14 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <td>Definition of action values.</td>
 </tr>
 <tr class="even">
+<td><a href="../reference/FinalActions.html#pointblank.FinalActions">FinalActions</a></td>
+<td>Define actions to be taken after validation is complete.</td>
+</tr>
+<tr class="odd">
 <td><a href="../reference/Schema.html#pointblank.Schema">Schema</a></td>
 <td>Definition of a schema object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="../reference/DraftValidation.html#pointblank.DraftValidation">DraftValidation</a></td>
 <td>Draft a validation plan for a given table using an LLM.</td>
 </tr>
@@ -267,6 +277,10 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <td><a href="../reference/Validate.col_count_match.html#pointblank.Validate.col_count_match">Validate.col_count_match</a></td>
 <td>Validate whether the column count of the table matches a specified count.</td>
 </tr>
+<tr class="even">
+<td><a href="../reference/Validate.conjointly.html#pointblank.Validate.conjointly">Validate.conjointly</a></td>
+<td>Perform multiple row-wise validations for joint validity.</td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -306,6 +320,10 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <tr class="even">
 <td><a href="../reference/last_n.html#pointblank.last_n">last_n</a></td>
 <td>Select the last <code>n</code> columns in the column list.</td>
+</tr>
+<tr class="odd">
+<td><a href="../reference/expr_col.html#pointblank.expr_col">expr_col</a></td>
+<td>Create a column expression for use in <code>conjointly()</code> validation.</td>
 </tr>
 </tbody>
 </table>
@@ -382,9 +400,9 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 </tbody>
 </table>
 </section>
-<section id="inspect" class="level2">
-<h2 class="anchored" data-anchor-id="inspect">Inspect</h2>
-<p>The <em>Inspect</em> group contains functions that are helpful for getting to grips on a new data table. Use the <code>DataScan</code> class to get a quick overview of the data, <code>preview()</code> to see the first and last few rows of a table, <code>col_summary_tbl()</code> for a column-level summary of a table, <code>missing_vals_tbl()</code> to see where there are missing values in a table, and <code>get_column_count()</code>/<code>get_row_count()</code> to get the number of columns and rows in a table. Several datasets included in the package can be accessed via the <code>load_dataset()</code> function. Finally, the <code>config()</code> utility lets us set global configuration parameters.</p>
+<section id="inspection-and-assistance" class="level2">
+<h2 class="anchored" data-anchor-id="inspection-and-assistance">Inspection and Assistance</h2>
+<p>The <em>Inspection and Assistance</em> group contains functions that are helpful for getting to grips on a new data table. Use the <code>DataScan</code> class to get a quick overview of the data, <code>preview()</code> to see the first and last few rows of a table, <code>col_summary_tbl()</code> for a column-level summary of a table, and <code>missing_vals_tbl()</code> to see where there are missing values in a table. Several datasets included in the package can be accessed via the <code>load_dataset()</code> function. On the assistance side, the <code>assistant()</code> function can be used to get help with Pointblank.</p>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
@@ -404,6 +422,22 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <td>Display a table that shows the missing values in the input table.</td>
 </tr>
 <tr class="odd">
+<td><a href="../reference/assistant.html#pointblank.assistant">assistant</a></td>
+<td>Chat with the PbA (Pointblank Assistant) about your data validation needs.</td>
+</tr>
+<tr class="even">
+<td><a href="../reference/load_dataset.html#pointblank.load_dataset">load_dataset</a></td>
+<td>Load a dataset hosted in the library as specified table type.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="utility-functions" class="level2">
+<h2 class="anchored" data-anchor-id="utility-functions">Utility Functions</h2>
+<p>The <em>Utility Functions</em> group contains functions that are useful accessing metadata about the target data. Use <code>get_column_count()</code> or <code>get_row_count()</code> to get the number of columns or rows in a table. The <code>get_action_metadata()</code> function is useful when building custom actions since it returns metadata about the validation step that’s triggering the action. Lastly, the <code>config()</code> utility lets us set global configuration parameters.</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
 <td><a href="../reference/get_column_count.html#pointblank.get_column_count">get_column_count</a></td>
 <td>Get the number of columns in a table.</td>
 </tr>
@@ -412,12 +446,28 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <td>Get the number of rows in a table.</td>
 </tr>
 <tr class="odd">
-<td><a href="../reference/load_dataset.html#pointblank.load_dataset">load_dataset</a></td>
-<td>Load a dataset hosted in the library as specified table type.</td>
+<td><a href="../reference/get_action_metadata.html#pointblank.get_action_metadata">get_action_metadata</a></td>
+<td>Access step-level metadata when authoring custom actions.</td>
 </tr>
 <tr class="even">
+<td><a href="../reference/get_validation_summary.html#pointblank.get_validation_summary">get_validation_summary</a></td>
+<td>Access validation summary information when authoring final actions.</td>
+</tr>
+<tr class="odd">
 <td><a href="../reference/config.html#pointblank.config">config</a></td>
-<td>Configuration settings for the pointblank library.</td>
+<td>Configuration settings for the Pointblank library.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="prebuilt-actions" class="level2">
+<h2 class="anchored" data-anchor-id="prebuilt-actions">Prebuilt Actions</h2>
+<p>The <em>Prebuilt Actions</em> group contains a function that can be used to send a Slack notification when validation steps exceed failure threshold levels or just to provide a summary of the validation results, including the status, number of steps, passing and failing steps, table information, and timing details.</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../reference/send_slack_notification.html#pointblank.send_slack_notification">send_slack_notification</a></td>
+<td>Create a Slack notification function using a webhook URL.</td>
 </tr>
 </tbody>
 </table>
