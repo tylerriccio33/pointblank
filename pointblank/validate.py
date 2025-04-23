@@ -119,16 +119,18 @@ def _action_context_manager(metadata):
             delattr(_action_context, "metadata")
 
 
-def get_action_metadata():
+def get_action_metadata() -> dict | None:
     """Access step-level metadata when authoring custom actions.
 
     Get the metadata for the validation step where an action was triggered. This can be called by
-    user functions to get the metadata for the current action.
+    user functions to get the metadata for the current action. This function can only be used within
+    callables crafted for the [`Actions`](`pointblank.Actions`) class.
 
     Returns
     -------
-    dict
-        A dictionary containing the metadata for the current step.
+    dict | None
+        A dictionary containing the metadata for the current step. If called outside of an action
+        (i.e., when no action is being executed), this function will return `None`.
 
     Description of the Metadata Fields
     ----------------------------------
@@ -181,6 +183,11 @@ def get_action_metadata():
     - the `metadata` is a dictionary that is used to craft the log message
     - the action is passed as a bare function to the `Actions` object within the `Validate` object
     (placing it within `Validate(actions=)` ensures it's set as an action for every validation step)
+
+    See Also
+    --------
+    Have a look at [`Actions`](`pointblank.Actions`) for more information on how to create custom
+    actions for validation steps that exceed a set threshold value.
     """
     if hasattr(_action_context, "metadata"):  # pragma: no cover
         return _action_context.metadata  # pragma: no cover
