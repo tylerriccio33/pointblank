@@ -7,6 +7,7 @@ import datetime
 import inspect
 import json
 import re
+import tempfile
 import threading
 from dataclasses import dataclass
 from importlib.metadata import version
@@ -530,10 +531,10 @@ def load_dataset(
         data_path = files("pointblank.data") / f"{dataset}-duckdb.zip"
 
         # Unzip the DuckDB dataset to a temporary directory
-        with ZipFile(data_path, "r") as z:
-            z.extractall(path="datasets")
+        with tempfile.TemporaryDirectory() as tmp, ZipFile(data_path, "r") as z:
+            z.extractall(path=tmp)
 
-            data_path = f"datasets/{dataset}.ddb"
+            data_path = f"{tmp}/{dataset}.ddb"
 
             dataset = ibis.connect(f"duckdb://{data_path}").table(dataset)
 

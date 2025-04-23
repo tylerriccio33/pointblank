@@ -381,18 +381,11 @@ def test_format_to_integer_float_no_df_lib():
         assert _format_to_float_value(1000) == "1,000.00"
 
 
-def test_format_to_integer_float_only_polars():
+def test_format_to_integer_float_only_polars(monkeypatch):
     # Mock the absence of the Pandas library
-    with patch.dict(sys.modules, {"pandas": None}):
-        assert _format_to_integer_value(1000) == "1,000"
-        assert _format_to_float_value(1000) == "1,000.00"
-
-
-def test_format_to_integer_float_only_pandas():
-    # Mock the absence of the Polars library
-    with patch.dict(sys.modules, {"polars": None}):
-        assert _format_to_integer_value(1000) == "1,000"
-        assert _format_to_float_value(1000) == "1,000.00"
+    monkeypatch.delitem(sys.modules, "pandas", raising=False)
+    assert _format_to_integer_value(1000) == "1,000"
+    assert _format_to_float_value(1000) == "1,000.00"
 
 
 def test_get_fn_name():
