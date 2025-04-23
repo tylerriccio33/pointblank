@@ -1,13 +1,16 @@
 .PHONY: check
 
+.PHONY: test
 test:
-	pytest --cov=pointblank --cov-report=xml
+	@uv run pytest \
+		--cov=pointblank \
+		--cov-report=term-missing \
+		--randomly-seed 123 \
+		-n auto
 
 test-update:
 	pytest --snapshot-update
 
-test-coverage:
-	pytest --cov=pointblank --cov-report=term-missing
 
 lint: ## Run ruff formatter and linter
 	@uv run ruff format
