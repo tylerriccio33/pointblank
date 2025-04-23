@@ -9,6 +9,9 @@ from unittest.mock import patch
 import pytest
 import random
 import itertools
+import tempfile
+import shutil
+from pathlib import Path
 from functools import partial
 import contextlib
 import datetime
@@ -203,25 +206,37 @@ def tbl_dates_times_text_parquet():
 @pytest.fixture
 def tbl_duckdb():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz.ddb"
-    return ibis.connect(f"duckdb://{file_path}").table("tbl_xyz")
+    with tempfile.TemporaryDirectory() as tmp:
+        fpath: Path = Path(tmp) / "tab.ddb"
+        shutil.copy(file_path, fpath)
+        return ibis.connect(f"duckdb://{fpath!s}").table("tbl_xyz")
 
 
 @pytest.fixture
 def tbl_missing_duckdb():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_xyz_missing.ddb"
-    return ibis.connect(f"duckdb://{file_path}").table("tbl_xyz_missing")
+    with tempfile.TemporaryDirectory() as tmp:
+        fpath: Path = Path(tmp) / "tab_missing.ddb"
+        shutil.copy(file_path, fpath)
+        return ibis.connect(f"duckdb://{fpath!s}").table("tbl_xyz_missing")
 
 
 @pytest.fixture
 def tbl_dates_times_text_duckdb():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_dates_times_text.ddb"
-    return ibis.connect(f"duckdb://{file_path}").table("tbl_dates_times_text")
+    with tempfile.TemporaryDirectory() as tmp:
+        fpath: Path = Path(tmp) / "tbl_dates_times_text.ddb"
+        shutil.copy(file_path, fpath)
+        return ibis.connect(f"duckdb://{fpath!s}").table("tbl_dates_times_text")
 
 
 @pytest.fixture
 def tbl_true_dates_times_duckdb():
     file_path = pathlib.Path.cwd() / "tests" / "tbl_files" / "tbl_true_dates_times.ddb"
-    return ibis.connect(f"duckdb://{file_path}").table("tbl_true_dates_times")
+    with tempfile.TemporaryDirectory() as tmp:
+        fpath: Path = Path(tmp) / "tbl_true_dates_times.ddb"
+        shutil.copy(file_path, fpath)
+        return ibis.connect(f"duckdb://{fpath!s}").table("tbl_true_dates_times")
 
 
 @pytest.fixture
