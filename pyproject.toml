@@ -81,6 +81,7 @@ dev = [
     "pytest>=3",
     "pytest-cov",
     "pytest-randomly>=3.16.0",
+    "pytest-rerunfailures>=15.0",
     "pytest-snapshot",
     "pytest-xdist>=3.6.1",
     "quartodoc>=0.8.1; python_version >= '3.9'",

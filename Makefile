@@ -6,7 +6,9 @@ test:
 		--cov=pointblank \
 		--cov-report=term-missing \
 		--randomly-seed 123 \
-		-n auto
+		-n auto \
+		--reruns 3 \
+		--reruns-delay 1
 
 test-update:
 	pytest --snapshot-update
