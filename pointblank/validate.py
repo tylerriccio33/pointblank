@@ -1798,14 +1798,15 @@ class _ValidationInfo:
     assertion_type
         The type of assertion. This is the method name of the validation (e.g., `"col_vals_gt"`).
     column
-        The column to validate. Currently we don't allow for column expressions (which may map to
-        multiple columns).
+        The column(s) to validate.
     values
         The value or values to compare against.
     na_pass
         Whether to pass test units that hold missing values.
     pre
         A preprocessing function or lambda to apply to the data table for the validation step.
+    segments
+        The segments to use for the validation step.
     thresholds
         The threshold values for the validation.
     actions
