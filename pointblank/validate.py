@@ -2340,6 +2340,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: list[str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2375,6 +2376,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selectors that resolves to one or
+            more columns, or (3) as a list of tuples that specify column names and their
+            corresponding values to segment on.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2535,6 +2541,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -2567,6 +2575,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
