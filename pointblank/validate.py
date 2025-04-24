@@ -166,7 +166,7 @@ def get_action_metadata() -> dict | None:
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(warning=log_issue),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(
             columns="session_duration",
@@ -9532,7 +9532,7 @@ class Validate:
             .col_vals_lt(columns="d", value=3500)
             .col_vals_between(columns="c", left=1, right=8)
             .col_vals_gt(columns="a", value=3)
-            .col_vals_regex(columns="b", pattern=r"\d-[a-z]{3}-\d{3}")
+            .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
             .interrogate()
         )
 
