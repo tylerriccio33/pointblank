@@ -1862,6 +1862,7 @@ class _ValidationInfo:
     inclusive: tuple[bool, bool] | None = None
     na_pass: bool | None = None
     pre: Callable | None = None
+    segments: any | None = None
     thresholds: Thresholds | None = None
     actions: Actions | None = None
     label: str | None = None
