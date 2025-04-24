@@ -398,7 +398,10 @@ def test_validation_info():
         values=0,
         inclusive=True,
         na_pass=False,
+        pre=None,
+        segments=None,
         thresholds=Thresholds(),
+        actions=None,
         label=None,
         brief=None,
         autobrief=None,
@@ -414,6 +417,9 @@ def test_validation_info():
         error=None,
         critical=None,
         failure_text=None,
+        tbl_checked=None,
+        extract=None,
+        val_info=None,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -427,7 +433,10 @@ def test_validation_info():
     assert v.values == 0
     assert v.inclusive is True
     assert v.na_pass is False
+    assert v.pre is None
+    assert v.segments is None
     assert v.thresholds == Thresholds()
+    assert v.actions is None
     assert v.label is None
     assert v.brief is None
     assert v.autobrief is None
@@ -443,6 +452,9 @@ def test_validation_info():
     assert v.error is None
     assert v.critical is None
     assert v.failure_text is None
+    assert v.tbl_checked is None
+    assert v.extract is None
+    assert v.val_info is None
 
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
@@ -507,6 +519,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "inclusive",
         "na_pass",
         "pre",
+        "segments",
         "thresholds",
         "actions",
         "label",
@@ -586,6 +599,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "inclusive",
         "na_pass",
         "pre",
+        "segments",
         "thresholds",
         "actions",
         "label",
@@ -616,6 +630,8 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.column == "x"
     assert val_info.values == 0
     assert val_info.na_pass is False
+    assert val_info.pre is None
+    assert val_info.segments is None
     assert val_info.thresholds == Thresholds()
     assert val_info.actions is None
     assert val_info.label is None
