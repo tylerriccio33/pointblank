@@ -1857,7 +1857,7 @@ class _ValidationInfo:
     step_id: str | None = None
     sha1: str | None = None
     assertion_type: str | None = None
-    column: str | None = None
+    column: any | None = None
     values: any | list[any] | tuple | None = None
     inclusive: tuple[bool, bool] | None = None
     na_pass: bool | None = None
