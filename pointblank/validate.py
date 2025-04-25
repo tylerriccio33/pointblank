@@ -11557,11 +11557,9 @@ def _transform_assertion_str(
                 column_value = segmentation_str[i][1]
                 # Create the segmentation div
                 segmentation_div = (
-                    "<div style='padding-bottom: 10px; margin-top: -2px; margin-left: -30px; "
-                    "white-space: pre; font-size: 8px; color: darkblue; "
-                    "text-decoration: underline; text-decoration-style: dotted; "
-                    "text-decoration-color: steelblue; text-underline-position: under; "
-                    "text-underline-offset: -1px;'>"
+                    "<div style='margin-top: -9px; margin-bottom: 0px; "
+                    "white-space: pre; font-size: 8px; color: darkblue; padding-bottom: 0px; "
+                    "'>"
                     "<strong><span style='font-family: Helvetica, arial, sans-serif;'>"
                     f"SEGMENT&nbsp;&nbsp;</span></strong><span>{column_name} / {column_value}"
                     "</span>"
