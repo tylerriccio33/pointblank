@@ -1926,7 +1926,7 @@ class Validate:
         The table to validate, which could be a DataFrame object or an Ibis table object. Read the
         *Supported Input Table Types* section for details on the supported table types.
     tbl_name
-        A optional name to assign to the input table object. If no value is provided, a name will
+        An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
         in the header area of the tabular report.
     label
@@ -2340,13 +2340,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2378,15 +2372,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2448,6 +2442,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -2598,13 +2620,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2636,15 +2652,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2706,6 +2722,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -2855,13 +2899,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2893,15 +2931,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2963,6 +3001,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -3111,13 +3177,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3149,15 +3209,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3219,6 +3279,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -3365,13 +3453,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3403,15 +3485,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3473,6 +3555,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -3623,13 +3733,7 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3661,15 +3765,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3731,6 +3835,34 @@ class Validate:
         transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -3883,13 +4015,7 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3931,15 +4057,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4003,6 +4129,34 @@ class Validate:
         in the transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -4169,13 +4323,7 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4217,15 +4365,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4289,6 +4437,34 @@ class Validate:
         in the transformed table, but may not exist in the table before preprocessing. Regarding the
         lifetime of the transformed table, it only exists during the validation step and is not
         stored in the `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -4452,13 +4628,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: Collection[Any],
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4482,15 +4652,15 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4531,6 +4701,34 @@ class Validate:
         exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
         only exists during the validation step and is not stored in the `Validate` object or used in
         subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -4675,13 +4873,7 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: list[float | int],
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4705,15 +4897,15 @@ class Validate:
         set
             A list of values to compare against.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4754,6 +4946,34 @@ class Validate:
         exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
         only exists during the validation step and is not stored in the `Validate` object or used in
         subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -4892,13 +5112,7 @@ class Validate:
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4919,15 +5133,15 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4968,6 +5182,34 @@ class Validate:
         exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
         only exists during the validation step and is not stored in the `Validate` object or used in
         subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -5101,13 +5343,7 @@ class Validate:
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5128,15 +5364,15 @@ class Validate:
             multiple columns are supplied or resolved, there will be a separate validation step
             generated for each column.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5177,6 +5413,34 @@ class Validate:
         exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
         only exists during the validation step and is not stored in the `Validate` object or used in
         subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -5312,13 +5576,7 @@ class Validate:
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5345,15 +5603,15 @@ class Validate:
             Should any encountered None, NA, or Null values be considered as passing test units? By
             default, this is `False`. Set to `True` to pass test units with missing values.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5394,6 +5652,34 @@ class Validate:
         exist in the table before preprocessing. Regarding the lifetime of the transformed table, it
         only exists during the validation step and is not stored in the `Validate` object or used in
         subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -5532,13 +5818,7 @@ class Validate:
         self,
         expr: any,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5560,15 +5840,15 @@ class Validate:
             be a Polars column expression or a Narwhals one. For a Pandas DataFrame, the expression
             should either be a lambda expression or a Narwhals column expression.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5607,6 +5887,34 @@ class Validate:
         certain criteria or to apply a transformation to the data. Regarding the lifetime of the
         transformed table, it only exists during the validation step and is not stored in the
         `Validate` object or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -5892,13 +6200,7 @@ class Validate:
         self,
         columns_subset: str | list[str] | None = None,
         pre: Callable | None = None,
-        segments: str
-        | list[str]
-        | Column
-        | ColumnSelector
-        | ColumnSelectorNarwhals
-        | tuple
-        | None = None,
+        segments: str | tuple[str, str] | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5919,15 +6221,15 @@ class Validate:
             columns are supplied, the distinct comparison will be made over the combination of
             values in those columns.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
         segments
-            An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
-            more columns, or (3) tuples that specify column names and their corresponding values to
-            segment on (as a list).
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, or a tuple that specifies
+            a column name and its corresponding values to segment on (as a list). Read the
+            *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5968,6 +6270,34 @@ class Validate:
         may not exist in the table before preprocessing. Regarding the lifetime of the transformed
         table, it only exists during the validation step and is not stored in the `Validate` object
         or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
 
         Thresholds
         ----------
@@ -6145,7 +6475,7 @@ class Validate:
             substring matches are allowed, so a schema data type of `Int` would match a target table
             data type of `Int64`.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
@@ -6358,7 +6688,7 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the row
             count of the target table should not match the specified `count=` value.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
@@ -6568,7 +6898,7 @@ class Validate:
             Should the validation step be inverted? If `True`, then the expectation is that the
             column count of the target table should not match the specified `count=` value.
         pre
-            A optional preprocessing function or lambda to apply to the data table during
+            An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
@@ -7086,9 +7416,13 @@ class Validate:
 
         self.time_start = datetime.datetime.now(datetime.timezone.utc)
 
-        # Expand `validation_info` by evaluating any column expressions in `column`
+        # Expand `validation_info` by evaluating any column expressions in `columns=`
         # (the `_evaluate_column_exprs()` method will eval and expand as needed)
         self._evaluate_column_exprs(validation_info=self.validation_info)
+
+        # Expand `validation_info` by evaluating for any segmentation directives
+        # provided in `segments=` (the `_evaluate_segments()` method will eval and expand as needed)
+        self._evaluate_segments(validation_info=self.validation_info)
 
         for validation in self.validation_info:
             # Set the `i` value for the validation step (this is 1-indexed)
@@ -7124,6 +7458,10 @@ class Validate:
             )
 
             validation.autobrief = autobrief
+
+            # ------------------------------------------------
+            # Bypassing the validation step if conditions met
+            # ------------------------------------------------
 
             # Skip the validation step if it is not active but still record the time of processing
             if not validation.active:
@@ -7180,6 +7518,17 @@ class Validate:
                 # If the preprocessing function is a function, apply it to the table
                 elif isinstance(validation.pre, Callable):
                     data_tbl_step = validation.pre(data_tbl_step)
+
+            # ------------------------------------------------
+            # Segmentation stage
+            # ------------------------------------------------
+
+            # Determine whether any segmentation directives are to be applied to the table
+
+            if validation.segments is not None:
+                data_tbl_step = _apply_segments(
+                    data_tbl=data_tbl_step, segments_expr=validation.segments
+                )
 
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
@@ -9082,6 +9431,13 @@ class Validate:
         # will be made blank if the validation has not been performed
         interrogation_performed = validation_info_dict.get("proc_duration_s", [None])[0] is not None
 
+        # Determine which steps are those using segmented data
+        segmented_steps = [
+            i + 1
+            for i, segment in enumerate(validation_info_dict["segments"])
+            if segment is not None
+        ]
+
         # ------------------------------------------------
         # Process the `type_upd` entry
         # ------------------------------------------------
@@ -9091,6 +9447,7 @@ class Validate:
             assertion_str=validation_info_dict["assertion_type"],
             brief_str=validation_info_dict["brief"],
             autobrief_str=validation_info_dict["autobrief"],
+            segmentation_str=validation_info_dict["segments"],
             lang=lang,
         )
 
@@ -9222,11 +9579,13 @@ class Validate:
         # Add the `tbl` entry
         # ------------------------------------------------
 
-        # Depending on if there was some preprocessing done, get the appropriate icon
-        # for the table processing status to be displayed in the report under the `tbl` column
+        # Depending on if there was some preprocessing done, get the appropriate icon for
+        # the table processing status to be displayed in the report under the `tbl` column
+        # TODO: add the icon for the segmented data option when the step is segmented
 
         validation_info_dict["tbl"] = _transform_tbl_preprocessed(
-            pre=validation_info_dict["pre"], interrogation_performed=interrogation_performed
+            pre=validation_info_dict["pre"],
+            interrogation_performed=interrogation_performed,
         )
 
         # ------------------------------------------------
@@ -9261,8 +9620,9 @@ class Validate:
         # Process `pass` and `fail` entries
         # ------------------------------------------------
 
-        # Create a `pass` entry that concatenates the `n_passed` and `n_failed` entries (the length
-        # of the `pass` entry should be equal to the length of the `n_passed` and `n_failed` entries)
+        # Create a `pass` entry that concatenates the `n_passed` and `n_failed` entries
+        # (the length of the `pass` entry should be equal to the length of the
+        # `n_passed` and `n_failed` entries)
 
         validation_info_dict["pass"] = _transform_passed_failed(
             n_passed_failed=validation_info_dict["n_passed"],
@@ -9415,6 +9775,9 @@ class Validate:
         # Remove the `pre` entry from the dictionary
         validation_info_dict.pop("pre")
 
+        # Remove the `segments` entry from the dictionary
+        validation_info_dict.pop("segments")
+
         # Remove the `proc_duration_s` entry from the dictionary
         validation_info_dict.pop("proc_duration_s")
 
@@ -9496,6 +9859,10 @@ class Validate:
                 locations=loc.body(
                     columns=["type_upd", "columns_upd", "values_upd", "test_units", "pass", "fail"]
                 ),
+            )
+            .tab_style(
+                style=style.css("overflow-x: visible; white-space: nowrap;"),
+                locations=loc.body(columns="type_upd", rows=segmented_steps),
             )
             .tab_style(
                 style=style.fill(color="#FCFCFC" if interrogation_performed else "white"),
@@ -10039,6 +10406,74 @@ class Validate:
                 new_validation = copy.deepcopy(validation)
 
                 new_validation.column = column
+
+                expanded_validation_info.append(new_validation)
+
+        # Replace the `validation_info` attribute with the expanded version
+        self.validation_info = expanded_validation_info
+
+        return self
+
+    def _evaluate_segments(self, validation_info):
+        """
+        Evaluate any segmentation expressions stored in the `segments` attribute and expand each
+        validation step with such directives into multiple. This is done by evaluating the
+        segmentation expression and creating a new validation step for each segment. Errors in
+        evaluation (such as no segments matched) will be caught and recorded in the `eval_error`
+        attribute.
+
+        Parameters
+        ----------
+        validation_info
+            Information about the validation to evaluate and expand.
+        """
+
+        # Create a list to store the expanded validation steps
+        expanded_validation_info = []
+
+        # Iterate over the validation steps
+        for i, validation in enumerate(validation_info):
+            # Get the segments expression
+            segments_expr = validation.segments
+
+            # If the value is None, then skip the evaluation and append the validation step to the
+            # list of expanded validation steps
+            if segments_expr is None:
+                expanded_validation_info.append(validation)
+                continue
+
+            # Evaluate the segments expression
+            try:
+                # Get the table for this step, it can either be:
+                # 1. the target table itself
+                # 2. the target table modified by a `pre` attribute
+
+                if validation.pre is None:
+                    table = self.data
+                else:
+                    table = validation.pre(self.data)
+
+                # If the `segments` expression is a string, that string is taken as a column name
+                # for which segmentation should occur across unique values in the column
+                if isinstance(segments_expr, str):
+                    # TODO: Add a check to see if the column exists in the table
+                    columns = list(table.columns)
+
+                    # Get the segmentation categories from the column
+                    seg_categories = table[segments_expr].unique().to_list()
+
+                    # Place each category and each value in a list of tuples (column, value)
+                    seg_tuples = [(segments_expr, category) for category in seg_categories]
+
+            except Exception:  # pragma: no cover
+                validation.eval_error = True
+
+            # For each segmentation resolved, create a new validation step and add it to the list of
+            # expanded validation steps
+            for seg in seg_tuples:
+                new_validation = copy.deepcopy(validation)
+
+                new_validation.segments = seg
 
                 expanded_validation_info.append(new_validation)
 
@@ -10764,6 +11199,30 @@ def _prep_values_text(
     return values_str
 
 
+def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
+    """
+    Apply the segments expression to the data table.
+
+    Filter the data table based on the `segments_expr=` value, where the first element is the
+    column name and the second element is the value to filter by.
+    """
+
+    # TODO: Add codepaths for either Narwhals-compatible DFs or Ibis backend tables
+
+    # Transform to Narwhals table if a DataFrame
+    data_tbl_nw = nw.from_native(data_tbl)
+
+    column_name = segments_expr[0]
+    value = segments_expr[1]
+
+    # Filter the data table based on the column name and value (no need to check for column existence)
+    data_tbl_nw = data_tbl_nw.filter(nw.col(column_name) == value)
+
+    data_tbl = data_tbl_nw.to_native()
+
+    return data_tbl
+
+
 def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
     """
     Convert a `_ValidationInfo` object to a dictionary.
@@ -10788,6 +11247,7 @@ def _validation_info_as_dict(validation_info: _ValidationInfo) -> dict:
         "inclusive",
         "na_pass",
         "pre",
+        "segments",
         "label",
         "brief",
         "autobrief",
@@ -11023,7 +11483,11 @@ def _transform_w_e_c(values, color, interrogation_performed):
 
 
 def _transform_assertion_str(
-    assertion_str: list[str], brief_str: list[str | None], autobrief_str: list[str], lang: str
+    assertion_str: list[str],
+    brief_str: list[str | None],
+    autobrief_str: list[str],
+    segmentation_str: list[tuple | None],
+    lang: str,
 ) -> list[str]:
     # Get the SVG icons for the assertion types
     svg_icon = _get_assertion_icon(icon=assertion_str)
@@ -11083,6 +11547,28 @@ def _transform_assertion_str(
         """
         for assertion, svg, size, brief_div in zip(assertion_str, svg_icon, text_size, brief_divs)
     ]
+
+    # If the `segments` list is not empty, prepend a segmentation div to the `type_upd` strings
+    if segmentation_str:
+        for i in range(len(type_upd)):
+            if segmentation_str[i] is not None:
+                # Get the column name and value from the segmentation expression
+                column_name = segmentation_str[i][0]
+                column_value = segmentation_str[i][1]
+                # Create the segmentation div
+                segmentation_div = (
+                    "<div style='padding-bottom: 10px; margin-top: -2px; margin-left: -30px; "
+                    "white-space: pre; font-size: 8px; color: darkblue; "
+                    "text-decoration: underline; text-decoration-style: dotted; "
+                    "text-decoration-color: steelblue; text-underline-position: under; "
+                    "text-underline-offset: -1px;'>"
+                    "<strong><span style='font-family: Helvetica, arial, sans-serif;'>"
+                    f"SEGMENT&nbsp;&nbsp;</span></strong><span>{column_name} / {column_value}"
+                    "</span>"
+                    "</div>"
+                )
+                # Prepend the segmentation div to the type_upd string
+                type_upd[i] = f"{segmentation_div} {type_upd[i]}"
 
     return type_upd
 
