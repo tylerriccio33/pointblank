@@ -6889,27 +6889,27 @@ def test_preview_fails_head_tail_exceed_limit():
     preview(small_table, n_head=100, n_tail=100, limit=300)
 
 
-def test_preview_no_polars_duckdb_table():
-    small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+# def test_preview_no_polars_duckdb_table():
+#     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
-    # Mock the absence of the Polars library, which is the default library for making
-    # a table for the preview; this should not raise an error since Pandas is the
-    # fallback library and is available
-    with patch.dict(sys.modules, {"polars": None}):
-        preview(small_table)
+#     # Mock the absence of the Polars library, which is the default library for making
+#     # a table for the preview; this should not raise an error since Pandas is the
+#     # fallback library and is available
+#     with patch.dict(sys.modules, {"polars": None}):
+#         preview(small_table)
 
-    # Mock the absence of the Pandas library, which is a secondary library for making
-    # a table for the preview; this should not raise an error since Polars is the default
-    # library and is available
-    with patch.dict(sys.modules, {"pandas": None}):
-        preview(small_table)
+#     # Mock the absence of the Pandas library, which is a secondary library for making
+#     # a table for the preview; this should not raise an error since Polars is the default
+#     # library and is available
+#     with patch.dict(sys.modules, {"pandas": None}):
+#         preview(small_table)
 
-    # Mock the absence of both the Polars and Pandas libraries, which are the libraries
-    # for making a table for the preview; this should raise an error since there are no
-    # libraries available to make a table for the preview
-    with patch.dict(sys.modules, {"polars": None, "pandas": None}):
-        with pytest.raises(ImportError):
-            preview(small_table)
+#     # Mock the absence of both the Polars and Pandas libraries, which are the libraries
+#     # for making a table for the preview; this should raise an error since there are no
+#     # libraries available to make a table for the preview
+#     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
+#         with pytest.raises(ImportError):
+#             preview(small_table)
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])

@@ -2340,7 +2340,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
-        segments: list[str] | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2378,9 +2384,9 @@ class Validate:
             argument.
         segments
             An optional set of columns that serve to segment the target table by column values. Can
-            be provided as a (1) list of column names, (2) column selectors that resolves to one or
-            more columns, or (3) as a list of tuples that specify column names and their
-            corresponding values to segment on.
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2592,6 +2598,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2627,6 +2640,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2786,6 +2804,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -2818,6 +2838,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -2834,6 +2855,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -2869,6 +2897,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3027,6 +3060,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -3059,6 +3094,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -3075,6 +3111,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3110,6 +3153,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3266,6 +3314,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -3298,6 +3348,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -3314,6 +3365,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3349,6 +3407,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3509,6 +3572,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -3541,6 +3606,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -3557,6 +3623,13 @@ class Validate:
         value: float | int | Column,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3592,6 +3665,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3752,6 +3830,8 @@ class Validate:
         _check_column(column=columns)
         # _check_value_float_int(value=value)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -3784,6 +3864,7 @@ class Validate:
                 values=value,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -3802,6 +3883,13 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -3847,6 +3935,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4018,6 +4111,8 @@ class Validate:
         # _check_value_float_int(value=left)
         # _check_value_float_int(value=right)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -4055,6 +4150,7 @@ class Validate:
                 inclusive=inclusive,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -4073,6 +4169,13 @@ class Validate:
         inclusive: tuple[bool, bool] = (True, True),
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4118,6 +4221,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4289,6 +4397,8 @@ class Validate:
         # _check_value_float_int(value=left)
         # _check_value_float_int(value=right)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -4326,6 +4436,7 @@ class Validate:
                 inclusive=inclusive,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -4341,6 +4452,13 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: Collection[Any],
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4368,6 +4486,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4507,6 +4630,8 @@ class Validate:
                 raise ValueError("`set=` must be a list of floats, integers, or strings.")
 
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -4534,6 +4659,7 @@ class Validate:
                 column=column,
                 values=set,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -4549,6 +4675,13 @@ class Validate:
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         set: list[float | int],
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4576,6 +4709,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4710,6 +4848,8 @@ class Validate:
         _check_column(column=columns)
         _check_set_types(set=set)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -4737,6 +4877,7 @@ class Validate:
                 column=column,
                 values=set,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -4751,6 +4892,13 @@ class Validate:
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4775,6 +4923,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4905,6 +5058,8 @@ class Validate:
 
         _check_column(column=columns)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -4931,6 +5086,7 @@ class Validate:
                 assertion_type=assertion_type,
                 column=column,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -4945,6 +5101,13 @@ class Validate:
         self,
         columns: str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -4969,6 +5132,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5099,6 +5267,8 @@ class Validate:
 
         _check_column(column=columns)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -5125,6 +5295,7 @@ class Validate:
                 assertion_type=assertion_type,
                 column=column,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -5141,6 +5312,13 @@ class Validate:
         pattern: str,
         na_pass: bool = False,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5171,6 +5349,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5303,6 +5486,8 @@ class Validate:
 
         _check_column(column=columns)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=na_pass, param_name="na_pass")
         _check_boolean_input(param=active, param_name="active")
@@ -5332,6 +5517,7 @@ class Validate:
                 values=pattern,
                 na_pass=na_pass,
                 pre=pre,
+                segments=segments,
                 thresholds=thresholds,
                 actions=actions,
                 brief=brief,
@@ -5346,6 +5532,13 @@ class Validate:
         self,
         expr: any,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5371,6 +5564,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5487,6 +5685,8 @@ class Validate:
         # TODO: Add a check for the expression to ensure it's a valid expression object
         # _check_expr(expr=expr)
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -5503,6 +5703,7 @@ class Validate:
             column=None,
             values=expr,
             pre=pre,
+            segments=segments,
             thresholds=thresholds,
             actions=actions,
             brief=brief,
@@ -5691,6 +5892,13 @@ class Validate:
         self,
         columns_subset: str | list[str] | None = None,
         pre: Callable | None = None,
+        segments: str
+        | list[str]
+        | Column
+        | ColumnSelector
+        | ColumnSelectorNarwhals
+        | tuple
+        | None = None,
         thresholds: int | float | bool | tuple | dict | Thresholds = None,
         actions: Actions | None = None,
         brief: str | bool | None = None,
@@ -5715,6 +5923,11 @@ class Validate:
             interrogation. This function should take a table as input and return a modified table.
             Have a look at the *Preprocessing* section for more information on how to use this
             argument.
+        segments
+            An optional set of columns that serve to segment the target table by column values. Can
+            be provided as a (1) list of column names, (2) column selector(s) resolving to one or
+            more columns, or (3) tuples that specify column names and their corresponding values to
+            segment on (as a list).
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5849,6 +6062,8 @@ class Validate:
         assertion_type = _get_fn_name()
 
         _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
         _check_thresholds(thresholds=thresholds)
         _check_boolean_input(param=active, param_name="active")
 
@@ -5869,6 +6084,7 @@ class Validate:
             assertion_type=assertion_type,
             column=columns_subset,
             pre=pre,
+            segments=segments,
             thresholds=thresholds,
             actions=actions,
             brief=brief,
