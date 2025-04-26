@@ -276,6 +276,20 @@ class DataScan:
             __frac_n_missing=nw.col("n_missing") / nw.lit(self.profile.row_count),
         )
 
+        ## Pull out type indicies:
+        # TODO: This should get a dedicated mini-class
+        # TODO: Needs a type guard too
+        datetime_idx: list[int] = (
+            formatted_data.select(__tmp_idx=nw.col("coltype") == nw.lit("Datetime"))["__tmp_idx"]
+            .arg_true()
+            .to_list()
+        )
+        date_idx: list[int] = (
+            formatted_data.select(__tmp_idx=nw.col("coltype") == nw.lit("Date"))["__tmp_idx"]
+            .arg_true()
+            .to_list()
+        )
+
         # format fractions:
         # this is an anti-pattern but there's no serious alternative
         for _fmt_col in ("__frac_n_unique", "__frac_n_missing"):
@@ -401,13 +415,13 @@ class DataScan:
                 columns=fmt_float,
                 decimals=2,
                 drop_trailing_dec_mark=True,
-                drop_trailing_zeros=True,  ## Generic Styling
+                drop_trailing_zeros=True,
             )
-            .tab_style(
-                style=style.text(size="10px"),
-                locations=loc.body(columns=list(present_stat_cols)),
+            .fmt_datetime(
+                # TODO: This is lazy and I should come up with a better solution
+                columns=[c for c in present_stat_cols if c in ("min", "max")],
+                rows=datetime_idx,
             )
-            .tab_style(style=style.text(size="12px"), locations=loc.body(columns="colname"))
             ## Borders
             .tab_style(
                 style=style.borders(sides="right", color="#D3D3D3", style="solid"),
@@ -417,7 +431,12 @@ class DataScan:
                 style=style.borders(sides="left", color="#E5E5E5", style="dashed"),
                 locations=loc.body(columns=list(present_stat_cols)),
             )
-            # ## Formatting
+            ## Formatting
+            .tab_style(
+                style=style.text(size="10px"),
+                locations=loc.body(columns=list(present_stat_cols)),
+            )
+            .tab_style(style=style.text(size="12px"), locations=loc.body(columns="colname"))
             .cols_width(
                 icon="35px", colname="200px", **{stat_col: "60px" for stat_col in present_stat_cols}
             )
