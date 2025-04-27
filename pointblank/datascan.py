@@ -278,14 +278,19 @@ class DataScan:
 
         ## Pull out type indicies:
         # TODO: This should get a dedicated mini-class
-        # TODO: Needs a type guard too
+        # TODO: Technically ne a type guard too
         datetime_idx: list[int] = (
-            formatted_data.select(__tmp_idx=nw.col("coltype") == nw.lit("Datetime"))["__tmp_idx"]
+            formatted_data.select(
+                __tmp_idx=nw.col("coltype").str.contains("Datetime", literal=True)
+            )["__tmp_idx"]
             .arg_true()
             .to_list()
         )
         date_idx: list[int] = (
-            formatted_data.select(__tmp_idx=nw.col("coltype") == nw.lit("Date"))["__tmp_idx"]
+            formatted_data.select(
+                __tmp_idx=nw.col("coltype").str.contains("Date", literal=True)
+                & ~nw.col("coltype").str.contains("Datetime", literal=True)
+            )["__tmp_idx"]
             .arg_true()
             .to_list()
         )
@@ -396,6 +401,7 @@ class DataScan:
         gt_tbl = (
             GT(formatted_data.to_native())
             .tab_header(title=html(combined_title))
+            .tab_source_note(source_note="String columns statistics regard the string's length.")
             .cols_align(align="right", columns=list(present_stat_cols))
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
@@ -422,6 +428,11 @@ class DataScan:
                 columns=[c for c in present_stat_cols if c in ("min", "max")],
                 rows=datetime_idx,
             )
+            .fmt_date(
+                # TODO: This is lazy and I should come up with a better solution
+                columns=[c for c in present_stat_cols if c in ("min", "max")],
+                rows=date_idx,
+            )
             ## Borders
             .tab_style(
                 style=style.borders(sides="right", color="#D3D3D3", style="solid"),
@@ -446,9 +457,6 @@ class DataScan:
             # TODO: this is more proactive than it should be
             gt_tbl = gt_tbl.sub_missing(missing_text="-")
             # https://github.com/posit-dev/great-tables/issues/667
-
-        # TODO: datetime value formatting weirdness
-        # TODO: datetime column formatting weirdness
 
         # If the version of `great_tables` is `>=0.17.0` then disable Quarto table processing
         if version("great_tables") >= "0.17.0":
