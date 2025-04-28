@@ -11370,8 +11370,7 @@ def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> tuple[str, str]:
     # Determine if the table is a DataFrame or a DB table
     tbl_type = _get_tbl_type(data=data_tbl)
 
-    # Obtain the segmentation categories from the table column
-    # TODO: ensure this works with all table types
+    # Obtain the segmentation categories from the table column given as `segments_expr`
     if tbl_type == "polars":
         seg_categories = data_tbl[segments_expr].unique().to_list()
     elif tbl_type == "pandas":
