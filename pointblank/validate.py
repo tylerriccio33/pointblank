@@ -10457,14 +10457,33 @@ class Validate:
                 # If the `segments` expression is a string, that string is taken as a column name
                 # for which segmentation should occur across unique values in the column
                 if isinstance(segments_expr, str):
-                    # TODO: Add a check to see if the column exists in the table
-                    columns = list(table.columns)
+                    seg_tuples = _seg_expr_from_string(table=table, segments_expr=segments_expr)
 
-                    # Get the segmentation categories from the column
-                    seg_categories = table[segments_expr].unique().to_list()
+                # If the 'segments' expression is a tuple, then normalize it to a list of tuples
+                # - ("col", "value") -> [("col", "value")]
+                # - ("col", ["value1", "value2"]) -> [("col", "value1"), ("col", "value2")]
+                elif isinstance(segments_expr, tuple):
+                    seg_tuples = _seg_expr_from_tuple(segments_expr=segments_expr)
 
-                    # Place each category and each value in a list of tuples (column, value)
-                    seg_tuples = [(segments_expr, category) for category in seg_categories]
+                # If the 'segments' expression is a list of strings or tuples (can be mixed) then
+                # normalize it to a list of tuples following the rules above
+                elif isinstance(segments_expr, list):
+                    seg_tuples = []
+                    for seg in segments_expr:
+                        if isinstance(seg, str):
+                            # Use the utility function for string items
+                            str_seg_tuples = _seg_expr_from_string(table=table, segments_expr=seg)
+                            seg_tuples.extend(str_seg_tuples)
+                        elif isinstance(seg, tuple):
+                            # Use the utility function for tuple items
+                            tuple_seg_tuples = _seg_expr_from_tuple(segments_expr=seg)
+                            seg_tuples.extend(tuple_seg_tuples)
+                        else:
+                            # Handle invalid segment type
+                            raise ValueError(
+                                f"Invalid segment expression item type: {type(seg)}. "
+                                "Must be either string or tuple."
+                            )
 
             except Exception:  # pragma: no cover
                 validation.eval_error = True
@@ -10585,6 +10604,54 @@ class Validate:
             return "some failing"
         else:
             return "all passed"
+
+
+def _seg_expr_from_string(table: any, segments_expr: str) -> tuple[str, str]:
+    # If the `segments_expr` value is a string, that string is taken as a column name
+    # for which segmentation should occur across unique values in the column
+
+    # Determine if the table is a DataFrame or a DB table
+    tbl_type = _get_tbl_type(data=table)
+
+    # Obtain the segmentation categories from the table column
+    # TODO: ensure this works with all table types
+    if tbl_type == "polars":
+        seg_categories = table[segments_expr].unique().to_list()
+    elif tbl_type == "pandas":
+        seg_categories = table[segments_expr].unique().tolist()
+    elif tbl_type in IBIS_BACKENDS:
+        distinct_col_vals = table.select(segments_expr).distinct()
+        seg_categories = distinct_col_vals[segments_expr].to_list()
+    else:  # pragma: no cover
+        raise ValueError(f"Unsupported table type: {tbl_type}")
+
+    # Ensure that the categories are sorted
+    seg_categories.sort()
+
+    # Place each category and each value in a list of tuples as: `(column, value)`
+    seg_tuples = [(segments_expr, category) for category in seg_categories]
+
+    return seg_tuples
+
+
+def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, str]]:
+    # If the `segments_expr` value is a tuple, then normalize it to a list of tuples
+    # - ("col", "value") -> [("col", "value")]
+    # - ("col", ["value1", "value2"]) -> [("col", "value1"), ("col", "value2")]
+
+    # Check if the first element is a string
+    if isinstance(segments_expr[0], str):
+        # If the second element is a list, create a list of tuples
+        if isinstance(segments_expr[1], list):
+            seg_tuples = [(segments_expr[0], value) for value in segments_expr[1]]
+        # If the second element is not a list, create a single tuple
+        else:
+            seg_tuples = [(segments_expr[0], segments_expr[1])]
+    # If the first element is not a string, raise an error
+    else:
+        raise ValueError("The first element of the segments expression must be a string.")
+
+    return seg_tuples
 
 
 def _normalize_reporting_language(lang: str | None) -> str:
@@ -11210,16 +11277,26 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
 
     # TODO: Add codepaths for either Narwhals-compatible DFs or Ibis backend tables
 
-    # Transform to Narwhals table if a DataFrame
-    data_tbl_nw = nw.from_native(data_tbl)
+    tbl_type = _get_tbl_type(data=data_tbl)
 
-    column_name = segments_expr[0]
-    value = segments_expr[1]
+    if tbl_type in ["pandas", "polars"]:
+        # If the table is a Pandas or Polars DataFrame, transforming to a Narwhals table
+        # and perform the filtering operation
 
-    # Filter the data table based on the column name and value (no need to check for column existence)
-    data_tbl_nw = data_tbl_nw.filter(nw.col(column_name) == value)
+        # Transform to Narwhals table if a DataFrame
+        data_tbl_nw = nw.from_native(data_tbl)
 
-    data_tbl = data_tbl_nw.to_native()
+        # Filter the data table based on the column name and value
+        data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]) == segments_expr[1])
+
+        # Transform back to the original table type
+        data_tbl = data_tbl_nw.to_native()
+
+    elif tbl_type in IBIS_BACKENDS:
+        # If the table is an Ibis backend table, perform the filtering operation directly
+
+        # Filter the data table based on the column name and value
+        data_tbl = data_tbl[data_tbl[segments_expr[0]] == segments_expr[1]]
 
     return data_tbl
 
