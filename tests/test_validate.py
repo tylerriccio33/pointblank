@@ -6520,6 +6520,37 @@ def test_validation_report_segments_html(snapshot, tbl_type):
     snapshot.assert_match(edited_report_html_str, "validation_report_segments.html")
 
 
+def test_validation_report_segments_with_pre_html(snapshot):
+    validation = (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type="polars"),
+            tbl_name="game_revenue",
+            label="Validation with segments using `pre=`-generated column",
+            thresholds=Thresholds(warning=1, error=2),
+        )
+        .col_vals_ge(
+            columns="item_revenue",
+            value=0.75,
+            pre=lambda df: df.with_columns(
+                segment=pl.concat_str(pl.col("acquisition"), pl.col("country"), separator="/")
+            ),
+            segments=[("segment", "facebook/Sweden"), ("segment", "google/France")],
+        )
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "validation_report_segments_with_pre.html")
+
+
 def test_validation_report_briefs_html(snapshot):
     validation = (
         Validate(
