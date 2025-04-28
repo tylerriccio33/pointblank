@@ -87,7 +87,7 @@ validation = (
    pb.Validate(
       data=sales_data,
       tbl_name="sales_data",           # Naam van de tabel voor rapportage
-      label="Praktijkvoorbeeld",        # Label voor de validatie, verschijnt in rapporten
+      label="Praktijkvoorbeeld",       # Label voor de validatie, verschijnt in rapporten
       thresholds=(0.01, 0.02, 0.05),   # Stel drempels in voor waarschuwingen, fouten en kritieke problemen
       actions=pb.Actions(              # Definieer acties voor elke drempeloverschrijding
          critical="Groot datakwaliteitsprobleem gevonden in stap {step} ({time})."
