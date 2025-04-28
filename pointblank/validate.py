@@ -2378,9 +2378,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2460,6 +2460,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -2658,9 +2666,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -2740,6 +2748,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -2937,9 +2953,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3019,6 +3035,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -3215,9 +3239,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3297,6 +3321,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -3491,9 +3523,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3573,6 +3605,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -3771,9 +3811,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -3853,6 +3893,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4063,9 +4111,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4147,6 +4195,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4371,9 +4427,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4455,6 +4511,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4658,9 +4722,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4719,6 +4783,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4903,9 +4975,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -4964,6 +5036,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5139,9 +5219,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5200,6 +5280,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5370,9 +5458,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5431,6 +5519,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5609,9 +5705,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5670,6 +5766,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5846,9 +5950,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -5905,6 +6009,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6227,9 +6339,9 @@ class Validate:
             argument.
         segments
             An optional directive on segmentation, which serves to split a validation step into
-            multiple (one step per segment). Can be a single column name, or a tuple that specifies
-            a column name and its corresponding values to segment on (as a list). Read the
-            *Segmentation* section for usage information.
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
         thresholds
             Set threshold failure levels for reporting and reacting to exceedences of the levels.
             The thresholds are set at the step level and will override any global thresholds set in
@@ -6288,6 +6400,14 @@ class Validate:
         segment on only specific dates, you can provide a tuple like
         `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
         (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
