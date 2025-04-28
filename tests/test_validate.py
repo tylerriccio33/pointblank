@@ -6478,6 +6478,47 @@ def test_comprehensive_validation_report_html_snap(snapshot):
     snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
 
 
+def test_validation_report_segments_html(snapshot):
+    validation = (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            tbl_name="game_revenue",
+            label="Validation with segments",
+            thresholds=Thresholds(warning=1, error=2),
+        )
+        .col_vals_ge(columns="item_revenue", value=0.75, segments="item_type")
+        .col_vals_gt(
+            columns="session_duration", value=1, segments=("acquisition", ["google", "organic"])
+        )
+        .col_vals_in_set(
+            columns="acquisition", set=["google", "organic"], segments=("country", "Norway")
+        )
+        .rows_distinct()
+        .col_vals_lt(
+            columns="item_revenue",
+            value=200,
+            segments=[("acquisition", "google"), ("country", "Germany")],
+        )
+        .col_vals_gt(
+            columns="start_day",
+            value="2015-01-01",
+            segments=["item_type", ("item_name", ["gold7", "gems3"])],
+        )
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "validation_report_segments.html")
+
+
 def test_validation_report_briefs_html(snapshot):
     validation = (
         Validate(
