@@ -1,10 +1,26 @@
 from __future__ import annotations
 
+from typing import Any, TypeAlias
+
 ## Absolute bounds, ie. plus or minus
-type AbsoluteBounds = tuple[int, int]
+AbsoluteBounds: TypeAlias = tuple[int, int]
 
 ## Relative bounds, ie. plus or minus some percent
-type RelativeBounds = tuple[float, float]
+RelativeBounds: TypeAlias = tuple[float, float]
 
 ## Tolerance afforded to some check
-type Tolerance = int | float | AbsoluteBounds | RelativeBounds
+Tolerance: TypeAlias = int | float | AbsoluteBounds | RelativeBounds
+
+## Types for data segmentation
+
+## Value(s) that can be used in a segment tuple
+SegmentValue: TypeAlias = str | list[str] | Any
+
+## (column, value(s)) format for segments
+SegmentTuple: TypeAlias = tuple[str, SegmentValue]
+
+## Individual segment item (string or tuple)
+SegmentItem: TypeAlias = str | SegmentTuple
+
+## Full segment specification options
+SegmentSpec: TypeAlias = str | SegmentTuple | list[SegmentItem]
