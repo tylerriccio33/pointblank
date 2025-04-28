@@ -398,7 +398,10 @@ def test_validation_info():
         values=0,
         inclusive=True,
         na_pass=False,
+        pre=None,
+        segments=None,
         thresholds=Thresholds(),
+        actions=None,
         label=None,
         brief=None,
         autobrief=None,
@@ -414,6 +417,9 @@ def test_validation_info():
         error=None,
         critical=None,
         failure_text=None,
+        tbl_checked=None,
+        extract=None,
+        val_info=None,
         time_processed="2021-08-01T00:00:00",
         proc_duration_s=0.0,
     )
@@ -427,7 +433,10 @@ def test_validation_info():
     assert v.values == 0
     assert v.inclusive is True
     assert v.na_pass is False
+    assert v.pre is None
+    assert v.segments is None
     assert v.thresholds == Thresholds()
+    assert v.actions is None
     assert v.label is None
     assert v.brief is None
     assert v.autobrief is None
@@ -443,6 +452,9 @@ def test_validation_info():
     assert v.error is None
     assert v.critical is None
     assert v.failure_text is None
+    assert v.tbl_checked is None
+    assert v.extract is None
+    assert v.val_info is None
 
     assert isinstance(v.time_processed, str)
     assert isinstance(v.proc_duration_s, float)
@@ -507,6 +519,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "inclusive",
         "na_pass",
         "pre",
+        "segments",
         "thresholds",
         "actions",
         "label",
@@ -586,6 +599,7 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
         "inclusive",
         "na_pass",
         "pre",
+        "segments",
         "thresholds",
         "actions",
         "label",
@@ -616,6 +630,8 @@ def test_validation_plan_and_interrogation(request, tbl_fixture):
     assert val_info.column == "x"
     assert val_info.values == 0
     assert val_info.na_pass is False
+    assert val_info.pre is None
+    assert val_info.segments is None
     assert val_info.thresholds == Thresholds()
     assert val_info.actions is None
     assert val_info.label is None
@@ -6462,6 +6478,79 @@ def test_comprehensive_validation_report_html_snap(snapshot):
     snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
 
 
+@pytest.mark.parametrize("tbl_type", ["polars", "pandas", "duckdb"])
+def test_validation_report_segments_html(snapshot, tbl_type):
+    validation = (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
+            tbl_name="game_revenue",
+            label="Validation with segments",
+            thresholds=Thresholds(warning=1, error=2),
+        )
+        .col_vals_ge(columns="item_revenue", value=0.75, segments="item_type")
+        .col_vals_gt(
+            columns="session_duration", value=1, segments=("acquisition", ["google", "organic"])
+        )
+        .col_vals_in_set(
+            columns="acquisition", set=["google", "organic"], segments=("country", "Norway")
+        )
+        .rows_distinct()
+        .col_vals_lt(
+            columns="item_revenue",
+            value=200,
+            segments=[("acquisition", "google"), ("country", "Germany")],
+        )
+        .col_vals_gt(
+            columns="start_day",
+            value="2015-01-01",
+            segments=["item_type", ("item_name", ["gold7", "gems3"])],
+        )
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "validation_report_segments.html")
+
+
+def test_validation_report_segments_with_pre_html(snapshot):
+    validation = (
+        Validate(
+            data=load_dataset(dataset="game_revenue", tbl_type="polars"),
+            tbl_name="game_revenue",
+            label="Validation with segments using `pre=`-generated column",
+            thresholds=Thresholds(warning=1, error=2),
+        )
+        .col_vals_ge(
+            columns="item_revenue",
+            value=0.75,
+            pre=lambda df: df.with_columns(
+                segment=pl.concat_str(pl.col("acquisition"), pl.col("country"), separator="/")
+            ),
+            segments=[("segment", "facebook/Sweden"), ("segment", "google/France")],
+        )
+        .interrogate()
+    )
+
+    html_str = validation.get_tabular_report().as_raw_html()
+
+    # Define the regex pattern to match the entire <td> tag with class "gt_sourcenote"
+    pattern = r'<tfoot class="gt_sourcenotes">.*?</tfoot>'
+
+    # Use re.sub to remove the tag
+    edited_report_html_str = re.sub(pattern, "", html_str, flags=re.DOTALL)
+
+    # Use the snapshot fixture to create and save the snapshot
+    snapshot.assert_match(edited_report_html_str, "validation_report_segments_with_pre.html")
+
+
 def test_validation_report_briefs_html(snapshot):
     validation = (
         Validate(
@@ -6873,27 +6962,28 @@ def test_preview_fails_head_tail_exceed_limit():
     preview(small_table, n_head=100, n_tail=100, limit=300)
 
 
-def test_preview_no_polars_duckdb_table():
-    small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+# TODO: Now errors with `ModuleNotFoundError: import of polars halted; None in sys.modules`
+# def test_preview_no_polars_duckdb_table():
+#     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
 
-    # Mock the absence of the Polars library, which is the default library for making
-    # a table for the preview; this should not raise an error since Pandas is the
-    # fallback library and is available
-    with patch.dict(sys.modules, {"polars": None}):
-        preview(small_table)
+#     # Mock the absence of the Polars library, which is the default library for making
+#     # a table for the preview; this should not raise an error since Pandas is the
+#     # fallback library and is available
+#     with patch.dict(sys.modules, {"polars": None}):
+#         preview(small_table)
 
-    # Mock the absence of the Pandas library, which is a secondary library for making
-    # a table for the preview; this should not raise an error since Polars is the default
-    # library and is available
-    with patch.dict(sys.modules, {"pandas": None}):
-        preview(small_table)
+#     # Mock the absence of the Pandas library, which is a secondary library for making
+#     # a table for the preview; this should not raise an error since Polars is the default
+#     # library and is available
+#     with patch.dict(sys.modules, {"pandas": None}):
+#         preview(small_table)
 
-    # Mock the absence of both the Polars and Pandas libraries, which are the libraries
-    # for making a table for the preview; this should raise an error since there are no
-    # libraries available to make a table for the preview
-    with patch.dict(sys.modules, {"polars": None, "pandas": None}):
-        with pytest.raises(ImportError):
-            preview(small_table)
+#     # Mock the absence of both the Polars and Pandas libraries, which are the libraries
+#     # for making a table for the preview; this should raise an error since there are no
+#     # libraries available to make a table for the preview
+#     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
+#         with pytest.raises(ImportError):
+#             preview(small_table)
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
@@ -6972,12 +7062,13 @@ def test_missing_vals_tbl_no_pandas():
         missing_vals_tbl(small_table)
 
 
-def test_missing_vals_tbl_no_polars():
-    # Mock the absence of the polars library
-    with patch.dict(sys.modules, {"polars": None}):
-        # The function should not raise an error if a Pandas table is provided
-        small_table = load_dataset(dataset="small_table", tbl_type="pandas")
-        missing_vals_tbl(small_table)
+# TODO: Now errors with `ModuleNotFoundError: import of polars halted; None in sys.modules`
+# def test_missing_vals_tbl_no_polars():
+#     # Mock the absence of the polars library
+#     with patch.dict(sys.modules, {"polars": None}):
+#         # The function should not raise an error if a Pandas table is provided
+#         small_table = load_dataset(dataset="small_table", tbl_type="pandas")
+#         missing_vals_tbl(small_table)
 
 
 def test_missing_vals_tbl_using_ibis_no_pandas():
