@@ -9585,6 +9585,7 @@ class Validate:
 
         validation_info_dict["tbl"] = _transform_tbl_preprocessed(
             pre=validation_info_dict["pre"],
+            seg=validation_info_dict["segments"],
             interrogation_performed=interrogation_performed,
         )
 
@@ -11362,7 +11363,7 @@ def _process_title_text(title: str | None, tbl_name: str | None, lang: str) -> s
     return title_text
 
 
-def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list[str]:
+def _transform_tbl_preprocessed(pre: any, seg: any, interrogation_performed: bool) -> list[str]:
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(pre))]
@@ -11371,11 +11372,13 @@ def _transform_tbl_preprocessed(pre: str, interrogation_performed: bool) -> list
     # (either 'unchanged' (None) or 'modified' (not None))
     status_list = []
 
-    for status in pre:
-        if status is None:
-            status_list.append("unchanged")
-        else:
+    for i in range(len(pre)):
+        if seg[i] is not None:
+            status_list.append("segmented")
+        elif pre[i] is not None:
             status_list.append("modified")
+        else:
+            status_list.append("unchanged")
 
     return _get_preprocessed_table_icon(icon=status_list)
 
