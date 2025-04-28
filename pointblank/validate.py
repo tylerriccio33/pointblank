@@ -11452,8 +11452,7 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
     Returns
     -------
     any
-        The filtered data table. It can be a Pandas DataFrame, Polars DataFrame, or an Ibis
-        backend table.
+        The filtered data table. It will be of the same type as the input table.
     """
     # Get the table type
     tbl_type = _get_tbl_type(data=data_tbl)
