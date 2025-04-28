@@ -10769,7 +10769,7 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, str]]:
         else:
             seg_tuples = [(segments_expr[0], segments_expr[1])]
     # If the first element is not a string, raise an error
-    else:
+    else:  # pragma: no cover
         raise ValueError("The first element of the segments expression must be a string.")
 
     return seg_tuples
