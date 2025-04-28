@@ -11758,8 +11758,8 @@ def _transform_assertion_str(
                 column_value = segmentation_str[i][1]
                 # Create the segmentation div
                 segmentation_div = (
-                    "<div style='margin-top: -9px; margin-bottom: 0px; "
-                    "white-space: pre; font-size: 8px; color: darkblue; padding-bottom: 0px; "
+                    "<div style='margin-top: 0px; margin-bottom: 0px; "
+                    "white-space: pre; font-size: 8px; color: darkblue; padding-bottom: 4px; "
                     "'>"
                     "<strong><span style='font-family: Helvetica, arial, sans-serif;'>"
                     f"SEGMENT&nbsp;&nbsp;</span></strong><span>{column_name} / {column_value}"
