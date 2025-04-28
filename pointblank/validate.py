@@ -10599,7 +10599,7 @@ class Validate:
                             # Use the utility function for tuple items
                             tuple_seg_tuples = _seg_expr_from_tuple(segments_expr=seg)
                             seg_tuples.extend(tuple_seg_tuples)
-                        else:
+                        else:  # pragma: no cover
                             # Handle invalid segment type
                             raise ValueError(
                                 f"Invalid segment expression item type: {type(seg)}. "
