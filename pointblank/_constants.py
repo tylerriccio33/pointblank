@@ -126,6 +126,7 @@ VALIDATION_REPORT_FIELDS = [
     "inclusive",
     "na_pass",
     "pre",
+    "segments",
     "thresholds",
     "label",
     "brief",
