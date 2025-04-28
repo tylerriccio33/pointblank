@@ -6478,10 +6478,11 @@ def test_comprehensive_validation_report_html_snap(snapshot):
     snapshot.assert_match(edited_report_html_str, "comprehensive_validation_report.html")
 
 
-def test_validation_report_segments_html(snapshot):
+@pytest.mark.parametrize("tbl_type", ["polars", "pandas", "duckdb"])
+def test_validation_report_segments_html(snapshot, tbl_type):
     validation = (
         Validate(
-            data=load_dataset(dataset="game_revenue", tbl_type="duckdb"),
+            data=load_dataset(dataset="game_revenue", tbl_type=tbl_type),
             tbl_name="game_revenue",
             label="Validation with segments",
             thresholds=Thresholds(warning=1, error=2),
