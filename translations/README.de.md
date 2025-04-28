@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # Automatisch generierte Kurzbeschreibungen für jeden Schritt hinzufügen
+      lang="de",
    )
    .col_vals_between(            # Zahlenbereiche mit Präzision prüfen
       columns=["price", "quantity"],
@@ -132,7 +133,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.de.png" width="800px">
 </div>
 
 ```python
