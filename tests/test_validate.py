@@ -857,6 +857,8 @@ def test_validation_langs_all_working(lang):
         .col_exists(columns="z")
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
         .col_count_match(count=14)
         .row_count_match(count=20)
         .conjointly(
