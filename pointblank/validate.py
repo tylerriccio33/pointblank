@@ -56,6 +56,7 @@ from pointblank._interrogation import (
     ConjointlyValidation,
     NumberOfTestUnits,
     RowCountMatch,
+    RowsComplete,
     RowsDistinct,
 )
 from pointblank._typing import SegmentSpec
