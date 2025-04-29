@@ -2275,6 +2275,24 @@ def _check_nulls_across_columns_ibis(table, columns_subset):
 
     return result
 
+
+def _check_nulls_across_columns_nw(table, columns_subset):
+    # Get all column names from the table
+    column_names = columns_subset if columns_subset else table.columns
+
+    # Build the expression by combining each column's `is_null()` with OR operations
+    null_expr = functools.reduce(
+        lambda acc, col: acc | table[col].is_null() if acc is not None else table[col].is_null(),
+        column_names,
+        None,
+    )
+
+    # Add the expression as a new column to the table
+    result = table.with_columns(_any_is_null_=null_expr)
+
+    return result
+
+
 def _modify_datetime_compare_val(tgt_column: any, compare_val: any) -> any:
     tgt_col_dtype_str = str(tgt_column.dtype).lower()
 
