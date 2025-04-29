@@ -8179,7 +8179,8 @@ class Validate:
             # TODO: Add support for extraction of rows for Ibis backends
             if (
                 collect_extracts
-                and assertion_type in ROW_BASED_VALIDATION_TYPES + ["rows_distinct"]
+                and assertion_type
+                in ROW_BASED_VALIDATION_TYPES + ["rows_distinct", "rows_complete"]
                 and tbl_type not in IBIS_BACKENDS
             ):
                 # Add row numbers to the results table
