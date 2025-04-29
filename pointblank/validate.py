@@ -10513,6 +10513,7 @@ class Validate:
         - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
         - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
         - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
+        - [`rows_complete()`](`pointblank.Validate.rows_complete`)
         - [`conjointly()`](`pointblank.Validate.conjointly`)
 
         The [`rows_distinct()`](`pointblank.Validate.rows_distinct`) validation step will produce a
