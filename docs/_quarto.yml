@@ -126,6 +126,7 @@ quartodoc:
         - name: Validate.col_vals_expr
         - name: Validate.col_exists
         - name: Validate.rows_distinct
+        - name: Validate.rows_complete
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
         - name: Validate.col_count_match
