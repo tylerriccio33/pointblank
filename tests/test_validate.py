@@ -1230,6 +1230,8 @@ def test_validation_briefs(request, tbl_fixture):
         .col_exists(columns="x", brief=brief_text)
         .rows_distinct(brief=brief_text)
         .rows_distinct(columns_subset=["x", "y"], brief=brief_text)
+        .rows_complete(brief=brief_text)
+        .rows_complete(columns_subset=["x", "y"], brief=brief_text)
         .col_schema_match(schema=schema, brief=brief_text)
         .row_count_match(count=5, brief=brief_text)
         .col_count_match(count=3, brief=brief_text)
@@ -1281,14 +1283,20 @@ def test_validation_briefs(request, tbl_fixture):
     # `rows_distinct()` - subset of columns
     assert v.validation_info[14].brief == "Check of column `x, y`. Step 15"
 
-    # `col_schema_match()`
+    # `rows_complete()`
     assert v.validation_info[15].brief == "Check of column `{col}`. Step 16"
 
+    # `rows_complete()` - subset of columns
+    assert v.validation_info[16].brief == "Check of column `x, y`. Step 17"
+
+    # `col_schema_match()`
+    assert v.validation_info[17].brief == "Check of column `{col}`. Step 18"
+
     # `row_count_match()`
-    assert v.validation_info[16].brief == "Check of column `{col}`. Step 17"
+    assert v.validation_info[18].brief == "Check of column `{col}`. Step 19"
 
     # `col_count_match()`
-    assert v.validation_info[17].brief == "Check of column `{col}`. Step 18"
+    assert v.validation_info[19].brief == "Check of column `{col}`. Step 20"
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
