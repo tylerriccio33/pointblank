@@ -39,6 +39,7 @@ ASSERTION_TYPE_METHOD_MAP = {
     "col_vals_expr": "expr",
     "col_exists": "col_exists",
     "rows_distinct": "rows_distinct",
+    "rows_complete": "rows_complete",
     "col_schema_match": "col_schema_match",
     "row_count_match": "row_count_match",
     "col_count_match": "col_count_match",
