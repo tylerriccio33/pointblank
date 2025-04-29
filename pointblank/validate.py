@@ -11446,6 +11446,13 @@ def _create_autobrief_or_failure_text(
             for_failure=for_failure,
         )
 
+    if assertion_type == "rows_complete":
+        return _create_text_rows_complete(
+            lang=lang,
+            columns_subset=column,
+            for_failure=for_failure,
+        )
+
     if assertion_type == "row_count_match":
         return _create_text_row_count_match(
             lang=lang,
@@ -11615,6 +11622,24 @@ def _create_text_rows_distinct(
         column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
 
         text = EXPECT_FAIL_TEXT[f"across_row_distinct_{type_}_text"][lang].format(
+            column_text=column_text
+        )
+
+    return text
+
+
+def _create_text_rows_complete(
+    lang: str, columns_subset: list[str] | None, for_failure: bool = False
+) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
+    if columns_subset is None:
+        text = EXPECT_FAIL_TEXT[f"all_row_complete_{type_}_text"][lang]
+
+    else:
+        column_text = _prep_values_text(values=columns_subset, lang=lang, limit=3)
+
+        text = EXPECT_FAIL_TEXT[f"across_row_complete_{type_}_text"][lang].format(
             column_text=column_text
         )
 
