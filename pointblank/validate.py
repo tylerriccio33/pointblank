@@ -10675,7 +10675,7 @@ class Validate:
         # if get_row_count(extract) == 0:
         #    return "No rows were extracted."
 
-        if assertion_type in ROW_BASED_VALIDATION_TYPES:
+        if assertion_type in ROW_BASED_VALIDATION_TYPES + ["rows_complete"]:
             # Get the extracted data for the step
             extract = self.get_data_extracts(i=i, frame=True)
 
