@@ -857,6 +857,8 @@ def test_validation_langs_all_working(lang):
         .col_exists(columns="z")
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
         .col_count_match(count=14)
         .row_count_match(count=20)
         .conjointly(
@@ -1228,6 +1230,8 @@ def test_validation_briefs(request, tbl_fixture):
         .col_exists(columns="x", brief=brief_text)
         .rows_distinct(brief=brief_text)
         .rows_distinct(columns_subset=["x", "y"], brief=brief_text)
+        .rows_complete(brief=brief_text)
+        .rows_complete(columns_subset=["x", "y"], brief=brief_text)
         .col_schema_match(schema=schema, brief=brief_text)
         .row_count_match(count=5, brief=brief_text)
         .col_count_match(count=3, brief=brief_text)
@@ -1279,14 +1283,20 @@ def test_validation_briefs(request, tbl_fixture):
     # `rows_distinct()` - subset of columns
     assert v.validation_info[14].brief == "Check of column `x, y`. Step 15"
 
-    # `col_schema_match()`
+    # `rows_complete()`
     assert v.validation_info[15].brief == "Check of column `{col}`. Step 16"
 
+    # `rows_complete()` - subset of columns
+    assert v.validation_info[16].brief == "Check of column `x, y`. Step 17"
+
+    # `col_schema_match()`
+    assert v.validation_info[17].brief == "Check of column `{col}`. Step 18"
+
     # `row_count_match()`
-    assert v.validation_info[16].brief == "Check of column `{col}`. Step 17"
+    assert v.validation_info[18].brief == "Check of column `{col}`. Step 19"
 
     # `col_count_match()`
-    assert v.validation_info[17].brief == "Check of column `{col}`. Step 18"
+    assert v.validation_info[19].brief == "Check of column `{col}`. Step 20"
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -1331,6 +1341,8 @@ def test_validation_autobriefs(request, tbl_fixture):
         .col_exists(columns="x")
         .rows_distinct()
         .rows_distinct(columns_subset=["x", "y"])
+        .rows_complete()
+        .rows_complete(columns_subset=["x", "y"])
         .col_schema_match(schema=schema)
         .row_count_match(count=5)
         .col_count_match(count=3)
@@ -1484,14 +1496,20 @@ def test_validation_autobriefs(request, tbl_fixture):
     # `rows_distinct()` - subset of columns
     assert v.validation_info[32].autobrief == "Expect entirely distinct rows across `x`, `y`."
 
+    # `rows_complete()`
+    assert v.validation_info[33].autobrief == "Expect entirely complete rows across all columns."
+
+    # `rows_complete()` - subset of columns
+    assert v.validation_info[34].autobrief == "Expect entirely complete rows across `x`, `y`."
+
     # `col_schema_match()`
-    assert v.validation_info[33].autobrief == "Expect that column schemas match."
+    assert v.validation_info[35].autobrief == "Expect that column schemas match."
 
     # `row_count_match()`
-    assert v.validation_info[34].autobrief == "Expect that the row count is exactly `5`."
+    assert v.validation_info[36].autobrief == "Expect that the row count is exactly `5`."
 
     # `col_count_match()`
-    assert v.validation_info[35].autobrief == "Expect that the column count is exactly `3`."
+    assert v.validation_info[37].autobrief == "Expect that the column count is exactly `3`."
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
@@ -1900,8 +1918,10 @@ def test_validation_actions_get_action_metadata(tbl_type, capsys):
         .col_exists(columns="z")  # 14
         .rows_distinct()  # 15
         .rows_distinct(columns_subset=["a", "b", "c"])  # 16
-        .col_count_match(count=14)  # 17
-        .row_count_match(count=20)  # 18
+        .rows_complete()  # 17
+        .rows_complete(columns_subset=["a", "b", "c"])  # 18
+        .col_count_match(count=14)  # 19
+        .row_count_match(count=20)  # 20
         .interrogate()
     )
 
@@ -1923,8 +1943,10 @@ def test_validation_actions_get_action_metadata(tbl_type, capsys):
     assert "Step: 14, Type: col_exists, Column: z" in captured.out
     assert "Step: 15, Type: rows_distinct, Column: None" in captured.out
     assert "Step: 16, Type: rows_distinct, Column: ['a', 'b', 'c']" in captured.out
-    assert "Step: 17, Type: col_count_match, Column: None" in captured.out
-    assert "Step: 18, Type: row_count_match, Column: None" in captured.out
+    assert "Step: 17, Type: rows_complete, Column: None" in captured.out
+    assert "Step: 18, Type: rows_complete, Column: ['a', 'b', 'c']" in captured.out
+    assert "Step: 19, Type: col_count_match, Column: None" in captured.out
+    assert "Step: 20, Type: row_count_match, Column: None" in captured.out
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
@@ -6457,6 +6479,8 @@ def test_comprehensive_validation_report_html_snap(snapshot):
         .col_count_match(count=2, inverse=True)
         .rows_distinct()
         .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
         .col_vals_expr(expr=pl.col("d") > pl.col("a"))
         .conjointly(
             lambda df: df["d"] > df["a"],
@@ -7174,31 +7198,37 @@ def test_get_step_report_no_fail(tbl_type):
         .rows_distinct(columns_subset=["a", "b", "c"])
         .rows_distinct(pre=lambda x: x.head(4))
         .rows_distinct(columns_subset=["a", "b"], pre=lambda x: x.head(4))
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
+        .rows_complete(pre=lambda x: x.head(4))
+        .rows_complete(columns_subset=["a", "b"], pre=lambda x: x.head(4))
         .interrogate()
     )
 
+    limit = 27
+
     # Test every step report and ensure it's a GT object
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
     # Test with a fixed limit of `2`
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, limit=2), GT.GT)
 
     # Test with `limit=None`
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
 
     # Test with a custom header using static text
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header="Custom header"), GT.GT)
 
     # Test with a custom header using templating elements
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header="Title {title} {details}"), GT.GT)
 
     # Test with header removal
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header=None), GT.GT)
 
     #

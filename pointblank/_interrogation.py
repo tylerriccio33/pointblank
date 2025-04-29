@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -1219,6 +1220,36 @@ class Interrogator:
 
         return tbl.to_native()
 
+    def rows_complete(self) -> FrameT | Any:
+        # Ibis backends ---------------------------------------------
+
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.x
+
+            # Determine the number of null values in each row (column subsets are handled in
+            # the `_check_nulls_across_columns_ibis()` function)
+            tbl = _check_nulls_across_columns_ibis(table=tbl, columns_subset=self.columns_subset)
+
+            # Failing rows will have the value `True` in the generated column, so we need to negate
+            # the result to get the passing rows
+            return tbl.mutate(pb_is_good_=~tbl["_any_is_null_"]).drop("_any_is_null_")
+
+        # Local backends (Narwhals) ---------------------------------
+
+        tbl = self.x
+
+        # Determine the number of null values in each row (column subsets are handled in
+        # the `_check_nulls_across_columns_nw()` function)
+        tbl = _check_nulls_across_columns_nw(table=tbl, columns_subset=self.columns_subset)
+
+        # Failing rows will have the value `True` in the generated column, so we need to negate
+        # the result to get the passing rows
+        tbl = tbl.with_columns(pb_is_good_=~nw.col("_any_is_null_"))
+        tbl = tbl.drop("_any_is_null_")
+
+        # Convert the table to a native format
+        return tbl.to_native()
+
 
 @dataclass
 class ColValsCompareOne:
@@ -1795,6 +1826,58 @@ class RowsDistinct:
 
 
 @dataclass
+class RowsComplete:
+    """
+    Check if rows in a DataFrame are complete.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    columns_subset
+        A list of columns to check for completeness.
+    threshold
+        The maximum number of failing test units to allow.
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT
+    columns_subset: list[str] | None
+    threshold: int
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+        if self.tbl_type == "local":
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_subset_test_prep(df=self.data_tbl, columns_subset=self.columns_subset)
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.data_tbl
+
+        # Collect results for the test units; the results are a list of booleans where
+        # `True` indicates a passing test unit
+        self.test_unit_res = Interrogator(
+            x=tbl,
+            columns_subset=self.columns_subset,
+            tbl_type=self.tbl_type,
+        ).rows_complete()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+
+@dataclass
 class ColSchemaMatch:
     """
     Check if a column exists in a DataFrame or has a certain data type.
@@ -2205,6 +2288,40 @@ def _column_has_null_values(table: FrameT, column: str) -> bool:
         return False
 
     return True
+
+
+def _check_nulls_across_columns_ibis(table, columns_subset):
+    # Get all column names from the table
+    column_names = columns_subset if columns_subset else table.columns
+
+    # Build the expression by combining each column's isnull() with OR operations
+    null_expr = functools.reduce(
+        lambda acc, col: acc | table[col].isnull() if acc is not None else table[col].isnull(),
+        column_names,
+        None,
+    )
+
+    # Add the expression as a new column to the table
+    result = table.mutate(_any_is_null_=null_expr)
+
+    return result
+
+
+def _check_nulls_across_columns_nw(table, columns_subset):
+    # Get all column names from the table
+    column_names = columns_subset if columns_subset else table.columns
+
+    # Build the expression by combining each column's `is_null()` with OR operations
+    null_expr = functools.reduce(
+        lambda acc, col: acc | table[col].is_null() if acc is not None else table[col].is_null(),
+        column_names,
+        None,
+    )
+
+    # Add the expression as a new column to the table
+    result = table.with_columns(_any_is_null_=null_expr)
+
+    return result
 
 
 def _modify_datetime_compare_val(tgt_column: any, compare_val: any) -> any:
