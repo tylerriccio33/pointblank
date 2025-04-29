@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # 为每个步骤添加自动生成的简要说明
+      lang="zh-Hans",
    )
    .col_vals_between(            # 用精确度检查数值范围
       columns=["price", "quantity"],
@@ -127,7 +128,7 @@ validation = (
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.zh-CN.png" width="800px">
 </div>
 
 ```python

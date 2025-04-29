@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # Aggiungi riassunti generati automaticamente per ogni passo
+      lang="it",
    )
    .col_vals_between(            # Controlla intervalli numerici con precisione
       columns=["price", "quantity"],
@@ -132,7 +133,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.it.png" width="800px">
 </div>
 
 ```python

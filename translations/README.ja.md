@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # 各ステップに自動生成された概要を追加
+      lang="ja",
    )
    .col_vals_between(            # 精度で数値範囲をチェック
       columns=["price", "quantity"],
@@ -132,7 +133,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.ja.png" width="800px">
 </div>
 
 ```python

@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # 각 단계에 자동 생성된 요약 추가
+      lang="ko",
    )
    .col_vals_between(            # 정밀하게 숫자 범위 검사
       columns=["price", "quantity"],
@@ -132,7 +133,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.ko.png" width="800px">
 </div>
 
 ```python

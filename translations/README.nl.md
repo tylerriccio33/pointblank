@@ -98,6 +98,7 @@ validation = (
          )
       ),
       brief=True,                      # Voeg automatisch gegenereerde samenvattingen toe voor elke stap
+      lang="nl",
    )
    .col_vals_between(            # Controleer numerieke bereiken met precisie
       columns=["price", "quantity"],
@@ -132,7 +133,7 @@ validation.get_tabular_report().show("browser")
 ```
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.png" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.nl.png" width="800px">
 </div>
 
 ```python
