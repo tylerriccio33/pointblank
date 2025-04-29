@@ -1220,6 +1220,36 @@ class Interrogator:
 
         return tbl.to_native()
 
+    def rows_complete(self) -> FrameT | Any:
+        # Ibis backends ---------------------------------------------
+
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.x
+
+            # Determine the number of null values in each row (column subsets are handled in
+            # the `_check_nulls_across_columns_ibis()` function)
+            tbl = _check_nulls_across_columns_ibis(table=tbl, columns_subset=self.columns_subset)
+
+            # Failing rows will have the value `True` in the generated column, so we need to negate
+            # the result to get the passing rows
+            return tbl.mutate(pb_is_good_=~tbl["_any_is_null_"]).drop("_any_is_null_")
+
+        # Local backends (Narwhals) ---------------------------------
+
+        tbl = self.x
+
+        # Determine the number of null values in each row (column subsets are handled in
+        # the `_check_nulls_across_columns_nw()` function)
+        tbl = _check_nulls_across_columns_nw(table=tbl, columns_subset=self.columns_subset)
+
+        # Failing rows will have the value `True` in the generated column, so we need to negate
+        # the result to get the passing rows
+        tbl = tbl.with_columns(pb_is_good_=~nw.col("_any_is_null_"))
+        tbl = tbl.drop("_any_is_null_")
+
+        # Convert the table to a native format
+        return tbl.to_native()
+
 
 @dataclass
 class ColValsCompareOne:
