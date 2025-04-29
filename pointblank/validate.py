@@ -9898,7 +9898,7 @@ class Validate:
                 "col_vals_expr",
             ]:
                 columns_upd.append("&mdash;")
-            elif assertion_type[i] in ["rows_distinct"]:
+            elif assertion_type[i] in ["rows_distinct", "rows_complete"]:
                 if not column:
                     # If there is no column subset, then all columns are used
                     columns_upd.append("ALL COLUMNS")
@@ -9961,6 +9961,7 @@ class Validate:
                 "col_vals_not_null",
                 "col_exists",
                 "rows_distinct",
+                "rows_complete",
             ]:
                 values_upd.append("&mdash;")
 
