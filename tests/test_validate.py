@@ -7176,31 +7176,37 @@ def test_get_step_report_no_fail(tbl_type):
         .rows_distinct(columns_subset=["a", "b", "c"])
         .rows_distinct(pre=lambda x: x.head(4))
         .rows_distinct(columns_subset=["a", "b"], pre=lambda x: x.head(4))
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
+        .rows_complete(pre=lambda x: x.head(4))
+        .rows_complete(columns_subset=["a", "b"], pre=lambda x: x.head(4))
         .interrogate()
     )
 
+    limit = 27
+
     # Test every step report and ensure it's a GT object
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i), GT.GT)
 
     # Test with a fixed limit of `2`
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, limit=2), GT.GT)
 
     # Test with `limit=None`
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, limit=None), GT.GT)
 
     # Test with a custom header using static text
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header="Custom header"), GT.GT)
 
     # Test with a custom header using templating elements
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header="Title {title} {details}"), GT.GT)
 
     # Test with header removal
-    for i in range(1, 23):
+    for i in range(1, limit):
         assert isinstance(validation.get_step_report(i=i, header=None), GT.GT)
 
     #
