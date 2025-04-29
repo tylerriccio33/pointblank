@@ -6685,6 +6685,67 @@ class Validate:
 
         Aside from reporting failure conditions, thresholds can be used to determine the actions to
         take for each level of failure (using the `actions=` parameter).
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        For the examples here, we'll use a simple Polars DataFrame with three string columns
+        (`col_1`, `col_2`, and `col_3`). The table is shown below:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        tbl = pl.DataFrame(
+            {
+                "col_1": ["a", None, "c", "d"],
+                "col_2": ["a", "a", "c", None],
+                "col_3": ["a", "a", "d", None],
+            }
+        )
+
+        pb.preview(tbl)
+        ```
+
+        Let's validate that the rows in the table are complete with `rows_complete()`. We'll
+        determine if this validation had any failing test units (there are four test units, one for
+        each row). A failing test units means that a given row is not complete (i.e., has at least
+        one missing value).
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .rows_complete()
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        From this validation table we see that there are two failing test units. This is because
+        two rows in the table have at least one missing value (the second row and the last row).
+
+        We can also use a subset of columns to determine completeness. Let's specify the subset
+        using columns `col_2` and `col_3` for the next validation.
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl)
+            .rows_complete(columns_subset=["col_2", "col_3"])
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        The validation table reports a single failing test units. The last row contains missing
+        values in both the `col_2` and `col_3` columns.
+        others.
         """
 
         assertion_type = _get_fn_name()
