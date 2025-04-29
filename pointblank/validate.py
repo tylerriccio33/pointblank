@@ -6561,10 +6561,10 @@ class Validate:
         Validate whether row data are complete by having no missing values.
 
         The `rows_complete()` method checks whether rows in the table are complete. Completeness
-        means that each row has no missing values. This validation will operate over the number of
-        test units that is equal to the number of rows in the table (determined after any `pre=`
-        mutation has been applied). A subset of columns can be specified for the completeness check.
-        If no subset is provided, all columns in the table will be used.
+        of a row means that there are no missing values within the row. This validation will operate
+        over the number of test units that is equal to the number of rows in the table (determined
+        after any `pre=` mutation has been applied). A subset of columns can be specified for the
+        completeness check. If no subset is provided, all columns in the table will be used.
 
         Parameters
         ----------
