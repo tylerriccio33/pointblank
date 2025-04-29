@@ -6546,6 +6546,182 @@ class Validate:
 
         return self
 
+    def rows_complete(
+        self,
+        columns_subset: str | list[str] | None = None,
+        pre: Callable | None = None,
+        segments: SegmentSpec | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
+        brief: str | bool | None = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Validate whether row data are complete by having no missing values.
+
+        The `rows_complete()` method checks whether rows in the table are complete. Completeness
+        means that each row has no missing values. This validation will operate over the number of
+        test units that is equal to the number of rows in the table (determined after any `pre=`
+        mutation has been applied). A subset of columns can be specified for the completeness check.
+        If no subset is provided, all columns in the table will be used.
+
+        Parameters
+        ----------
+        columns_subset
+            A single column or a list of columns to use as a subset for the completeness check. If
+            `None` (the default), then all columns in the table will be used.
+        pre
+            An optional preprocessing function or lambda to apply to the data table during
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
+        segments
+            An optional directive on segmentation, which serves to split a validation step into
+            multiple (one step per segment). Can be a single column name, a tuple that specifies a
+            column name and its corresponding values to segment on, or a combination of both
+            (provided as a list). Read the *Segmentation* section for usage information.
+        thresholds
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
+        brief
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Note that you can refer to
+        columns via `columns_subset=` that are expected to be present in the transformed table, but
+        may not exist in the table before preprocessing. Regarding the lifetime of the transformed
+        table, it only exists during the validation step and is not stored in the `Validate` object
+        or used in subsequent validation steps.
+
+        Segmentation
+        ------------
+        The `segments=` argument allows for the segmentation of a validation step into multiple
+        segments. This is useful for applying the same validation step to different subsets of the
+        data. The segmentation can be done based on a single column or specific fields within a
+        column.
+
+        Providing a single column name will result in a separate validation step for each unique
+        value in that column. For example, if you have a column called `"region"` with values
+        `"North"`, `"South"`, and `"East"`, the validation step will be applied separately to each
+        region.
+
+        Alternatively, you can provide a tuple that specifies a column name and its corresponding
+        values to segment on. For example, if you have a column called `"date"` and you want to
+        segment on only specific dates, you can provide a tuple like
+        `("date", ["2023-01-01", "2023-01-02"])`. Any other values in the column will be disregarded
+        (i.e., no validation steps will be created for them).
+
+        A list with a combination of column names and tuples can be provided as well. This allows
+        for more complex segmentation scenarios. The following inputs are all valid:
+
+        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
+        in the `"region"` column and specific dates in the `"date"` column
+        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
+        columns
+
+        The segmentation is performed during interrogation, and the resulting validation steps will
+        be numbered sequentially. Each segment will have its own validation step, and the results
+        will be reported separately. This allows for a more granular analysis of the data and helps
+        identify issues within specific segments.
+
+        Importantly, the segmentation process will be performed after any preprocessing of the data
+        table. Because of this, one can conceivably use the `pre=` argument to generate a column
+        that can be used for segmentation. For example, you could create a new column called
+        `"segment"` through use of `pre=` and then use that column for segmentation.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
+        """
+
+        assertion_type = _get_fn_name()
+
+        _check_pre(pre=pre)
+        # TODO: add check for segments
+        # _check_segments(segments=segments)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        if columns_subset is not None and isinstance(columns_subset, str):
+            columns_subset = [columns_subset]
+
+        # TODO: incorporate Column object
+
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            column=columns_subset,
+            pre=pre,
+            segments=segments,
+            thresholds=thresholds,
+            actions=actions,
+            brief=brief,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
     def col_schema_match(
         self,
         schema: Schema,
