@@ -7901,6 +7901,14 @@ class Validate:
                     tbl_type=tbl_type,
                 ).get_test_results()
 
+            if assertion_category == "ROWS_COMPLETE":
+                results_tbl = RowsComplete(
+                    data_tbl=data_tbl_step,
+                    columns_subset=column,
+                    threshold=threshold,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
             if assertion_category == "COL_EXISTS_HAS_TYPE":
                 result_bool = ColExistsHasType(
                     data_tbl=data_tbl_step,
