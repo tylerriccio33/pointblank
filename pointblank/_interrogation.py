@@ -1795,6 +1795,58 @@ class RowsDistinct:
 
 
 @dataclass
+class RowsComplete:
+    """
+    Check if rows in a DataFrame are complete.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    columns_subset
+        A list of columns to check for completeness.
+    threshold
+        The maximum number of failing test units to allow.
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT
+    columns_subset: list[str] | None
+    threshold: int
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+        if self.tbl_type == "local":
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_subset_test_prep(df=self.data_tbl, columns_subset=self.columns_subset)
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.data_tbl
+
+        # Collect results for the test units; the results are a list of booleans where
+        # `True` indicates a passing test unit
+        self.test_unit_res = Interrogator(
+            x=tbl,
+            columns_subset=self.columns_subset,
+            tbl_type=self.tbl_type,
+        ).rows_complete()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+
+@dataclass
 class ColSchemaMatch:
     """
     Check if a column exists in a DataFrame or has a certain data type.
