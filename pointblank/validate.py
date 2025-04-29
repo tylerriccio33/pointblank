@@ -12360,6 +12360,11 @@ def _step_report_row_based(
         text = STEP_REPORT_TEXT["column_is_null"][lang].format(column=column)
     elif assertion_type == "col_vals_not_null":
         text = STEP_REPORT_TEXT["column_is_not_null"][lang].format(column=column)
+    elif assertion_type == "rows_complete":
+        if column is None:
+            text = STEP_REPORT_TEXT["rows_complete_all"][lang]
+        else:
+            text = STEP_REPORT_TEXT["rows_complete_subset"][lang]
 
     # Wrap assertion text in a <code> tag
     text = (
