@@ -64,6 +64,7 @@ METHOD_CATEGORY_MAP = {
     "col_exists": "COL_EXISTS_HAS_TYPE",
     "expr": "COMPARE_EXPR",
     "rows_distinct": "ROWS_DISTINCT",
+    "rows_complete": "ROWS_COMPLETE",
     "col_schema_match": "COL_SCHEMA_MATCH",
     "row_count_match": "ROW_COUNT_MATCH",
     "col_count_match": "COL_COUNT_MATCH",
