@@ -1341,6 +1341,8 @@ def test_validation_autobriefs(request, tbl_fixture):
         .col_exists(columns="x")
         .rows_distinct()
         .rows_distinct(columns_subset=["x", "y"])
+        .rows_complete()
+        .rows_complete(columns_subset=["x", "y"])
         .col_schema_match(schema=schema)
         .row_count_match(count=5)
         .col_count_match(count=3)
@@ -1494,14 +1496,20 @@ def test_validation_autobriefs(request, tbl_fixture):
     # `rows_distinct()` - subset of columns
     assert v.validation_info[32].autobrief == "Expect entirely distinct rows across `x`, `y`."
 
+    # `rows_complete()`
+    assert v.validation_info[33].autobrief == "Expect entirely complete rows across all columns."
+
+    # `rows_complete()` - subset of columns
+    assert v.validation_info[34].autobrief == "Expect entirely complete rows across `x`, `y`."
+
     # `col_schema_match()`
-    assert v.validation_info[33].autobrief == "Expect that column schemas match."
+    assert v.validation_info[35].autobrief == "Expect that column schemas match."
 
     # `row_count_match()`
-    assert v.validation_info[34].autobrief == "Expect that the row count is exactly `5`."
+    assert v.validation_info[36].autobrief == "Expect that the row count is exactly `5`."
 
     # `col_count_match()`
-    assert v.validation_info[35].autobrief == "Expect that the column count is exactly `3`."
+    assert v.validation_info[37].autobrief == "Expect that the column count is exactly `3`."
 
 
 @pytest.mark.parametrize("tbl_fixture", TBL_LIST)
