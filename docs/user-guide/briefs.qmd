@@ -11,8 +11,6 @@ import pointblank as pb
 pb.config(report_incl_footer=False)
 ```
 
-## Understanding Briefs
-
 When validating data with Pointblank, it's often helpful to have descriptive labels for each
 validation step. This is where **briefs** come in. A brief is a short description of what a
 validation step is checking and it appears in the `STEP` column of the validation report table.
