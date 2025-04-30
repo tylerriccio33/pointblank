@@ -64,6 +64,7 @@ website:
             - user-guide/across.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
+            - user-guide/briefs.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/extracts.qmd
