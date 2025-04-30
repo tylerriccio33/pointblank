@@ -19,7 +19,7 @@ verifying without needing to look at the code.
 
 ## Types of Briefs
 
-Briefs can be set in two ways in pointblank:
+Briefs can be set in two ways in Pointblank:
 
 1. **Globally**: applied to all validation steps via the `brief=` parameter in `Validate()`
 2. **Locally**: set for individual validation steps via the `brief=` parameter in each validation
@@ -212,7 +212,7 @@ purpose of a validation step
 try to use them consistently across all briefs for a cleaner look
 
 4. **Use auto-generated briefs as a starting point**: you can start with `Validate(brief=True)` to
-see what pointblank generates automatically, then customize as needed
+see what Pointblank generates automatically, then customize as needed
 
 5. **For complex validations**: custom briefs are especially useful for complex validations where
 the purpose might not be immediately obvious from the code
