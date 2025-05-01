@@ -52,6 +52,7 @@ test units:
 - [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
 - [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
 - [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
+- [`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)
 - [`rows_complete()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_complete.html)
 
 Note that some validation methods like
