@@ -16,8 +16,6 @@ separately. Maybe you want to ensure that data quality meets standards in each g
 for each product category, or across different time periods. This is where the `segments=` argument
 can be useful.
 
-## Understanding Data Segmentation
-
 Data segmentation lets you split a validation step into multiple segments, with each segment
 receiving its own validation step. Rather than validating an entire table at once, you could instead
 validate different partitions separately and get separate results for each.
