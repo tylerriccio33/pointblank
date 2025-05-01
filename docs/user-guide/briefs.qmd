@@ -17,9 +17,7 @@ step is checking and it appears in the `STEP` column of the validation report ta
 your validation reports more readable and they help others understand what each step is verifying
 without needing to look at the code.
 
-## Types of Briefs
-
-Briefs can be set in two ways in Pointblank:
+Briefs can be set in two ways:
 
 1. **Globally**: applied to all validation steps via the `brief=` parameter in
 [`Validate()`](https://posit-dev.github.io/pointblank/reference/Validate.html)
