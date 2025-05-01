@@ -67,6 +67,7 @@ website:
             - user-guide/briefs.qmd
         - section: "Post Interrogation"
           contents:
+            - user-guide/step-reports.qmd
             - user-guide/extracts.qmd
             - user-guide/sundering.qmd
         - section: "Data Inspection"
