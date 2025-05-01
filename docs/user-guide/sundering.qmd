@@ -11,8 +11,6 @@ import pointblank as pb
 pb.config(report_incl_header=False, report_incl_footer=False)
 ```
 
-## What is Sundering?
-
 Sundering data? First off, let's get the correct meaning across here. Sundering is really just
 splitting, dividing, cutting into two pieces. And it's a useful thing we can do in Pointblank to any
 data that we are validating. When you interrogate the data, you learn about which rows have test
