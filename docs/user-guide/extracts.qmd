@@ -89,13 +89,13 @@ validation = (
 validation
 ```
 
-The single validation step checks whether values in `d` are less than `3000`. Within that column
-values range from `108.34` to `9999.99`, so it makes sense that we can see 4 failing test units
-in the `FAIL` column.
+The single validation step checks whether values in `d` are less than `3000`. Within that column,
+values range from `108.34` to `9999.99` so it makes sense that we can see 4 failing test units in
+the `FAIL` column.
 
 If you look at the far right of the validation report you'll find there's a `CSV` button. Pressing
-it initiates the download of a CSV, and that CSV contains the data extract for this validation step.
-The `CSV` button only appears when:
+it initiates the download of a CSV file, and that file contains the data extract for this validation
+step. The `CSV` button only appears when:
 
 1. there is a non-zero number of failing test units
 2. the validation step is based on the use of a row-based validation method (the methods outlined
