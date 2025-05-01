@@ -34,13 +34,14 @@ Let's explore how to use the `segments=` argument through a few practical exampl
 
 ## Basic Segmentation by Column Values
 
-The simplest way to segment data is by the unique values in a column. For the upcoming demo, we'll
-use the `small_table` dataset, which contains a categorical-value column called `f`.
+The simplest way to segment data is by the unique values in a column. For the upcoming example,
+we'll use the `small_table` dataset, which contains a categorical-value column called `f`.
 
 First, let's preview the dataset:
 
 ```{python}
 table = pb.load_dataset()
+
 pb.preview(table)
 ```
 
@@ -66,8 +67,10 @@ validation_1
 ```
 
 In the validation report, notice that instead of a single validation step, we have multiple steps:
-one for each unique value in the `f` column. This allows us to examine data quality separately for
-each category.
+one for each unique value in the `f` column. The segmentation is clearly indicated in the `STEP`
+column with labels like `SEGMENT  f / high`, making it easy to identify which segment each
+validation result belongs to. This clear labeling helps when reviewing reports, especially with
+complex validations that use multiple segmentation criteria.
 
 ## Segmenting on Specific Values
 
@@ -160,15 +163,18 @@ Segmentation is particularly useful when:
 
 1. **Data quality standards vary by group**: different regions, product lines, or customer segments
 might have different acceptable thresholds
-
 2. **Identifying problem areas**: segmentation helps pinpoint exactly where data quality issues
 exist, rather than just knowing that some issue exists somewhere in the data
-
 3. **Generating detailed reports**: by segmenting, you get more granular reporting that can be
 shared with different stakeholders responsible for different parts of the data
-
 4. **Tracking improvements over time**: segmented validations make it easier to see if data quality
 is improving in specific areas that were previously problematic
+
+By using segmentation strategically in these scenarios, you can transform your data validation from
+a simple pass/fail system into a much more nuanced diagnostic tool that provides actionable insights
+about data quality across different dimensions. This targeted approach not only helps identify
+issues more precisely but also enables more effective communication of data quality metrics to
+relevant stakeholders.
 
 ## Segmentation vs. Multiple Validation Steps
 
@@ -179,6 +185,9 @@ filtering in the `pre=` argument? Well, segmentation offers several nice advanta
 2. **Consistency**: we can be certain that the same validation is applied uniformly across segments
 3. **Clarity**: the validation report will clearly organize results by segment (with extra labeling)
 4. **Convenience**: there's no need to manually extract and filter subsets of your data
+
+Segmentation can end of simplifying your validation code while also providing more structured and
+informative reporting about different portions of your data.
 
 ## Practical Example: Validating Sales Data by Region and Product Type
 
@@ -252,3 +261,15 @@ By implementing these best practices, you'll create more targeted, maintainable,
 validations. Segmentation becomes most powerful when it aligns with natural divisions in your data
 and analytical processes, allowing for more precise identification of quality issues while
 maintaining a unified validation framework.
+
+## Conclusion
+
+Data segmentation can make your validations more targeted and informative. By dividing your data
+into meaningful segments, you can identify quality issues with greater precision, apply appropriate
+validation standards to different parts of your data, and generate more actionable reports.
+
+The `segments=` parameter transforms validation from a monolithic process into a granular assessment
+of data quality across various dimensions of your dataset. Whether you're dealing with regional
+differences, product categories, time periods, or any other meaningful divisions in your data,
+segmentation makes it possible to validate each portion according to its specific requirements while
+maintaining the simplicity of a unified validation framework.
