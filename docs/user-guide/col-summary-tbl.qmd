@@ -32,6 +32,7 @@ start us off:
 import pointblank as pb
 
 small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
+
 pb.col_summary_tbl(small_table)
 ```
 
