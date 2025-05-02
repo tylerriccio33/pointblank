@@ -45,19 +45,26 @@ import pointblank as pb
 
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_gt(columns="a", value=5)
+    .col_vals_gt(
+        columns="a",
+        value=5
+    )
     .interrogate()
 )
 ```
 
-If you're checking data in a column that contains null/`None`/`NA` values and you'd like to
+If you're checking data in a column that contains Null/`None`/`NA` values and you'd like to
 disregard those values (i.e., let them pass validation), you can use `na_pass=True`. The following
 example checks values in column `c` of `small_table`, which contains two `None` values:
 
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_le(columns="c", value=10, na_pass=True)
+    .col_vals_le(
+        columns="c",
+        value=10,
+        na_pass=True
+    )
     .interrogate()
 )
 ```
@@ -72,7 +79,10 @@ example of that:
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_lt(columns="a", value=pb.col("c"))
+    .col_vals_lt(
+        columns="a",
+        value=pb.col("c")
+    )
     .interrogate()
 )
 ```
@@ -89,7 +99,11 @@ validation method makes this type of check possible. Here is an example of its u
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_between(columns="a", left=2, right=10)
+    .col_vals_between(
+        columns="a",
+        left=2,
+        right=10
+    )
     .interrogate()
 )
 ```
@@ -105,9 +119,21 @@ In this example, we can illustrate three variations of this:
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_between(columns="a", left=pb.col("c"), right=10)
-    .col_vals_between(columns="a", left=2, right=pb.col("d"))
-    .col_vals_between(columns="a", left=pb.col("c"), right=pb.col("d"))
+    .col_vals_between(
+        columns="a",
+        left=pb.col("c"),
+        right=10
+    )
+    .col_vals_between(
+        columns="a",
+        left=2,
+        right=pb.col("d")
+    )
+    .col_vals_between(
+        columns="a",
+        left=pb.col("c"),
+        right=pb.col("d")
+    )
     .interrogate()
 )
 ```
@@ -119,7 +145,11 @@ one is called
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_outside(columns="a", left=1, right=4)
+    .col_vals_outside(
+        columns="a",
+        left=1,
+        right=4
+    )
     .interrogate()
 )
 ```
@@ -141,7 +171,10 @@ expectation is that values in column `a` can only have numeric values in the set
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_in_set(columns="a", set=[1, 2, 3, 4, 5])
+    .col_vals_in_set(
+        columns="a",
+        set=[1, 2, 3, 4, 5]
+    )
     .interrogate()
 )
 ```
@@ -152,7 +185,10 @@ string-based column. Here's an example that checks string values in the `f` colu
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+    .col_vals_in_set(
+        columns="f",
+        set=["low", "mid", "high"]
+    )
     .interrogate()
 )
 ```
@@ -164,7 +200,10 @@ validation method does what you might expect, which is checking whether values i
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_in_set(columns="f", set=["small", "large"])
+    .col_vals_in_set(
+        columns="f",
+        set=["small", "large"]
+    )
     .interrogate()
 )
 ```
@@ -335,8 +374,14 @@ two validation steps:
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("small_table"))
-    .col_vals_regex(columns="b", pattern=r"^\d-[a-z]{3}-\d{3}$")
-    .col_vals_regex(columns="f", pattern=r"high|low|mid")
+    .col_vals_regex(
+        columns="b",
+        pattern=r"^\d-[a-z]{3}-\d{3}$"
+    )
+    .col_vals_regex(
+        columns="f",
+        pattern=r"high|low|mid"
+    )
     .interrogate()
 )
 ```
