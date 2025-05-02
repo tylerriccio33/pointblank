@@ -1,5 +1,5 @@
 ---
-title: Applying Rules Across Columns
+title: Working with Columns
 jupyter: python3
 html-table-processing: none
 ---
@@ -11,52 +11,53 @@ import pointblank as pb
 pb.config(report_incl_header=False, report_incl_footer=False)
 ```
 
-Most of the validation methods included in Pointblank perform column-level checks. As such, they
-provide the common argument `columns=`. The pluralization in the name indicates that multiple
-columns can be provided. And it goes further than that, as column selectors can be used in
-`columns=` to resolve columns.
+Data validation often requires working with columns in flexible ways. Pointblank offers two powerful
+approaches:
 
-Why do this? It can often be the case that you'd want to perform a validation check of a certain
-common type (e.g., checking that numerical values are all positive) across a number of columns.
-Rather than define the same rules across multiple invocations of the same validation method (one for
-each column), we can simply map the validation rules across those columns.
+1. **Applying validation rules across multiple columns**: validate many columns with a single rule
+2. **Comparing values between columns**: create validations that compare values across different
+columns
 
-We'll run through several examples below, and all of them will use the `game_revenue` dataset.
-Here's a preview of it:
+This guide covers both approaches in detail with practical examples.
+
+## Part 1: Applying Rules Across Multiple Columns
+
+Many of Pointblank's validation methods perform column-level checks. These methods provide the
+`columns=` parameter, which accepts not just a single column name but multiple columns through
+various selection methods.
+
+Why is this useful? Often you'll want to perform the same validation check (e.g., checking that
+numerical values are all positive) across multiple columns. Rather than defining the same rules
+multiple times, you can map the validation across those columns in a single step.
+
+Let's explore this using the `game_revenue` dataset:
 
 ```{python}
-# | echo: false
-pb.preview(pb.load_dataset(dataset="game_revenue"), n_head=5, n_tail=5)
+#| echo: false
+pb.preview(pb.load_dataset(dataset="game_revenue"))
 ```
 
-Let's start with the simpler case of providing a list of columns to `columns=` before getting into
-the resolving columns with column selector functions.
+### Using a List of Column Names
 
-## Using a List of Column Names
-
-The `columns=` parameter (in every validation method that has that argument) can accept a list of
-column names. In the `game_revenue` dataset, there are two columns that contain numerical data:
-`item_revenue` and `session_duration`. Suppose we expect that data in both columns should be greater
-than `0`, providing a list of those two columns will create two validation steps from a single
-invocation of
-[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html):
+The simplest way to validate multiple columns is to provide a list to the `columns=` parameter. In
+the `game_revenue` dataset, we have two columns with numerical data: `item_revenue` and
+`session_duration`. If we expect all values in both columns to be greater than `0`, we can write:
 
 ```{python}
 import pointblank as pb
 
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
-    .col_vals_gt(columns=["item_revenue", "session_duration"], value=0)
+    .col_vals_gt(
+        columns=["item_revenue", "session_duration"],
+        value=0
+    )
     .interrogate()
 )
 ```
 
-The validation report table indeed shows that two validation steps were created! Further to this,
-the interrogation results show that all values in the two columns are greater than `0`.
-
-It's important to note that all validation parameters are shared across all generated steps. So if
-`thresholds=` were to be set, those threshold values would be cloned and used in each and every step
-generated (one step per column provided):
+The validation report shows two validation steps were created from a single method call! All
+validation parameters are shared across all generated steps, including thresholds and briefs:
 
 ```{python}
 (
@@ -64,33 +65,37 @@ generated (one step per column provided):
     .col_vals_gt(
         columns=["item_revenue", "session_duration"],
         value=0,
-        thresholds=(0.1, 0.2, 0.3)
+        thresholds=(0.1, 0.2, 0.3),
+        brief="`{col}` must be greater than zero."
     )
     .interrogate()
 )
 ```
 
-This is all to say that if you wanted the same validation rules but different threshold settings,
-you would have to define two individual validation steps with only the `thresholds=` values
-differing.
+In this example, you can see that the validation report displays customized briefs for each column
+("`item_revenue` must be greater than zero." and "`session_duration` must be greater than zero."),
+automatically substituting the column name using the `{col}` placeholder in the brief template. This
+feature is particularly helpful when reviewing reports, as it provides clear, human-readable
+descriptions of what each validation step is checking. When working with multiple columns through a
+single validation call, these dynamically generated briefs make your validation reports more
+understandable for both technical and non-technical stakeholders.
 
-## Using Pointblank's Column Selectors
+### Using Pointblank's Column Selectors
 
-Pointblank includes a few column selector functions for use in `columns=`. If you're new to
-selectors what they do is resolve column names typically based on:
+For more advanced column selection, Pointblank provides selector functions that resolve columns
+based on:
 
-- text patterns
+- text patterns in column names
 - column position
-- column type
+- column data type
 
-Two common ones,
+Two common selectors,
 [`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) and
 [`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html), resolve columns
-based on starting and ending text in column names.
+based on text patterns in column names.
 
-The `game_revenue` dataset has three columns starting with the text 'item': `item_type`,
-`item_name`, and `item_revenue`. Let's look at an example where we can succinctly express a
-validation plan checking that these columns contain no missing values:
+The `game_revenue` dataset has three columns starting with "item": `item_type`, `item_name`, and
+`item_revenue`. Let's check that these columns contain no missing values:
 
 ```{python}
 (
@@ -100,8 +105,7 @@ validation plan checking that these columns contain no missing values:
 )
 ```
 
-As can be seen, three validation steps were created from the use of `columns=pb.starts_with("item")`
-because those three columns were found in the table.
+Three validation steps were automatically created because three columns matched the pattern.
 
 The complete list of column selectors includes:
 
@@ -113,54 +117,38 @@ The complete list of column selectors includes:
 - [`first_n()`](https://posit-dev.github.io/pointblank/reference/first_n.html)
 - [`last_n()`](https://posit-dev.github.io/pointblank/reference/last_n.html)
 
-and in the next section, we'll learn how they could actually be combined in interesting ways for
-more advanced column selection tasks.
+### Combining Column Selectors
 
-## Combining Column Selectors
-
-Column selector functions can be combined for extra column selection power. We need to use two
-things to make this possible: (1) the
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function, and (2)
-one or more logical operators for composing column selectors. Those operators are:
+Column selectors can be combined for more powerful selection. To do this, use the
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function with logical
+operators:
 
 - `&` (*and*)
 - `|` (*or*)
 - `-` (*difference*)
 - `~` (*not*)
 
-Taken together, if you wanted to select all columns except the first four, you would use this
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) expression:
+For example, to select all columns except the first four:
 
 ```{python}
 col_selection = pb.col(pb.everything() - pb.first_n(4))
-```
 
-The logic here is that [`everything()`](https://posit-dev.github.io/pointblank/reference/everything.html)
-selects every column and the `- pb.first_n(4)` part then removes the first four columns from that
-selection.
-
-Let's try using the `col_selection` object in a validation of the `game_revenue` table, checking
-multiple columns for missing values:
-
-```{python}
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
-    .col_vals_not_null(columns=col_selection, thresholds=(1, 0.05, 0.1))
+    .col_vals_not_null(
+        columns=col_selection,
+        thresholds=(1, 0.05, 0.1)
+    )
     .interrogate()
 )
 ```
 
-This column selection worked to select every column except for the first four, resulting in seven
-separate validation steps.
+This selects every column except the first four, resulting in seven validation steps.
 
-## Even More Selectors: Narwhals Selectors
+### Narwhals Selectors
 
-While Pointblank offers a good selection of selectors, we built in support for the column selectors
-available in the [Narwhals](https://narwhals-dev.github.io/narwhals/) library. If you don't know
-Narwhals yet, it's a lightweight compatibility layer between dataframe libraries. The library is so
-good that we use it under the hood in Pointblank so that you can easily validate Pandas, Polars,
-PyArrow, cuDF, and Modin tables. The `narwhals.selectors` module contains the following column
-selector functions:
+Pointblank also supports column selectors from the
+[Narwhals](https://narwhals-dev.github.io/narwhals/) library, which include:
 
 - `matches()`
 - `by_dtype()`
@@ -170,23 +158,22 @@ selector functions:
 - `numeric()`
 - `string()`
 
-We support the use of these selectors for any input DataFrame that is supported by Narwhals (i.e.,
-is in the aforementioned list). Here's an example using the `numeric()` selector to select all
-numeric columns in `game_revenue`:
+Here's an example selecting all numeric columns:
 
 ```{python}
 import narwhals.selectors as ncs
 
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
-    .col_vals_gt(columns=ncs.numeric(), value=0)
+    .col_vals_gt(
+        columns=ncs.numeric(),
+        value=0
+    )
     .interrogate()
 )
 ```
 
-Narwhals selectors can also use operators to combine multiple selectors. Here is an example of using
-the `string()` and `matches()` selectors together to select all string columns matching the text
-'item_':
+And selecting all string columns matching "item_":
 
 ```{python}
 (
@@ -196,41 +183,174 @@ the `string()` and `matches()` selectors together to select all string columns m
 )
 ```
 
-The combination of Narwhals column selectors as used in the above serves to constrain the set of
-columns resolved. And the same set of logical operators (`&`, `|`, `-`, `~`) can be used to compose
-Narwhals selectors within a [`col()`](https://posit-dev.github.io/pointblank/reference/col.html)
-expression.
+This example demonstrates the power of combining Narwhals selectors with logical operators. By using
+`ncs.string()` to select string columns and then filtering with `ncs.matches("item_")`, we can
+precisely target text columns with specific naming patterns. This type of targeted selection is
+particularly valuable when working with wide datasets that have consistent column naming
+conventions, allowing you to apply appropriate validation rules to logically grouped columns without
+explicitly listing each one.
 
-## Caveats for Using Column Selectors
+### Caveats for Using Column Selectors
 
-Provided there is systematic column naming already in place, using column selectors like
-[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) can be very
-convenient. This is especially true as column counts become larger.
-
-A slight disadvantage to this approach is some uncertainty on whether those columns being checked
-actually exist. You might resolve fewer columns than anticipated or no columns at all due to errors
-in using the column selectors or through misunderstanding in the columns' naming conventions.
-
-Should the use of a column selector yield no columns the interrogation process itself won't fail,
-however, the validation report table will strongly signal that there was an evaluation issue:
+While column selectors are powerful, there are some caveats. If a selector doesn't match any
+columns, the validation won't fail but will show an 'explosion' in the report:
 
 ```{python}
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
     .col_vals_not_null(columns=pb.starts_with("items"))
+    .col_vals_gt(
+        columns="item_revenue",
+        value=0
+    )
     .interrogate()
 )
 ```
 
-Aside from the validation step being tinted in red, the `EVAL` column will display an explosion (and
-there won't be any results). In practice, you would either correct the string supplied to
-[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) or take a
-different approach.
+Notice that although there was a problem with Step 1 (that should be addressed), the interrogation
+did move on to Step 2 without complication.
 
-Given the slight bit of uncertainty you get when using column selectors (rather than the explicit
-use of column names), it's good to also include validation steps that check for the existence of key
-column names with
-[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) (and
-checking the table schema itself with
-[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
-is also worthwhile here).
+To mitigate uncertainty, include validation steps that check for the existence of key columns with
+[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
+verify the schema with
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html).
+
+## Part 2: Comparing Values Between Columns
+
+Sometimes you need to compare values across different columns rather than against fixed values.
+Pointblank enables this through the
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function.
+
+Let's look at examples using the `small_table` dataset:
+
+```{python}
+# | echo: false
+pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
+```
+
+### Using `col()` to Specify a Comparison Column
+
+While we typically use validation methods to compare column values against fixed values:
+
+```python
+...
+.col_vals_gt(columns="a", value=2, ...)
+...
+```
+
+We can also compare values between columns by using
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) in the `value=` parameter:
+
+```python
+...
+.col_vals_gt(columns="a", value=pb.col("x"), ...)
+...
+```
+
+This checks that each value in column `a` is greater than the corresponding value in column `x`.
+Here's a concrete example:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(
+        columns="d",
+        value=pb.col("c")
+    )
+    .interrogate()
+)
+```
+
+Notice that the validation report shows both column names (`d` and `c`). There are two failing test
+units because of missing values in column `c`. When comparing across columns, missing values in
+either column can cause failures.
+
+To handle missing values, use `na_pass=True`:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(
+        columns="d",
+        value=pb.col("c"),
+        na_pass=True
+    )
+    .interrogate()
+)
+```
+
+Now all tests pass.
+
+The following validation methods accept a
+[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) expression in their `value=`
+parameter:
+
+- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
+- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
+- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
+- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
+- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
+- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
+
+### Using `col()` in Range Checks
+
+For range validations via
+[`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
+and
+[`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+you can use a mix of column references and fixed values:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_between(
+        columns="d",
+        left=pb.col("c"),
+        right=10_000,
+        na_pass=True
+    )
+    .interrogate()
+)
+```
+
+The validation report shows the range as `[c, 10000]`, indicating that the lower bound comes from
+column `c` while the upper bound is fixed at `10000`.
+
+## Advanced Examples: Combining Both Approaches
+
+The true power comes from combining both approaches: validating multiple columns and using
+cross-column comparisons:
+
+```{python}
+validation = (
+    pb.Validate(data=pb.load_dataset("small_table"))
+    .col_vals_gt(
+        columns=["c", "d"],
+        value=pb.col("a"),
+        na_pass=True
+    )
+    .interrogate()
+)
+
+validation
+```
+
+This creates validation steps checking that values in both columns `d` and `e` are greater than
+their corresponding values in column `a`.
+
+## Conclusion
+
+Pointblank provides flexible approaches to working with columns:
+
+1. **Column selection**: validate multiple columns with a single validation rule
+2. **Cross-column comparison**: compare values between columns
+
+These capabilities allow you to:
+
+- write more concise validation code
+- apply consistent validation rules across similar columns
+- create dynamic validations that check relationships between columns
+- build comprehensive data quality checks with minimal code
+
+By mastering these techniques, you can create more elegant and powerful validation plans while
+reducing repetition in your code.

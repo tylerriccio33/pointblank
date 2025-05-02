@@ -61,7 +61,6 @@ website:
           contents:
             - user-guide/types.qmd
             - user-guide/columns.qmd
-            - user-guide/across.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
             - user-guide/briefs.qmd
