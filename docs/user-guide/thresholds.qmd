@@ -28,7 +28,10 @@ import pointblank as pb
 
 validation_1 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
-    .col_vals_not_null(columns="c", thresholds=(1, 0.2))
+    .col_vals_not_null(
+        columns="c",
+        thresholds=(1, 0.2)
+    )
     .interrogate()
 )
 
@@ -71,7 +74,10 @@ validation_2 = (
         thresholds=(1, 0.1)
     )
     .col_vals_not_null(columns="a")
-    .col_vals_gt(columns="b", value=2)
+    .col_vals_gt(
+        columns="b",
+        value=2
+    )
     .interrogate()
 )
 

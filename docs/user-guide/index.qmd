@@ -115,7 +115,11 @@ Here's a simple example that uses a single validation step along with thresholds
 ```{python}
 validation_2 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_lt(columns="a", value=7, thresholds=(2, 4))
+    .col_vals_lt(
+        columns="a",
+        value=7,
+        thresholds=(2, 4)
+    )
     .interrogate()
 )
 
