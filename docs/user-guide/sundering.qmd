@@ -45,7 +45,10 @@ import pointblank as pb
 
 validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_ge(columns="d", value=1000)
+    .col_vals_ge(
+        columns="d",
+        value=1000
+    )
     .interrogate()
 )
 
@@ -104,9 +107,15 @@ works in those common situations. Here's a validation with three steps:
 ```{python}
 validation_2 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_ge(columns="d", value=1000)
+    .col_vals_ge(
+        columns="d",
+        value=1000
+    )
     .col_vals_not_null(columns="c")
-    .col_vals_gt(columns="a", value=2)
+    .col_vals_gt(
+        columns="a",
+        value=2
+    )
     .interrogate()
 )
 
