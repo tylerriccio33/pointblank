@@ -485,6 +485,7 @@ def _get_api_text() -> str:
         "Validate.col_vals_expr",
         "Validate.col_exists",
         "Validate.rows_distinct",
+        "Validate.rows_complete",
         "Validate.col_schema_match",
         "Validate.row_count_match",
         "Validate.col_count_match",
