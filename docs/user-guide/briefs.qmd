@@ -54,8 +54,14 @@ validation_1 = (
         tbl_name="example_data",
         brief="Step {step}: {auto}"  # Global brief template
     )
-    .col_vals_gt(columns="value", value=5)
-    .col_vals_in_set(columns="category", set=["A", "B", "C"])
+    .col_vals_gt(
+        columns="value",
+        value=5
+    )
+    .col_vals_in_set(
+        columns="category",
+        set=["A", "B", "C"]
+    )
     .interrogate()
 )
 
@@ -187,8 +193,14 @@ validation_5 = (
         lang="es",  # Spanish
         brief=True  # Auto-generate all briefs in Spanish
     )
-    .col_vals_gt(columns="value", value=5)
-    .col_vals_in_set(columns="category", set=["A", "B", "C"])
+    .col_vals_gt(
+        columns="value",
+        value=5
+    )
+    .col_vals_in_set(
+        columns="category",
+        set=["A", "B", "C"]
+    )
     .interrogate()
 )
 
