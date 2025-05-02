@@ -43,8 +43,14 @@ data = pl.DataFrame({
 # Create a validation
 validation = (
     pb.Validate(data=data, tbl_name="example_data")
-    .col_vals_gt(columns="value", value=10)
-    .col_vals_in_set(columns="category", set=["A", "B", "C"])
+    .col_vals_gt(
+        columns="value",
+        value=10
+    )
+    .col_vals_in_set(
+        columns="category",
+        set=["A", "B", "C"]
+    )
     .interrogate()
 )
 
@@ -106,9 +112,7 @@ You can get a step report for any validation step by specifying its step number 
 method:
 
 ```{python}
-first_step_report = validation.get_step_report(i=1)
-
-first_step_report
+validation.get_step_report(i=1)
 ```
 
 Note that step numbers in Pointblank start at `1`, matching what you see in the validation report's
@@ -126,13 +130,10 @@ When a dataset has many columns, you might want to focus on just those relevant 
 You can create a step report containing only a subset of the columns in the target table:
 
 ```{python}
-# Get a step report with a subset of columns
-columns_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     columns_subset=["id", "category", "status"]  # Only show these columns
 )
-
-columns_report
 ```
 
 This approach makes step reports much easier to interpret by highlighting just the essential columns
@@ -142,23 +143,20 @@ For large datasets with many failing rows, you might want to use `limit=` to set
 of rows shown in the report:
 
 ```{python}
-# Limit the number of rows shown
-limited_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     limit=2  # Only show up to 2 failing rows
 )
-limited_report
 ```
 
 The report header can also be extensively customized to provide more specific context. You can
 replace the default header with plain text or Markdown formatting:
 
 ```{python}
-# Customize the report header with some Markdown formatting
-custom_header_report = validation.get_step_report(
-    i=2, header="Category Values Validation: *Critical Analysis*"
+validation.get_step_report(
+    i=2,
+    header="Category Values Validation: *Critical Analysis*"
 )
-custom_header_report
 ```
 
 For more advanced header customization, you can use the templating system with the `{title}` and
@@ -168,34 +166,31 @@ number of failures, etc. Let's move away from the default template of `{title}{d
 a custom title to go with the details text:
 
 ```{python}
-# Keep the details but customize the title
-custom_title_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     header="Custom Category Validation Report {details}"
 )
-custom_title_report
 ```
 
 We can keep `{title}` and `{details}` and add some more context in between the two:
 
 ```{python}
-# Add additional context while keeping both title and details
-context_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     header=(
         "{title}<br>"
-        "<span style='font-size: 0.75em;'>This validation is critical for our data quality standards.</span><br>"
+        "<span style='font-size: 0.75em;'>"
+        "This validation is critical for our data quality standards."
+        "</span><br>"
         "{details}"
     )
 )
-context_report
 ```
 
-You could use a HTML and CSS to *really* do a lot of customization:
+You could always use more HTML and CSS to do *a lot* of customization:
 
 ```{python}
-# Rearrange elements with custom formatting
-rearranged_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     header=(
         "VALIDATION SUMMARY\n\n{details}\n\n"
@@ -205,32 +200,27 @@ rearranged_report = validation.get_step_report(
         "</div>"
     )
 )
-rearranged_report
 ```
 
 If you prefer no header at all, simply set `header=None`:
 
 ```{python}
-# Remove the header entirely
-no_header_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     header=None
 )
-no_header_report
 ```
 
 These customization options can be combined to create highly focused reports tailored to specific
 needs:
 
 ```{python}
-# Combined customization
-focused_report = validation.get_step_report(
+validation.get_step_report(
     i=2,
     columns_subset=["id", "category"],
     header="*Category Validation:* Top Issues",
     limit=2
 )
-focused_report
 ```
 
 Through these customization options, you can craft step reports that effectively communicate the
@@ -264,8 +254,6 @@ validation_complex = (
     .col_vals_in_set(columns="category", set=["A", "B", "C"])
     .interrogate()
 )
-
-validation_complex
 
 # Get step report for the ratio validation (step 2)
 ratio_report = validation_complex.get_step_report(i=2)
