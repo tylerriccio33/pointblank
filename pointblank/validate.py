@@ -7633,7 +7633,245 @@ class Validate:
 
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
-            column=None,  # This is a rowwise validation, not specific to any column
+            column=None,  # This validation is not specific to any column(s)
+            values=values,
+            pre=pre,
+            thresholds=thresholds,
+            actions=actions,
+            brief=brief,
+            active=active,
+        )
+
+        self._add_validation(validation_info=val_info)
+
+        return self
+
+    def specially(
+        self,
+        expr: Callable,
+        pre: Callable | None = None,
+        thresholds: int | float | bool | tuple | dict | Thresholds = None,
+        actions: Actions | None = None,
+        brief: str | bool | None = None,
+        active: bool = True,
+    ) -> Validate:
+        """
+        Perform a specialized validation with customized logic.
+
+        The `specially()` validation method allows for the creation of specialized validation
+        expressions that can be used to validate specific conditions or logic in the data. This
+        method provides maximum flexibility by accepting a custom callable that encapsulates
+        your validation logic.
+
+        The callable function can have one of two signatures:
+
+        - A function accepting a single parameter (the data table): `def validate(data): ...`
+        - A function with no parameters: `def validate(): ...`
+
+        The second form is particularly useful for environment validations that don't need to
+        inspect the data table.
+
+        The callable function must ultimately return one of:
+
+        1. A single boolean value or boolean list
+        2. A table where the final column contains boolean values
+
+        Parameters
+        ----------
+        expr
+            A callable function that defines the specialized validation logic. This function should:
+
+            - Accept the target data table as its single argument (though it may ignore it) OR
+            - Take no parameters at all (for environment validations)
+
+            The function must ultimately return boolean values representing validation results.
+            Design your function to incorporate any custom parameters directly within the function
+            itself using closure variables or default parameters.
+        pre
+            An optional preprocessing function or lambda to apply to the data table during
+            interrogation. This function should take a table as input and return a modified table.
+            Have a look at the *Preprocessing* section for more information on how to use this
+            argument.
+        thresholds
+            Set threshold failure levels for reporting and reacting to exceedences of the levels.
+            The thresholds are set at the step level and will override any global thresholds set in
+            `Validate(thresholds=...)`. The default is `None`, which means that no thresholds will
+            be set locally and global thresholds (if any) will take effect. Look at the *Thresholds*
+            section for information on how to set threshold levels.
+        actions
+            Optional actions to take when the validation step meets or exceeds any set threshold
+            levels. If provided, the [`Actions`](`pointblank.Actions`) class should be used to
+            define the actions.
+        brief
+            An optional brief description of the validation step that will be displayed in the
+            reporting table. You can use the templating elements like `"{step}"` to insert
+            the step number, or `"{auto}"` to include an automatically generated brief. If `True`
+            the entire brief will be automatically generated. If `None` (the default) then there
+            won't be a brief.
+        active
+            A boolean value indicating whether the validation step should be active. Using `False`
+            will make the validation step inactive (still reporting its presence and keeping indexes
+            for the steps unchanged).
+
+        Returns
+        -------
+        Validate
+            The `Validate` object with the added validation step.
+
+        Preprocessing
+        -------------
+        The `pre=` argument allows for a preprocessing function or lambda to be applied to the data
+        table during interrogation. This function should take a table as input and return a modified
+        table. This is useful for performing any necessary transformations or filtering on the data
+        before the validation step is applied.
+
+        The preprocessing function can be any callable that takes a table as input and returns a
+        modified table. For example, you could use a lambda function to filter the table based on
+        certain criteria or to apply a transformation to the data. Regarding the lifetime of the
+        transformed table, it only exists during the validation step and is not stored in the
+        `Validate` object or used in subsequent validation steps.
+
+        Thresholds
+        ----------
+        The `thresholds=` parameter is used to set the failure-condition levels for the validation
+        step. If they are set here at the step level, these thresholds will override any thresholds
+        set at the global level in `Validate(thresholds=...)`.
+
+        There are three threshold levels: 'warning', 'error', and 'critical'. The threshold values
+        can either be set as a proportion failing of all test units (a value between `0` to `1`),
+        or, the absolute number of failing test units (as integer that's `1` or greater).
+
+        Thresholds can be defined using one of these input schemes:
+
+        1. use the [`Thresholds`](`pointblank.Thresholds`) class (the most direct way to create
+        thresholds)
+        2. provide a tuple of 1-3 values, where position `0` is the 'warning' level, position `1` is
+        the 'error' level, and position `2` is the 'critical' level
+        3. create a dictionary of 1-3 value entries; the valid keys: are 'warning', 'error', and
+        'critical'
+        4. a single integer/float value denoting absolute number or fraction of failing test units
+        for the 'warning' level only
+
+        If the number of failing test units exceeds set thresholds, the validation step will be
+        marked as 'warning', 'error', or 'critical'. All of the threshold levels don't need to be
+        set, you're free to set any combination of them.
+
+        Aside from reporting failure conditions, thresholds can be used to determine the actions to
+        take for each level of failure (using the `actions=` parameter).
+
+        Examples
+        --------
+        ### Simple validation with direct table access
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        tbl = pl.DataFrame({
+            "a": [5, 7, 1, 3, 9, 4],
+            "b": [6, 3, 0, 5, 8, 2]
+        })
+
+        # Simple function that validates directly on the table
+        def validate_sum_positive(data):
+            return data.select(pl.col("a") + pl.col("b") > 0)
+
+        validation = (
+            pb.Validate(data=tbl)
+            .specially(expr=validate_sum_positive)
+            .interrogate()
+        )
+        ```
+
+        ### Advanced validation with closure variables for parameters
+
+        ```{python}
+        # Create a parameterized validation function using closures
+        def make_column_ratio_validator(col1, col2, min_ratio):
+            def validate_column_ratio(data):
+                return data.select((pl.col(col1) / pl.col(col2)) > min_ratio)
+            return validate_column_ratio
+
+        validation = (
+            pb.Validate(data=tbl)
+            .specially(
+                expr=make_column_ratio_validator(col1="a", col2="b", min_ratio=0.5)
+            )
+            .interrogate()
+        )
+        ```
+
+        ### Table-level validation returning a single boolean
+
+        ```{python}
+        def validate_table_properties(data):
+            # Check if table has at least one row with column 'a' > 10
+            has_large_values = data.filter(pl.col("a") > 10).height > 0
+
+            # Check if mean of column 'b' is positive
+            has_positive_mean = data.select(pl.mean("b")).item() > 0
+
+            # Return a single boolean for the entire table
+            return has_large_values and has_positive_mean
+
+        validation = (
+            pb.Validate(data=tbl)
+            .specially(expr=validate_table_properties)
+            .interrogate()
+        )
+        ```
+
+        ### Environment validation that doesn't use the data table
+
+        ```{python}
+        import pkg_resources
+
+        def validate_pointblank_version(data):
+            # Ignore the data parameter, validate environment instead
+            try:
+                version = pkg_resources.get_distribution("pointblank").version
+                major, minor, patch = version.split(".")
+                return int(minor) >= 9
+            except:
+                return False
+
+        validation = (
+            pb.Validate(data=tbl)
+            .specially(
+                expr=validate_pointblank_version,
+                brief="Check Pointblank version >= 0.9.0"
+            )
+            .interrogate()
+        )
+        ```
+
+        This example shows how to validate something in the environment rather than in the data
+        itself. The function must still accept the `data` parameter, but it can ignore it
+        completely.
+        """
+
+        assertion_type = _get_fn_name()
+
+        # TODO: add a check for the expression to be a callable
+        # _check_expr_specially(expr=expr)
+        _check_pre(pre=pre)
+        _check_thresholds(thresholds=thresholds)
+        _check_boolean_input(param=active, param_name="active")
+
+        # Determine threshold to use (global or local) and normalize a local `thresholds=` value
+        thresholds = (
+            self.thresholds if thresholds is None else _normalize_thresholds_creation(thresholds)
+        )
+
+        # Determine brief to use (global or local) and transform any shorthands of `brief=`
+        brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
+
+        # Package the validation expression for later evaluation
+        values = {"expression": expr}
+
+        val_info = _ValidationInfo(
+            assertion_type=assertion_type,
+            column=None,  # This validation is not specific to any column(s)
             values=values,
             pre=pre,
             thresholds=thresholds,
