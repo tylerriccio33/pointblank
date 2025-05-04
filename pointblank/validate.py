@@ -7784,14 +7784,22 @@ class Validate:
         def validate_sum_positive(data):
             return data.select(pl.col("a") + pl.col("b") > 0)
 
-        validation = (
+        (
             pb.Validate(data=tbl)
             .specially(expr=validate_sum_positive)
             .interrogate()
         )
         ```
 
+        The function returns a Polars DataFrame with a single boolean column indicating whether
+        the sum of columns `a` and `b` is positive for each row. Each row in the resulting DataFrame
+        is a distinct test unit. This pattern works well for simple validations where you don't need
+        configurable parameters.
+
         ### Advanced validation with closure variables for parameters
+
+        When you need to make your validation configurable, you can use the function factory pattern
+        (also known as closures) to create parameterized validations:
 
         ```{python}
         # Create a parameterized validation function using closures
@@ -7800,7 +7808,7 @@ class Validate:
                 return data.select((pl.col(col1) / pl.col(col2)) > min_ratio)
             return validate_column_ratio
 
-        validation = (
+        (
             pb.Validate(data=tbl)
             .specially(
                 expr=make_column_ratio_validator(col1="a", col2="b", min_ratio=0.5)
@@ -7809,7 +7817,78 @@ class Validate:
         )
         ```
 
+        This approach allows you to create reusable validation functions that can be configured with
+        different parameters without modifying the function itself.
+
+        ### Validation function returning a list of booleans
+
+        This example demonstrates how to create a validation function that returns a list of boolean
+        values, where each element represents a separate test unit:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+        import random
+
+        # Create sample data
+        tbl = pl.DataFrame({
+            "transaction_id": [f"TX{i:04d}" for i in range(1, 11)],
+            "amount": [120.50, 85.25, 50.00, 240.75, 35.20, 150.00, 85.25, 65.00, 210.75, 90.50],
+            "category": ["food", "shopping", "entertainment", "travel", "utilities",
+                        "food", "shopping", "entertainment", "travel", "utilities"]
+        })
+
+        # Define a validation function that returns a list of booleans
+        def validate_transaction_rules(data):
+            # Create a list to store individual test results
+            test_results = []
+
+            # Check each row individually against multiple business rules
+            for row in data.iter_rows(named=True):
+                # Rule: transaction IDs must start with "TX" and be 6 chars long
+                valid_id = row["transaction_id"].startswith("TX") and len(row["transaction_id"]) == 6
+
+                # Rule: Amounts must be appropriate for their category
+                valid_amount = True
+                if row["category"] == "food" and (row["amount"] < 10 or row["amount"] > 200):
+                    valid_amount = False
+                elif row["category"] == "utilities" and (row["amount"] < 20 or row["amount"] > 300):
+                    valid_amount = False
+                elif row["category"] == "entertainment" and row["amount"] > 100:
+                    valid_amount = False
+
+                # A transaction passes if it satisfies both rules
+                test_results.append(valid_id and valid_amount)
+
+            return test_results
+
+        (
+            pb.Validate(data=tbl)
+            .specially(
+                expr=validate_transaction_rules,
+                brief="Validate transaction IDs and amounts by category."
+            )
+            .interrogate()
+        )
+        ```
+
+        This example shows how to create a validation function that applies multiple business rules
+        to each row and returns a list of boolean results. Each boolean in the list represents a
+        separate test unit (one per row), and the validation passes only if all rules are satisfied
+        for a given row.
+
+        The function iterates through each row in the data table, checking:
+
+        1. If transaction IDs follow the required format
+        2. If transaction amounts are appropriate for their respective categories
+
+        This approach is powerful when you need to apply complex, conditional logic that can't be
+        easily expressed using the built-in validation functions.
+
         ### Table-level validation returning a single boolean
+
+        Sometimes you need to validate properties of the entire table rather than row-by-row. In
+        these cases, your function can return a single boolean value:
 
         ```{python}
         def validate_table_properties(data):
@@ -7822,32 +7901,45 @@ class Validate:
             # Return a single boolean for the entire table
             return has_large_values and has_positive_mean
 
-        validation = (
+        (
             pb.Validate(data=tbl)
             .specially(expr=validate_table_properties)
             .interrogate()
         )
         ```
 
+        This example demonstrates how to perform multiple checks on the table as a whole and combine
+        them into a single validation result.
+
         ### Environment validation that doesn't use the data table
 
-        ```{python}
-        import pkg_resources
+        The `specially()` method can even be used to validate aspects of your environment that are
+        completely independent of the data:
 
-        def validate_pointblank_version(data):
-            # Ignore the data parameter, validate environment instead
+        ```{python}
+        def validate_pointblank_version():
             try:
-                version = pkg_resources.get_distribution("pointblank").version
-                major, minor, patch = version.split(".")
-                return int(minor) >= 9
-            except:
+                import importlib.metadata
+                version = importlib.metadata.version("pointblank")
+                version_parts = version.split(".")
+
+                # Get major and minor components regardless of how many parts there are
+                major = int(version_parts[0])
+                minor = int(version_parts[1])
+
+                # Check both major and minor components for version `0.9+`
+                return (major > 0) or (major == 0 and minor >= 9)
+
+            except Exception as e:
+                # More specific error handling could be added here
+                print(f"Version check failed: {e}")
                 return False
 
-        validation = (
+        (
             pb.Validate(data=tbl)
             .specially(
                 expr=validate_pointblank_version,
-                brief="Check Pointblank version >= 0.9.0"
+                brief="Check Pointblank version `>=0.9.0`."
             )
             .interrogate()
         )
