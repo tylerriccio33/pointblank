@@ -7762,7 +7762,14 @@ class Validate:
 
         Examples
         --------
+        The `specially()` method offers maximum flexibility for validation, allowing you to create
+        custom validation logic that fits your specific needs. The following examples demonstrate
+        different patterns and use cases for this powerful validation approach.
+
         ### Simple validation with direct table access
+
+        This example shows the most straightforward use case where we create a function that
+        directly checks if the sum of two columns is positive.
 
         ```{python}
         import pointblank as pb
