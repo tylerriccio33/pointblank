@@ -7874,9 +7874,6 @@ class Validate:
         # Determine brief to use (global or local) and transform any shorthands of `brief=`
         brief = self.brief if brief is None else _transform_auto_brief(brief=brief)
 
-        # Package the validation expression for later evaluation
-        values = {"expression": expr}
-
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=None,  # This validation is not specific to any column(s)
