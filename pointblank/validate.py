@@ -7877,7 +7877,7 @@ class Validate:
         val_info = _ValidationInfo(
             assertion_type=assertion_type,
             column=None,  # This validation is not specific to any column(s)
-            values=values,
+            values=expr,
             pre=pre,
             thresholds=thresholds,
             actions=actions,
