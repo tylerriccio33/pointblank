@@ -44,6 +44,7 @@ ASSERTION_TYPE_METHOD_MAP = {
     "row_count_match": "row_count_match",
     "col_count_match": "col_count_match",
     "conjointly": "conjointly",
+    "specially": "specially",
 }
 
 METHOD_CATEGORY_MAP = {
@@ -69,6 +70,7 @@ METHOD_CATEGORY_MAP = {
     "row_count_match": "ROW_COUNT_MATCH",
     "col_count_match": "COL_COUNT_MATCH",
     "conjointly": "CONJOINTLY",
+    "specially": "SPECIALLY",
 }
 
 COMPARISON_OPERATORS = {
