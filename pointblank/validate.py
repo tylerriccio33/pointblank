@@ -8303,12 +8303,39 @@ class Validate:
                     tbl_type=tbl_type,
                 ).get_test_results()
 
-            if assertion_category not in [
-                "COL_EXISTS_HAS_TYPE",
-                "COL_SCHEMA_MATCH",
-                "ROW_COUNT_MATCH",
-                "COL_COUNT_MATCH",
-            ]:
+            if assertion_category == "SPECIALLY":
+                results_tbl_list = SpeciallyValidation(
+                    data_tbl=data_tbl_step,
+                    expression=value,
+                    threshold=threshold,
+                    tbl_type=tbl_type,
+                ).get_test_results()
+
+                #
+                # The result from this could either be a table in the conventional form, or,
+                # a list of boolean values; handle both cases
+                #
+
+                if isinstance(results_tbl_list, list):
+                    # If the result is a list of boolean values, then we need to convert it to a
+                    # set the validation results from the list
+                    validation.all_passed = all(results_tbl_list)
+                    validation.n = len(results_tbl_list)
+                    validation.n_passed = results_tbl_list.count(True)
+                    validation.n_failed = results_tbl_list.count(False)
+
+                    results_tbl = None
+
+                else:
+                    # If the result is not a list, then we assume it's a table in the conventional
+                    # form (where the column is `pb_is_good_` exists, with boolean values)
+
+                    results_tbl = results_tbl_list
+
+            # If the results table is not `None`, then we assume there is a table with a column
+            # called `pb_is_good_` that contains boolean values; we can then use this table to
+            # determine the number of test units that passed and failed
+            if results_tbl is not None:
                 # Extract the `pb_is_good_` column from the table as a results list
                 if tbl_type in IBIS_BACKENDS:
                     # Select the DataFrame library to use for getting the results list
