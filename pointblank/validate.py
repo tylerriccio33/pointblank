@@ -7853,9 +7853,12 @@ class Validate:
         )
         ```
 
-        This example shows how to validate something in the environment rather than in the data
-        itself. The function must still accept the `data` parameter, but it can ignore it
-        completely.
+        This pattern shows how to validate external dependencies or environment conditions as part
+        of your validation workflow. Notice that the function doesn't take any parameters at all,
+        which makes it cleaner when the validation doesn't need to access the data table.
+
+        By combining these patterns, you can create sophisticated validation workflows that address
+        virtually any data quality requirement in your organization.
         """
 
         assertion_type = _get_fn_name()
