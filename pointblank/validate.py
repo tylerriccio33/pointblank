@@ -58,6 +58,7 @@ from pointblank._interrogation import (
     RowCountMatch,
     RowsComplete,
     RowsDistinct,
+    SpeciallyValidation,
 )
 from pointblank._typing import SegmentSpec
 from pointblank._utils import (
