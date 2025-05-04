@@ -10237,7 +10237,7 @@ class Validate:
                     # With a column subset list, format with commas between the column names
                     columns_upd.append(", ".join(column))
 
-            elif assertion_type[i] in ["conjointly"]:
+            elif assertion_type[i] in ["conjointly", "specially"]:
                 columns_upd.append("")
             else:
                 columns_upd.append(str(column))
@@ -10299,7 +10299,7 @@ class Validate:
             elif assertion_type[i] in ["col_schema_match"]:
                 values_upd.append("SCHEMA")
 
-            elif assertion_type[i] in ["col_vals_expr"]:
+            elif assertion_type[i] in ["col_vals_expr", "conjointly"]:
                 values_upd.append("COLUMN EXPR")
 
             elif assertion_type[i] in ["row_count_match", "col_count_match"]:
@@ -10311,8 +10311,8 @@ class Validate:
 
                 values_upd.append(str(count))
 
-            elif assertion_type[i] in ["conjointly"]:
-                values_upd.append("COLUMN EXPR")
+            elif assertion_type[i] in ["specially"]:
+                values_upd.append("EXPR")
 
             # If the assertion type is not recognized, add the value as a string
             else:
