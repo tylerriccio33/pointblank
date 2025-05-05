@@ -866,6 +866,7 @@ def test_validation_langs_all_working(lang):
             lambda df: expr_col("a") > 0,
             lambda df: expr_col("a") + expr_col("d") < 12000,
         )
+        .specially(expr=lambda: [True, True])
         .interrogate()
     )
 
@@ -6563,6 +6564,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
             lambda df: df["a"] > 0,
             lambda df: df["a"] + df["d"] < 12000,
         )
+        .specially(expr=lambda: [True, True])
         .interrogate()
     )
 
