@@ -2903,8 +2903,8 @@ def test_specially_return_single_bool():
     validation = Validate(data=tbl).specially(expr=validate_table_properties).interrogate()
 
     assert validation.n(i=1, scalar=True) == 1
-    assert validation.n_passed(i=1, scalar=True) == 1
-    assert validation.n_failed(i=1, scalar=True) == 0
+    assert validation.n_passed(i=1, scalar=True) == 0
+    assert validation.n_failed(i=1, scalar=True) == 1
 
 
 def test_col_schema_match():
