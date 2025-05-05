@@ -11835,6 +11835,9 @@ def _create_autobrief_or_failure_text(
     if assertion_type == "conjointly":
         return _create_text_conjointly(lang=lang, for_failure=for_failure)
 
+    if assertion_type == "specially":
+        return _create_text_specially(lang=lang, for_failure=for_failure)
+
     return None  # pragma: no cover
 
 
@@ -12031,6 +12034,12 @@ def _create_text_conjointly(lang: str, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     return EXPECT_FAIL_TEXT[f"conjointly_{type_}_text"][lang]
+
+
+def _create_text_specially(lang: str, for_failure: bool = False) -> str:
+    type_ = _expect_failure_type(for_failure=for_failure)
+
+    return EXPECT_FAIL_TEXT[f"specially_{type_}_text"][lang]
 
 
 def _prep_column_text(column: str | list[str]) -> str:
