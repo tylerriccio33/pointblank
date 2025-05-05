@@ -7666,24 +7666,29 @@ class Validate:
 
         The callable function can have one of two signatures:
 
-        - A function accepting a single parameter (the data table): `def validate(data): ...`
-        - A function with no parameters: `def validate(): ...`
+        - a function accepting a single parameter (the data table): `def validate(data): ...`
+        - a function with no parameters: `def validate(): ...`
 
         The second form is particularly useful for environment validations that don't need to
         inspect the data table.
 
         The callable function must ultimately return one of:
 
-        1. A single boolean value or boolean list
-        2. A table where the final column contains boolean values
+        1. a single boolean value or boolean list
+        2. a table where the final column contains boolean values (column name is unimportant)
+
+        The validation will operate over the number of test units that is equal to the number of
+        rows in the data table (if returning a table with boolean values). If returning a scalar
+        boolean value, the validation will operate over a single test unit. For a return of a list
+        of boolean values, the length of the list constitutes the number of test units.
 
         Parameters
         ----------
         expr
             A callable function that defines the specialized validation logic. This function should:
 
-            - Accept the target data table as its single argument (though it may ignore it) OR
-            - Take no parameters at all (for environment validations)
+            - accept the target data table as its single argument (though it may ignore it), or
+            - take no parameters at all (for environment validations)
 
             The function must ultimately return boolean values representing validation results.
             Design your function to incorporate any custom parameters directly within the function
