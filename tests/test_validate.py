@@ -2822,6 +2822,41 @@ def test_conjointly_error_no_expr():
         Validate(data=tbl).conjointly()
 
 
+def test_specially_simple_validation():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.select(pl.col("a") + pl.col("b") > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 6
+    assert validation.n_passed(i=1, scalar=True) == 6
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_advanced_validation():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    # Create a parameterized validation function using closures
+    def make_column_ratio_validator(col1, col2, min_ratio):
+        def validate_column_ratio(data):
+            return data.select((pl.col(col1) / pl.col(col2)) > min_ratio)
+
+        return validate_column_ratio
+
+    validation = (
+        Validate(data=tbl)
+        .specially(expr=make_column_ratio_validator(col1="a", col2="b", min_ratio=0.5))
+        .interrogate()
+    )
+
+    assert validation.n(i=1, scalar=True) == 6
+    assert validation.n_passed(i=1, scalar=True) == 6
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
 def test_col_schema_match():
     tbl = pl.DataFrame(
         {
