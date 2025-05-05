@@ -2857,6 +2857,19 @@ def test_specially_advanced_validation():
     assert validation.n_failed(i=1, scalar=True) == 0
 
 
+def test_specially_function_with_no_data_argument():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def return_list_bools():
+        return [True, True]
+
+    validation = Validate(data=tbl).specially(expr=return_list_bools).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 2
+    assert validation.n_passed(i=1, scalar=True) == 2
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
 def test_specially_return_single_bool():
     tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
 
