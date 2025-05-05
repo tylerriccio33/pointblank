@@ -2870,6 +2870,16 @@ def test_specially_function_with_no_data_argument():
     assert validation.n_failed(i=1, scalar=True) == 0
 
 
+def test_specially_function_with_multiple_data_args_fails():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def return_list_bools(a, b):
+        return [True, True]
+
+    with pytest.raises(ValueError):
+        Validate(data=tbl).specially(expr=return_list_bools).interrogate()
+
+
 def test_specially_return_single_bool():
     tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
 
