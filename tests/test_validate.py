@@ -2857,6 +2857,56 @@ def test_specially_advanced_validation():
     assert validation.n_failed(i=1, scalar=True) == 0
 
 
+def test_specially_simple_validation_no_data_param():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def validate_pointblank_version():
+        try:
+            import importlib.metadata
+
+            version = importlib.metadata.version("pointblank")
+            version_parts = version.split(".")
+
+            # Get major and minor components
+            major = int(version_parts[0])
+            minor = int(version_parts[1])
+
+            # Check both major and minor components for version `0.9+`
+            return (major > 0) or (major == 0 and minor >= 9)
+
+        except Exception as e:
+            print(f"Version check failed: {e}")
+            return False
+
+    validation = (
+        Validate(data=tbl)
+        .specially(expr=validate_pointblank_version, brief="Check Pointblank version >= 0.9.0")
+        .interrogate()
+    )
+
+    assert validation.n(i=1, scalar=True) == 1
+    assert validation.n_passed(i=1, scalar=True) == 1
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_return_single_bool():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def validate_table_properties(data):
+        # Check if table has at least one row with column 'a' > 10
+        has_large_values = data.filter(pl.col("a") > 10).height > 0
+        # Check if mean of column 'b' is positive
+        has_positive_mean = data.select(pl.mean("b")).item() > 0
+        # Return a single boolean for the entire table
+        return has_large_values and has_positive_mean
+
+    validation = Validate(data=tbl).specially(expr=validate_table_properties).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 1
+    assert validation.n_passed(i=1, scalar=True) == 0
+    assert validation.n_failed(i=1, scalar=True) == 1
+
+
 def test_col_schema_match():
     tbl = pl.DataFrame(
         {
