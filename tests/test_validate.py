@@ -7598,7 +7598,7 @@ def test_get_schema_validation_info(tbl_schema_tests, snapshot):
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_01-0.txt")
 
     # 2. Schema matches completely; option taken to match any of two different dtypes for
-    # column "a", but all dtypes correct
+    # column `a`, but all dtypes correct
     schema = Schema(
         columns=[
             ("a", ["String", "Int64"]),
@@ -7645,7 +7645,7 @@ def test_get_schema_validation_info(tbl_schema_tests, snapshot):
     snapshot.assert_match(schema_info_str(schema_info), "schema_info_03-0.txt")
 
     # 4. Schema has all three columns accounted for but in an incorrect order; option taken to
-    # match any of two different dtypes for column "a", but all dtypes correct
+    # match any of two different dtypes for column `a`, but all dtypes correct
     schema = Schema(
         columns=[
             ("b", "Int64"),
