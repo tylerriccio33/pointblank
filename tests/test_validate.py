@@ -2823,17 +2823,45 @@ def test_conjointly_error_no_expr():
         Validate(data=tbl).conjointly()
 
 
-def test_specially_simple_validation():
-    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+def test_specially_simple_validation_polars():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
 
     # Create simple function that validates directly on the table
     def validate_sum_positive(data):
-        return data.select(pl.col("a") + pl.col("b") > 0)
+        return data.select(pl.col("a") + pl.col("d") > 0)
 
     validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
 
-    assert validation.n(i=1, scalar=True) == 6
-    assert validation.n_passed(i=1, scalar=True) == 6
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_simple_validation_pandas():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.assign(sum_positive=data["a"] + data["d"] > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_simple_validation_duckdb():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.mutate(sum_positive=data["a"] + data["d"] > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
     assert validation.n_failed(i=1, scalar=True) == 0
 
 
