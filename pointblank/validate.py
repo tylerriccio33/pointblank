@@ -7686,13 +7686,11 @@ class Validate:
         ----------
         expr
             A callable function that defines the specialized validation logic. This function should:
-
-            - accept the target data table as its single argument (though it may ignore it), or
-            - take no parameters at all (for environment validations)
-
-            The function must ultimately return boolean values representing validation results.
-            Design your function to incorporate any custom parameters directly within the function
-            itself using closure variables or default parameters.
+            (1) accept the target data table as its single argument (though it may ignore it), or
+            (2) take no parameters at all (for environment validations). The function must
+            ultimately return boolean values representing validation results. Design your function
+            to incorporate any custom parameters directly within the function itself using closure
+            variables or default parameters.
         pre
             An optional preprocessing function or lambda to apply to the data table during
             interrogation. This function should take a table as input and return a modified table.
@@ -7767,6 +7765,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
         The `specially()` method offers maximum flexibility for validation, allowing you to create
         custom validation logic that fits your specific needs. The following examples demonstrate
         different patterns and use cases for this powerful validation approach.
