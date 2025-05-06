@@ -7780,7 +7780,7 @@ class Validate:
         import pointblank as pb
         import polars as pl
 
-        tbl = pl.DataFrame({
+        simple_tbl = pl.DataFrame({
             "a": [5, 7, 1, 3, 9, 4],
             "b": [6, 3, 0, 5, 8, 2]
         })
@@ -7790,7 +7790,7 @@ class Validate:
             return data.select(pl.col("a") + pl.col("b") > 0)
 
         (
-            pb.Validate(data=tbl)
+            pb.Validate(data=simple_tbl)
             .specially(expr=validate_sum_positive)
             .interrogate()
         )
@@ -7814,7 +7814,7 @@ class Validate:
             return validate_column_ratio
 
         (
-            pb.Validate(data=tbl)
+            pb.Validate(data=simple_tbl)
             .specially(
                 expr=make_column_ratio_validator(col1="a", col2="b", min_ratio=0.5)
             )
@@ -7836,7 +7836,7 @@ class Validate:
         import random
 
         # Create sample data
-        tbl = pl.DataFrame({
+        transaction_tbl = pl.DataFrame({
             "transaction_id": [f"TX{i:04d}" for i in range(1, 11)],
             "amount": [120.50, 85.25, 50.00, 240.75, 35.20, 150.00, 85.25, 65.00, 210.75, 90.50],
             "category": ["food", "shopping", "entertainment", "travel", "utilities",
@@ -7868,7 +7868,7 @@ class Validate:
             return test_results
 
         (
-            pb.Validate(data=tbl)
+            pb.Validate(data=transaction_tbl)
             .specially(
                 expr=validate_transaction_rules,
                 brief="Validate transaction IDs and amounts by category."
@@ -7879,13 +7879,12 @@ class Validate:
 
         This example shows how to create a validation function that applies multiple business rules
         to each row and returns a list of boolean results. Each boolean in the list represents a
-        separate test unit (one per row), and the validation passes only if all rules are satisfied
-        for a given row.
+        separate test unit, and a test unit passes only if all rules are satisfied for a given row.
 
         The function iterates through each row in the data table, checking:
 
-        1. If transaction IDs follow the required format
-        2. If transaction amounts are appropriate for their respective categories
+        1. if transaction IDs follow the required format
+        2. if transaction amounts are appropriate for their respective categories
 
         This approach is powerful when you need to apply complex, conditional logic that can't be
         easily expressed using the built-in validation functions.
@@ -7907,7 +7906,7 @@ class Validate:
             return has_large_values and has_positive_mean
 
         (
-            pb.Validate(data=tbl)
+            pb.Validate(data=simple_tbl)
             .specially(expr=validate_table_properties)
             .interrogate()
         )
@@ -7918,8 +7917,8 @@ class Validate:
 
         ### Environment validation that doesn't use the data table
 
-        The `specially()` method can even be used to validate aspects of your environment that are
-        completely independent of the data:
+        The `specially()` validation method can even be used to validate aspects of your environment
+        that are completely independent of the data:
 
         ```{python}
         def validate_pointblank_version():
@@ -7941,7 +7940,7 @@ class Validate:
                 return False
 
         (
-            pb.Validate(data=tbl)
+            pb.Validate(data=simple_tbl)
             .specially(
                 expr=validate_pointblank_version,
                 brief="Check Pointblank version `>=0.9.0`."
