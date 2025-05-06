@@ -2296,6 +2296,7 @@ class SpeciallyValidation:
         ):
             # Get the type of the table
             tbl_type = _get_tbl_type(data=result)
+
             if "pandas" in tbl_type:
                 # If it's a Pandas DataFrame, check if the last column is a boolean column
                 last_col = result.iloc[:, -1]
@@ -2315,12 +2316,16 @@ class SpeciallyValidation:
                 if last_col_dtype == pl.Boolean:
                     # If the last column is a boolean column, rename it as `pb_is_good_`
                     result = result.rename({last_col_name: "pb_is_good_"})
-            elif "ibis" in tbl_type:
+            elif tbl_type in IBIS_BACKENDS:
                 # If it's an Ibis table, check if the last column is a boolean column
-                last_col = result[result.columns[-1]]
-                if last_col.type() == "boolean":
+                last_col_name = result.columns[-1]
+                result_schema = result.schema()
+                is_last_col_bool = str(result_schema[last_col_name]) == "boolean"
+
+                if is_last_col_bool:
                     # If the last column is a boolean column, rename it as `pb_is_good_`
-                    result = result.rename({result.columns[-1]: "pb_is_good_"})
+                    result = result.rename(pb_is_good_=last_col_name)
+
             else:  # pragma: no cover
                 raise NotImplementedError(f"Support for {tbl_type} is not yet implemented")
 
