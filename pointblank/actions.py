@@ -225,7 +225,7 @@ def send_slack_notification(
     validation
     ```
 
-    By placing the `notify_slack` function in the `Validate(actions=Actions(critical=))` argument,
+    By placing the `notify_slack()` function in the `Validate(actions=Actions(critical=))` argument,
     you can ensure that the notification is sent whenever the 'critical' threshold is reached (as
     set here, when 15% or more of the test units fail). The notification will include information
     about the validation step that triggered the alert.
@@ -255,7 +255,7 @@ def send_slack_notification(
     )
     ```
 
-    In this case, the same `notify_slack` function is used, but it is placed in
+    In this case, the same `notify_slack()` function is used, but it is placed in
     `Validate(final_actions=FinalActions())`. This results in the summary notification being sent
     after all validation steps are completed, regardless of whether any steps failed or not.
 

@@ -574,8 +574,9 @@ class FinalActions:
     In this example, the `send_alert()` function is defined to check the validation summary for
     critical failures. If any are found, an alert message is printed to the console. The function is
     passed to the `FinalActions` class, which ensures it will be executed after all validation steps
-    are complete. Note that we used the `get_validation_summary()` function to retrieve the summary
-    of the validation results to help craft the alert message.
+    are complete. Note that we used the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function to retrieve the
+    summary of the validation results to help craft the alert message.
 
     Multiple final actions can be provided in a sequence. They will be executed in the order they
     are specified after all validation steps have completed:
