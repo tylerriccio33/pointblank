@@ -866,6 +866,7 @@ def test_validation_langs_all_working(lang):
             lambda df: expr_col("a") > 0,
             lambda df: expr_col("a") + expr_col("d") < 12000,
         )
+        .specially(expr=lambda: [True, True])
         .interrogate()
     )
 
@@ -2820,6 +2821,120 @@ def test_conjointly_error_no_expr():
 
     with pytest.raises(ValueError):
         Validate(data=tbl).conjointly()
+
+
+def test_specially_simple_validation_polars():
+    tbl = load_dataset(dataset="small_table", tbl_type="polars")
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.select(pl.col("a") + pl.col("d") > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_simple_validation_pandas():
+    tbl = load_dataset(dataset="small_table", tbl_type="pandas")
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.assign(sum_positive=data["a"] + data["d"] > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_simple_validation_duckdb():
+    tbl = load_dataset(dataset="small_table", tbl_type="duckdb")
+
+    # Create simple function that validates directly on the table
+    def validate_sum_positive(data):
+        return data.mutate(sum_positive=data["a"] + data["d"] > 0)
+
+    validation = Validate(data=tbl).specially(expr=validate_sum_positive, brief=True).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 13
+    assert validation.n_passed(i=1, scalar=True) == 13
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_advanced_validation():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    # Create a parameterized validation function using closures
+    def make_column_ratio_validator(col1, col2, min_ratio):
+        def validate_column_ratio(data):
+            return data.select((pl.col(col1) / pl.col(col2)) > min_ratio)
+
+        return validate_column_ratio
+
+    validation = (
+        Validate(data=tbl)
+        .specially(expr=make_column_ratio_validator(col1="a", col2="b", min_ratio=0.5))
+        .interrogate()
+    )
+
+    assert validation.n(i=1, scalar=True) == 6
+    assert validation.n_passed(i=1, scalar=True) == 6
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_function_with_no_data_argument():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def return_list_bools():
+        return [True, True]
+
+    validation = Validate(data=tbl).specially(expr=return_list_bools).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 2
+    assert validation.n_passed(i=1, scalar=True) == 2
+    assert validation.n_failed(i=1, scalar=True) == 0
+
+
+def test_specially_function_with_multiple_data_args_fails():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def return_list_bools(a, b):
+        return [True, True]
+
+    with pytest.raises(ValueError):
+        Validate(data=tbl).specially(expr=return_list_bools).interrogate()
+
+
+def test_specially_function_with_list_non_boolean_fails():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def return_list_non_bools():
+        return ["not a bool", "not a bool"]
+
+    with pytest.raises(TypeError):
+        Validate(data=tbl).specially(expr=return_list_non_bools).interrogate()
+
+
+def test_specially_return_single_bool():
+    tbl = pl.DataFrame({"a": [5, 7, 1, 3, 9, 4], "b": [6, 3, 0, 5, 8, 2]})
+
+    def validate_table_properties(data):
+        # Check if table has at least one row with column 'a' > 10
+        has_large_values = data.filter(pl.col("a") > 10).height > 0
+        # Check if mean of column 'b' is positive
+        has_positive_mean = data.select(pl.mean("b")).item() > 0
+        # Return a single boolean for the entire table
+        return has_large_values and has_positive_mean
+
+    validation = Validate(data=tbl).specially(expr=validate_table_properties).interrogate()
+
+    assert validation.n(i=1, scalar=True) == 1
+    assert validation.n_passed(i=1, scalar=True) == 0
+    assert validation.n_failed(i=1, scalar=True) == 1
 
 
 def test_col_schema_match():
@@ -6487,6 +6602,7 @@ def test_comprehensive_validation_report_html_snap(snapshot):
             lambda df: df["a"] > 0,
             lambda df: df["a"] + df["d"] < 12000,
         )
+        .specially(expr=lambda: [True, True])
         .interrogate()
     )
 

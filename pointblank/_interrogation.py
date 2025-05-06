@@ -2248,6 +2248,107 @@ class ConjointlyValidation:
         return results_tbl
 
 
+class SpeciallyValidation:
+    def __init__(self, data_tbl, expression, threshold, tbl_type):
+        self.data_tbl = data_tbl
+        self.expression = expression
+        self.threshold = threshold
+
+        # Detect the table type
+        if tbl_type in (None, "local"):
+            # Detect the table type using _get_tbl_type()
+            self.tbl_type = _get_tbl_type(data=data_tbl)
+        else:
+            self.tbl_type = tbl_type
+
+    def get_test_results(self) -> any | list[bool]:
+        """Evaluate the expression get either a list of booleans or a results table."""
+
+        # Get the expression and inspect whether there is a `data` argument
+        expression = self.expression
+
+        import inspect
+
+        # During execution of `specially` validation
+        sig = inspect.signature(expression)
+        params = list(sig.parameters.keys())
+
+        # Execute the function based on its signature
+        if len(params) == 0:
+            # No parameters: call without arguments
+            result = expression()
+        elif len(params) == 1:
+            # One parameter: pass the data table
+            data_tbl = self.data_tbl
+            result = expression(data_tbl)
+        else:
+            # More than one parameter - this doesn't match either allowed signature
+            raise ValueError(
+                f"The function provided to 'specially()' should have either no parameters or a "
+                f"single 'data' parameter, but it has {len(params)} parameters: {params}"
+            )
+
+        # Determine if the object is a DataFrame by inspecting the string version of its type
+        if (
+            "pandas" in str(type(result))
+            or "polars" in str(type(result))
+            or "ibis" in str(type(result))
+        ):
+            # Get the type of the table
+            tbl_type = _get_tbl_type(data=result)
+
+            if "pandas" in tbl_type:
+                # If it's a Pandas DataFrame, check if the last column is a boolean column
+                last_col = result.iloc[:, -1]
+
+                import pandas as pd
+
+                if last_col.dtype == bool or pd.api.types.is_bool_dtype(last_col):
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result.rename(columns={result.columns[-1]: "pb_is_good_"}, inplace=True)
+            elif "polars" in tbl_type:
+                # If it's a Polars DataFrame, check if the last column is a boolean column
+                last_col_name = result.columns[-1]
+                last_col_dtype = result.schema[last_col_name]
+
+                import polars as pl
+
+                if last_col_dtype == pl.Boolean:
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result = result.rename({last_col_name: "pb_is_good_"})
+            elif tbl_type in IBIS_BACKENDS:
+                # If it's an Ibis table, check if the last column is a boolean column
+                last_col_name = result.columns[-1]
+                result_schema = result.schema()
+                is_last_col_bool = str(result_schema[last_col_name]) == "boolean"
+
+                if is_last_col_bool:
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result = result.rename(pb_is_good_=last_col_name)
+
+            else:  # pragma: no cover
+                raise NotImplementedError(f"Support for {tbl_type} is not yet implemented")
+
+        elif isinstance(result, bool):
+            # If it's a single boolean, return that as a list
+            return [result]
+
+        elif isinstance(result, list):
+            # If it's a list, check that it is a boolean list
+            if all(isinstance(x, bool) for x in result):
+                # If it's a list of booleans, return it as is
+                return result
+            else:
+                # If it's not a list of booleans, raise an error
+                raise TypeError("The result is not a list of booleans.")
+        else:  # pragma: no cover
+            # If it's not a DataFrame or a list, raise an error
+            raise TypeError("The result is not a DataFrame or a list of booleans.")
+
+        # Return the results table or list of booleans
+        return result
+
+
 @dataclass
 class NumberOfTestUnits:
     """

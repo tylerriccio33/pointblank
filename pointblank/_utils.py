@@ -490,6 +490,7 @@ def _get_api_text() -> str:
         "Validate.row_count_match",
         "Validate.col_count_match",
         "Validate.conjointly",
+        "Validate.specially",
     ]
 
     column_selection_exported = [
