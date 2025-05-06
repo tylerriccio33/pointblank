@@ -2146,12 +2146,12 @@ def test_is_not_null_operation_ibis(df_ibis):
     # Test basic is_not_null operation
     expr = expr_col("a").is_not_null()
     result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
-    assert len(result) == 5  # Should match all non-null values in column "a"
+    assert len(result) == 5  # Should match all non-null values in column a
 
     # Test is_not_null in combination with other operations
     expr = expr_col("a").is_not_null() & (expr_col("b") > 2)
     result = df_ibis.filter(expr.to_ibis_expr(df_ibis)).execute()
-    assert len(result) == 4  # Non-null "a" values where "b" > 2
+    assert len(result) == 4  # Non-null a values where b > 2
 
     # Test compound expression with is_not_null
     expr = (expr_col("a") > 4) | expr_col("a").is_not_null()
