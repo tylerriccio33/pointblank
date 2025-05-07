@@ -436,18 +436,18 @@ def load_dataset(
 
     Examples
     --------
-    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with its
-    defaults:
+    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with
+    `dataset="small_table"` and `tbl_type="polars"`:
 
     ```{python}
     import pointblank as pb
 
-    small_table = pb.load_dataset()
+    small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
     pb.preview(small_table)
     ```
 
-    Note that the `"small_table"` dataset is a simple Polars DataFrame and using the
+    Note that the `"small_table"` dataset is a Polars DataFrame and using the
     [`preview()`](`pointblank.preview`) function will display the table in an HTML viewing
     environment.
 
@@ -475,6 +475,19 @@ def load_dataset(
     The `"nycflights"` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
     truly a real-world dataset and provides information about flights originating from New York City
     airports in 2013.
+
+    Finally, the `"global_sales"` dataset can be loaded as a Polars table by specifying the dataset
+    name. Since `tbl_type=` is set to `"polars"` by default, we don't need to specify it:
+
+    ```{python}
+    global_sales = pb.load_dataset(dataset="global_sales")
+
+    pb.preview(global_sales)
+    ```
+
+    The `"global_sales"` dataset is a large dataset with 50,000 rows and 20 columns. Each record
+    describes the sales of a particular product to a customer located in one of three global
+    regions: North America, Europe, or Asia.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
