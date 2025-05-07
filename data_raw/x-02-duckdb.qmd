@@ -36,6 +36,7 @@ tbl_true_dates_times = pl.DataFrame(
 small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="polars")
 nycflights = pb.load_dataset(dataset="nycflights", tbl_type="polars")
+global_sales = pb.load_dataset(dataset="global_sales", tbl_type="polars")
 ```
 
 
@@ -86,5 +87,12 @@ with duckdb.connect(database="game_revenue.ddb", read_only=False) as con:
 with duckdb.connect(database="nycflights.ddb", read_only=False) as con:
     con.execute(f"""
         CREATE TABLE IF NOT EXISTS 'nycflights' AS SELECT * FROM nycflights;
+    """)
+```
+
+```{python}
+with duckdb.connect(database="global_sales.ddb", read_only=False) as con:
+    con.execute(f"""
+        CREATE TABLE IF NOT EXISTS 'global_sales' AS SELECT * FROM global_sales;
     """)
 ```
