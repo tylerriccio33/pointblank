@@ -1,0 +1,411 @@
+---
+format: html
+html-table-processing: none
+---
+
+```{python}
+def generate_global_sales(n_rows=50000, output_file="global_sales.csv", seed=42):
+    """
+    Generate a synthetic Global Sales dataset with hierarchical categorical variables.
+
+    The function intentionally introduces data quality issues (approximately 12% of rows)
+    to demonstrate validation use cases.
+
+    Parameters:
+    -----------
+    n_rows
+        Number of rows to generate in the dataset.
+    output_file
+        Path where the CSV file will be saved.
+    seed
+        Random seed for reproducibility.
+
+    Returns:
+    --------
+    pl.DataFrame
+        The generated dataset
+
+    Data Issues:
+    ------------
+    The function introduces the following types of data issues:
+
+    1. null_value: randomly inserts NULL values in critical fields:
+       - product_id: missing product identifier
+       - customer_id: missing customer identifier
+       - timestamp: missing transaction date
+       - city: missing location data
+
+    2. out_of_range: creates values outside of reasonable business ranges:
+       - price: Values above 1000 (typical range: 50-500)
+       - quantity: Values above 1000 (typical range: 1-8)
+
+    3. wrong_calculation: introduces calculation inconsistencies:
+       - revenue: Deviates from the expected price * quantity formula
+       - Creates inconsistency between revenue, tax and total
+
+    4. invalid_status: uses transaction statuses outside the valid set:
+       - Valid statuses: "pending", "shipped", "delivered", "returned"
+       - Invalid statuses: "processing", "cancelled"
+
+    5. invalid_email: generates malformed email addresses with issues such as:
+       - Missing @ symbol
+       - Missing domain
+       - Double @ symbols
+       - Invalid characters
+
+    6. mismatched_location: creates hierarchical inconsistencies in location data:
+       - region, country and city values that don't match geographically
+       - results in incorrect tax rates based on the country
+
+    7. inconsistent_dates: creates temporal inconsistencies:
+       - quarter value doesn't match the timestamp's actual quarter
+
+    8. low_tax: introduces tax values outside expected ranges:
+       - tax rates below country-specific standards (1-4% instead of 8-20%)
+
+    9. mixed: combines multiple types of errors in a single row
+
+    These deliberate data quality issues make the dataset ideal for testing
+    data validation tools and demonstrating segmentation features.
+    """
+    import polars as pl
+    import numpy as np
+    import random
+    from datetime import datetime, timedelta
+    import uuid
+
+    # Set random seed for reproducibility
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # Define geographic hierarchies
+    regions = {
+        "North America": {
+            "USA": ["New York", "San Francisco", "Chicago", "Los Angeles", "Miami"],
+            "Canada": ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa"]
+        },
+        "Europe": {
+            "UK": ["London", "Manchester", "Edinburgh", "Birmingham", "Glasgow"],
+            "Germany": ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne"],
+            "France": ["Paris", "Lyon", "Marseille", "Toulouse", "Nice"]
+        },
+        "Asia Pacific": {
+            "Japan": ["Tokyo", "Osaka", "Kyoto", "Fukuoka", "Sapporo"],
+            "Australia": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"]
+        }
+    }
+
+    # Business categories
+    business_categories = ["Retail", "Technology", "Healthcare", "Finance", "Manufacturing"]
+    payment_methods = ["Credit Card", "Bank Transfer", "PayPal", "Apple Pay", "Google Pay"]
+    sales_channels = ["Online", "In-store", "Phone", "Partner", "Distributor"]
+    customer_segments = ["Enterprise", "SMB", "Consumer", "Government"]
+
+    # Helper functions
+    def generate_email(valid=True):
+        domains = ["example.com", "test.org", "company.io", "email.net", "mockdata.com"]
+        if valid:
+            username = f"user{random.randint(1000, 9999)}"
+            domain = random.choice(domains)
+            return f"{username}@{domain}"
+        else:
+            # Generate invalid email formats
+            invalid_types = ["missing_at", "missing_domain", "double_at", "invalid_chars"]
+            invalid_type = random.choice(invalid_types)
+            if invalid_type == "missing_at":
+                return f"user{random.randint(1000, 9999)}domain.com"
+            elif invalid_type == "missing_domain":
+                return f"user{random.randint(1000, 9999)}@"
+            elif invalid_type == "double_at":
+                return f"user{random.randint(1000, 9999)}@@domain.com"
+            else:
+                return f"user#{random.randint(1000, 9999)}@domain.com"
+
+    def generate_timestamp(start_year=2021, end_year=2023):
+        start_date = datetime(start_year, 1, 1)
+        end_date = datetime(end_year, 12, 31)
+        days_between = (end_date - start_date).days
+        random_days = random.randint(0, days_between)
+        timestamp = start_date + timedelta(
+            days=random_days,
+            hours=random.randint(0, 23),
+            minutes=random.randint(0, 59)
+        )
+        return timestamp
+
+    def get_quarter(timestamp):
+        month = timestamp.month
+        if month <= 3:
+            return f"{timestamp.year}-Q1"
+        elif month <= 6:
+            return f"{timestamp.year}-Q2"
+        elif month <= 9:
+            return f"{timestamp.year}-Q3"
+        else:
+            return f"{timestamp.year}-Q4"
+
+    def calculate_tax_rate(country):
+        # Simplified tax rates by country
+        tax_rates = {
+            "USA": 0.08,
+            "Canada": 0.13,
+            "UK": 0.20,
+            "Germany": 0.19,
+            "France": 0.20,
+            "Japan": 0.10,
+            "Australia": 0.10
+        }
+        # Add some variation within a small range
+        base_rate = tax_rates.get(country, 0.10)
+        return base_rate + random.uniform(-0.01, 0.01)
+
+    # Create customer database with consistent location data
+    n_customers = min(500, n_rows // 10)  # Scale customers based on dataset size
+    customers = {}
+    customer_ids = []
+
+    for _ in range(n_customers):
+        customer_id = str(uuid.uuid4())[:8]
+        customer_ids.append(customer_id)
+
+        # Select random region, country, and city
+        region = random.choice(list(regions.keys()))
+        country = random.choice(list(regions[region].keys()))
+        city = random.choice(regions[region][country])
+
+        # Create consistent customer data
+        customers[customer_id] = {
+            "region": region,
+            "country": country,
+            "city": city,
+            "segment": random.choice(customer_segments)
+        }
+
+    # Generate products with categories
+    n_products = min(100, n_rows // 50)  # Scale products based on dataset size
+    product_ids = []
+    products = {}
+
+    for _ in range(n_products):
+        product_id = str(uuid.uuid4())[:8]
+        product_ids.append(product_id)
+
+        category = random.choice(business_categories)
+        products[product_id] = {
+            "category": category,
+            "base_price": round(random.uniform(50, 500), 2)
+        }
+
+    # Calculate number of invalid rows
+    invalid_rows = int(n_rows * 0.12)  # ~12% of rows will have issues
+
+    # Statuses - both valid and invalid
+    statuses = ["pending", "shipped", "delivered", "returned", "processing", "cancelled"]
+
+    # Create arrays for each column
+    data = {
+        "product_id": [],
+        "product_category": [],
+        "customer_id": [],
+        "customer_segment": [],
+        "region": [],
+        "country": [],
+        "city": [],
+        "timestamp": [],
+        "quarter": [],
+        "month": [],
+        "year": [],
+        "price": [],
+        "quantity": [],
+        "status": [],
+        "email": [],
+        "revenue": [],
+        "tax": [],
+        "total": [],
+        "payment_method": [],
+        "sales_channel": []
+    }
+
+    # Generate valid data first
+    for i in range(n_rows - invalid_rows):
+        # Select random product and customer
+        product_id = random.choice(product_ids)
+        customer_id = random.choice(customer_ids)
+
+        # Get consistent information
+        product_info = products[product_id]
+        customer_info = customers[customer_id]
+
+        # Generate timestamp and derived time fields
+        timestamp = generate_timestamp()
+        quarter = get_quarter(timestamp)
+
+        # Calculate financial values
+        base_price = product_info["base_price"]
+        price_variation = random.uniform(0.9, 1.1)  # Some variation in price
+        price = round(base_price * price_variation, 2)
+        quantity = random.randint(1, 8)
+        revenue = round(price * quantity, 2)
+        tax_rate = calculate_tax_rate(customer_info["country"])
+        tax = round(revenue * tax_rate, 2)
+        total = round(revenue + tax, 2)
+
+        # Add to data dictionary
+        data["product_id"].append(product_id)
+        data["product_category"].append(product_info["category"])
+        data["customer_id"].append(customer_id)
+        data["customer_segment"].append(customer_info["segment"])
+        data["region"].append(customer_info["region"])
+        data["country"].append(customer_info["country"])
+        data["city"].append(customer_info["city"])
+        data["timestamp"].append(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+        data["quarter"].append(quarter)
+        data["month"].append(timestamp.month)
+        data["year"].append(timestamp.year)
+        data["price"].append(price)
+        data["quantity"].append(quantity)
+        data["status"].append(random.choice(statuses[:4]))  # Only valid statuses
+        data["email"].append(generate_email(True))
+        data["revenue"].append(revenue)
+        data["tax"].append(tax)
+        data["total"].append(total)
+        data["payment_method"].append(random.choice(payment_methods))
+        data["sales_channel"].append(random.choice(sales_channels))
+
+    # Generate invalid data with various issues
+    for i in range(invalid_rows):
+        issue_type = random.choice([
+            "null_value", "out_of_range", "wrong_calculation",
+            "invalid_status", "invalid_email", "mismatched_location",
+            "inconsistent_dates", "low_tax", "mixed"
+        ])
+
+        # Select random product and customer as starting point
+        product_id = random.choice(product_ids)
+        customer_id = random.choice(customer_ids)
+
+        # Get consistent information
+        product_info = products[product_id]
+        customer_info = customers[customer_id]
+
+        # Generate timestamp and derived time fields
+        timestamp = generate_timestamp()
+        quarter = get_quarter(timestamp)
+
+        # Calculate financial values
+        base_price = product_info["base_price"]
+        price_variation = random.uniform(0.9, 1.1)  # Some variation in price
+        price = round(base_price * price_variation, 2)
+        quantity = random.randint(1, 8)
+        revenue = round(price * quantity, 2)
+        tax_rate = calculate_tax_rate(customer_info["country"])
+        tax = round(revenue * tax_rate, 2)
+        total = round(revenue + tax, 2)
+
+        # Default values (may be overridden)
+        region = customer_info["region"]
+        country = customer_info["country"]
+        city = customer_info["city"]
+        customer_segment = customer_info["segment"]
+        email = generate_email(True)
+        status = random.choice(statuses[:4])
+        payment_method = random.choice(payment_methods)
+        sales_channel = random.choice(sales_channels)
+
+        # Apply specific issues based on issue type
+        if issue_type == "null_value" or issue_type == "mixed":
+            null_field = random.choice(["product_id", "customer_id", "timestamp", "city"])
+            if null_field == "product_id":
+                product_id = None
+            elif null_field == "customer_id":
+                customer_id = None
+            elif null_field == "timestamp":
+                timestamp = None
+                quarter = None
+            elif null_field == "city":
+                city = None
+
+        if issue_type == "out_of_range" or issue_type == "mixed":
+            out_of_range = random.choice(["price", "quantity"])
+            if out_of_range == "price":
+                price = round(random.uniform(1001, 2000), 2)  # Price > 1000
+            else:
+                quantity = random.randint(1001, 2000)  # Quantity > 1000
+            revenue = round(price * quantity, 2)
+            tax = round(revenue * tax_rate, 2)
+            total = round(revenue + tax, 2)
+
+        if issue_type == "wrong_calculation" or issue_type == "mixed":
+            # Incorrect revenue calculation
+            revenue = round(price * quantity * random.uniform(0.8, 1.2), 2)
+            # But don't update tax and total to match
+
+        if issue_type == "invalid_status" or issue_type == "mixed":
+            status = random.choice(statuses[4:])  # Invalid statuses
+
+        if issue_type == "invalid_email" or issue_type == "mixed":
+            email = generate_email(False)  # Generate invalid email
+
+        if issue_type == "mismatched_location" or issue_type == "mixed":
+            # Create inconsistent location data
+            original_region = region
+            while region == original_region:
+                region = random.choice(list(regions.keys()))
+            country = random.choice(list(regions[region].keys()))
+            city = random.choice(regions[region][country])
+            # Tax rate is now inconsistent with country
+
+        if issue_type == "inconsistent_dates" or issue_type == "mixed" and timestamp is not None:
+            # Create inconsistent quarter value
+            year = timestamp.year
+            incorrect_quarters = [f"{year}-Q{i}" for i in range(1, 5)]
+            incorrect_quarters.remove(quarter)
+            quarter = random.choice(incorrect_quarters)
+
+        if issue_type == "low_tax" or issue_type == "mixed":
+            tax = round(revenue * random.uniform(0.01, 0.04), 2)  # Tax too low
+            total = round(revenue + tax, 2)  # Update total
+
+        # Add to data dictionary
+        data["product_id"].append(product_id)
+        data["product_category"].append(product_info["category"])
+        data["customer_id"].append(customer_id)
+        data["customer_segment"].append(customer_segment)
+        data["region"].append(region)
+        data["country"].append(country)
+        data["city"].append(city)
+        data["timestamp"].append(None if timestamp is None else timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+        data["quarter"].append(quarter)
+        data["month"].append(None if timestamp is None else timestamp.month)
+        data["year"].append(None if timestamp is None else timestamp.year)
+        data["price"].append(price)
+        data["quantity"].append(quantity)
+        data["status"].append(status)
+        data["email"].append(email)
+        data["revenue"].append(revenue)
+        data["tax"].append(tax)
+        data["total"].append(total)
+        data["payment_method"].append(payment_method)
+        data["sales_channel"].append(sales_channel)
+
+    # Shuffle the data
+    indices = list(range(n_rows))
+    random.shuffle(indices)
+    for key in data:
+        data[key] = [data[key][i] for i in indices]
+
+    # Convert to Polars DataFrame
+    global_sales = pl.DataFrame(data)
+
+    # Save to CSV
+    if output_file:
+        global_sales.write_csv(output_file)
+        print(f"Generated {output_file} with {n_rows} rows ({invalid_rows} with validation issues)")
+
+    return global_sales
+```
+
+
+```{python}
+generate_global_sales()
+```

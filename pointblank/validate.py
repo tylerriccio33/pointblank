@@ -385,7 +385,7 @@ def config(
 
 
 def load_dataset(
-    dataset: Literal["small_table", "game_revenue", "nycflights"] = "small_table",
+    dataset: Literal["small_table", "game_revenue", "nycflights", "global_sales"] = "small_table",
     tbl_type: Literal["polars", "pandas", "duckdb"] = "polars",
 ) -> FrameT | Any:
     """
@@ -401,7 +401,7 @@ def load_dataset(
     ----------
     dataset
         The name of the dataset to load. Current options are `"small_table"`, `"game_revenue"`,
-        and `"nycflights"`.
+        `"nycflights"`, and `"global_sales"`.
     tbl_type
         The type of table to generate from the dataset. The named options are `"polars"`,
         `"pandas"`, and `"duckdb"`.
@@ -423,6 +423,8 @@ def load_dataset(
     they purchased, ads viewed, and the revenue generated.
     - `"nycflights"`: A dataset with 336,776 rows and 18 columns. This dataset provides information
     about flights departing from New York City airports (JFK, LGA, or EWR) in 2013.
+    - `"global_sales"`: A dataset with 50,000 rows and 20 columns. Provides information about
+    global sales of products across different regions and countries.
 
     Supported DataFrame Types
     -------------------------
@@ -434,18 +436,18 @@ def load_dataset(
 
     Examples
     --------
-    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with its
-    defaults:
+    Load the `"small_table"` dataset as a Polars DataFrame by calling `load_dataset()` with
+    `dataset="small_table"` and `tbl_type="polars"`:
 
     ```{python}
     import pointblank as pb
 
-    small_table = pb.load_dataset()
+    small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
     pb.preview(small_table)
     ```
 
-    Note that the `"small_table"` dataset is a simple Polars DataFrame and using the
+    Note that the `"small_table"` dataset is a Polars DataFrame and using the
     [`preview()`](`pointblank.preview`) function will display the table in an HTML viewing
     environment.
 
@@ -473,10 +475,23 @@ def load_dataset(
     The `"nycflights"` dataset is a large dataset with 336,776 rows and 18 columns. This dataset is
     truly a real-world dataset and provides information about flights originating from New York City
     airports in 2013.
+
+    Finally, the `"global_sales"` dataset can be loaded as a Polars table by specifying the dataset
+    name. Since `tbl_type=` is set to `"polars"` by default, we don't need to specify it:
+
+    ```{python}
+    global_sales = pb.load_dataset(dataset="global_sales")
+
+    pb.preview(global_sales)
+    ```
+
+    The `"global_sales"` dataset is a large dataset with 50,000 rows and 20 columns. Each record
+    describes the sales of a particular product to a customer located in one of three global
+    regions: North America, Europe, or Asia.
     """
 
     # Raise an error if the dataset is from the list of provided datasets
-    if dataset not in ["small_table", "game_revenue", "nycflights"]:
+    if dataset not in ["small_table", "game_revenue", "nycflights", "global_sales"]:
         raise ValueError(
             f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
             "- `small_table`\n"
@@ -518,6 +533,7 @@ def load_dataset(
             "small_table": ["date_time", "date"],
             "game_revenue": ["session_start", "time", "start_day"],
             "nycflights": [],
+            "global_sales": ["timestamp"],
         }
 
         dataset = pd.read_csv(data_path, parse_dates=parse_date_columns[dataset])
