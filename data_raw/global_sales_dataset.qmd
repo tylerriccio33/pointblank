@@ -5,7 +5,7 @@ html-table-processing: none
 
 ```{python}
 def generate_global_sales(n_rows=50000, output_file="global_sales.csv", seed=42):
-"""
+    """
     Generate a synthetic Global Sales dataset with hierarchical categorical variables.
 
     The function intentionally introduces data quality issues (approximately 12% of rows)
@@ -245,7 +245,7 @@ def generate_global_sales(n_rows=50000, output_file="global_sales.csv", seed=42)
         price_variation = random.uniform(0.9, 1.1)  # Some variation in price
         price = round(base_price * price_variation, 2)
         quantity = random.randint(1, 8)
-        revenue = price * quantity
+        revenue = round(price * quantity, 2)
         tax_rate = calculate_tax_rate(customer_info["country"])
         tax = round(revenue * tax_rate, 2)
         total = round(revenue + tax, 2)
@@ -297,7 +297,7 @@ def generate_global_sales(n_rows=50000, output_file="global_sales.csv", seed=42)
         price_variation = random.uniform(0.9, 1.1)  # Some variation in price
         price = round(base_price * price_variation, 2)
         quantity = random.randint(1, 8)
-        revenue = price * quantity
+        revenue = round(price * quantity, 2)
         tax_rate = calculate_tax_rate(customer_info["country"])
         tax = round(revenue * tax_rate, 2)
         total = round(revenue + tax, 2)
@@ -331,7 +331,7 @@ def generate_global_sales(n_rows=50000, output_file="global_sales.csv", seed=42)
                 price = round(random.uniform(1001, 2000), 2)  # Price > 1000
             else:
                 quantity = random.randint(1001, 2000)  # Quantity > 1000
-            revenue = price * quantity
+            revenue = round(price * quantity, 2)
             tax = round(revenue * tax_rate, 2)
             total = round(revenue + tax, 2)
 
