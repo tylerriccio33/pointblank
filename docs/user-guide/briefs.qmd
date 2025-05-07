@@ -48,7 +48,7 @@ data = pl.DataFrame({
 })
 
 # Create a validation with a global brief
-validation_1 = (
+(
     pb.Validate(
         data=data,
         tbl_name="example_data",
@@ -64,8 +64,6 @@ validation_1 = (
     )
     .interrogate()
 )
-
-validation_1
 ```
 
 In this example, every validation step will have a brief description that follows the pattern
@@ -80,7 +78,7 @@ what each validation step is checking.
 You can also set briefs for individual validation steps:
 
 ```{python}
-validation_2 = (
+(
     pb.Validate(data=data, tbl_name="example_data")
     .col_vals_gt(
         columns="value",
@@ -94,8 +92,6 @@ validation_2 = (
     )
     .interrogate()
 )
-
-validation_2
 ```
 
 Local briefs override any global briefs that might be set.
@@ -108,14 +104,13 @@ Briefs support templating elements that get replaced with specific values:
 - `{step}`: the step number in the validation plan
 - `{col}`: the column name(s) being validated
 - `{value}`: the comparison value used in the validation (when applicable)
-- `{set}`: the set of values used in set-based validations
-- `{operator}`: the logical operator used in the validation (e.g., `>`, `<`, etc.)
-- `{threshold}`: the threshold values defined for the validation step (if any)
+- `{thresholds}`: a short summary of thresholds levels set (or unset) for the step
+- `{segment}`, `{segment_column}`, `{segment_value}`: information on segmentation for the step
 
 Here's how to use these templates:
 
 ```{python}
-validation_3 = (
+(
     pb.Validate(data=data, tbl_name="example_data")
     .col_vals_gt(
         columns="value",
@@ -129,8 +124,6 @@ validation_3 = (
     )
     .interrogate()
 )
-
-validation_3
 ```
 
 These template elements make briefs highly flexible and customizable. You can combine multiple
@@ -139,12 +132,10 @@ descriptions. The templates help maintain consistency across your validation rep
 enough detail to understand what each step is checking.
 
 Note that not all templating elements will be relevant for every validation step. For instance,
-`{set}` is only applicable to validation functions like
-[`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
-that use a set of values, while `{value}` would be used in comparisons like
+`{value}` is only applicable to validation functions that hold a comparison value like
 [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html). If
-you include a templating element that isn't relevant to a particular step, it will simply be
-ignored.
+you include a templating element that isn't relevant to a particular step, it will not be replaced
+with a corresponding value.
 
 Briefs support the use of Markdown formatting, allowing you to add emphasis with **bold** or
 _italic_ text, include `inline code` formatting, or other Markdown elements to make your briefs more
@@ -157,7 +148,7 @@ If you want Pointblank to generate briefs for you automatically, you can set `br
 we'll make that setting at the global level (by using `Validate(brief=True)`):
 
 ```{python}
-validation_4 = (
+(
     pb.Validate(
         data=data,
         tbl_name="example_data",
@@ -173,8 +164,6 @@ validation_4 = (
     )
     .interrogate()
 )
-
-validation_4
 ```
 
 Automatic briefs are descriptive and include information about what's being validated, including the
@@ -186,7 +175,7 @@ When using the `lang=` parameter in `Validate()`, automatically generated briefs
 the specified language (along with other elements of the validation report table):
 
 ```{python}
-validation_5 = (
+(
     pb.Validate(
         data=data,
         tbl_name="example_data",
@@ -203,8 +192,6 @@ validation_5 = (
     )
     .interrogate()
 )
-
-validation_5
 ```
 
 When using the `lang=` parameter in combination with the `{auto}` templating element, the
@@ -223,7 +210,7 @@ If you've set a global brief but want to disable it for specific validation step
 `brief=False`:
 
 ```{python}
-validation_6 = (
+(
     pb.Validate(
         data=data,
         tbl_name="example_data",
@@ -237,8 +224,6 @@ validation_6 = (
     )
     .interrogate()
 )
-
-validation_6
 ```
 
 ## Best Practices for Using Briefs
@@ -291,7 +276,7 @@ complex_data = pl.DataFrame({
 })
 
 # Create a comprehensive validation
-validation_7 = (
+(
     pb.Validate(
         data=complex_data,
         tbl_name="complex_data",
@@ -315,8 +300,6 @@ validation_7 = (
     )
     .interrogate()
 )
-
-validation_7
 ```
 
 ## Conclusion
