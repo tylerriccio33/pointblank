@@ -6926,16 +6926,101 @@ def test_string_date_dttm_conversion_raises():
 
 
 def test_process_brief():
-    assert _process_brief(brief=None, step=1, col="x") is None
-    assert _process_brief(brief="A brief", step=1, col="x") == "A brief"
-    assert _process_brief(brief="A brief for step {step}", step=1, col="x") == "A brief for step 1"
     assert (
-        _process_brief(brief="Step {step}, Column {column}", step=1, col="x") == "Step 1, Column x"
+        _process_brief(brief=None, step=1, col="x", values=None, thresholds=None, segment=None)
+        is None
     )
-    assert _process_brief(brief="Step {i}, Column {col}", step=1, col="x") == "Step 1, Column x"
     assert (
-        _process_brief(brief="Multiple Columns {col}", step=1, col=["x", "y"])
+        _process_brief(brief="A brief", step=1, col="x", values=None, thresholds=None, segment=None)
+        == "A brief"
+    )
+    assert (
+        _process_brief(
+            brief="A brief for step {step}",
+            step=1,
+            col="x",
+            values=None,
+            thresholds=None,
+            segment=None,
+        )
+        == "A brief for step 1"
+    )
+    assert (
+        _process_brief(
+            brief="Step {step}, Column {column}",
+            step=1,
+            col="x",
+            values=None,
+            thresholds=None,
+            segment=None,
+        )
+        == "Step 1, Column x"
+    )
+    assert (
+        _process_brief(
+            brief="Step {i}, Column {col}",
+            step=1,
+            col="x",
+            values=None,
+            thresholds=None,
+            segment=None,
+        )
+        == "Step 1, Column x"
+    )
+    assert (
+        _process_brief(
+            brief="Multiple Columns {col}",
+            step=1,
+            col=["x", "y"],
+            values=None,
+            thresholds=None,
+            segment=None,
+        )
         == "Multiple Columns x, y"
+    )
+    assert (
+        _process_brief(
+            brief="Values are: {value}",
+            step=1,
+            col=None,
+            values=[1, 2, 3],
+            thresholds=None,
+            segment=None,
+        )
+        == "Values are: 1, 2, 3"
+    )
+    assert (
+        _process_brief(
+            brief="Thresholds are {thresholds}.",
+            step=1,
+            col=None,
+            values=None,
+            thresholds=Thresholds(warning=0.1, error=None, critical=32),
+            segment=None,
+        )
+        == "Thresholds are W: 0.1 / E: None / C: 32."
+    )
+    assert (
+        _process_brief(
+            brief="Segmentation: {segment}.",
+            step=1,
+            col=None,
+            values=None,
+            thresholds=None,
+            segment=("column", "value"),
+        )
+        == "Segmentation: column / value."
+    )
+    assert (
+        _process_brief(
+            brief="Segment: {segment_column} and {segment_value}",
+            step=1,
+            col=None,
+            values=None,
+            thresholds=None,
+            segment=("column", "seg1/seg2"),
+        )
+        == "Segment: column and seg1/seg2"
     )
 
 
