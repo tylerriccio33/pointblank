@@ -8158,6 +8158,7 @@ class Validate:
             inclusive = validation.inclusive
             na_pass = validation.na_pass
             threshold = validation.thresholds
+            segment = validation.segments
 
             assertion_method = ASSERTION_TYPE_METHOD_MAP[assertion_type]
             assertion_category = METHOD_CATEGORY_MAP[assertion_method]
@@ -8165,7 +8166,14 @@ class Validate:
 
             # Process the `brief` text for the validation step by including template variables to
             # the user-supplied text
-            validation.brief = _process_brief(brief=validation.brief, step=validation.i, col=column)
+            validation.brief = _process_brief(
+                brief=validation.brief,
+                step=validation.i,
+                col=column,
+                values=value,
+                thresholds=threshold,
+                segment=segment,
+            )
 
             # Generate the autobrief description for the validation step; it's important to perform
             # that here since text components like the column and the value(s) have been resolved
@@ -11645,7 +11653,14 @@ def _string_date_dttm_conversion(value: any) -> any:
     return value
 
 
-def _process_brief(brief: str | None, step: int, col: str | list[str] | None) -> str:
+def _process_brief(
+    brief: str | None,
+    step: int,
+    col: str | list[str] | None,
+    values: any | None,
+    thresholds: any | None,
+    segment: any | None,
+) -> str:
     # If there is no brief, return `None`
     if brief is None:
         return None
@@ -11664,6 +11679,34 @@ def _process_brief(brief: str | None, step: int, col: str | list[str] | None) ->
 
         brief = brief.replace("{col}", col)
         brief = brief.replace("{column}", col)
+
+    if values is not None:
+        # If the value is a list, then join the values into a comma-separated string
+        if isinstance(values, list):
+            values = ", ".join([str(v) for v in values])
+
+        brief = brief.replace("{value}", str(values))
+
+    if thresholds is not None:
+        # Get the string representation of thresholds in the form of:
+        # "W: 0.20 / C: 0.40 / E: 1.00"
+
+        warning_val = thresholds._get_threshold_value(level="warning")
+        error_val = thresholds._get_threshold_value(level="error")
+        critical_val = thresholds._get_threshold_value(level="critical")
+
+        thresholds_fmt = f"W: {warning_val} / E: {error_val} / C: {critical_val}"
+
+        brief = brief.replace("{thresholds}", thresholds_fmt)
+
+    if segment is not None:
+        # The segment is always a tuple of the form ("{column}", "{value}")
+
+        segment_fmt = f"{segment[0]} / {segment[1]}"
+
+        brief = brief.replace("{segment}", segment_fmt)
+        brief = brief.replace("{segment_column}", segment[0])
+        brief = brief.replace("{segment_value}", segment[1])
 
     return brief
 
