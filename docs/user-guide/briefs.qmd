@@ -105,7 +105,7 @@ Briefs support templating elements that get replaced with specific values:
 - `{col}`: the column name(s) being validated
 - `{value}`: the comparison value used in the validation (when applicable)
 - `{thresholds}`: a short summary of thresholds levels set (or unset) for the step
-- `{segment}`, `{segment_column}`, `{segment_value}`: information on segmentation for the step
+- `{segment}`, `{segment_column}`, `{segment_value}`: information on the step's segment
 
 Here's how to use these templates:
 
