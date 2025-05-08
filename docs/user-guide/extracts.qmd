@@ -1,5 +1,5 @@
 ---
-title: Working with Data Extracts
+title: Collecting Failed Rows
 jupyter: python3
 html-table-processing: none
 ---

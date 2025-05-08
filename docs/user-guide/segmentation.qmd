@@ -1,5 +1,5 @@
 ---
-title: Segmenting Data During Validation
+title: Segmented Steps
 jupyter: python3
 html-table-processing: none
 ---

@@ -1,5 +1,5 @@
 ---
-title: Splitting Validated Data with Sundering
+title: Sundering Validated Data
 jupyter: python3
 html-table-processing: none
 ---

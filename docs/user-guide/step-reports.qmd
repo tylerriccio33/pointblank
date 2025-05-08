@@ -1,5 +1,5 @@
 ---
-title: "Step Reports: Diagnosing Validation Results in Detail"
+title: "Step Reports"
 jupyter: python3
 html-table-processing: none
 ---

@@ -1,5 +1,5 @@
 ---
-title: Enhancing Validation Reports with Briefs
+title: Brief Notes
 jupyter: python3
 html-table-processing: none
 ---

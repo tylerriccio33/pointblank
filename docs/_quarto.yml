@@ -57,7 +57,7 @@ website:
             - user-guide/index.qmd
             - user-guide/thresholds.qmd
             - user-guide/actions.qmd
-        - section: "Defining Validation Steps"
+        - section: "Validation Steps"
           contents:
             - user-guide/types.qmd
             - user-guide/columns.qmd
