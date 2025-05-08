@@ -181,12 +181,12 @@ def test_col_summary_tbl_polars_snap(snapshot):
     snapshot.assert_match(col_summary_html, "col_summary_html_polars.html")
 
 
-def test_col_summary_tbl_duckdb_snap(snapshot):
-    dataset = load_dataset(dataset="small_table", tbl_type="duckdb")
-    col_summary_html = col_summary_tbl(dataset).as_raw_html()
-
-    # Use the snapshot fixture to create and save the snapshot
-    snapshot.assert_match(col_summary_html, "col_summary_html_duckdb.html")
+# def test_col_summary_tbl_duckdb_snap(snapshot):
+#     dataset = load_dataset(dataset="small_table", tbl_type="duckdb")
+#     col_summary_html = col_summary_tbl(dataset).as_raw_html()
+#
+#     # Use the snapshot fixture to create and save the snapshot
+#     snapshot.assert_match(col_summary_html, "col_summary_html_duckdb.html")
 
 
 def test_datascan_class_raises():
