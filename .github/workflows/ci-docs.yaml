@@ -52,6 +52,12 @@ jobs:
     needs: "build-docs"
     if: github.event_name == 'pull_request'
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_site
+
+      # start deployment ----
       - name: Configure pull release name
         if: ${{github.event_name == 'pull_request'}}
         run: |
