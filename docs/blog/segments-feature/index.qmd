@@ -68,7 +68,6 @@ First, let's take a look at what this dataset contains:
 
 ```{python}
 import pointblank as pb
-import polars as pl
 
 # Load the global_sales dataset
 global_sales = pb.load_dataset(dataset="global_sales")
@@ -190,6 +189,8 @@ My personal favorite approach is combining preprocessing with segmentation. This
 custom segments on the fly:
 
 ```{python}
+import polars as pl
+
 (
     pb.Validate(
         data=global_sales,
