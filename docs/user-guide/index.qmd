@@ -196,9 +196,9 @@ system.
 This introduction has covered the basics of data validation with Pointblank. As you continue to
 explore the library's capabilities, the User Guide is organized into three main sections:
 
-### Validation Steps
+### Validation Plan
 
-The [Validation Steps](types.qmd) section covers everything you need to know about creating robust
+The *Validation Plan* section covers everything you need to know about creating robust
 validation plans:
 
 - [Validation Types](types.qmd): Learn about the different validation methods available
@@ -211,7 +211,8 @@ validation plans:
 
 ### Post Interrogation
 
-After validating your data, the Post Interrogation section helps you analyze and respond to results:
+After validating your data, the *Post Interrogation* section helps you analyze and respond to
+results:
 
 - [Step Reports](step-reports.qmd): View detailed results for individual validation steps
 - [Data Extracts](extracts.qmd): Extract and analyze failing data
@@ -219,7 +220,7 @@ After validating your data, the Post Interrogation section helps you analyze and
 
 ### Data Inspection
 
-The Data Inspection section provides tools to explore and understand your data:
+The *Data Inspection* section provides tools to explore and understand your data:
 
 - [Previewing Data](preview.qmd): View samples of your data
 - [Column Summaries](col-summary-tbl.qmd): Get statistical summaries of your data
