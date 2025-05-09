@@ -204,7 +204,7 @@ system.
 ## Navigating the User Guide
 
 This introduction has covered the basics of data validation with Pointblank. As you continue to
-explore the library's capabilities, the User Guide is organized into three main sections:
+explore the library's capabilities, the **User Guide** is organized into three main sections:
 
 ### Validation Plan
 
