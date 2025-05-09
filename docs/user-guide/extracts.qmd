@@ -57,13 +57,13 @@ than row values.
 
 There are three primary ways to access data extracts in Pointblank:
 
-1. **CSV buttons in validation reports**
-2. **the [`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html) method**
-3. **direct access via step reports**
+1. the **CSV** buttons in validation reports
+2. through the [`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html) method
+3. inspecting a subset of failed rows in step reports
 
 Let's explore each approach using examples.
 
-*Data Extracts as CSV Data in the Validation Report*
+### Data Extracts as CSV Data in the Validation Report
 
 Data extracts are embedded within validation report tables. Let's look at an example, using the
 `small_table` dataset, where data extracts are collected in a single validation step due to failing
@@ -103,7 +103,7 @@ software, import it into a different analysis environment like R or Julia, or pr
 tool that supports CSV files. This cross-platform compatibility makes the CSV export particularly
 valuable in mixed-language data teams where different members might be working with different tools.
 
-*Using the `get_data_extracts()` Method*
+### Using the `get_data_extracts()` Method
 
 For programmatic access to data extracts, Pointblank provides the
 [`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
@@ -130,7 +130,7 @@ is a single integer)
 - the extract includes all columns from the original data, not just the column being validated
 - an additional `_row_num_` column is added to identify the original row positions
 
-*Direct Access via Step Reports*
+### Inspecting a Subset of Failed Rows in Step Reports
 
 Step reports provide another way to access and visualize failing data. When you generate a step
 report for a validation step that has failing rows, those failing rows are displayed directly in the
