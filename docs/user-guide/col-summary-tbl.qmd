@@ -1,5 +1,5 @@
 ---
-title: Getting Column Summaries
+title: Column Summaries
 jupyter: python3
 toc-expand: 2
 html-table-processing: none

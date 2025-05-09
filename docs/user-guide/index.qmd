@@ -110,17 +110,19 @@ Knowing about the numbers of test units across validation methods matters becaus
 option to set thresholds (that can signal 'warning', 'error', and 'critical' flags) based on either
 the relative proportion or absolute number of failing test units.
 
+Understanding test units is essential because they form the foundation of Pointblank's threshold
+system. With test units defined, you can establish meaningful quality thresholds that trigger
+'warning', 'error', or 'critical' signals when data problems arise. These thresholds can be set as
+either absolute counts (e.g., 'flag if 5 values fail') or relative proportions (e.g., 'flag if more
+than 1% of values fail'), giving you flexible control over data quality monitoring.
+
 Here's a simple example that uses a single validation step along with thresholds set in the
 `thresholds=` argument of the validation method.
 
 ```{python}
 validation_2 = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_lt(
-        columns="a",
-        value=7,
-        thresholds=(2, 4)
-    )
+    .col_vals_lt(columns="a", value=7, thresholds=(2, 4))
     .interrogate()
 )
 
@@ -144,3 +146,84 @@ in your data. How you set the particular threshold levels is highly dependent on
 data failures. The idea of thresholds and associated actions is central to how Pointblank works, so,
 the next two sections in the **User Guide** will deal with (1) a more in-depth treatment of
 thresholds, and (2) how to set actions for threshold exceedances.
+
+## Setting Thresholds for Data Quality Signals
+
+Thresholds by themselves are useful for highlighting issues in your data, but Pointblank becomes
+even more powerful when you combine thresholds with actions. Actions let you trigger responses when
+validation failures exceed threshold levels.
+
+Here's a simple example that adds an action to the previous validation:
+
+```{python}
+validation_3 = (
+    pb.Validate(data=pb.load_dataset(dataset="small_table"))
+    .col_vals_lt(
+        columns="a",
+        value=7,
+        thresholds=pb.Thresholds(warning=2, error=4),
+        actions=pb.Actions(
+            warning="WARNING: Column 'a' has values that aren't less than 7."
+        )
+    )
+    .interrogate()
+)
+
+validation_3
+```
+
+In this example:
+
+1. We set a 'warning' threshold of 2 failing test units
+2. We add an action using `actions=pb.Actions(warning="...")` that triggers when the 'warning'
+threshold is exceeded
+3. The action outputs a message to the console when the validation is performed
+
+When we run this code, the warning message `"WARNING: Column 'a' has values that aren't less than
+7."` appears in the output. This happens because the validation detected exactly 2 failing values,
+which matches our warning threshold. The warning indicator in the report (filled gray circle)
+visually confirms this threshold was reached, while the action provides immediate feedback during
+the validation process.
+
+Actions make your validation workflows more responsive and integrated with your data pipelines.
+Rather than just generating reports, Pointblank can actively notify you of issues through console
+messages, Slack notifications, etc.. This combination of thresholds and actions transforms
+Pointblank from a passive validation tool into an active component of your data quality management
+system.
+
+## Navigating the User Guide
+
+This introduction has covered the basics of data validation with Pointblank. As you continue to
+explore the library's capabilities, the User Guide is organized into three main sections:
+
+### Validation Steps
+
+The [Validation Steps](types.qmd) section covers everything you need to know about creating robust
+validation plans:
+
+- [Validation Types](types.qmd): Learn about the different validation methods available
+- [Column Selection](columns.qmd): Techniques for targeting specific columns
+- [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
+- [Actions](actions.qmd): Respond to threshold exceedances with notifications or custom functions
+- [Preprocessing](preprocessing.qmd): Transform data before validation
+- [Segmentation](segmentation.qmd): Apply validations to specific segments of your data
+- [Brief Notes](briefs.qmd): Add context to validation steps
+
+### Post Interrogation
+
+After validating your data, the Post Interrogation section helps you analyze and respond to results:
+
+- [Step Reports](step-reports.qmd): View detailed results for individual validation steps
+- [Data Extracts](extracts.qmd): Extract and analyze failing data
+- [Sundering Validated Data](sundering.qmd): Split data based on validation results
+
+### Data Inspection
+
+The Data Inspection section provides tools to explore and understand your data:
+
+- [Previewing Data](preview.qmd): View samples of your data
+- [Column Summaries](col-summary-tbl.qmd): Get statistical summaries of your data
+- [Missing Values Reporting](missing-vals-tbl.qmd): Identify and visualize missing data
+
+By following this guide, you'll gain a comprehensive understanding of how to validate, monitor, and
+maintain high-quality data with Pointblank.
