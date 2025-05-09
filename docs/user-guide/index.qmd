@@ -104,7 +104,7 @@ number of test units is the number of rows in the target table). Some validation
 have only a single test unit since they aren't testing individual values but rather if the overall
 test passes or fails.
 
-## Using Threshold Levels
+## Setting Thresholds for Data Quality Signals
 
 Knowing about the numbers of test units across validation methods matters because you have the
 option to set thresholds (that can signal 'warning', 'error', and 'critical' flags) based on either
@@ -147,7 +147,7 @@ data failures. The idea of thresholds and associated actions is central to how P
 the next two sections in the **User Guide** will deal with (1) a more in-depth treatment of
 thresholds, and (2) how to set actions for threshold exceedances.
 
-## Setting Thresholds for Data Quality Signals
+## Taking Action on Threshold Exceedances
 
 Thresholds by themselves are useful for highlighting issues in your data, but Pointblank becomes
 even more powerful when you combine thresholds with actions. Actions let you trigger responses when
