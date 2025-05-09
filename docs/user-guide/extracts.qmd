@@ -25,15 +25,6 @@ This article will cover:
 - practical examples of using extracts for data quality improvement
 - advanced techniques for analyzing extract patterns
 
-## Understanding Data Extracts
-
-When Pointblank validates data, it evaluates individual values (test units) according to specific
-rules. For example, when using `col_vals_gt(columns="value", value=0)`, each value in the `value`
-column is a test unit that either passes or fails the 'greater than zero' test.
-
-When any test unit fails in a row, that entire row is marked for extraction. This approach gives you
-complete context around failing values rather than just the problematic cells in isolation.
-
 ## The Validation Methods that Work with Data Extracts
 
 The following validation methods are row-based and will have rows extracted when there are failing
