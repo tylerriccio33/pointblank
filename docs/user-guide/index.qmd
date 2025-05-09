@@ -212,7 +212,7 @@ The *Validation Plan* section covers everything you need to know about creating 
 validation plans:
 
 - [Validation Types](types.qmd): Learn about the different validation methods available
-- [Column Selection](columns.qmd): Techniques for targeting specific columns
+- [Column Selection Patterns](columns.qmd): Techniques for targeting specific columns
 - [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
 - [Actions](actions.qmd): Respond to threshold exceedances with notifications or custom functions
 - [Preprocessing](preprocessing.qmd): Transform data before validation
