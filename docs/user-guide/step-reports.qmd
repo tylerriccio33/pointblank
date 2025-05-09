@@ -125,7 +125,7 @@ data = pl.DataFrame({
 })
 
 # Create a validation with a value-based check
-validation = (
+validation_values = (
     pb.Validate(data=data, tbl_name="sales_data")
     .col_vals_gt(
         columns="value",
@@ -136,7 +136,7 @@ validation = (
 )
 
 # Display the step report for the value-based validation
-validation.get_step_report(i=1)
+validation_values.get_step_report(i=1)
 ```
 
 This report clearly identifies which rows contain values that don't meet our threshold, making it
@@ -158,7 +158,7 @@ data = pl.DataFrame({
 })
 
 # Create a validation checking for unique customer-product combinations
-validation = (
+validation_duplicates = (
     pb.Validate(data=data, tbl_name="order_data")
     .rows_distinct(
         columns_subset=["customer_id", "product"],
@@ -168,7 +168,7 @@ validation = (
 )
 
 # Display the step report for the uniqueness validation
-validation.get_step_report(i=1)
+validation_duplicates.get_step_report(i=1)
 ```
 
 The report organizes duplicate records together, making it easy to see which combinations are
@@ -193,7 +193,7 @@ schema = pb.Schema(
     ]
 )
 
-validation = (
+validation_schema = (
     pb.Validate(
         data=pb.load_dataset(dataset="small_table", tbl_type="duckdb"),
         tbl_name="small_table",
@@ -204,7 +204,7 @@ validation = (
 )
 
 # Display the step report for the schema validation
-validation.get_step_report(i=1)
+validation_schema.get_step_report(i=1)
 ```
 
 This report style focuses on comparing the expected schema against the actual table structure,
