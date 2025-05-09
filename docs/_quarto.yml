@@ -55,6 +55,7 @@ website:
         - section: "Getting Started"
           contents:
             - user-guide/index.qmd
+            - user-guide/installation.qmd
         - section: "Validation Steps"
           contents:
             - user-guide/types.qmd
