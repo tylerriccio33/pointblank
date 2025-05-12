@@ -59,7 +59,7 @@ website:
         - section: "Validation Plan"
           contents:
             - user-guide/validation-overview.qmd
-            - user-guide/columns.qmd
+            - user-guide/column-selection-patterns.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
             - user-guide/thresholds.qmd

@@ -362,7 +362,7 @@ results in domain-specific terms rather than technical jargon.
 Each validation step can be further customized and has additional options. See these pages for more
 information:
 
-- [Column Selection Patterns](columns.qmd): Techniques for targeting specific columns
+- [Column Selection Patterns](column-selection-patterns.qmd): Techniques for targeting specific columns
 - [Preprocessing](preprocessing.qmd): Transform data before validation
 - [Segmentation](segmentation.qmd): Apply validations to specific segments of your data
 - [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
