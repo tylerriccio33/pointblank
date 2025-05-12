@@ -58,23 +58,38 @@ website:
             - user-guide/installation.qmd
         - section: "Validation Steps"
           contents:
-            - user-guide/types.qmd
-            - user-guide/columns.qmd
-            - user-guide/thresholds.qmd
+            - user-guide/validation-overview.qmd
+            - user-guide/thresholds.qmd # test units here as well
             - user-guide/actions.qmd
+            - user-guide/columns.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
             - user-guide/briefs.qmd
+        #   - user-guide/types.qmd rundown of all validation steps
+        #- section: "Advanced Validation"
+        #  contents:
+        #    - user-guide/schema-validation.qmd
+        #    - user-guide/draft-validation.qmd
+        #    - user-guide/expressions.qmd
+        #    - user-guide/assertions.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd
             - user-guide/extracts.qmd
             - user-guide/sundering.qmd
+        #- section: "Configuration & Integration"
+        #  contents:
+        #    - user-guide/config.qmd
+        #    - user-guide/notifications.qmd
+        #    - user-guide/final-actions.qmd
         - section: "Data Inspection"
           contents:
             - user-guide/preview.qmd
             - user-guide/col-summary-tbl.qmd
             - user-guide/missing-vals-tbl.qmd
+        #- section: "Data Profiling"
+        #  contents:
+        #    - user-guide/data-scan.qmd
 
 html-table-processing: none
 
@@ -127,9 +142,9 @@ quartodoc:
         - name: Validate.col_vals_not_null
         - name: Validate.col_vals_regex
         - name: Validate.col_vals_expr
-        - name: Validate.col_exists
         - name: Validate.rows_distinct
         - name: Validate.rows_complete
+        - name: Validate.col_exists
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
         - name: Validate.col_count_match
