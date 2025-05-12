@@ -59,11 +59,11 @@ website:
         - section: "Validation Steps"
           contents:
             - user-guide/validation-overview.qmd
-            - user-guide/thresholds.qmd # test units here as well
-            - user-guide/actions.qmd
             - user-guide/columns.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
+            - user-guide/thresholds.qmd
+            - user-guide/actions.qmd
             - user-guide/briefs.qmd
         #   - user-guide/types.qmd rundown of all validation steps
         #- section: "Advanced Validation"
