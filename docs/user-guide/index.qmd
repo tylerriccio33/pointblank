@@ -159,6 +159,8 @@ validation_3 = (
         columns="a",
         value=7,
         thresholds=pb.Thresholds(warning=2, error=4),
+
+        # Set an action for the 'warning' threshold ---
         actions=pb.Actions(
             warning="WARNING: Column 'a' has values that aren't less than 7."
         )
@@ -178,8 +180,7 @@ example, you can generate console messages, Slack notifications, and more.
 
 ## Navigating the User Guide
 
-This introduction has covered the basics of data validation with Pointblank. As you continue to
-explore the library's capabilities, the **User Guide** is organized into three main sections:
+As you continue exploring Pointblank's capabilities, you'll find the **User Guide* organized into sections that will help you navigate the various features.
 
 ### Validation Plan
 

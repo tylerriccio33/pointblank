@@ -20,6 +20,7 @@ Here's a validation that incorporates four different validation methods:
 
 ```{python}
 import pointblank as pb
+import polars as pl
 
 (
     pb.Validate(
@@ -361,12 +362,12 @@ results in domain-specific terms rather than technical jargon.
 Each validation step can be further customized and has additional options. See these pages for more
 information:
 
-- [Column Selection Patterns](columns.qmd): Target specific columns for validation
+- [Column Selection Patterns](columns.qmd): Techniques for targeting specific columns
 - [Preprocessing](preprocessing.qmd): Transform data before validation
-- [Segmentation](segmentation.qmd): Validate data across different groups
-- [Thresholds](thresholds.qmd): Set acceptable failure levels
-- [Actions](actions.qmd): Define custom responses to validation failures
-- [Briefs](briefs.qmd): Customize validation messages
+- [Segmentation](segmentation.qmd): Apply validations to specific segments of your data
+- [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
+- [Actions](actions.qmd): Respond to threshold exceedances with notifications or custom functions
+- [Briefs](briefs.qmd): Add context to validation steps
 
 ## Conclusion
 
