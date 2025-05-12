@@ -86,26 +86,26 @@ method executes the validation plan on the table
 This common pattern is used in a validation workflow, where
 [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) and
 [`interrogate()`](https://posit-dev.github.io/pointblank/reference/Validate.interrogate.html)
-bookend a validation plan generated through calling validation methods. And that's data validation
-with Pointblank in a nutshell! In the next section we'll go a bit further by understanding how we
-can measure data quality with test units and failure thresholds.
+bookend a validation plan generated through calling validation methods.
+
+In the next few sections we'll go a bit further by understanding how we can measure data quality and
+respond to failures.
 
 ## Understanding Test Units
 
-NOTE: ensure that this information is covered somewhere in the guide
-
 Each validation step will execute a type of validation test on the target table. For example, a
 [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
-validation step can test that each value in a column is less than a specified number. The key
-finding that's reported as a result of this test is the number of test units that pass or fail.
+validation step can test that each value in a column is less than a specified number. And the key
+finding that's reported in each step is the number of *test units* that pass or fail.
 
-Test units are dependent on the test being run. The collection of `col_vals_*` validation methods
-will test each and every value in a particular column, so each value will be a test unit (and the
-number of test units is the number of rows in the target table). Some validation methods like
-[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
-[`row_count_match()`](https://posit-dev.github.io/pointblank/reference/Validate.row_count_match.html)
-have only a single test unit since they aren't testing individual values but rather if the overall
-test passes or fails.
+In the validation report table, test unit metrics are displayed under the `UNITS`, `PASS`, and
+`FAIL` columns. This diagram explains what the tabulated values signify:
+
+![](/assets/validation-test-units.png){width=100%}
+
+Test units are dependent on the test being run. Some validation methods might test every value in a
+particular column, so each value will be a test unit. Others will only have a single test unit since
+they aren't testing individual values but rather if the overall test passes or fails.
 
 ## Setting Thresholds for Data Quality Signals
 
