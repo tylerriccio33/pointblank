@@ -186,13 +186,13 @@ explore the library's capabilities, the **User Guide** is organized into three m
 The *Validation Plan* section covers everything you need to know about creating robust
 validation plans:
 
-- [Validation Types](types.qmd): Learn about the different validation methods available
+- [Overview](validation-overview.qmd): Survey of validation methods and their shared parameters
 - [Column Selection Patterns](columns.qmd): Techniques for targeting specific columns
-- [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
-- [Actions](actions.qmd): Respond to threshold exceedances with notifications or custom functions
 - [Preprocessing](preprocessing.qmd): Transform data before validation
 - [Segmentation](segmentation.qmd): Apply validations to specific segments of your data
-- [Brief Notes](briefs.qmd): Add context to validation steps
+- [Thresholds](thresholds.qmd): Set quality standards and trigger severity levels
+- [Actions](actions.qmd): Respond to threshold exceedances with notifications or custom functions
+- [Briefs](briefs.qmd): Add context to validation steps
 
 ### Post Interrogation
 

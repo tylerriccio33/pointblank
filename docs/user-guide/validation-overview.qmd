@@ -361,12 +361,12 @@ results in domain-specific terms rather than technical jargon.
 Each validation step can be further customized and has additional options. See these pages for more
 information:
 
-- [Thresholds](thresholds.qmd): set acceptable failure levels
-- [Actions](actions.qmd): define custom responses to validation failures
-- [Column Selection](columns.qmd): target specific columns for validation
-- [Preprocessing](preprocessing.qmd): transform data before validation
-- [Segmentation](segmentation.qmd): validate data across different groups
-- [Briefs](briefs.qmd): customize validation messages
+- [Column Selection Patterns](columns.qmd): Target specific columns for validation
+- [Preprocessing](preprocessing.qmd): Transform data before validation
+- [Segmentation](segmentation.qmd): Validate data across different groups
+- [Thresholds](thresholds.qmd): Set acceptable failure levels
+- [Actions](actions.qmd): Define custom responses to validation failures
+- [Briefs](briefs.qmd): Customize validation messages
 
 ## Conclusion
 

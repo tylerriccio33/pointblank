@@ -56,7 +56,7 @@ website:
           contents:
             - user-guide/index.qmd
             - user-guide/installation.qmd
-        - section: "Validation Steps"
+        - section: "Validation Plan"
           contents:
             - user-guide/validation-overview.qmd
             - user-guide/columns.qmd
