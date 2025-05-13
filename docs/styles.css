@@ -85,8 +85,8 @@ a.sidebar-item-toggle.text-start > i {
     color: #FAFAFD;
 }
 
-.sidebar-item-text .sidebar-link .active {
-    text-decoration: underline;;
+a.sidebar-item-text.sidebar-link.active {
+    text-decoration: underline;
 }
 
 #api-reference > h1 {
