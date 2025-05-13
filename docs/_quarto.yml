@@ -70,7 +70,7 @@ website:
           contents:
             - user-guide/schema-validation.qmd
             - user-guide/draft-validation.qmd
-        #   - user-guide/expressions.qmd
+            - user-guide/expressions.qmd
         #   - user-guide/assertions.qmd
         - section: "Post Interrogation"
           contents:
