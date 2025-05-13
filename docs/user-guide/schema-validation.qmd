@@ -100,7 +100,7 @@ data source:
 For specific database engines or DataFrame libraries, you may need to use their exact type names
 (like `"VARCHAR(255)"` for SQL databases or `"Int64"` for Polars integers).
 
-### Discovering Column Types
+## Discovering Column Types
 
 To easily determine the correct type string for columns in your data, Pointblank provides two
 helpful functions:
@@ -417,7 +417,7 @@ validation = (
 validation.get_step_report(i=1)
 ```
 
-### Mixed Validation (Some Columns with Types, Some Without)
+### Mixed Validation
 
 Validate types for critical columns but just presence for others:
 
