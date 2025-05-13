@@ -1,0 +1,554 @@
+---
+title: Schema Validation
+jupyter: python3
+toc-expand: 2
+html-table-processing: none
+---
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
+Schema validation in Pointblank allows you to verify that your data conforms to an expected
+structure and type specification. This is particularly useful when ensuring data consistency across
+systems or validating incoming data against predefined requirements.
+
+## Schema Definition and Validation
+
+The [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class provides a
+convenient way to define and validate data schemas. A schema describes the expected structure of a
+table, including column names, types, and other properties. To apply schema validation to your data,
+you'll use the [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class in
+conjunction with the
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+validation step, which verifies that your data conforms to the defined schema.
+
+```{python}
+import pointblank as pb
+
+# Create a schema definition matching small_table structure
+schema = pb.Schema(
+    columns=[
+        ("date_time", ),
+        ("date", ),
+        ("a", "Int64"),
+        ("b", "String"),
+        ("c", "Int64"),
+        ("d", "Float64"),
+        ("e", "Boolean"),
+        ("f", )
+    ]
+)
+
+# Validate the small_table against the schema
+small_table_validation = (
+    pb.Validate(
+        data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
+        label="Schema validation of `small_table`."
+    )
+    .col_schema_match(schema=schema)
+    .interrogate()
+)
+
+small_table_validation
+```
+
+In this example, we're performing several key steps with regard to schema validation:
+
+1. We create a `Schema` object that defines the expected structure of our data:
+   - Two datetime-related columns (`date_time` and `date`)
+   - Two integer columns (`a` and `b`)
+   - One numeric column (`c`)
+   - Two string columns (`d` and `f`)
+   - One boolean column (`e`)
+2. We add a schema validation step with
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+
+The output shows whether the data matches our schema definition. If all columns have the correct
+names and types, the validation will pass (with a single passing test unit). If any discrepancies
+exist (e.g., a column has the wrong type or a required column is missing), the validation will
+fail, but the basic output won't show the specific mismatches.
+
+To get detailed information about schema validation failures, you need to use
+[`get_step_report()`](https://posit-dev.github.io/pointblank/reference/Validate.get_step_report.html):
+
+```{python}
+small_table_validation.get_step_report(i=1)
+```
+
+The step report above shows a successful validation in our example since the schema matches the
+data. However, in cases where validation fails, this report would provide specific details about
+which columns didn't match the schema and why (such as incorrect types, missing columns, or extra
+columns that weren't defined in the schema).
+
+## Schema Components
+
+When defining a schema for your data, you need to specify what structural components are required
+for your tables.
+
+A key benefit of Pointblank's schema validation is its flexibility. The defaults are strict, but you
+can loosen the schema check by allowing:
+
+- a subset of columns (so, not all columns need to be specified)
+- column definitions to be in any order
+- column types to be case insensitive
+- the use of substrings of column types to be valid
+
+This flexibility lets you focus on validating just the critical columns while allowing your data to
+contain additional information. You can then customize these defaults using the advanced options
+described below to make validation stricter when needed.
+
+Understanding these components helps you create precise schema definitions that match your data
+requirements while maintaining appropriate flexibility.
+
+### Column Types
+
+The schema definition accepts column types as string representations, which can vary depending on
+your data source type (Pandas DataFrame, Polars DataFrame, database table, etc.). Here are common
+column type names you can use:
+
+- `string`: Character data (may also be `"String"`, `"varchar"`, `"character"`, etc.)
+- `integer`: Integer values (may also be `"Int64"`, `"int"`, `"bigint"`, etc.)
+- `numeric`: Numeric values including integers and floating-point numbers (may also be `"Float64"`,
+`"double"`, `"decimal"`, etc.)
+- `boolean`: Logical values (`True`/`False`) (may also be `"Boolean"`, `"bool"`, etc.)
+- `datetime`: Date and time values (may also be `"Datetime"`, `"timestamp"`, etc.)
+- `date`: Date values (may also be `"Date"`, etc.)
+- `time`: Time values
+
+Type matching behavior can be controlled with options in the `col_schema_match()` method. By setting
+`case_sensitive_dtypes=False`, you can make type matching case-insensitive. Similarly, setting
+`full_match_dtypes=False` allows partial matching of type names (e.g., `"int"` will match with
+`"integer"`).
+
+For specific database engines or DataFrame libraries, you may need to use their exact type names
+(like `"VARCHAR(255)"` for SQL databases or `"Int64"` for Polars integers).
+
+## Creating a Schema
+
+There are four main ways to create a schema with the `Schema` class. Each method offers different
+advantages depending on your needs, and all produce schema objects that can be printed to display
+their column names and data types.
+
+### 1. Using a List of Tuples with `columns=`
+
+You can provide a list of tuples where each tuple contains a column name and optionally a data type:
+
+```python
+schema_tuples = pb.Schema(
+
+    # List of tuples approach: flexible for mixed type/name checking ---
+    columns=[
+        ("name", "String"), # Check name and type
+        ("age", "Int64"),   # Check name and type
+        ("height",)         # Check name only
+    ]
+)
+
+print(schema_tuples)
+```
+
+With this approach, you can specify just column names for some columns (without type checking) and
+both name and type for others.
+
+### 2. Using a Dictionary with `columns=`
+
+This approach is often the most readable when defining a schema manually:
+
+```{python}
+schema_dict = pb.Schema(
+
+    # Dictionary approach (keys are column names, values are data types) ---
+    columns={
+        "name": "String",
+        "age": "Int64",
+        "height": "Float64",
+        "created_at": "Datetime"
+    }
+)
+
+print(schema_dict)
+```
+
+If using this method of providing a schema, you must always provide column types along with the
+column names.
+
+### 3. Using Keyword Arguments
+
+For more readable code with a small number of columns:
+
+```{python}
+schema_kwargs = pb.Schema(
+
+    # Keyword arguments approach (more readable for simple schemas) ---
+    name="String",
+    age="Int64",
+    height="Float64"
+)
+
+print(schema_kwargs)
+```
+
+And just as with the dictionary means of input, column types and column names must always be
+provided.
+
+### 4. Extracting from an Existing Table with `tbl=`
+
+You can automatically extract a schema from an existing table:
+
+```{python}
+import polars as pl
+
+# Create a sample dataframe
+df = pl.DataFrame({
+    "name": ["Alice", "Bob", "Charlie"],
+    "age": [25, 30, 35],
+    "height": [5.6, 6.0, 5.8]
+})
+
+# Extract schema from table
+schema_from_table = pb.Schema(tbl=df)
+
+print(schema_from_table)
+```
+
+This is especially useful when you want to validate that future data matches the structure of a
+reference dataset.
+
+## Multiple Data Types for a Column
+
+In some cases, you may want to allow multiple possible data types for a column. You can specify a
+list of types:
+
+```{python}
+# Schema with multiple possible types for a column
+schema_multi_types = pb.Schema(
+    columns={
+        "name": "String",
+
+        # Accept either integer or float ---
+        "age": ["Int64", "Float64"],
+        "active": "Boolean"
+    }
+)
+
+print(schema_multi_types)
+```
+
+This is useful when working with data sources that might represent the same information in different
+ways (e.g., integers sometimes stored as floats).
+
+## Advanced Schema Validation Options
+
+When using schema validation with `col_schema_match()`, you can control exactly how the validation
+is performed with several important options.
+
+### Controlling Column Presence
+
+By default, `col_schema_match()` requires a complete match between the schema's columns and the
+table's columns. You can make this more flexible:
+
+```{python}
+# Create a sample table
+users_table_extra = pl.DataFrame({
+    "id": [1, 2, 3],
+    "name": ["Alice", "Bob", "Charlie"],
+    "age": [25, 30, 35],
+    "extra_col": ["a", "b", "c"]  # Extra column not in schema
+})
+
+# Create a schema
+schema = pb.Schema(
+    columns={"id": "Int64", "name": "String", "age": "Int64"}
+)
+
+# Validate without requiring all columns to be present
+(
+    pb.Validate(data=users_table_extra)
+    .col_schema_match(
+        schema=schema,
+
+        # Allow schema columns to be a subset ---
+        complete=False
+    )
+    .interrogate()
+)
+```
+
+### Column Order Enforcement
+
+You can control whether column order matters in your validation:
+
+```{python}
+# Create a sample table
+users_table = pl.DataFrame({
+    "id": [1, 2, 3],
+    "name": ["Alice", "Bob", "Charlie"],
+    "age": [25, 30, 35],
+})
+
+# Create a schema
+schema = pb.Schema(
+    columns={"name": "String", "age": "Int64", "id": "Int64"}
+)
+
+# Validate without enforcing column order
+(
+    pb.Validate(data=users_table)
+    .col_schema_match(
+        schema=schema,
+
+        # Don't enforce column order ---
+        in_order=False
+    )
+    .interrogate()
+)
+```
+
+### Case Sensitivity
+
+Control whether column names and data types are case-sensitive:
+
+```{python}
+# Create schema with different case charactistics
+case_schema = pb.Schema(
+    columns={"ID": "int64", "NAME": "string", "AGE": "int64"}
+)
+
+# Create validation with case-insensitive column names and types
+(
+    pb.Validate(data=users_table)
+    .col_schema_match(
+        schema=case_schema,
+
+        # Ignore case in column names ---
+        case_sensitive_colnames=False,
+
+        # Ignore case in data type names ---
+        case_sensitive_dtypes=False
+    )
+    .interrogate()
+)
+```
+
+### Type Matching Precision
+
+Control how strictly data types must match:
+
+```{python}
+# Create schema with simplified type names
+type_schema = pb.Schema(
+
+    # Using simplified type names ---
+    columns={"id": "int", "name": "str", "age": "int"}
+)
+
+# Allow partial type matches
+(
+    pb.Validate(data=users_table)
+    .col_schema_match(
+        schema=type_schema,
+
+        # Ignore case in data type names ---
+        case_sensitive_dtypes=False,
+
+        # Allow partial type name matches ---
+        full_match_dtypes=False
+    )
+    .interrogate()
+)
+```
+
+## Using Schema in Validation Workflows
+
+### Basic Schema Validation
+
+```{python}
+# Define a schema
+user_schema = pb.Schema(
+    columns={
+        "id": "Int64",
+        "name": "String",
+        "age": "Int64"
+    }
+)
+
+# Validate a table against the schema
+(
+    pb.Validate(data=users_table)
+    .col_schema_match(schema=user_schema)
+    .interrogate()
+)
+```
+
+### Combined with Other Validation Steps
+
+Schema validation can be combined with other validation steps for comprehensive data quality checks:
+
+```{python}
+# Define a schema
+schema = pb.Schema(
+    columns={
+        "id": "Int64",
+        "name": "String",
+        "age": "Int64"
+    }
+)
+
+# Create a validation plan
+validation = (
+    pb.Validate(
+        users_table,
+        label="User data validation",
+        thresholds=pb.Thresholds(warning=0.05, error=0.1)
+    )
+    # Add schema validation
+    .col_schema_match(schema=schema)
+
+    # Add other validation steps
+    .col_vals_not_null(columns="id")
+    .col_vals_gt(columns="age", value=26)
+    .interrogate()
+)
+
+validation
+```
+
+## Common Schema Validation Patterns
+
+This section explores common patterns for applying schema validation to different scenarios. Each
+pattern addresses specific validation needs you might encounter when working with real-world data.
+We'll examine the step reports
+([`get_step_report()`](https://posit-dev.github.io/pointblank/reference/Validate.get_step_report.html))
+for these validations since they provide more detailed information about what was checked and how
+the validation performed, offering an intuitive way to understand the results beyond simple
+pass/fail indicators.
+
+### Structural Validation Only
+
+When you only care about column names but not their types:
+
+```{python}
+# Create a schema with only column names
+structure_schema = pb.Schema(
+    columns=["id", "name", "age", "extra_col"]
+)
+
+# Validate structure only
+validation = (
+    pb.Validate(data=users_table_extra)
+    .col_schema_match(schema=structure_schema)
+    .interrogate()
+)
+
+validation.get_step_report(i=1)
+```
+
+### Mixed Validation (Some Columns with Types, Some Without)
+
+Validate types for critical columns but just presence for others:
+
+```{python}
+# Mixed validation for different columns
+mixed_schema = pb.Schema(
+    columns=[
+        ("id", "Int64"),       # Check name and type
+        ("name", "String"),    # Check name and type
+        ("age",),              # Check name only
+        ("extra_col",)         # Check name only
+    ]
+)
+
+# Validate with mixed approach
+validation = (
+    pb.Validate(data=users_table_extra)
+    .col_schema_match(schema=mixed_schema)
+    .interrogate()
+)
+
+validation.get_step_report(i=1)
+```
+
+### Progressive Schema Evolution
+
+As your data evolves, you might need to adapt your validation approach:
+
+```{python}
+# Original schema
+original_schema = pb.Schema(
+    columns={
+        "id": "Int64",
+        "name": "String"
+    }
+)
+
+# New data with additional columns
+evolved_data = pl.DataFrame({
+    "id": [1, 2, 3],
+    "name": ["Alice", "Bob", "Charlie"],
+    "age": [25, 30, 35],          # New column
+    "active": [True, False, True] # New column
+})
+
+# Validate with flexible parameters
+validation = (
+    pb.Validate(evolved_data)
+    .col_schema_match(
+        schema=original_schema,
+        complete=False,           # Allow extra columns
+        in_order=False            # Don't enforce order
+    )
+    .interrogate()
+)
+
+validation.get_step_report(i=1)
+```
+
+## Best Practices
+
+1. **Define schemas early**: document and define expected data structures early in your data
+workflow.
+
+2. **Choose the right creation method**:
+   - use `columns=<dict>` for readability with many columns
+   - use `columns=<list of tuples>` for mixed name/type validation
+   - use `kwargs` for small schemas with simple column names
+   - use `tbl=` to extract schemas from reference datasets
+
+3. **Be deliberate about strictness**: choose validation parameters based on your specific needs:
+   - strict validation (`complete=True`) for critical data interfaces
+   - flexible validation (`complete=False`, `in_order=False`) for evolving datasets
+
+4. **Reuse schemas**: create schema definitions that can be reused across multiple validation
+contexts.
+
+5. **Version control schemas**: as your data evolves, maintain versions of your schemas to track
+changes.
+
+6. **Extract schemas from reference data**: when you have a 'golden' dataset that represents your
+ideal structure, use `Schema(tbl=reference_data)` to extract its schema.
+
+7. **Consider type flexibility**: use multiple types per column (`["Int64", "Float64"]`) when
+working with data from diverse sources.
+
+8. **Combine with targeted validation**: use schema validation for structural checks and add
+specific validation steps for business rules.
+
+## Summary
+
+Schema validation provides a powerful mechanism for ensuring your data adheres to expected
+structural requirements. It serves as an excellent first line of defense in your data validation
+strategy, verifying that the data you're working with has the expected shape before applying more
+detailed business rule validations.
+
+The [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) class offers multiple
+ways to define schemas, from manual specification with dictionaries or keyword arguments to
+automatic extraction from reference tables. When combined with the flexible options of
+[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html),
+you can implement validation approaches ranging from strict structural enforcement to more flexible
+evolution-friendly checks.
+
+By understanding the different schema creation methods and validation options, you can efficiently
+validate the structure of your data tables and ensure they meet your requirements before processing.

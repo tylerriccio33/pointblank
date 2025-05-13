@@ -66,12 +66,12 @@ website:
             - user-guide/actions.qmd
             - user-guide/briefs.qmd
         #   - user-guide/types.qmd rundown of all validation steps
-        #- section: "Advanced Validation"
-        #  contents:
-        #    - user-guide/schema-validation.qmd
-        #    - user-guide/draft-validation.qmd
-        #    - user-guide/expressions.qmd
-        #    - user-guide/assertions.qmd
+        - section: "Advanced Validation"
+          contents:
+            - user-guide/schema-validation.qmd
+        #   - user-guide/draft-validation.qmd
+        #   - user-guide/expressions.qmd
+        #   - user-guide/assertions.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd
@@ -80,8 +80,8 @@ website:
         #- section: "Configuration & Integration"
         #  contents:
         #    - user-guide/config.qmd
-        #    - user-guide/notifications.qmd
         #    - user-guide/final-actions.qmd
+        #    - user-guide/notifications.qmd
         - section: "Data Inspection"
           contents:
             - user-guide/preview.qmd
