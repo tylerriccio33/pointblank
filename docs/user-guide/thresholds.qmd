@@ -229,7 +229,7 @@ The dictionary must use the exact keys `"warning"`, `"error"`, and/or `"critical
 The simplest approach is using a single numeric value, which sets just the 'warning' threshold:
 
 ```{python}
-# Sets warning threshold to `5`
+# Sets 'warning' threshold to `5`
 thresholds_single = 5
 ```
 
