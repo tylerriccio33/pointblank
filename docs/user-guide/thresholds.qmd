@@ -139,7 +139,7 @@ parameter in [`Validate`](https://posit-dev.github.io/pointblank/reference/Valid
         thresholds=pb.Thresholds(warning=1, error=0.1)
     )
     .col_vals_not_null(columns="a")
-    .col_vals_gt(columns="b", value=2)
+    .col_vals_gt(columns="a", value=2)
     .interrogate()
 )
 ```
@@ -161,8 +161,7 @@ parameter in individual validation methods:
     )
     .col_vals_not_null(columns="a")
     .col_vals_gt(
-        columns="b",
-        value=2,
+        columns="a", value=2,
 
         # Step-specific threshold that overrides global ---
         thresholds=pb.Thresholds(warning=3)
@@ -252,13 +251,12 @@ configurations:
     )
 
     # Step 1: Uses global thresholds ---
-    .col_vals_not_null(columns="a")
+    .col_vals_not_null(columns="b")
 
     # Step 2: Overrides with step-specific thresholds ---
     .col_vals_gt(
-        columns="b",
-        value=2,
-        thresholds=pb.Thresholds(warning=1, critical=0.3) # No error threshold
+        columns="a", value=2,
+        thresholds=pb.Thresholds(warning=1, critical=0.3) # No 'error' threshold
     )
 
     # Step 3: Uses a simplified tuple notation ---
@@ -293,7 +291,7 @@ Here's a simple preview of how thresholds and actions work together:
         # Define actions for different threshold levels ---
         actions=pb.Actions(
             warning="Warning: {step} has {FAIL} failing values",
-            error="ERROR: Step {step} exceeded error threshold",
+            error="ERROR: Step {step} exceeded the 'error' threshold",
             critical="CRITICAL: Data quality issue in column {col}"
         )
     )
