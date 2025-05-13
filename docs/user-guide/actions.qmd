@@ -77,7 +77,11 @@ considered optional. Put another way, you can set various thresholds and various
 and the interrogation phase will determine whether all the requirements are met for executing
 an action.
 
-## Expressing Actions with a String
+## Defining Actions
+
+Actions can be defined in several ways, providing flexibility for different notification needs.
+
+### Using String Messages
 
 There are a few options in how to define the actions:
 
@@ -129,7 +133,7 @@ resulting text is capitalized (e.g., `"CRITICAL"`, `"COL_VALS_GT"`, etc.) and th
 capitalized the placeholder text itself. Have a look at the documentation article of
 [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) for more details on this.
 
-## Making Actions with Callables
+### Using Callable Functions
 
 Aside from strings, any callable can be used as an action value. Here's an example where we use a
 custom function as part of an action:
@@ -168,7 +172,14 @@ level (i.e., set in the [`Validate`](https://posit-dev.github.io/pointblank/refe
 call) or at the step level. The key thing to be aware of is that step-level settings of thresholds
 and actions take precedence.
 
-## Using `get_action_metadata()` to Access Metadata When Building an Action Callable
+## Accessing Context in Actions
+
+While string templates provide helpful placeholders to access information about validation steps,
+callable functions offer more flexibility through access to detailed metadata. When using functions
+as actions, you can retrieve comprehensive information about the validation context, allowing for
+complex logic and dynamic responses to validation issues.
+
+### Using `get_action_metadata()` in Callables
 
 To access information about the validation step where an action was triggered, we can call
 [`get_action_metadata()`](https://posit-dev.github.io/pointblank/reference/get_action_metadata.html)
@@ -226,12 +237,12 @@ contains the following fields:
 - `autobrief`: A localized and brief statement of the expectation for the step.
 - `failure_text`: Localized text that explains how the validation step failed.
 
-## Setting Default Actions and Controlling Action Behavior
+## Customizing Action Behavior
 
 The [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) class has two
 additional parameters that provide more control over how actions are executed:
 
-### Using the `default=` Parameter
+### Setting Default Actions with `default=`
 
 Instead of specifying actions separately for each threshold level, you can use the `default`
 parameter to set a common action for all levels:
@@ -348,7 +359,9 @@ When providing a list of actions, they will be executed in sequence when the thr
 This allows you to combine different types of actions such as displaying messages, sending
 notifications, and logging events.
 
-## Final Actions with `FinalActions`
+## Final Actions
+
+### Creating Final Actions
 
 When you need to execute actions after all validation steps are complete, Pointblank provides the
 [`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) class. Unlike
@@ -392,8 +405,6 @@ In this example:
 
 Because the 'critical' threshold was exceeded in Step 2, we see the printed alert of `send_alert()`
 after the simple string message.
-
-### Creating Final Actions
 
 [`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) accepts any
 number of actions as positional arguments. Each argument can be:
@@ -470,7 +481,7 @@ function, which is available in Pointblank as a pre-built action. It can be used
 `final_actions=` but here it's integrated into the user's `comprehensive_report()` function to
 provide finer control with conditional logic.
 
-### Combining the Two Types of Actions
+### Combining Step-level and Final Actions
 
 You can use both [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) and
 [`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) together for
