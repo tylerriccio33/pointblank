@@ -86,7 +86,7 @@ a.sidebar-item-toggle.text-start > i {
 }
 
 a.sidebar-item-text.sidebar-link.active {
-    color: rgb(255, 131, 8);
+    color: rgb(244, 121, 0);
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-decoration-color: rgba(101, 180, 237, 0.75);
