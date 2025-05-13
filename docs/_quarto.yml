@@ -31,6 +31,7 @@ website:
   search:
     show-item-context: true
   page-navigation: true
+  bread-crumbs: false
   favicon: assets/fav-logo.png
   site-url: https://posit-dev.github.io/pointblank/
   description: "Find out if your data is what you think it is"
