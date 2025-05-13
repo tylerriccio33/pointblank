@@ -140,7 +140,7 @@ can be printed to display their column names and data types.
 This approach allows for mixed validation: some columns checked for both name and type, others only
 for name:
 
-```python
+```{python}
 schema_tuples = pb.Schema(
 
     # List of tuples approach: flexible for mixed type/name checking ---
