@@ -64,7 +64,6 @@ p,h1,h2,h3,#toc-title,#toc-function-reference,.nav-link,.table {
 
 #quarto-margin-sidebar {
     margin-left: 20px;
-    top: 95px;
 }
 
 #quarto-margin-sidebar nav ul li  {
@@ -88,6 +87,8 @@ a.sidebar-item-toggle.text-start > i {
 
 a.sidebar-item-text.sidebar-link.active {
     text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-decoration-color: rgba(101, 180, 237, 0.75);
 }
 
 #api-reference > h1 {
