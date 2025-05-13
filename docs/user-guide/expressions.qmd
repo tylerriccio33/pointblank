@@ -12,8 +12,6 @@ import pointblank as pb
 pb.config(report_incl_footer=False)
 ```
 
-## Introduction
-
 While Pointblank offers many specialized validation functions for common data quality checks,
 sometimes you need more flexibility to address complex validation requirements. This is where
 expression-based validation methods come in.
@@ -102,7 +100,7 @@ game_revenue_pl = pb.load_dataset(dataset="game_revenue", tbl_type="polars")
 
         # Use Polars expression syntax ---
         expr=(pl.col("session_duration") > 20) | (pl.col("item_revenue") > 10),
-        brief="Sessions should be either long or high-value"
+        brief="Sessions should be either long or high-value."
     )
     .interrogate()
 )
@@ -229,8 +227,8 @@ validation_2 = (
     .interrogate()
 )
 
-print(f"Separate steps: {validation_1.n_failed()} total failures")
-print(f"Conjointly: {validation_2.n_failed()} total failures")
+print(f"Separate steps: {validation_1.n_failed()} total failures.")
+print(f"Conjointly: {validation_2.n_failed()} total failures.")
 ```
 
 ### Using Lambda Functions with Table Context
@@ -250,7 +248,7 @@ For example, with Polars:
         lambda df: pl.col("quantity") > 0,
         lambda df: pl.col("quantity") * pl.col("price") >= pl.col("revenue"),
         lambda df: pl.col("revenue") + pl.col("tax") >= pl.col("total"),
-        brief="Multiple conditions must be met for each row"
+        brief="Multiple conditions must be met for each row."
     )
     .interrogate()
 )
@@ -270,7 +268,7 @@ function:
         lambda df: pb.expr_col("quantity") > 0,
         lambda df: pb.expr_col("quantity") * pb.expr_col("price") >= pb.expr_col("revenue"),
         lambda df: pb.expr_col("revenue") + pb.expr_col("tax") >= pb.expr_col("total"),
-        brief="Multiple conditions must be met for each row"
+        brief="Multiple conditions must be met for each row".
     )
     .interrogate()
 )
@@ -284,7 +282,7 @@ function:
         lambda df: pb.expr_col("quantity") > 0,
         lambda df: pb.expr_col("quantity") * pb.expr_col("price") >= pb.expr_col("revenue"),
         lambda df: pb.expr_col("revenue") + pb.expr_col("tax") >= pb.expr_col("total"),
-        brief="Multiple conditions must be met for each row"
+        brief="Multiple conditions must be met for each row."
     )
     .interrogate()
 )
@@ -419,7 +417,7 @@ def generic_validation_fn(data, column):
             return [abs(x - mean_val) <= 2 * std_val for x in data[column]]
 
     except Exception as e:
-        print(f"Error in validation: {e}")
+        print(f"Error in validation: {e}.")
         return False
 ```
 
