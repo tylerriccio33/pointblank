@@ -65,7 +65,6 @@ website:
             - user-guide/thresholds.qmd
             - user-guide/actions.qmd
             - user-guide/briefs.qmd
-        #   - user-guide/types.qmd rundown of all validation steps
         - section: "Advanced Validation"
           contents:
             - user-guide/schema-validation.qmd
