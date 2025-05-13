@@ -444,11 +444,11 @@ Since expressions and custom functions can be complex, document your validation 
         # Use proper Polars expression
         expr=(pl.col("c") + pl.col("d")) / 2 > pl.col("a"),
         # Explain the business rule being enforced
-        brief="""
-        This validation checks that the average of columns `c` and `d` is
-        greater than the value in column `a`. This ensures that composite
-        scores meet our minimum quality threshold per business rule #23.
-        """
+        brief=(
+            "This validation checks that the average of columns `c` and `d` is"
+            "greater than the value in column `a`. This ensures that composite"
+            "scores meet our minimum quality threshold per business rule #23."
+        )
     )
     .interrogate()
 )
