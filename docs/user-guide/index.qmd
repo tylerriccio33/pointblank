@@ -200,6 +200,7 @@ The *Advanced Validation* section explores more specialized validation technique
 
 - [Schema Validation](schema-validation.qmd): Enforce table structure and column types
 - [Draft Validation](draft-validation.qmd): Create validation plans from existing data
+- [Expressions](expressions.qmd): Use column expressions and custom functions for advanced validation
 
 ### Post Interrogation
 
