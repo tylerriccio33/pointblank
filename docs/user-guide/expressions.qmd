@@ -28,9 +28,12 @@ Expression-based validations allow you to:
 
 This article covers three powerful expression-based validation methods in Pointblank:
 
-1. `col_vals_expr()`: For validating data using custom expressions
-2. `conjointly()`: For applying multiple validation steps simultaneously
-3. `specially()`: For implementing fully custom validation functions
+1. [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html):
+for validating data using custom expressions
+2. [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html): for
+applying multiple validation steps simultaneously
+3. [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html): for
+implementing fully custom validation functions
 
 ## Validating with Custom Expressions
 
@@ -69,8 +72,9 @@ larger than the value in column `d`.
 
 ### Expression Syntax
 
-Expressions in `col_vals_expr()` are specified as strings and follow Python syntax with a few
-important considerations:
+Expressions in
+[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+are specified as strings and follow Python syntax with a few important considerations:
 
 1. **Column references**: column names can be used directly in the expression (e.g.,
 `pl.col("a") > 10`)
@@ -196,8 +200,9 @@ Each lambda function takes the data table as an argument and returns a boolean e
 
 ### Difference from Individual Steps
 
-The key difference between using `conjointly()` and adding multiple individual validation steps is
-how test units are counted:
+The key difference between using
+[`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) and
+adding multiple individual validation steps is how test units are counted:
 
 - With separate steps, each condition is evaluated independently
 - With [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html),
@@ -428,10 +433,15 @@ When working with expression-based validations, keep these best practices in min
 Begin with the simplest validation approach that meets your needs. Only use more complex
 expression-based methods when simpler options don't suffice:
 
-- use built-in methods (`col_vals_gt()`, etc.) for simple validations
-- use `col_vals_expr()` for moderately complex logic
-- use `conjointly()` for multiple related conditions
-- use `specially()` only for highly custom validation logic
+- use built-in methods
+([`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html),
+etc.) for simple validations
+- use [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+for moderately complex logic
+- use [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
+for multiple related conditions
+- use [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) only
+for highly custom validation logic
 
 ### 2. Document Your Logic
 
@@ -483,9 +493,12 @@ is correct before applying it to large datasets.
 Expression-based validations provide powerful tools for implementing complex data quality checks in
 Pointblank:
 
-- `col_vals_expr()` allows you to validate data using custom expressions
-- `conjointly()` lets you apply multiple validation steps simultaneously
-- `specially()` enables fully custom validation functions
+- [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+allows you to validate data using custom expressions
+- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) lets
+you apply multiple validation steps simultaneously
+- [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) enables
+fully custom validation functions
 
 By combining these methods with Pointblank's other features like thresholds and actions, you can
 create sophisticated data validation workflows tailored to your specific requirements.
