@@ -57,6 +57,14 @@ def test_schema_str(capfd):
     assert captured.out == expected_output
 
 
+def test_schema_str_no_data_type(capfd):
+    schema = Schema(columns=[("a",), ("b", "str")])
+    print(schema)
+    captured = capfd.readouterr()
+    expected_output = "Pointblank Schema\n  a: <ANY>\n  b: str\n"
+    assert captured.out == expected_output
+
+
 def test_schema_repr():
     schema = Schema(columns=[("a", "int"), ("b", "str")])
     expected_repr = "Schema(columns=[('a', 'int'), ('b', 'str')])"

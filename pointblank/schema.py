@@ -728,7 +728,14 @@ class Schema:
                 return new_schema
 
     def __str__(self):
-        return "Pointblank Schema\n" + "\n".join([f"  {col[0]}: {col[1]}" for col in self.columns])
+        formatted_columns = []
+        for col in self.columns:
+            if len(col) == 1:  # Only column name provided (no data type)
+                formatted_columns.append(f"  {col[0]}: <ANY>")
+            else:  # Both column name and data type provided
+                formatted_columns.append(f"  {col[0]}: {col[1]}")
+
+        return "Pointblank Schema\n" + "\n".join(formatted_columns)
 
     def __repr__(self):
         return f"Schema(columns={self.columns})"
