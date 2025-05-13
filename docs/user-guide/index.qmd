@@ -22,10 +22,9 @@ This is a validation report table that is produced from a validation of a Polars
 
 ```{python}
 # | code-fold: true
-
 import pointblank as pb
 
-validation = (
+(
     pb.Validate(data=pb.load_dataset(dataset="small_table"), label="Example Validation")
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
@@ -33,8 +32,6 @@ validation = (
     .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$")
     .interrogate()
 )
-
-validation
 ```
 
 Each row in this reporting table constitutes a single validation step. Roughly, the left-hand side
@@ -54,8 +51,8 @@ table
 (*total*, *passing*, and *failing*), threshold flags, and more
 
 The intent is to provide the key information in one place, and have it be interpretable by data
-stakeholders. For example, a failure can be seen in the second row (there's a CSV button). A data
-quality stakeholder could click this to download a CSV of the failing rows.
+stakeholders. For example, a failure can be seen in the second row (notice there's a CSV button). A
+data quality stakeholder could click this to download a CSV of the failing rows for that step.
 
 ## Example Code, Step-by-Step
 
@@ -64,7 +61,7 @@ This section will walk you through the example code used above.
 ```python
 import pointblank as pb
 
-validation = (
+(
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(columns="a", value=10)
     .col_vals_between(columns="d", left=0, right=5000)
@@ -72,8 +69,6 @@ validation = (
     .col_vals_regex(columns="b", pattern=r"^[0-9]-[a-z]{3}-[0-9]{3}$")
     .interrogate()
 )
-
-validation
 ```
 
 Note these three key pieces in the code:
@@ -117,7 +112,7 @@ Here's a simple example that uses a single validation step along with thresholds
 [`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) class:
 
 ```{python}
-validation_2 = (
+(
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(
         columns="a",
@@ -128,8 +123,6 @@ validation_2 = (
     )
     .interrogate()
 )
-
-validation_2
 ```
 
 If you look at the validation report table, we can see:
@@ -153,7 +146,7 @@ notifications.
 Here's a simple example that adds an action to the previous validation:
 
 ```{python}
-validation_3 = (
+(
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
     .col_vals_lt(
         columns="a",
@@ -167,8 +160,6 @@ validation_3 = (
     )
     .interrogate()
 )
-
-validation_3
 ```
 
 Notice the printed warning message: `"WARNING: Column 'a' has values that aren't less than
@@ -180,7 +171,8 @@ example, you can generate console messages, Slack notifications, and more.
 
 ## Navigating the User Guide
 
-As you continue exploring Pointblank's capabilities, you'll find the **User Guide* organized into sections that will help you navigate the various features.
+As you continue exploring Pointblank's capabilities, you'll find the **User Guide* organized into
+sections that will help you navigate the various features.
 
 ### Validation Plan
 
