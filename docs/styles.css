@@ -64,6 +64,7 @@ p,h1,h2,h3,#toc-title,#toc-function-reference,.nav-link,.table {
 
 #quarto-margin-sidebar {
     margin-left: 20px;
+    top: 95px;
 }
 
 #quarto-margin-sidebar nav ul li  {
