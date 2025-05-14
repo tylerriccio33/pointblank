@@ -116,8 +116,8 @@ a.sidebar-item-text.sidebar-link.text-start[data-bs-toggle="collapse"] {
     cursor: default;
 }
 
-.sidebar-item-container {
-    cursor: default;
+div.sidebar-item-container {
+    cursor: default !important;
 }
 
 a.sidebar-item-toggle.text-start > i {
