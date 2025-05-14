@@ -268,7 +268,7 @@ function:
         lambda df: pb.expr_col("quantity") > 0,
         lambda df: pb.expr_col("quantity") * pb.expr_col("price") >= pb.expr_col("revenue"),
         lambda df: pb.expr_col("revenue") + pb.expr_col("tax") >= pb.expr_col("total"),
-        brief="Multiple conditions must be met for each row".
+        brief="Multiple conditions must be met for each row."
     )
     .interrogate()
 )
