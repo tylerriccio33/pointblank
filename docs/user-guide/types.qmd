@@ -428,7 +428,7 @@ Each validation method can be combined with others to build a comprehensive data
 tailored to your specific requirements. As your validation needs grow more complex, you can enhance
 these methods with:
 
-- [Column selection patterns](columns.qmd) for targeting multiple columns efficiently
+- [Column selection patterns](column-selection-patterns.qmd) for targeting multiple columns efficiently
 - [Thresholds](thresholds.qmd) to set acceptable failure levels
 - [Actions](actions.qmd) to respond to validation failures
 - [Preprocessing](preprocessing.qmd) to transform data before validation
@@ -436,5 +436,5 @@ these methods with:
 
 For a complete reference of all validation methods with detailed parameter descriptions and
 examples, see the [API Reference](https://posit-dev.github.io/pointblank/reference/). The next
-article in this guide covers [column selection patterns](columns.qmd) to help you target validation
-methods at multiple columns efficiently.
+article in this guide covers [column selection patterns](column-selection-patterns.qmd) to help you
+target validation methods at multiple columns efficiently.
