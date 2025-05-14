@@ -8772,6 +8772,10 @@ class Validate:
         assertion made is printed in the `AssertionError` message if a failure occurs, ensuring
         some details are preserved.
 
+        If the validation has not yet been interrogated, this method will automatically call
+        [`interrogate()`](`pointblank.Validate.interrogate`) with default parameters before checking
+        for passing tests.
+
         Raises
         -------
         AssertionError
@@ -8781,8 +8785,9 @@ class Validate:
         --------
         In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
         `c`). There will be three validation steps, and the second step will have a failing test
-        unit (the value `10` isn't less than `9`). After interrogation, the `assert_passing()`
-        method is used to assert that all validation steps passed perfectly.
+        unit (the value `10` isn't less than `9`). The `assert_passing()` method is used to assert
+        that all validation steps passed perfectly, automatically performing the interrogation if
+        needed.
 
         ```{python}
         #| error: True
@@ -8803,12 +8808,16 @@ class Validate:
             .col_vals_gt(columns="a", value=0)
             .col_vals_lt(columns="b", value=9) # this assertion is false
             .col_vals_in_set(columns="c", set=["a", "b"])
-            .interrogate()
         )
 
+        # No need to call [`interrogate()`](`pointblank.Validate.interrogate`) explicitly
         validation.assert_passing()
         ```
         """
+        # Check if validation has been interrogated
+        if not hasattr(self, "time_start") or self.time_start is None:
+            # Auto-interrogate with default parameters
+            self.interrogate()
 
         if not self.all_passed():
             failed_steps = [
