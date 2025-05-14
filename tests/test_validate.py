@@ -10199,6 +10199,145 @@ def test_assert_passing_example() -> None:
     passing_validation_no_interrogation.assert_passing()
 
 
+def test_assert_below_threshold_basic():
+    """Basic test for assert_below_threshold with passing thresholds"""
+
+    # Create a very simple table with obvious pass/fail patterns
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    # Test with all values passing
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3))
+        .col_vals_gt(columns="values", value=0)  # All pass
+        .interrogate()
+    )
+
+    # These should all pass since 0% failure is below all thresholds
+    validation.assert_below_threshold(level="warning")
+    validation.assert_below_threshold(level="error")
+    validation.assert_below_threshold(level="critical")
+
+
+def test_assert_below_threshold_all_fail():
+    """Test with all values failing the validation"""
+
+    # Create a very simple table where all values will fail validation
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    # All 5 values fail this test
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3))
+        .col_vals_gt(columns="values", value=10)  # All fail
+        .interrogate()
+    )
+
+    # All of these should raise AssertionError since 100% failure exceeds all thresholds
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="warning")
+
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="error")
+
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="critical")
+
+
+def test_assert_below_threshold_some_fail():
+    """Test with some values failing validation at various thresholds"""
+
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
+
+    # 70% failure rate (7/10)
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.3, critical=0.8))
+        .col_vals_gt(columns="values", value=7)  # 7/10 fail (70% failure)
+        .interrogate()
+    )
+
+    # Should fail for warning (threshold 0.1)
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="warning")
+
+    # Should fail for error (threshold 0.3)
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="error")
+
+    # Should pass for critical (threshold 0.8)
+    validation.assert_below_threshold(level="critical")
+
+
+def test_assert_below_threshold_specific_i():
+    """Test checking only a specific validation step"""
+
+    tbl = pl.DataFrame(
+        {
+            "col1": [1, 2, 3, 4, 5],
+            "col2": [10, 20, 30, 2, 1],  # These last two values will fail
+        }
+    )
+
+    # Mixed results across steps
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.3, critical=0.5))
+        .col_vals_gt(columns="col1", value=0)  # All pass (0% failure)
+        .col_vals_gt(columns="col2", value=5)  # 2/5 fail (40% failure)
+        .interrogate()
+    )
+
+    # Check only the first step (which passes all thresholds)
+    validation.assert_below_threshold(level="warning", i=1)
+
+    # Check only the second step
+    with pytest.raises(AssertionError):
+        validation.assert_below_threshold(level="warning", i=2)  # Fails warning (threshold 0.1)
+
+    validation.assert_below_threshold(level="critical", i=2)  # Passes critical (threshold 0.5)
+
+
+def test_assert_below_threshold_custom_message():
+    """Test with a custom error message"""
+
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3))
+        .col_vals_gt(columns="values", value=10)  # All fail
+        .interrogate()
+    )
+
+    # Should raise AssertionError with custom message
+    with pytest.raises(AssertionError, match="Custom threshold error message"):
+        validation.assert_below_threshold(level="warning", message="Custom threshold error message")
+
+
+def test_assert_below_threshold_invalid_level():
+    """Test with an invalid threshold level"""
+
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    validation = Validate(data=tbl).col_vals_gt(columns="values", value=0).interrogate()
+
+    # Should raise ValueError for invalid level
+    with pytest.raises(ValueError, match="Invalid threshold level"):
+        validation.assert_below_threshold(level="invalid_level")
+
+
+def test_assert_below_threshold_auto_interrogate():
+    """Test that the method auto-interrogates if needed"""
+
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    # Create validation but don't interrogate yet
+    validation = (
+        Validate(data=tbl, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3)).col_vals_gt(
+            columns="values", value=0
+        )  # All pass
+    )
+
+    # Should auto-interrogate and pass
+    validation.assert_below_threshold(level="warning")
+
+
 def test_prep_column_text():
     assert _prep_column_text(column="column") == "`column`"
     assert _prep_column_text(column=["column_a", "column_b"]) == "`column_a`"
