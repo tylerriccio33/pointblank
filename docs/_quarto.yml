@@ -168,6 +168,7 @@ quartodoc:
         - name: Validate.get_data_extracts
         - name: Validate.all_passed
         - name: Validate.assert_passing
+        - name: Validate.assert_below_threshold
         - name: Validate.n
         - name: Validate.n_passed
         - name: Validate.n_failed
