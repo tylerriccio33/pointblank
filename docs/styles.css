@@ -51,6 +51,10 @@ p,h1,h2,h3,#toc-title,#toc-function-reference,.nav-link,.table {
     background-color: #F7F1EB65;
 }
 
+summary::marker {
+  font-size: 1.5em;
+}
+
 [id^=validation-steps] td a:after {
     content: "()"
 }
