@@ -346,34 +346,75 @@ failure severities:
 
 ```{python}
 import logging
+import sys
 
-def log_warning(message):
-    logging.warning(message)
+# Configure logging to show output
+logging.basicConfig(
+    level=logging.WARNING,
+    format='%(levelname)s: %(message)s',
+    stream=sys.stdout
+)
 
-def halt_processing(message):
-    raise ValueError(f"Pipeline halted: {message}")
+# Action functions need to accept a message parameter
+def log_warning(message="Data quality issue detected"):
+    logging.warning(f"{message}")
+
+def halt_processing(message="Critical data error"):
+    logging.error(f"Pipeline halted: {message}")
+    # In a real pipeline, this would typically raise an exception
+    return False
+
+# Create data with known failures
+problem_data = pl.DataFrame({
+    "id": [1, 2, 3, -4, 5],  # One negative ID
+    "value": [10.5, 8.3, -2.1, 15.7, 7.2]
+})
 
 # Use actions for automated responses during interrogation
+print("Running validation with actions...")
 validation = (
-    pb.Validate(data=data)
+    pb.Validate(problem_data, thresholds=(0.1, 0.2, 0.3))
     .col_vals_gt(
         columns="id", value=0,
-        thresholds=pb.Thresholds(warning=0.05, error=0.2),
+        brief="IDs must be positive",
         actions=pb.Actions(
-            warning=log_warning,
-            error=halt_processing
+            warning=log_warning  # Only use warning action to avoid errors
         )
     )
     .interrogate()  # Actions will trigger here based on thresholds
 )
 
-# Then use assertions for workflow control
+print("\nValidation report after actions were triggered:")
+validation
+```
+
+The output above shows:
+
+1. the warning action is triggered when validation runs
+2. the warning message includes details about the failed validation
+3. the validation continues to completion despite the warning
+
+Now we can use assertions after the fact for workflow control:
+
+```{python}
+print("\nNow checking with assert_below_threshold...")
 try:
     validation.assert_below_threshold(level="warning")
-except AssertionError:
-    # Handle the failure with custom recovery logic
-    print("Warning threshold exceeded, using fallback process")
+    print("This line won't execute because the assertion fails")
+except AssertionError as e:
+    print(f"AssertionError caught: {e}")
+    print("Implementing fallback process...")
 ```
+
+This example demonstrates how actions and assertions complement each other:
+
+- **Actions** trigger automatically during validation (internal to the validation process)
+- **Assertions** check validation results afterward (external to the validation process)
+
+You can use both approaches strategically:
+
+- use actions for immediate responses like logging, alerting, or data quality metrics
+- use assertions for workflow decisions like whether to proceed with subsequent data processing
 
 Actions and assertions can work together to provide both automated responses during validation and
 workflow control after validation.
