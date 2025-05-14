@@ -20,12 +20,12 @@ When you use
 [`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html), the
 process works through these steps:
 
-1. A statistical summary of your data is generated using the
+1. a statistical summary of your data is generated using the
 [`DataScan`](https://posit-dev.github.io/pointblank/reference/DataScan.html) class
-2. This summary is converted to JSON format and sent to your selected LLM provider
-3. The LLM uses the summary along with knowledge about Pointblank's validation capabilities to
+2. this summary is converted to JSON format and sent to your selected LLM provider
+3. the LLM uses the summary along with knowledge about Pointblank's validation capabilities to
 generate a validation plan
-4. The result is returned as executable Python code that you can use directly or modify as needed
+4. the result is returned as executable Python code that you can use directly or modify as needed
 
 The entire process happens without sending your actual data to the LLM provider, only a summary that
 includes column names, data types, basic statistics, and a small sample of values.
@@ -35,8 +35,8 @@ includes column names, data types, basic statistics, and a small sample of value
 To use the [`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html)
 feature, you'll need:
 
-1. An API key from a supported LLM provider
-2. The required Python packages installed
+1. an API key from a supported LLM provider
+2. the required Python packages installed
 
 You can install all necessary dependencies with:
 
@@ -379,14 +379,14 @@ To understand what the LLM works with, here's an example of the data summary for
 The [`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html) class
 uses a carefully crafted prompt that instructs the LLM to:
 
-1. Use the schema information to create a
+1. use the schema information to create a
 [`Schema`](https://posit-dev.github.io/pointblank/reference/Schema.html) object
-2. Include
+2. include
 [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
 for columns with no missing values
-3. Add appropriate range validations based on min/max values
-4. Include row and column count validations
-5. Format the output as clean, executable Python code
+3. add appropriate range validations based on min/max values
+4. include row and column count validations
+5. format the output as clean, executable Python code
 
 The prompt also contains constraints to ensure consistent, high-quality results, such as using line
 breaks in long lists for readability, applying `na_pass=True` for columns with missing values, and
@@ -398,10 +398,10 @@ avoiding duplicate validations.
 
 Drafting a validation is most useful when:
 
-- Working with a new dataset for the first time
-- Needing to quickly establish baseline validation
-- Exploring potential validation rules before formalizing them
-- Validating columns with consistent patterns (numeric ranges, categories, etc.)
+- working with a new dataset for the first time
+- needing to quickly establish baseline validation
+- exploring potential validation rules before formalizing them
+- validating columns with consistent patterns (numeric ranges, categories, etc.)
 
 Consider writing validation plans manually when you need very specific business rules, are working
 with sensitive data, need complex validation logic, or need to validate relationships between
@@ -412,16 +412,17 @@ columns.
 A recommended workflow incorporating
 [`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html):
 
-1. Generate an initial plan with
+1. generate an initial plan with
 [`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html)
-2. Review the generated validations for relevance
-3. Adjust thresholds and parameters as needed
-4. Add specific business logic and cross-column validations
-5. Store the final validation plan in version control
+2. review the generated validations for relevance
+3. adjust thresholds and parameters as needed
+4. add specific business logic and cross-column validations
+5. store the final validation plan in version control
 
 ### Common Issues
 
-- **Authentication Errors**: ensure your API key is valid and correctly passed to the constructor
+- **Authentication Errors**: ensure your API key is valid and correctly passed to
+[`DraftValidation`](https://posit-dev.github.io/pointblank/reference/DraftValidation.html)
 - **Package Not Found**: make sure you've installed the required packages with
 `pip install pointblank[generate]`
 - **Unsupported Model**: verify you're using the correct `provider:model` format
