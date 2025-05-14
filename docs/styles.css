@@ -112,8 +112,12 @@ summary::marker {
 }
 
 a.sidebar-item-text.sidebar-link.text-start[data-bs-toggle="collapse"] {
-  pointer-events: none;
-  cursor: default;
+    pointer-events: none;
+    cursor: default;
+}
+
+.sidebar-item-container {
+    cursor: default;
 }
 
 a.sidebar-item-toggle.text-start > i {
