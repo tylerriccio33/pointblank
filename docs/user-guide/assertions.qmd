@@ -55,12 +55,13 @@ stay within acceptable thresholds
 
 ## Assertion Methods
 
-### 1. `assert_passing()`: Require Perfect Validations
+### 1. `assert_passing()`: Requires Perfect Validations
 
 This method is the strictest form of assertion, requiring every single validation test unit to pass:
 
 ```{python}
 #| error: true
+#| error-message-only: true
 (
     pb.Validate(data=data)
     .col_vals_gt(columns="value", value=0)
@@ -70,7 +71,7 @@ This method is the strictest form of assertion, requiring every single validatio
 )
 ```
 
-### 2. `assert_below_threshold()`: Tolerate Some Failures
+### 2. `assert_below_threshold()`: Tolerates Some Failures
 
 This more flexible method allows some failures as long as they stay below specified threshold
 levels:
@@ -100,6 +101,7 @@ the 'error' threshold.
 
 ```{python}
 #| error: true
+#| error-message-only: true
 validation.assert_below_threshold(level="error")
 ```
 
@@ -132,6 +134,7 @@ You can chain assertion methods directly after your validation steps:
 
 ```{python}
 #| error: true
+#| error-message-only: true
 (
     pb.Validate(data=data)
     .col_vals_gt(columns="id", value=0)
@@ -146,6 +149,7 @@ Or with threshold-based assertion:
 
 ```{python}
 #| error: true
+#| error-message-only: true
 (
     pb.Validate(data=data, thresholds=(0.05, 0.10, 0.20))
     .col_vals_gt(columns="id", value=0)
@@ -168,6 +172,7 @@ Alternatively, you can explicitly interrogate first, then assert:
 
 ```{python}
 #| error: true
+#| error-message-only: true
 validation = (
     pb.Validate(data=data)
     .col_vals_gt(columns="id", value=0)
