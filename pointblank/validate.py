@@ -8878,28 +8878,28 @@ class Validate:
         import pointblank as pb
         pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
-        Create a validation plan with thresholds and assert that results stay below the 'warning'
-        level:
+        Below are some examples of how to use the `assert_below_threshold()` method. First, we'll
+        create a simple Polars DataFrame with two columns (`a` and `b`).
 
         ```{python}
-        import pointblank as pb
         import polars as pl
 
-        # Create a table with some potentially problematic data
         tbl = pl.DataFrame({
             "a": [7, 4, 9, 7, 12],
             "b": [9, 8, 10, 5, 10]
         })
         ```
 
-        Create validation plan with thresholds (`warning=0.1`, `error=0.2`, `critical=0.3`),
-        interrogate, and display the validation report table:
+        Then a validation plan will be created with thresholds (`warning=0.1`, `error=0.2`,
+        `critical=0.3`). After interrogating, we display the validation report table:
 
         ```{python}
+        import pointblank as pb
+
         validation = (
             pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
-            .col_vals_gt(columns="a", value=5)  # Some will fail
-            .col_vals_lt(columns="b", value=10)  # Some will fail
+            .col_vals_gt(columns="a", value=5)   # 1 failing test unit
+            .col_vals_lt(columns="b", value=10)  # 2 failing test units
             .interrogate()
         )
 
@@ -8922,7 +8922,11 @@ class Validate:
         validation.assert_below_threshold(level="critical", i=1)  # Won't raise an error
         ```
 
-        Provide a custom error message with the `message=` parameter.
+        As the first step is below the 'critical' threshold (it exceeds the 'warning' and 'error'
+        thresholds), no error is raised and nothing is printed.
+
+        We can also provide a custom error message with the `message=` parameter. Let's try that
+        here:
 
         ```{python}
         try:
