@@ -67,7 +67,7 @@ summary::marker {
     content: "()"
 }
 
-[id^=inspection-and-assistance] td:nth-child(n+2) a:after {
+[id^=inspection-and-assistance] td a:after {
     content: "()"
 }
 
@@ -77,6 +77,10 @@ summary::marker {
 
 [id^=prebuilt-actions] td a:after {
     content: "()"
+}
+
+.parameter-name {
+    margin-right: -10px;
 }
 
 #toc-title {
