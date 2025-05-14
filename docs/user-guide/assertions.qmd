@@ -311,8 +311,6 @@ quality levels.
 
 ## Customizing Error Messages
 
-## Customizing Error Messages
-
 You can provide context to failed assertions using two complementary approaches: validation step
 briefs and custom assertion messages.
 
