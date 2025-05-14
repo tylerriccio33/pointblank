@@ -67,7 +67,7 @@ summary::marker {
     content: "()"
 }
 
-[id^=inspection-and-assistance] td:not(:first-child) a:after {
+[id^=inspection-and-assistance] td:nth-child(n+2) a:after {
     content: "()"
 }
 
