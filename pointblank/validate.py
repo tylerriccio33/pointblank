@@ -8031,7 +8031,7 @@ class Validate:
 
         After interrogation is complete, the `Validate` object will have gathered information, and
         we can use methods like [`n_passed()`](`pointblank.Validate.n_passed`),
-        [`f_failed()`](`pointblank.Validate.f_failed`)`, etc., to understand how the table performed
+        [`f_failed()`](`pointblank.Validate.f_failed`), etc., to understand how the table performed
         against the validation plan. A visual representation of the validation results can be viewed
         by printing the `Validate` object; this will display the validation table in an HTML viewing
         environment.
