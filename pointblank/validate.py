@@ -8830,6 +8830,154 @@ class Validate:
             )
             raise AssertionError(msg)
 
+    def assert_below_threshold(
+        self, level: str = "warning", i: int = None, message: str = None
+    ) -> None:
+        """
+        Raise an `AssertionError` if validation steps exceed a specified threshold level.
+
+        The `assert_below_threshold()` method checks whether validation steps' failure rates are
+        below a given threshold level (`"warning"`, `"error"`, or `"critical"`). This is
+        particularly useful in automated testing environments where you want to ensure your data
+        quality meets minimum standards before proceeding.
+
+        If any validation step exceeds the specified threshold level, an `AssertionError` will be
+        raised with details about which steps failed. If the validation has not yet been
+        interrogated, this method will automatically call
+        [`interrogate()`](`pointblank.Validate.interrogate`) with default parameters.
+
+        Parameters
+        ----------
+        level
+            The threshold level to check against, which could be any of `"warning"` (the default),
+            `"error"`, or `"critical"`. An `AssertionError` will be raised if any validation step
+            exceeds this level.
+        i
+            Specific validation step number(s) to check. Can be provided as a single integer or a
+            list of integers. If `None` (the default), all steps are checked.
+        message
+            Custom error message to use if assertion fails. If `None`, a default message will be
+            generated that lists the specific steps that exceeded the threshold.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        AssertionError
+            If any specified validation step exceeds the given threshold level.
+        ValueError
+            If an invalid threshold level is provided.
+
+        Examples
+        --------
+        Create a validation plan with thresholds and assert that results stay below the 'warning'
+        level:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        # Create a table with some potentially problematic data
+        tbl = pl.DataFrame({
+            "a": [7, 4, 9, 7, 12],
+            "b": [9, 8, 10, 5, 10]
+        })
+        ```
+
+        Create validation plan with thresholds (`warning=0.1`, `error=0.2`, `critical=0.3`) and
+        interrogate:
+
+        ```{python}
+        validation = (
+            pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
+            .col_vals_gt(columns="a", value=5)  # Some will fail
+            .col_vals_lt(columns="b", value=10)  # Some will fail
+            .interrogate()
+        )
+        ```
+
+        This will raise an `AssertionError` if any step exceeds the 'warning' threshold:
+
+        ```{python}
+        try:
+            validation.assert_below_threshold(level="warning")
+        except AssertionError as e:
+            print(f"Assertion failed: {e}")
+        ```
+
+        Check a specific step against the 'critical' threshold using the `i=` parameter:
+
+        ```{python}
+        validation.assert_below_threshold(level="critical", i=1)  # Won't raise an error
+        ```
+
+        Provide a custom error message with the `message=` parameter.
+
+        ```{python}
+        try:
+            validation.assert_below_threshold(
+                level="error",
+                message="Data quality too low for processing!"
+            )
+        except AssertionError as e:
+            print(f"Custom error: {e}")
+        ```
+
+        See Also
+        --------
+        - [`warning()`](`pointblank.Validate.warning`): Get the 'warning' status for each validation
+        step
+        - [`error()`](`pointblank.Validate.error`): Get the 'error' status for each validation step
+        - [`critical()`](`pointblank.Validate.critical`): Get the 'critical' status for each
+        validation step
+        - [`assert_passing()`](`pointblank.Validate.assert_passing`): Assert all validations pass
+        completely
+        """
+        # Check if validation has been interrogated
+        if not hasattr(self, "time_start") or self.time_start is None:
+            # Auto-interrogate with default parameters
+            self.interrogate()
+
+        # Validate the level parameter
+        level = level.lower()
+        if level not in ["warning", "error", "critical"]:
+            raise ValueError(
+                f"Invalid threshold level: {level}. Must be one of 'warning', 'error', or 'critical'."
+            )
+
+        # Get the threshold status using the appropriate method
+        if level == "warning":
+            status = self.warning(i=i)
+        elif level == "error":
+            status = self.error(i=i)
+        elif level == "critical":
+            status = self.critical(i=i)
+
+        # Find any steps that exceeded the threshold
+        failures = []
+        for step_num, exceeded in status.items():
+            if exceeded:
+                # Get the step's description
+                validation_step = self.validation_info[step_num - 1]
+                step_descriptor = (
+                    validation_step.autobrief
+                    if hasattr(validation_step, "autobrief") and validation_step.autobrief
+                    else f"Validation step {step_num}"
+                )
+                failures.append(f"Step {step_num}: {step_descriptor}")
+
+        # If any failures were found, raise an AssertionError
+        if failures:
+            if message:
+                msg = message
+            else:
+                msg = f"The following steps exceeded the {level} threshold level:\n" + "\n".join(
+                    failures
+                )
+            raise AssertionError(msg)
+
     def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
         Provides a dictionary of the number of test units for each validation step.
