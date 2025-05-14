@@ -45,7 +45,9 @@ p,h1,h2,h3,#toc-title,#toc-function-reference,.nav-link,.table {
 .cell-output.cell-output-stdout {
     border-style: solid;
     border-width: 1px;
-    border-color: #a1a1a1;
+    border-color: #A1A1A1;
+    padding: 0.4em;
+    background-color: #F7F1EB;
 }
 
 [id^=validation-steps] td a:after {
