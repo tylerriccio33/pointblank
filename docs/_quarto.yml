@@ -82,6 +82,27 @@ website:
         #    - user-guide/config.qmd
         #    - user-guide/final-actions.qmd
         #    - user-guide/notifications.qmd
+        #    - user-guide/report-customization.qmd - Focusing specifically on customizing validation reports
+        #         * Styling options for tables
+        #         * Custom layouts and formatting
+        #         * Embedding reports in documents and dashboards
+        #         * Exporting reports to different formats
+        #    - user-guide/validation-report-reference.qmd - Complete reference guide to the validation report table
+        #         * Detailed explanation of each column and what it represents
+        #         * How to interpret warning/error/critical indicators
+        #         * Understanding test units, steps, and failure rates
+        #         * Reading extraction previews
+        #         * Sorting and filtering options
+        #    - user-guide/localization-customization.qmd - Article on language and locale parameters
+        #         * Setting report language
+        #         * Localized output formatting
+        #         * Date/time/number formatting based on locale
+        #         * Translation of validation messages
+        #    - user-guide/continuous-integration.qmd - Guide for integrating validation in CI/CD pipelines
+        #         * GitHub Actions examples
+        #         * Jenkins pipeline examples
+        #         * Using assertions for automated testing
+        #         * Exit codes and error handling
         - section: "Data Inspection"
           contents:
             - user-guide/preview.qmd
@@ -90,6 +111,55 @@ website:
         #- section: "Data Profiling"
         #  contents:
         #    - user-guide/data-scan.qmd
+        #    - user-guide/profile-reporting.qmd - Creating comprehensive data profile reports
+        #         * Customizing profile output
+        #         * Adding profile information to documentation
+        #         * Comparing profiles across time
+        #         * Visualizing profile data
+        #   - user-guide/data-drift-detection.qmd - Detecting and monitoring changes in data over time
+        #         * Establishing baseline profiles
+        #         * Monitoring for distribution changes
+        #         * Alert thresholds for drift
+        #         * Common patterns of data drift
+        #- section: "Advanced Usage"
+        #  contents:
+        #    - user-guide/extending-pointblank.qmd - Creating custom validation functions
+        #         * Building on existing functionality
+        #         * Creating domain-specific validations
+        #         * Packaging custom validations for reuse
+        #         * Working with the validation API
+        #    - user-guide/large-scale-validation.qmd - Strategies for validating large datasets
+        #         * Benchmarking validation performance across data sizes
+        #         * Optimizing validation steps for speed
+        #         * Sampling approaches with statistical confidence
+        #         * Memory-efficient validation techniques
+        #    - user-guide/automated-validation-pipelines.qmd - Creating automated validation workflows
+        #         * Scheduling validation jobs
+        #         * Storing validation results
+        #         * Trending validation metrics over time
+        #         * Integration with data catalogs
+        #    - user-guide/migration-validation.qmd - Using Pointblank for data migration validation
+        #         * Pre/post migration testing
+        #         * Cross-system validation
+        #         * Schema evolution verification
+        #         * Data consistency checks
+        #- section: "Business Use Cases"
+        #  contents:
+        #    - user-guide/regulatory-compliance.qmd - Using Pointblank for regulatory compliance
+        #         * Pharma case study: Validating clinical trial data (SDTMs/ADaMs)
+        #         * Documentation of data quality checks for GxP environments
+        #         * Audit trails for validation with 21 CFR Part 11 compliance
+        #         * ALCOA+ principles in data validation workflows
+        #    - user-guide/data-governance.qmd - Integrating Pointblank in data governance frameworks
+        #         * Defining and enforcing data quality rules
+        #         * Role-based access to validation results
+        #         * Data quality metrics and KPIs
+        #         * Building data quality dashboards
+        #    - user-guide/pointblank-ecosystem.qmd - Integration with other tools and frameworks
+        #         * Using with dbt, Airflow, Prefect
+        #         * Integration with monitoring systems
+        #         * Combining with other data quality tools
+        #         * Extending Pointblank's capabilities
 
 html-table-processing: none
 
