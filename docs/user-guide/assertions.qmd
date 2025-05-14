@@ -311,10 +311,18 @@ quality levels.
 
 ## Customizing Error Messages
 
-You can provide context to failed assertions by adding descriptive briefs to your validation steps
-or custom error messages:
+## Customizing Error Messages
+
+You can provide context to failed assertions using two complementary approaches: validation step
+briefs and custom assertion messages.
+
+### Step 1: Use Brief Messages in Validation Steps
+
+The `brief=` parameter in validation steps provides context about what each step is checking. When a
+validation fails, this brief becomes part of the error message:
 
 ```{python}
+# Create a validation with a descriptive brief
 validation = (
     pb.Validate(data=data, thresholds=(0.2, 0.3, 0.4))
     .col_vals_gt(
@@ -324,6 +332,19 @@ validation = (
     .interrogate()
 )
 
+# Display the validation results
+validation
+```
+
+As you can see from the report, some values failed the validation. The brief message is displayed in
+the validation report, making it clear what condition wasn't met.
+
+### Step 2: Customize Assertion Error Messages
+
+When you need to customize the error message that appears when an assertion fails, use the
+`message=` parameter:
+
+```{python}
 try:
     # Custom message for threshold assertion
     validation.assert_below_threshold(
@@ -336,8 +357,9 @@ except AssertionError as e:
 
 Descriptive error messages are essential in production systems where multiple team members might
 need to interpret validation failures. The `brief=` parameter in validation steps creates
-auto-generated messages that are both human-readable and contextual, while the `message=` parameter
-in assertion methods lets you override with custom messages for specific contexts.
+human-readable context for each validation check, while the `message=` parameter in assertion
+methods lets you override the error message with custom text appropriate for the specific workflow
+context.
 
 ## Combining Assertions with Actions
 
