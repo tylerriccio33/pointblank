@@ -55,7 +55,7 @@ stay within acceptable thresholds
 
 ## Assertion Methods
 
-### 1. `assert_passing()`: Requires Perfect Validations
+### `assert_passing()`
 
 The [`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
 method is the strictest form of assertion, requiring every single validation test unit to pass:
@@ -72,7 +72,7 @@ except AssertionError as e:
     print("AssertionError:", str(e))
 ```
 
-### 2. `assert_below_threshold()`: Tolerates Some Failures
+### `assert_below_threshold()`
 
 The
 [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
@@ -364,13 +364,12 @@ validation = (
             error=halt_processing
         )
     )
-    .interrogate()  # Actions trigger here based on thresholds
+    .interrogate()  # Actions will trigger here based on thresholds
 )
 
 # Then use assertions for workflow control
 try:
     validation.assert_below_threshold(level="warning")
-    # Continue with processing if below warning threshold
 except AssertionError:
     # Handle the failure with custom recovery logic
     print("Warning threshold exceeded, using fallback process")
@@ -423,9 +422,14 @@ quality control
 
 Pointblank's assertion methods give you flexible options for enforcing data quality requirements:
 
-- `assert_passing()` for strict validation where every test unit must pass
-- `assert_below_threshold()` for more flexible validation where some failures are tolerable
-- Status methods (`warning()`, `error()`, `critical()`) for programmatic threshold checking
+- [`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
+for strict validation where every test unit must pass
+- [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
+for more flexible validation where some failures are tolerable
+- Status methods ([`warning()`](https://posit-dev.github.io/pointblank/reference/Validate.warning.html),
+[`error()`](https://posit-dev.github.io/pointblank/reference/Validate.error.html), and
+[`critical()`](https://posit-dev.github.io/pointblank/reference/Validate.critical.html)) for
+programmatic threshold checking
 
 By using these assertion methods appropriately, you can build robust data pipelines with different
 levels of quality enforcement (from strict validation of critical data properties to more lenient
