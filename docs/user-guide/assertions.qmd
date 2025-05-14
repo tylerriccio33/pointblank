@@ -418,7 +418,7 @@ The output above shows:
 Now we can use assertions after the fact for workflow control:
 
 ```{python}
-print("\nNow checking with assert_below_threshold...")
+print("Now checking with assert_below_threshold...")
 try:
     validation.assert_below_threshold(level="warning")
     print("This line won't execute because the assertion fails.")

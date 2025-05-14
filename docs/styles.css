@@ -48,7 +48,7 @@ p,h1,h2,h3,#toc-title,#toc-function-reference,.nav-link,.table {
     border-color: #A1A1A165;
     border-radius: 4px;
     padding: 0.4em;
-    background-color: #F7F1EB;
+    background-color: #F7F1EB65;
 }
 
 [id^=validation-steps] td a:after {
