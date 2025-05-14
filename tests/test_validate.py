@@ -10178,8 +10178,25 @@ def test_assert_passing_example() -> None:
         .col_vals_in_set(columns="c", set=["a", "b"])
         .interrogate()
     )
-
     passing_validation.assert_passing()
+
+    validation_no_interrogation = (
+        Validate(data=tbl)
+        .col_vals_gt(columns="a", value=0)
+        .col_vals_lt(columns="b", value=9)  # this step will not pass
+        .col_vals_in_set(columns="c", set=["a", "b"])
+    )
+    with pytest.raises(AssertionError, match="Step 2: Expect that values in `b`"):
+        validation_no_interrogation.assert_passing()
+
+    passing_validation_no_interrogation = (
+        Validate(data=tbl)
+        .col_vals_gt(columns="a", value=0)
+        # now, the invalid step passes
+        .col_vals_in_set(columns="c", set=["a", "b"])
+    )
+
+    passing_validation_no_interrogation.assert_passing()
 
 
 def test_prep_column_text():
