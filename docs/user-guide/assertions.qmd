@@ -463,13 +463,13 @@ When using assertions in your data workflows, consider these best practices:
 3. **Use a graduated approach** to validation severity:
    ```python
    # Critical validations: must be perfect
-   validation1.assert_passing()
+   validation_1.assert_passing()
 
    # Important validations: must be below error threshold
-   validation2.assert_below_threshold(level="error")
+   validation_2.assert_below_threshold(level="error")
 
    # Monitor-only validations: check warning status
-   warning_status = validation3.warning()
+   warning_status = validation_3.warning()
    ```
 
 4. **Placement in pipelines**: place assertions at critical points where data quality is essential
