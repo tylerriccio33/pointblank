@@ -8872,6 +8872,12 @@ class Validate:
 
         Examples
         --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
         Create a validation plan with thresholds and assert that results stay below the 'warning'
         level:
 
@@ -8886,8 +8892,8 @@ class Validate:
         })
         ```
 
-        Create validation plan with thresholds (`warning=0.1`, `error=0.2`, `critical=0.3`) and
-        interrogate:
+        Create validation plan with thresholds (`warning=0.1`, `error=0.2`, `critical=0.3`),
+        interrogate, and display the validation report table:
 
         ```{python}
         validation = (
@@ -8896,9 +8902,12 @@ class Validate:
             .col_vals_lt(columns="b", value=10)  # Some will fail
             .interrogate()
         )
+
+        validation
         ```
 
-        This will raise an `AssertionError` if any step exceeds the 'warning' threshold:
+        Using `assert_below_threshold(level="warning")` will raise an `AssertionError` if any step
+        exceeds the 'warning' threshold:
 
         ```{python}
         try:
