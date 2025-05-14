@@ -67,6 +67,18 @@ summary::marker {
     content: "()"
 }
 
+[id^=inspection-and-assistance] td:not(:first-child) a:after {
+    content: "()"
+}
+
+[id^=utility-functions] td a:after {
+    content: "()"
+}
+
+[id^=prebuilt-actions] td a:after {
+    content: "()"
+}
+
 #toc-title {
     font-size: 16px;
 }
