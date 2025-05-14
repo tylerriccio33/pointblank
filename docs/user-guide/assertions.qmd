@@ -1,0 +1,480 @@
+---
+title: Assertions
+jupyter: python3
+toc-expand: 2
+html-table-processing: none
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
+In addition to validation steps that create reports, Pointblank provides **assertions**. This is a
+lightweight way to confirm data quality by raising exceptions when validation conditions aren't met.
+Assertions are particularly useful in:
+
+- data processing pipelines where you need to halt execution if data doesn't meet expectations
+- testing environments where you want to verify data properties programmatically
+- scripts and functions where you need immediate notification of data problems
+
+## Basic Assertion Workflow
+
+The assertion workflow uses your familiar validation steps with assertion methods to check that
+validations meet your requirements:
+
+```{python}
+import pointblank as pb
+import polars as pl
+
+# Create sample data
+data = pl.DataFrame({
+    "id": [1, 2, 3, 4, 5],
+    "value": [10.5, 8.3, -2.1, 15.7, 7.2]
+})
+
+# Create validation plan and assert all steps pass
+(
+    pb.Validate(data=data)
+    .col_vals_gt(columns="id", value=0, brief="IDs must be positive")
+    .col_vals_gt(columns="value", value=-5, brief="Values should exceed -5")
+
+    # Will automatically `.interrogate()` and raise an AssertionError if any validation fails ---
+    .assert_passing()
+)
+```
+
+Pointblank offers two types of assertions:
+
+1. **Full Passing Assertions**: using `assert_passing()` to verify that every single test unit
+passes
+2. **Threshold-Based Assertions**: using `assert_below_threshold()` to verify that failure rates
+stay within acceptable thresholds
+
+## Assertion Methods
+
+### 1. `assert_passing()`: Require Perfect Validations
+
+This method is the strictest form of assertion, requiring every single validation test unit to pass:
+
+```{python}
+#| error: true
+(
+    pb.Validate(data=data)
+    .col_vals_gt(columns="value", value=0)
+
+    # Direct assertion: automatically interrogates ---
+    .assert_passing()
+)
+```
+
+### 2. `assert_below_threshold()`: Tolerate Some Failures
+
+This more flexible method allows some failures as long as they stay below specified threshold
+levels:
+
+```{python}
+# Create a sample DataFrame
+tbl = pl.DataFrame({
+    "a": [4, 6, 9, 7, 12, 8, 7, 12, 10, 7],
+    "b": [9, 8, 10, 5, 10, 9, 14, 6, 6, 8],
+
+})
+
+# Set thresholds: warning=0.2 (20%), error=0.3 (30%), critical=0.4 (40%)
+validation = (
+    pb.Validate(data=tbl, thresholds=(0.2, 0.3, 0.4))
+    .col_vals_gt(columns="b", value=5)   # 1/10 failing (10% failure rate)
+    .col_vals_lt(columns="a", value=11)  # 2/10 failing (20% failure rate)
+    .col_vals_ge(columns="b", value=8)   # 3/10 failing (30% failure rate)
+    .interrogate()
+)
+
+validation
+```
+
+This won't pass the `assert_below_threshold()` assertion because not every validation step is below
+the 'error' threshold.
+
+```{python}
+#| error: true
+validation.assert_below_threshold(level="error")
+```
+
+We can check against the 'error' threshold for specific steps. So, this passes because the highest
+threshold exceeded in steps 1 and 2 is 'warning'.
+
+```{python}
+validation.assert_below_threshold(level="error", i=[1, 2])
+```
+
+The `assert_below_threshold()` method takes these parameters:
+
+- `level=`: Threshold level to check against (`"warning"`, `"error"`, or `"critical"`)
+- `i=`: Optional specific step number(s) to check
+- `message=`: Optional custom error message
+
+This is particularly useful when:
+
+- working with real-world data where some percentage of failures is acceptable
+- implementing different severity levels for data quality rules
+- gradually improving data quality with stepped thresholds
+
+## Two Ways to Use Assertions
+
+There are two valid approaches to using assertions in Pointblank:
+
+### 1. Direct Assertion
+
+You can chain assertion methods directly after your validation steps:
+
+```{python}
+#| error: true
+
+(
+    pb.Validate(data=data)
+    .col_vals_gt(columns="id", value=0)
+    .col_vals_gt(columns="value", value=-5)
+    .assert_passing()  # Automatically interrogates and asserts in one step
+)
+```
+
+Or with threshold-based assertion:
+
+```{python}
+(
+    pb.Validate(data=data, thresholds=(0.05, 0.10, 0.20))
+    .col_vals_gt(columns="id", value=0)
+    .col_vals_gt(columns="value", value=0)  # Some might fail
+    .assert_below_threshold(level="warning")  # Fail if > 5% fail
+)
+```
+
+**Advantages:**
+
+- more concise code with fewer lines
+- simpler to read and understand
+- less error-prone (can't forget to call `.interrogate()`)
+
+### 2. Explicit Interrogation + Assertion
+
+Alternatively, you can explicitly interrogate first, then assert:
+
+```{python}
+validation = (
+    pb.Validate(data=data)
+    .col_vals_gt(columns="id", value=0)
+    .col_vals_gt(columns="value", value=-5)
+    .interrogate()  # Explicitly execute the validation
+)
+
+# Then assert all tests passed
+validation.assert_passing()
+
+# Or assert below threshold
+validation.assert_below_threshold(level="error")
+```
+
+**Advantages:**
+
+- more explicit control over the interrogation parameters
+- allows inspection of results before assertion
+- enables multiple assertions or operations on the same validation results
+
+Choose the approach that best fits your workflow and preference for explicitness versus conciseness.
+
+## Using Status Check Methods
+
+In addition to assertion methods that raise exceptions, Pointblank provides status check methods
+that return boolean values:
+
+### 1. Using `all_passed()`
+
+Returns `True` only if every single test unit in every validation step passed:
+
+```{python}
+validation = (
+    pb.Validate(data=data)
+    .col_vals_gt(columns="value", value=0)
+    .interrogate()
+)
+
+if not validation.all_passed():
+    print("Validation failed - some values are not positive")
+```
+
+### 2. Using Status Methods for Thresholds
+
+Check threshold status for validation steps:
+
+```{python}
+validation = (
+    pb.Validate(data=data, thresholds=(0.05, 0.10, 0.20))
+    .col_vals_gt(columns="value", value=0)
+    .interrogate()
+)
+
+# Get dictionary of warning status for each step
+warning_status = validation.warning()
+
+# Get scalar status for a specific step
+has_errors = validation.error(i=1, scalar=True)
+
+if has_errors:
+    print("Step 1 exceeded the error threshold")
+```
+
+## Customizing Error Messages
+
+You can provide context to failed assertions by adding descriptive briefs to your validation steps
+or custom error messages:
+
+```{python}
+validation = (
+    pb.Validate(data=data, thresholds=(0.2, 0.3, 0.4))
+    .col_vals_gt(
+        columns="value", value=0,
+        brief="All values must be positive for downstream processing"
+    )
+    .interrogate()
+)
+
+try:
+    # Custom message for threshold assertion
+    validation.assert_below_threshold(
+        level="warning",
+        message="Data quality too low for processing!"
+    )
+except AssertionError as e:
+    print(f"Custom handling of failure: {e}")
+```
+
+## Combining Assertions with Actions
+
+When working with data pipelines, you can combine assertions with actions to handle different
+failure severities:
+
+```{python}
+import logging
+
+def log_warning(message):
+    logging.warning(message)
+
+def halt_processing(message):
+    raise ValueError(f"Pipeline halted: {message}")
+
+# Use actions for automated responses during interrogation
+validation = (
+    pb.Validate(data=data)
+    .col_vals_gt(
+        columns="id", value=0,
+        thresholds=pb.Thresholds(warning=0.05, error=0.2),
+        actions=pb.Actions(
+            warning=log_warning,
+            error=halt_processing
+        )
+    )
+    .interrogate()  # Actions trigger here based on thresholds
+)
+
+# Then use assertions for workflow control
+try:
+    validation.assert_below_threshold(level="warning")
+    # Continue with processing if below warning threshold
+except AssertionError:
+    # Handle the failure with custom recovery logic
+    print("Warning threshold exceeded, using fallback process")
+```
+
+Actions and assertions can work together to provide both automated responses during validation and
+workflow control after validation.
+
+## Best Practices for Assertions
+
+When using assertions in your data workflows, consider these best practices:
+
+1. **Choose the right assertion type**:
+   - use `assert_passing()` for critical validations where any failure is unacceptable
+   - use `assert_below_threshold()` for validations where some failure rate is acceptable
+
+2. **Set appropriate thresholds** that match your data quality requirements:
+   ```python
+   # Example threshold strategy
+   validation = pb.Validate(
+       data=data,
+       # warning at 1%, error at 5%, critical at 10%
+       thresholds=pb.Thresholds(warning=0.01, error=0.05, critical=0.10)
+   )
+   ```
+
+3. **Use a graduated approach** to validation severity:
+   ```python
+   # Critical validations: must be perfect
+   validation1.assert_passing()
+
+   # Important validations: must be below error threshold
+   validation2.assert_below_threshold(level="error")
+
+   # Monitor-only validations: check warning status
+   warning_status = validation3.warning()
+   ```
+
+4. **Placement in pipelines**: place assertions at critical points where data quality is essential
+
+5. **Error handling**: wrap assertions in try-except blocks for better error handling in production
+systems
+
+6. **Combine with reporting**: use both assertions and reporting approaches for comprehensive
+quality control
+
+### Example: Strategic Assertion Placement
+
+```{python}
+#| eval: false
+def process_dataset(input_data):
+    """Process a dataset with validation at critical points"""
+    try:
+        # First check critical properties that should always be true
+        (
+            pb.Validate(data=input_data)
+            .col_exists(columns=["id", "timestamp", "value"])
+            .col_vals_not_null(columns="id")
+            .assert_passing()  # Immediately stop if critical validation fails
+        )
+
+        # Process data...
+        processed_data = process_function(input_data)
+
+        # Then check quality aspects with threshold-based assertions
+        quality_validation = (
+            pb.Validate(data=processed_data, thresholds=(0.05, 0.1, 0.2))
+            .col_vals_between(columns="normalized_value", left=0, right=1)
+            .col_vals_gt(columns="confidence_score", value=0.7)
+            .interrogate()
+        )
+
+        # Stop if critical threshold is exceeded
+        quality_validation.assert_below_threshold(level="critical")
+
+        # Log warning but continue if warning threshold is exceeded
+        if any(quality_validation.warning().values()):
+            print("Warning: Some quality metrics below target levels")
+
+        # Final result...
+        return processed_data
+
+    except AssertionError as e:
+        # Handle critical errors that should stop processing
+        log_error(str(e))
+        raise
+```
+
+### Example: Using Assertions in a Real-World Workflow
+
+Here's how you might use assertion-based validation in a complete ETL workflow:
+
+```{python}
+#| eval: false
+import pointblank as pb
+import polars as pl
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+def log_error(message):
+    """Log error messages to the configured logger"""
+    logging.error(message)
+
+def process_function(data):
+    """Simulate data transformation process"""
+    # Add derived columns
+    processed = data.with_columns([
+        pl.col("value").map_elements(lambda x: max(0, x)).alias("normalized_value"),
+        pl.lit(0.95).alias("confidence_score")
+    ])
+    return processed
+
+# Example usage
+def main():
+    try:
+        # Load sample data
+        input_data = pl.DataFrame({
+            "id": [1, 2, 3, 4, 5],
+            "timestamp": ["2023-01-01", "2023-01-02", "2023-01-03", "2023-01-04", "2023-01-05"],
+            "value": [10.5, 8.3, -2.1, 15.7, 7.2]
+        })
+
+        # Apply our processing pipeline with validation
+        result = process_dataset(input_data)
+
+        # If we get here, all critical validations passed
+        logging.info(f"Processing complete. Result shape: {result.shape}")
+
+        # Output the processed data
+        print(result)
+
+    except Exception as e:
+        logging.critical(f"Processing failed: {str(e)}")
+        # In production, you might want to:
+        # - Send alerts
+        # - Log to monitoring system
+        # - Return fallback data
+
+# Our validation-enforced processing function from the previous example
+def process_dataset(input_data):
+    """Process a dataset with validation at critical points"""
+    try:
+        # First check critical properties that should always be true
+        (
+            pb.Validate(data=input_data)
+            .col_exists(columns=["id", "timestamp", "value"])
+            .col_vals_not_null(columns="id")
+            .assert_passing()  # Immediately stop if critical validation fails
+        )
+
+        # Process data...
+        processed_data = process_function(input_data)
+
+        # Then check quality aspects with threshold-based assertions
+        quality_validation = (
+            pb.Validate(data=processed_data, thresholds=(0.05, 0.1, 0.2))
+            .col_vals_between(columns="normalized_value", left=0, right=1)
+            .col_vals_gt(columns="confidence_score", value=0.7)
+            .interrogate()
+        )
+
+        # Stop if critical threshold is exceeded
+        quality_validation.assert_below_threshold(level="critical")
+
+        # Log warning but continue if warning threshold is exceeded
+        if any(quality_validation.warning().values()):
+            logging.warning("Some quality metrics below target levels")
+
+        # Final result...
+        return processed_data
+
+    except AssertionError as e:
+        # Handle critical errors that should stop processing
+        log_error(str(e))
+        raise
+
+# Run the example
+if __name__ == "__main__":
+    main()
+```
+
+## Conclusion
+
+Pointblank's assertion methods give you flexible options for enforcing data quality requirements:
+
+- `assert_passing()` for strict validation where every test unit must pass
+- `assert_below_threshold()` for more flexible validation where some failures are tolerable
+- Status methods (`warning()`, `error()`, `critical()`) for programmatic threshold checking
+
+By using these assertion methods appropriately, you can build robust data pipelines with different
+levels of quality enforcement (from strict validation of critical data properties to more lenient
+checks for less critical aspects). This graduated approach to data quality helps create systems that
+are both reliable and practical in real-world data environments.

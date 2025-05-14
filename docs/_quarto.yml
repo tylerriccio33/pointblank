@@ -71,7 +71,7 @@ website:
             - user-guide/schema-validation.qmd
             - user-guide/draft-validation.qmd
             - user-guide/expressions.qmd
-        #   - user-guide/assertions.qmd
+            - user-guide/assertions.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd
