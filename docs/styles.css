@@ -111,6 +111,11 @@ summary::marker {
     font-weight: bold;
 }
 
+a.sidebar-item-text.sidebar-link.text-start[data-bs-toggle="collapse"] {
+  pointer-events: none;
+  cursor: default;
+}
+
 a.sidebar-item-toggle.text-start > i {
     color: #FAFAFD;
 }
