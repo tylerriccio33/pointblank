@@ -21,7 +21,8 @@ database tables. Let's walk through what data validation looks like in Pointblan
 This is a validation report table that is produced from a validation of a Polars DataFrame:
 
 ```{python}
-# | code-fold: true
+#| code-fold: true
+#| code-summary: "Show the code"
 import pointblank as pb
 
 (
