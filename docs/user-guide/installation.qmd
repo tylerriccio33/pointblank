@@ -37,7 +37,7 @@ conda install -c conda-forge pointblank
 ## DataFrame Libraries
 
 Pointblank requires a DataFrame library but doesn't include one by default, giving you the
-flexibility to choose either Pandas or Polars:
+flexibility to choose either [Pandas](https://pandas.pydata.org) or [Polars](https://pola.rs):
 
 ::: {.panel-tabset}
 ## Polars
@@ -68,7 +68,8 @@ workflow and performance requirements.
 
 ### Ibis Backends
 
-To work with various database systems through Ibis, you can install additional backends:
+To work with various database systems through [Ibis](https://ibis-project.org), you can install
+additional backends:
 
 ::: {.panel-tabset}
 ## pip
@@ -122,8 +123,9 @@ conda install -c conda-forge pointblank-duckdb pointblank-postgres pointblank-sq
 
 ::: {.callout-note}
 Even when using exclusively Ibis backends, you still need either Pandas or Polars installed since
-Pointblank's reporting functionality (powered by Great Tables) requires a DataFrame library for
-rendering tabular reporting results.
+Pointblank's reporting functionality (powered by
+[Great Tables](https://posit-dev.github.io/great-tables)) requires a DataFrame library for rendering
+tabular reporting results.
 :::
 
 ### AI-Assisted Validation (Experimental)
@@ -135,7 +137,8 @@ pip install pointblank[generate]
 ```
 
 This installs the necessary dependencies for working with LLM providers to help generate validation
-plans.
+plans. See the [Draft Validation](draft-validation.qmd) article for how to create validation plans
+from existing data.
 
 ### Development Version
 
