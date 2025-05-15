@@ -9028,7 +9028,14 @@ class Validate:
 
         Examples
         --------
-        Check if any validation steps exceed the warning threshold:
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        Let's create a validation plan with some steps and thresholds. We'll then check if any steps
+        exceed the 'warning' threshold.
 
         ```{python}
         import pointblank as pb
@@ -9045,18 +9052,27 @@ class Validate:
             .interrogate()
         )
 
-        # Check if any steps exceed warning threshold
+        validation
+        ```
+
+        Check if any steps exceed warning threshold with the `has_threshold_exceedances()` method
+        and print a message if that's the case:
+
+        ```{python}
         if validation.has_threshold_exceedances(level="warning"):
             print("Some steps have exceeded the warning threshold")
 
-        # Check if only steps 1 and 3 exceed error threshold
+        Check if only steps 1 and 3 exceed the 'error' threshold (by using the `i=` argument):
+
+        ```{python}
         if validation.has_threshold_exceedances(level="error", i=[1, 3]):
             print("Steps 1 and/or 3 have exceeded the error threshold")
         ```
 
-        Use in a workflow to conditionally trigger processes:
+        You can use this in a workflow to conditionally trigger processes. Here's a snippet of how
+        you might use this in a function:
 
-        ```{python}
+        ```python
         def process_data(validation_obj):
             # Only continue processing if validation passes critical thresholds
             if not validation_obj.has_threshold_exceedances(level="critical"):
