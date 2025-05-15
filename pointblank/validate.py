@@ -8996,12 +8996,13 @@ class Validate:
         Check if any validation steps exceed a specified threshold level.
 
         The `has_threshold_exceedances()` method checks whether validation steps exceed a given
-        threshold level. This provides a non-exception-based alternative to `assert_below_threshold()`
-        for conditional workflow control based on validation results.
+        threshold level. This provides a non-exception-based alternative to
+        [`assert_below_threshold()`](`pointblank.Validate.assert_below_threshold`) for conditional
+        workflow control based on validation results.
 
-        This method is useful in scenarios where you want to check if any validation steps
-        failed beyond a certain threshold without raising an exception, allowing for more
-        flexible programmatic responses to validation issues.
+        This method is useful in scenarios where you want to check if any validation steps failed
+        beyond a certain threshold without raising an exception, allowing for more flexible
+        programmatic responses to validation issues.
 
         Parameters
         ----------
