@@ -46,14 +46,19 @@ sample_data = pl.DataFrame({
 )
 ```
 
-Pointblank offers two types of assertions:
-
-1. **Full Passing Assertions**: using `assert_passing()` to verify that every single test unit
-passes
-2. **Threshold-Based Assertions**: using `assert_below_threshold()` to verify that failure rates
-stay within acceptable thresholds
+This simple pattern allows you to integrate data quality checks into your data pipelines. With it,
+you can create clear stopping points when data doesn't meet specified criteria.
 
 ## Assertion Methods
+
+Pointblank offers two types of assertions:
+
+1. **Full Passing Assertions**: using
+[`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
+to verify that every single test unit passes
+2. **Threshold-Based Assertions**: using
+[`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
+to verify that failure rates stay within acceptable thresholds
 
 ### `assert_passing()`
 
