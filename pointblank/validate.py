@@ -8831,7 +8831,7 @@ class Validate:
             raise AssertionError(msg)
 
     def assert_below_threshold(
-        self, level: str = "warning", i: int = None, message: str = None
+        self, level: str = "warning", i: int | None = None, message: str | None = None
     ) -> None:
         """
         Raise an `AssertionError` if validation steps exceed a specified threshold level.
