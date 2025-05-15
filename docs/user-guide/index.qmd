@@ -188,6 +188,7 @@ The *Validation Plan* section covers everything you need to know about creating 
 validation plans:
 
 - [Overview](validation-overview.qmd): Survey of validation methods and their shared parameters
+- [Validation Methods](validation-methods.qmd): A closer look at the more common validation methods
 - [Column Selection Patterns](column-selection-patterns.qmd): Techniques for targeting specific columns
 - [Preprocessing](preprocessing.qmd): Transform data before validation
 - [Segmentation](segmentation.qmd): Apply validations to specific segments of your data
