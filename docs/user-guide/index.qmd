@@ -200,10 +200,10 @@ validation plans:
 
 The *Advanced Validation* section explores more specialized validation techniques:
 
+- [Expression-Based Validation](expressions.qmd): Use column expressions for advanced validation
 - [Schema Validation](schema-validation.qmd): Enforce table structure and column types
-- [Draft Validation](draft-validation.qmd): Create validation plans from existing data
-- [Expression-Based Validation](expressions.qmd): Use column expressions and for advanced validation
 - [Assertions](assertions.qmd): Raise exceptions to enforce data quality requirements
+- [Draft Validation](draft-validation.qmd): Create validation plans from existing data
 
 ### Post Interrogation
 

@@ -69,10 +69,10 @@ website:
             - user-guide/briefs.qmd
         - section: "Advanced Validation"
           contents:
-            - user-guide/schema-validation.qmd
-            - user-guide/draft-validation.qmd
             - user-guide/expressions.qmd
+            - user-guide/schema-validation.qmd
             - user-guide/assertions.qmd
+            - user-guide/draft-validation.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd
