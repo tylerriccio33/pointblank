@@ -544,7 +544,7 @@ working with data from diverse sources.
 8. **Combine with targeted validation**: use schema validation for structural checks and add
 specific validation steps for business rules.
 
-## Summary
+## Conclusion
 
 Schema validation provides a powerful mechanism for ensuring your data adheres to expected
 structural requirements. It serves as an excellent first line of defense in your data validation
