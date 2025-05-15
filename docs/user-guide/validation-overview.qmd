@@ -34,7 +34,7 @@ import polars as pl
 (
     pb.Validate(
         data=pb.load_dataset(dataset="small_table", tbl_type="polars"),
-        label="Four different validation methods."
+        label="Three different validation methods."
     )
     .col_vals_gt(columns="a", value=0)
     .rows_distinct()
@@ -193,7 +193,7 @@ when validation thresholds are crossed. You can use simple string messages or cu
 more complex behavior:
 
 ```{python}
-# Example 1: Actions with string message ---
+# Example 1: Action with a string message ---
 
 (
     pb.Validate(
@@ -214,7 +214,7 @@ more complex behavior:
 ```
 
 ```{python}
-# Example 2: Actions with callable function ---
+# Example 2: Action with a callable function ---
 
 def custom_action():
     from datetime import datetime

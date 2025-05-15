@@ -79,7 +79,7 @@ be used to check if the values in a column are greater than a specified value.
 import pointblank as pb
 
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_gt(columns="a", value=5)
     .interrogate()
 )
@@ -91,7 +91,7 @@ example checks values in column `c` of `small_table`, which contains two `None` 
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_le(columns="c", value=10, na_pass=True)
     .interrogate()
 )
@@ -106,7 +106,7 @@ example of that:
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_lt(columns="a", value=pb.col("c"))
     .interrogate()
 )
@@ -121,7 +121,7 @@ A very common thing to validate is that there are no Null/NA/missing values in a
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_not_null(columns="a")
     .interrogate()
 )
@@ -138,7 +138,7 @@ two validation steps, each checking text values in a column:
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_regex(columns="b", pattern=r"^\d-[a-z]{3}-\d{3}$")
     .col_vals_regex(columns="f", pattern=r"high|low|mid")
     .interrogate()
@@ -166,7 +166,7 @@ Here's an example where we check for duplicate rows with
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .rows_distinct()
     .interrogate()
 )
@@ -179,7 +179,7 @@ check to use a single column or a subset of columns. To do that, we need to use 
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .rows_distinct(columns_subset="b")
     .interrogate()
 )
@@ -197,7 +197,7 @@ column):
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .rows_complete()
     .interrogate()
 )
@@ -231,7 +231,7 @@ table:
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_exists(columns="date")
     .interrogate()
 )
@@ -254,7 +254,7 @@ validation step:
 schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_schema_match(schema=schema)
     .interrogate()
 )
@@ -284,7 +284,7 @@ schema = pb.Schema(
 )
 
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_schema_match(schema=schema)
     .interrogate()
 )
@@ -311,7 +311,7 @@ checks whether the number of rows in a table matches a specified count.
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .row_count_match(count=13)
     .interrogate()
 )
@@ -322,7 +322,7 @@ validation method checks if the number of columns in a table matches a specified
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset("small_table"))
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_count_match(count=8)
     .interrogate()
 )
