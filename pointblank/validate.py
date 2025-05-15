@@ -8991,7 +8991,7 @@ class Validate:
                 )
             raise AssertionError(msg)
 
-    def has_threshold_exceedances(self, level="warning", i=None) -> bool:
+    def has_threshold_exceedances(self, level: str = "warning", i: int | None = None) -> bool:
         """
         Check if any validation steps exceed a specified threshold level.
 
