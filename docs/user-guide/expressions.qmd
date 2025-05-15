@@ -1,5 +1,5 @@
 ---
-title: Expressions
+title: Expression-Based Validation
 jupyter: python3
 toc-expand: 2
 html-table-processing: none
@@ -13,10 +13,13 @@ pb.config(report_incl_footer=False)
 ```
 
 While Pointblank offers many specialized validation functions for common data quality checks,
-sometimes you need more flexibility to address complex validation requirements. This is where
-expression-based validation methods come in.
+sometimes you need more flexibility for complex validation requirements. This is where
+expression-based validation with
+[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+comes in.
 
-Expression-based validations allow you to:
+The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+method allows you to:
 
 - create custom validation logic beyond the built-in validation functions
 - combine multiple conditions in a single validation step
@@ -24,22 +27,9 @@ Expression-based validations allow you to:
 - apply complex transformations before validation
 - handle edge cases with specialized logic
 
-This article covers three powerful expression-based validation methods in Pointblank:
+Now let's explore how to use these capabilities through a collection of examples!
 
-1. [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html):
-for validating data using custom expressions
-2. [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html): for
-applying multiple validation steps simultaneously
-3. [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html): for
-implementing fully custom validation functions
-
-## Validating with Custom Expressions
-
-The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-method lets you validate data using custom expressions, providing maximum flexibility for complex
-validation scenarios.
-
-### Basic Usage
+## Basic Usage
 
 At its core,
 [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
@@ -59,31 +49,30 @@ small_table_pl = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
         # Use Polars expression syntax ---
         expr=pl.col("d") > pl.col("a") * 50,
-        brief="Column 'd' should be at least 50 times larger than 'a'"
+        brief="Column `d` should be at least 50 times larger than `a`."
     )
     .interrogate()
 )
 ```
 
-In this example, we're validating that for each row, the value in column `a` is at least 50 times
-larger than the value in column `d`.
+In this example, we're validating that for each row, the value in column `d` is at least 50 times
+larger than the value in column `a`.
 
-### Expression Syntax
+## Notes on Expression Syntax
 
-Expressions in
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-are specified as strings and follow Python syntax with a few important considerations:
+The expression syntax depends on your table type:
 
-1. **Column references**: column names can be used directly in the expression (e.g.,
-`pl.col("a") > 10`)
-2. **Operations**: all standard Python operators are supported (`+`, `-`, `*`, `/`, `>`, `<`, `==`,
-etc.)
-3. **Functions**: you can use most Python functions, including those from NumPy (depending on the
-table type)
-4. **No assignment**: the expression should be a boolean expression, not an assignment
-5. **Vectorization**: the expression is evaluated in a vectorized manner, not row by row
+- **Polars**: uses Polars expression syntax with `pl.col("column_name")`
+- **Pandas**: uses standard Python/NumPy syntax
 
-### Beyond Simple Comparisons
+The expression should:
+
+- evaluate to a boolean result for each row
+- reference columns using the appropriate syntax for your table type
+- use standard operators (`+`, `-`, `*`, `/`, `>`, `<`, `==`, etc.)
+- not include assignments
+
+## Complex Expressions
 
 The real power of
 [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
@@ -100,40 +89,34 @@ game_revenue_pl = pb.load_dataset(dataset="game_revenue", tbl_type="polars")
 
         # Use Polars expression syntax ---
         expr=(pl.col("session_duration") > 20) | (pl.col("item_revenue") > 10),
-        brief="Sessions should be either long or high-value."
+        brief="Sessions should be either long (>20 min) or high-value (>$10)."
     )
     .interrogate()
 )
 ```
 
-This example validates that either the session duration is longer than 20 minutes or the item
-revenue is greater than $10, catching cases where neither condition is true.
+This validates that either the session duration is longer than 20 minutes OR the item revenue is
+greater than $10.
 
-### Working with Different Table Types
+## Example: Multiple Conditions
 
-The expression syntax may vary slightly depending on your table type:
-
-- **Pandas**: uses standard Python/NumPy syntax
-- **Polars**: uses Polars expression syntax
-
-For example, with a Polars DataFrame:
+You can create sophisticated validations with multiple conditions:
 
 ```{python}
 # Create a simple Polars DataFrame
-polars_df = pl.DataFrame({
+employee_df = pl.DataFrame({
     "age": [25, 30, 15, 40, 35],
     "income": [50000, 75000, 0, 100000, 60000],
     "years_experience": [3, 8, 0, 15, 7]
 })
 
 (
-    pb.Validate(data=polars_df, tbl_name="employee_data")
+    pb.Validate(data=employee_df, tbl_name="employee_data")
     .col_vals_expr(
-
-        # Use Polars expression syntax ---
+        # Complex condition with multiple comparisons
         expr=(
-            pl.col("age") >= 18) & (pl.col("income") /
-            (pl.col("years_experience") + 1) <= 25000
+            (pl.col("age") >= 18) &
+            (pl.col("income") / (pl.col("years_experience") + 1) <= 25000)
         ),
         brief="Adults should have reasonable income-to-experience ratios."
     )
@@ -141,365 +124,71 @@ polars_df = pl.DataFrame({
 )
 ```
 
-### Best Practice: Documenting Columns in Expressions
+## Example: Handling Null Values
 
-When using
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html),
-you manually specify which columns to operate on within the expression itself (rather than through a
-separate `columns=` parameter). For clarity and documentation purposes, it's good practice to
-mention these columns in the `brief=` parameter:
+When working with expressions, consider how to handle null/missing values:
 
 ```{python}
-# Load small_table dataset as a Polars DataFrame
-small_table_pl = pb.load_dataset(dataset="small_table", tbl_type="polars")
+(
+    pb.Validate(data=small_table_pl)
+    .col_vals_expr(
+        # Check for nulls before division
+        expr=(pl.col("c").is_not_null()) & ((pl.col("c") / pl.col("a")) > 1.5),
+        brief="Ratio of `c`/`a` should exceed 1.5 (when `c` is not null)."
+    )
+    .interrogate()
+)
+```
 
+## Best Practices
+
+Here are some tips and tricks for effectively using expression-based validation with
+[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html).
+
+### Document Your Expressions
+
+Always provide clear documentation in the `brief=` parameter:
+
+```{python}
 (
     pb.Validate(data=small_table_pl)
     .col_vals_expr(
         expr=pl.col("d") > pl.col("a") * 1.5,
-
-        # Document which columns are being compared in the brief ---
-        brief="Column `a` should be at least 1.5 times larger than `b`."
+        # Document which columns are being compared
+        brief="Column `d` should be at least 1.5 times larger than column `a`."
     )
     .interrogate()
 )
 ```
 
-Including the column names in the brief makes your validation steps more descriptive and easier to
-understand. This is especially helpful when reviewing validation reports or when other team members
-need to interpret your validation plan.
+### Handle Edge Cases
 
-## Combining Multiple Validations with `conjointly()`
-
-The [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
-method allows you to apply multiple validation conditions together as a single logical AND
-operation. This is useful when you need to ensure that data meets multiple criteria simultaneously.
-
-### Basic Usage
-
-At its core,
-[`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) takes
-multiple lambdas and requires that all of them pass for each row:
+Consider potential edge cases like division by zero or nulls:
 
 ```{python}
 (
-    pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .conjointly(
-        lambda df: pl.col("a") > 0,   # First condition
-        lambda df: pl.col("a") < 10,  # Second condition
-        brief="Values in `a` should be between `0` and `10` (exclusive)."
-    )
-    .interrogate()
-)
-```
-
-This example validates that all values in column `a` are both greater than `0` AND less than `10`.
-Each lambda function takes the data table as an argument and returns a boolean expression.
-
-### Difference from Individual Steps
-
-The key difference between using
-[`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) and
-adding multiple individual validation steps is how test units are counted:
-
-- With separate steps, each condition is evaluated independently
-- With [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html),
-rows must pass ALL conditions to be considered passing
-
-Compare the two approaches:
-
-```{python}
-# Approach 1: Separate validation steps
-validation_1 = (
-    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
-    .col_vals_gt(columns="session_duration", value=5)
-    .col_vals_lt(columns="item_revenue", value=100)
-    .interrogate()
-)
-
-# Approach 2: Using conjointly()
-validation_2 = (
-    pb.Validate(data=pb.load_dataset(dataset="game_revenue"))
-    .conjointly(
-        lambda df: pl.col("session_duration") > 5,
-        lambda df: pl.col("item_revenue") < 100
-    )
-    .interrogate()
-)
-
-print(f"Separate steps: {validation_1.n_failed()} total failures.")
-print(f"Conjointly: {validation_2.n_failed()} total failures.")
-```
-
-### Using Lambda Functions with Table Context
-
-Each function passed to
-[`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) must:
-
-1. accept a data table parameter
-2. return a boolean expression or series for that table
-
-For example, with Polars:
-
-```{python}
-(
-    pb.Validate(data=pb.load_dataset(dataset="global_sales", tbl_type="polars"))
-    .conjointly(
-        lambda df: pl.col("quantity") > 0,
-        lambda df: pl.col("quantity") * pl.col("price") >= pl.col("revenue"),
-        lambda df: pl.col("revenue") + pl.col("tax") >= pl.col("total"),
-        brief="Multiple conditions must be met for each row."
-    )
-    .interrogate()
-)
-```
-
-### Table-Agnostic Expressions
-
-For more portable code that works across different table backends (Polars, Pandas, etc.), you can
-use the [`expr_col()`](https://posit-dev.github.io/pointblank/reference/expr_col.html) helper
-function:
-
-```{python}
-
-(
-    pb.Validate(data=pb.load_dataset(dataset="global_sales", tbl_type="polars"))
-    .conjointly(
-        lambda df: pb.expr_col("quantity") > 0,
-        lambda df: pb.expr_col("quantity") * pb.expr_col("price") >= pb.expr_col("revenue"),
-        lambda df: pb.expr_col("revenue") + pb.expr_col("tax") >= pb.expr_col("total"),
-        brief="Multiple conditions must be met for each row."
-    )
-    .interrogate()
-)
-```
-
-```{python}
-
-(
-    pb.Validate(data=pb.load_dataset(dataset="global_sales", tbl_type="pandas"))
-    .conjointly(
-        lambda df: pb.expr_col("quantity") > 0,
-        lambda df: pb.expr_col("quantity") * pb.expr_col("price") >= pb.expr_col("revenue"),
-        lambda df: pb.expr_col("revenue") + pb.expr_col("tax") >= pb.expr_col("total"),
-        brief="Multiple conditions must be met for each row."
-    )
-    .interrogate()
-)
-```
-
-This approach makes your validation code more maintainable when working with multiple table types.
-
-## Custom Validation Functions with `specially()`
-
-The [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) method
-provides the ultimate flexibility by letting you define completely custom validation functions.
-
-### Basic Usage
-
-With [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html), you
-provide a function that performs custom validation logic:
-
-```{python}
-import pandas as pd
-
-def validate_date_sequence(data):
-    """Check that date values are in ascending order"""
-    if isinstance(data, pd.DataFrame):
-        result = data["date"].is_monotonic_increasing
-    else:
-        # Handle other data types like DuckDB tables
-        result = data["date"].values[:-1] <= data["date"].values[1:]
-        result = all(result)
-
-    # Return if each row passes validation
-    return result
-
-# Create sample data with dates
-dates_df = pd.DataFrame({
-    "date": pd.to_datetime(["2023-01-01", "2023-01-03", "2023-01-02", "2023-01-05"]),
-    "value": [10, 20, 30, 40]
-})
-
-(
-    pb.Validate(data=dates_df, tbl_name="date_data")
-    .specially(
-        expr=validate_date_sequence,
-        brief="Dates should be in chronological order"
-    )
-    .interrogate()
-)
-```
-
-In this example, we've created a custom validation function that checks whether date values are in
-ascending order.
-
-### Function Requirements
-
-Your custom validation function should:
-
-1. accept the target table as its first parameter
-2. return either:
-   - a single boolean value or boolean list
-   - a table where the final column contains boolean values (column name is unimportant)
-
-### Accessing Additional Context
-
-Custom validation functions need to be self-contained or use closure techniques, as
-[`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) doesn't
-accept additional parameters beyond the standard ones:
-
-```{python}
-# Create a function factory using closures to capture parameters
-def make_proportion_validator(column, min_ratio, max_ratio):
-    """Create a validator function with specified parameters"""
-
-    def validate_column_proportion(data):
-        """Validate that a numeric column's values maintain a certain proportion of the total"""
-        # Calculate the sum of the column
-        total = data[column].sum()
-
-        # Calculate each value's proportion of the total
-        proportions = data[column] / total if total > 0 else 0
-
-        # Convert to a list of booleans (proper return format for specially())
-        result = list((proportions >= min_ratio) & (proportions <= max_ratio))
-
-        # Return the list of boolean values
-        return result
-
-    return validate_column_proportion
-
-# Create sample budget data
-budget_df = pd.DataFrame({
-    "category": ["Housing", "Food", "Transportation", "Entertainment", "Savings"],
-    "amount": [1500, 600, 400, 300, 700]
-})
-
-(
-    pb.Validate(data=budget_df, tbl_name="budget")
-    .specially(
-        expr=make_proportion_validator(
-            column="amount",
-            min_ratio=0.05,  # No category should be less than 5% of total
-            max_ratio=0.50   # No category should exceed 50% of total
-        ),
-        brief="Budget categories should maintain reasonable proportions"
-    )
-    .interrogate()
-)
-```
-
-### Table Type Considerations
-
-When writing functions for
-[`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html), consider
-the different table types your code might need to handle:
-
-```{python}
-import numpy as np
-
-def generic_validation_fn(data, column):
-    """
-    A validation function that works with different table types
-    """
-    try:
-        # Pandas approach
-        if isinstance(data, pd.DataFrame):
-            values = data[column].values
-            return np.abs(values - values.mean()) <= 2 * values.std()
-
-        # DuckDB/Polars/other approach
-        else:
-            # Use more generic operations
-            mean_val = sum(data[column]) / len(data[column])
-            std_val = (sum((x - mean_val)**2 for x in data[column]) / len(data[column]))**0.5
-            return [abs(x - mean_val) <= 2 * std_val for x in data[column]]
-
-    except Exception as e:
-        print(f"Error in validation: {e}.")
-        return False
-```
-
-
-## Best Practices
-
-When working with expression-based validations, keep these best practices in mind:
-
-### 1. Start Simple, Then Add Complexity
-
-Begin with the simplest validation approach that meets your needs. Only use more complex
-expression-based methods when simpler options don't suffice:
-
-- use built-in methods
-([`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html),
-etc.) for simple validations
-- use [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-for moderately complex logic
-- use [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
-for multiple related conditions
-- use [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) only
-for highly custom validation logic
-
-### 2. Document Your Logic
-
-Since expressions and custom functions can be complex, document your validation logic thoroughly:
-
-```{python}
-(
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+    pb.Validate(data=small_table_pl)
     .col_vals_expr(
-        # Use proper Polars expression
-        expr=(pl.col("c") + pl.col("d")) / 2 > pl.col("a"),
-        # Explain the business rule being enforced
-        brief=(
-            "This validation checks that the average of columns `c` and `d` is"
-            "greater than the value in column `a`. This ensures that composite"
-            "scores meet our minimum quality threshold per business rule #23."
-        )
+        # Check denominator before division
+        expr=(pl.col("a") != 0) & (pl.col("d") / pl.col("a") > 1.5),
+        brief="Ratio of `d`/`a` should exceed 1.5 (avoiding division by zero)."
     )
     .interrogate()
 )
 ```
 
-### 3. Handle Edge Cases
+### Test on Small Datasets First
 
-With complex expressions, consider potential edge cases like division by zero or nulls:
-
-```{python}
-# Less robust expression
-# expr=pl.col("c") / pl.col("a") > 1.5
-
-# More robust expression
-(
-    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
-    .col_vals_expr(
-        expr=(pl.col("c").is_not_null()) & ((pl.col("c") / pl.col("a")) > 1.5),
-        brief="Ratio of `c`/`a` should exceed `1.5` (when `c` is not Null)."
-    )
-    .interrogate()
-)
-```
-
-### 4. Test on Smaller Datasets First
-
-When developing complex validations, test on a small sample of your data first to ensure your logic
+When developing complex expressions, test on a small sample of your data first to ensure your logic
 is correct before applying it to large datasets.
 
 ## Conclusion
 
-Expression-based validations provide powerful tools for implementing complex data quality checks in
-Pointblank:
+The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+method provides a powerful way to implement complex validation logic in Pointblank when standard
+validation methods aren't sufficient. By leveraging expressions, you can create sophisticated data
+quality checks tailored to your specific requirements, combining conditions across multiple columns
+and applying transformations as needed.
 
-- [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-allows you to validate data using custom expressions
-- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html) lets
-you apply multiple validation steps simultaneously
-- [`specially()`](https://posit-dev.github.io/pointblank/reference/Validate.specially.html) enables
-fully custom validation functions
-
-By combining these methods with Pointblank's other features like thresholds and actions, you can
-create sophisticated data validation workflows tailored to your specific requirements.
-
-While standard validation methods cover many common cases, these expression-based methods give you
-the flexibility to handle complex validation scenarios where simple comparisons aren't sufficient.
+This flexibility makes expression-based validation an essential tool for addressing complex data
+quality scenarios in your validation workflows.
