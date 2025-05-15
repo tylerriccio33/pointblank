@@ -8940,12 +8940,12 @@ class Validate:
 
         See Also
         --------
-        - [`warning()`](`pointblank.Validate.warning`): Get the 'warning' status for each validation
+        - [`warning()`](`pointblank.Validate.warning`): get the 'warning' status for each validation
         step
-        - [`error()`](`pointblank.Validate.error`): Get the 'error' status for each validation step
-        - [`critical()`](`pointblank.Validate.critical`): Get the 'critical' status for each
+        - [`error()`](`pointblank.Validate.error`): get the 'error' status for each validation step
+        - [`critical()`](`pointblank.Validate.critical`): get the 'critical' status for each
         validation step
-        - [`assert_passing()`](`pointblank.Validate.assert_passing`): Assert all validations pass
+        - [`assert_passing()`](`pointblank.Validate.assert_passing`): assert all validations pass
         completely
         """
         # Check if validation has been interrogated
