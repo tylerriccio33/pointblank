@@ -10475,6 +10475,22 @@ def test_has_threshold_exceedances_invalid_level():
     assert validation.has_threshold_exceedances(level="WARNING") is False
 
 
+def test_has_threshold_exceedances_no_interrogation():
+    """Test that has_threshold_exceedances returns False when no validation has been run"""
+
+    tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    # Create validation but DON'T run interrogate()
+    validation = Validate(
+        data=tbl, thresholds=Thresholds(warning=0.1, error=0.2, critical=0.3)
+    ).col_vals_gt(columns="values", value=0)
+
+    # Should return False for all levels when validation hasn't been run
+    assert validation.has_threshold_exceedances(level="warning") is False
+    assert validation.has_threshold_exceedances(level="error") is False
+    assert validation.has_threshold_exceedances(level="critical") is False
+
+
 def test_prep_column_text():
     assert _prep_column_text(column="column") == "`column`"
     assert _prep_column_text(column=["column_a", "column_b"]) == "`column_a`"
