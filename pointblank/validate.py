@@ -9070,11 +9070,13 @@ class Validate:
 
         See Also
         --------
-        - `assert_below_threshold()`: Similar function that raises an exception if thresholds are
-        exceeded
-        - `warning()`: Get the 'warning' status for each validation step
-        - `error()`: Get the 'error' status for each validation step
-        - `critical()`: Get the 'critical' status for each validation step
+        - [`assert_below_threshold()`](`pointblank.Validate.assert_below_threshold`): a similar
+        method that raises an exception if thresholds are exceeded
+        - [`warning()`](`pointblank.Validate.warning`): get the 'warning' status for each validation
+        step
+        - [`error()`](`pointblank.Validate.error`): get the 'error' status for each validation step
+        - [`critical()`](`pointblank.Validate.critical`): get the 'critical' status for each
+        validation step
         """
         # Ensure validation has been run
         if not hasattr(self, "time_start") or self.time_start is None:
