@@ -334,7 +334,7 @@ schema checks.
 ## Conclusion
 
 In this article, we've explored the various types of validation methods that Pointblank offers for
-ensuring data quality. These methods provide a framework for validating column values, examining
-row properties, and verifying table structures. By combining these validation methods into
-comprehensive plans, you can systematically test your data against business rules and quality
-expectations. And this all helps to ensure your data remains reliable and trustworthy.
+ensuring data quality. These methods provide a framework for validating column values, checking row
+properties, and verifying table structures. By combining these validation methods into comprehensive
+plans, you can systematically test your data against business rules and quality expectations. And
+this all helps to ensure your data remains reliable and trustworthy.
