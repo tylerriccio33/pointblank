@@ -9061,6 +9061,7 @@ class Validate:
         ```{python}
         if validation.has_threshold_exceedances(level="warning"):
             print("Some steps have exceeded the warning threshold")
+        ```
 
         Check if only steps 1 and 3 exceed the 'error' threshold (by using the `i=` argument):
 
