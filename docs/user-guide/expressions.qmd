@@ -21,11 +21,8 @@ comes in.
 The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
 method allows you to:
 
-- create custom validation logic beyond the built-in validation functions
 - combine multiple conditions in a single validation step
 - access row-wise values across multiple columns
-- apply complex transformations before validation
-- handle edge cases with specialized logic
 
 Now let's explore how to use these capabilities through a collection of examples!
 
