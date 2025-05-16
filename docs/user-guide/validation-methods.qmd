@@ -19,55 +19,108 @@ These validation methods cover everything from checking column values against th
 validating the table structure and detecting duplicates. Combined into validation steps, they form
 the foundation of your data quality workflow.
 
-Pointblank provides over 20 validation methods to handle diverse data quality requirements. These
-are grouped into three main categories, which we'll explore below with examples showing how each
-validation method creates steps in your validation plan.
+Pointblank provides [over 20 validation methods](https://posit-dev.github.io/pointblank/reference/#validation-steps)
+to handle diverse data quality requirements. These are grouped into three main categories:
 
-We'll use the `small_table` dataset for all of the examples shown here. Here's a preview of it:
+1. Column Value Validations
+2. Row-based Validations
+3. Table Structure Validations
+
+Within each of these categories, we'll walk through several examples showing how each validation
+method creates steps in your validation plan.
+
+And we'll use the `small_table` dataset for all of our examples. Here's a preview of it:
 
 ```{python}
 # | echo: false
 pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
 ```
 
+## Validation Methods to Validation Steps
+
+In Pointblank, validation *methods* become validation *steps* when you add them to a validation
+plan. Each method creates a distinct step that performs a specific check on your data.
+
+Here's a simple example showing how three validation methods create three validation steps:
+
+```{python}
+import pointblank as pb
+
+(
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+
+    # Step 1: Check that values in column `a` are greater than 2 ---
+    .col_vals_gt(columns="a", value=2, brief="Values in 'a' must exceed 2.")
+
+    # Step 2: Check that column 'date' exists in the table ---
+    .col_exists(columns="date", brief="Column 'date' must exist.")
+
+    # Step 3: Check that the table has exactly 13 rows ---
+    .row_count_match(count=13, brief="Table should have exactly 13 rows.")
+    .interrogate()
+)
+```
+
+Each validation method produces one step in the validation report above. When combined, these steps
+form a complete validation plan that systematically checks different aspects of your data quality.
+
+## Common Arguments
+
+Most validation methods in Pointblank share a set of common arguments that provide consistency and
+flexibility across different validation types:
+
+- `columns=`: specifies which column(s) to validate (used in column-based validations)
+- `pre=`: allows data transformation before validation
+- `segments=`: enables validation across different data subsets
+- `thresholds=`: sets acceptable failure thresholds
+- `actions=`: defines actions to take when validations fail
+- `brief=`: provides a description of what the validation is checking
+- `active=`: determines if the validation step should be executed (default is `True`)
+- `na_pass=`: controls how missing values are handled (only for column value validation methods)
+
+For column validation methods, the `na_pass=` parameter determines whether missing values
+(NULL/None/NA) should pass validation (this parameter is covered in a later section).
+
+These arguments follow a consistent pattern across validation methods, so you don't need to memorize
+different parameter sets for each function. This systematic approach makes Pointblank more intuitive
+to work with as you build increasingly complex validation plans.
+
+We'll cover most of these common arguments in their own dedicated sections later in the
+**User Guide**, as some of them represent a deeper topic worthy of focused attention.
+
 ## 1. Column Value Validations
 
-These methods check individual values within columns against specific criteria. Some of these are
-column value comparison checks, which work by comparing values in a column against a fixed value,
-or, values in a different column. Here are all the validation methods of this type and comparison
-checks they make:
+These methods check individual values within columns against specific criteria:
 
-- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html) -- `>`
-- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html) -- `<`
-- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html) -- `>=`
-- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html) -- `<=`
-- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html) -- `==`
-- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html) -- `!=`
+- **Comparison checks**
+([`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html),
+[`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html), etc.)
+for comparing values to thresholds or other columns
 
-There are also validation methods that check column values inside or outside of a range:
+- **Range checks**
+([`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html),
+[`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html))
+for verifying values fall within or outside specific ranges
 
-- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
-- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
+- **Set membership checks**
+([`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html),
+[`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html))
+for validating values against predefined sets
 
-We can check for values in a set, or, outside of a set:
+- **Null value checks**
+([`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html),
+[`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html))
+for testing presence or absence of null values
 
-- [`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
-- [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
+- **Pattern matching checks**
+([`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html))
+for validating text patterns with regular expressions
 
-Null value checking is performed with either of two validation methods:
+- **Custom expression checks**
+([`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html))
+for complex validations using custom expressions
 
-- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
-- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
-
-Regex checks in a column are performed one validation method:
-
-- [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
-
-Finally, we can performed checks of column values with custom expressions:
-
-- [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-
-Now let's look at a few examples on how these are used.
+Now let's look at some key examples from select categories of column value validations.
 
 ### Comparison Checks
 
@@ -76,8 +129,6 @@ Let's start with a simple example of how
 be used to check if the values in a column are greater than a specified value.
 
 ```{python}
-import pointblank as pb
-
 (
     pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
     .col_vals_gt(columns="a", value=5)
@@ -144,6 +195,27 @@ two validation steps, each checking text values in a column:
     .interrogate()
 )
 ```
+
+### Handling Missing Values with `na_pass=`
+
+When validating columns containing Null/None/NA values, you can control how these missing values are
+treated with the `na_pass=` parameter:
+
+```{python}
+(
+    pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
+    .col_vals_le(columns="c", value=10, na_pass=True)
+    .interrogate()
+)
+```
+
+In the above example, column `c` contains two `None` values, but all test units pass because we set
+`na_pass=True`. Without this setting, those two values would fail the validation.
+
+In summary, `na_pass=` works like this:
+
+- `na_pass=True`: missing values pass validation regardless of the condition being tested
+- `na_pass=False` (the default): missing values fail validation
 
 ## 2. Row-based Validations
 
