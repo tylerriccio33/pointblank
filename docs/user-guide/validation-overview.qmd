@@ -23,9 +23,10 @@ explanations and examples.
 
 Pointblank's core functionality revolves around validation steps, which are individual checks that
 verify different aspects of your data. These steps are created by calling validation methods from
-the `Validate` class. When combined they create a comprehensive validation plan for your data.
+the [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html) class. When
+combined they create a comprehensive validation plan for your data.
 
-Here's an example of a validation that incorporates four different validation methods:
+Here's an example of a validation that incorporates three different validation methods:
 
 ```{python}
 import pointblank as pb
