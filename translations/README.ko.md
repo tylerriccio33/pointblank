@@ -21,7 +21,7 @@ _아름답고 강력한 데이터 검증_
 
 </div>
 
-<div align="right">
+<div align="center">
    <a href="../README.md">English</a> |
    <a href="README.fr.md">Français</a> |
    <a href="README.de.md">Deutsch</a> |
@@ -31,6 +31,8 @@ _아름답고 강력한 데이터 검증_
    <a href="README.nl.md">Nederlands</a> |
    <a href="README.zh-CN.md">简体中文</a> |
    <a href="README.ja.md">日本語</a> |
+   <a href="README.hi.md">हिन्दी</a> |
+   <a href="README.ar.md">العربية</a>
 </div>
 
 ## Pointblank이란?

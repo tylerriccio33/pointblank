@@ -21,7 +21,7 @@ _数据验证，既美观又强大_
 
 </div>
 
-<div align="right">
+<div align="center">
    <a href="../README.md">English</a> |
    <a href="README.fr.md">Français</a> |
    <a href="README.de.md">Deutsch</a> |
@@ -30,7 +30,9 @@ _数据验证，既美观又强大_
    <a href="README.pt-BR.md">Português</a> |
    <a href="README.nl.md">Nederlands</a> |
    <a href="README.ja.md">日本語</a> |
-   <a href="README.ko.md">한국어</a>
+   <a href="README.ko.md">한국어</a> |
+   <a href="README.hi.md">हिन्दी</a> |
+   <a href="README.ar.md">العربية</a>
 </div>
 
 ## Pointblank 是什么？

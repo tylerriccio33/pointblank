@@ -21,7 +21,7 @@ _美しく強力なデータ検証_
 
 </div>
 
-<div align="right">
+<div align="center">
    <a href="../README.md">English</a> |
    <a href="README.fr.md">Français</a> |
    <a href="README.de.md">Deutsch</a> |
@@ -30,7 +30,9 @@ _美しく強力なデータ検証_
    <a href="README.pt-BR.md">Português</a> |
    <a href="README.nl.md">Nederlands</a> |
    <a href="README.zh-CN.md">简体中文</a> |
-   <a href="README.ko.md">한국어</a>
+   <a href="README.ko.md">한국어</a> |
+   <a href="README.hi.md">हिन्दी</a> |
+   <a href="README.ar.md">العربية</a>
 </div>
 
 ## Pointblank とは？
