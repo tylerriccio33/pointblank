@@ -277,23 +277,33 @@ class DataScan:
         )
 
         ## Pull out type indicies:
-        # TODO: This should get a dedicated mini-class
-        # TODO: Technically ne a type guard too
-        datetime_idx: list[int] = (
-            formatted_data.select(
-                __tmp_idx=nw.col("coltype").str.contains("Datetime", literal=True)
-            )["__tmp_idx"]
-            .arg_true()
-            .to_list()
-        )
-        date_idx: list[int] = (
-            formatted_data.select(
-                __tmp_idx=nw.col("coltype").str.contains("Date", literal=True)
-                & ~nw.col("coltype").str.contains("Datetime", literal=True)
-            )["__tmp_idx"]
-            .arg_true()
-            .to_list()
-        )
+        # TODO: The stat types should get an enum? or something?
+        # TODO: This all assumes the dates are separated by dashes, is that even true?
+        # TODO: This all assumes date_stats are strings already, not ints or anything else.
+        any_dates: bool = formatted_data.select(
+            __tmp_idx=nw.col("coltype").str.contains("Date", literal=True)
+        )["__tmp_idx"].any()
+        if any_dates:
+            date_stats = [c for c in present_stat_cols if c in ("min", "max")]
+
+            formatted_data = formatted_data.with_columns(
+                nw.when(nw.col("coltype").str.contains(r"\bDate\b", literal=False))
+                .then(nw.col(c).str.replace_all("-", "<br>"))
+                .otherwise(c)
+                for c in date_stats
+            )
+
+        any_datetimes: bool = formatted_data.select(
+            __tmp_idx=nw.col("coltype").str.contains("Datetime", literal=True)
+        )["__tmp_idx"].any()
+        if any_datetimes:
+            datetime_idx = [c for c in present_stat_cols if c in ("min", "max")]
+            formatted_data = formatted_data.with_columns(
+                nw.when(nw.col("coltype").str.contains(r"\bDatetime\b", literal=False))
+                .then(nw.col(c).str.replace_all("-", "<br>"))
+                .otherwise(c)
+                for c in datetime_idx
+            )
 
         # format fractions:
         # this is an anti-pattern but there's no serious alternative
@@ -406,7 +416,6 @@ class DataScan:
             .opt_table_font(font=google_font("IBM Plex Sans"))
             .opt_align_table_header(align="left")
             .tab_style(style=style.text(font=google_font("IBM Plex Mono")), locations=loc.body())
-            ## Order
             .cols_move_to_start(target_order)
             ## Labeling
             .cols_label(label_map)
@@ -422,16 +431,6 @@ class DataScan:
                 decimals=2,
                 drop_trailing_dec_mark=True,
                 drop_trailing_zeros=True,
-            )
-            .fmt_datetime(
-                # TODO: This is lazy and I should come up with a better solution
-                columns=[c for c in present_stat_cols if c in ("min", "max")],
-                rows=datetime_idx,
-            )
-            .fmt_date(
-                # TODO: This is lazy and I should come up with a better solution
-                columns=[c for c in present_stat_cols if c in ("min", "max")],
-                rows=date_idx,
             )
             ## Borders
             .tab_style(

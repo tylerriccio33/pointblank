@@ -188,8 +188,8 @@ def test_datascan_json_output(df):
     assert isinstance(profile_json, str)
 
 
-@example(pb.load_dataset("nycflights", "duckdb"))  # ! move this back to the normal spot
 @given(happy_path_df | happy_path_ldf | _arrow_strat() | _pandas_strat())
+@example(pb.load_dataset("nycflights", "duckdb"))  # ! move this back to the normal spot
 @example(pb.load_dataset("small_table", "polars"))
 @example(pb.load_dataset("small_table", "pandas"))
 @example(pb.load_dataset("small_table", "duckdb"))
@@ -286,4 +286,4 @@ def test_compact_0_1_fmt():
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-x"])
+    pytest.main([__file__, "-x", "-k", "test_col_summary_tbl"])
