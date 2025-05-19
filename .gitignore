@@ -125,3 +125,5 @@ datasets/
 /*.csv
 .ruff_cache
 .swp
+
+uv.lock
