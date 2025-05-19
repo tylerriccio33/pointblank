@@ -10339,7 +10339,7 @@ def test_assert_below_threshold_auto_interrogate():
 
 
 def test_has_threshold_exceedances_basic_cases():
-    """Test basic functionality of has_threshold_exceedances with different threshold levels"""
+    """Test basic functionality of `has_threshold_exceedances()` with different threshold levels"""
 
     # Create a simple table where all values pass validation
     tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
@@ -10425,7 +10425,7 @@ def test_has_threshold_exceedances_specific_step():
 
 
 def test_has_threshold_exceedances_multiple_steps():
-    """Test checking for threshold exceedances with multiple steps and using list for i"""
+    """Test checking for threshold exceedances with multiple steps and using list for `i=`"""
 
     tbl = pl.DataFrame(
         {
