@@ -79,7 +79,6 @@ dev = [
     "polars>=1.17.1",
     "pre-commit==2.15.0",
     "pyarrow",
-    "pyright>=1.1.244",
     "pytest>=3",
     "pytest-cov",
     "pytest-randomly>=3.16.0",
