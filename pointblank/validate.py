@@ -9034,8 +9034,8 @@ class Validate:
         import pointblank as pb
         pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
-        Let's create a validation plan with some steps and thresholds. We'll then check if any steps
-        exceed the 'warning' threshold.
+        Let's create a validation plan with three steps and incremental thresholds. We'll then check
+        if any steps exceed the 'warning' threshold.
 
         ```{python}
         import pointblank as pb
@@ -9049,6 +9049,7 @@ class Validate:
             pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
             .col_vals_gt(columns="values", value=0)
             .col_vals_lt(columns="values", value=10)
+            .col_vals_between(columns="values", left=0, right=5)
             .interrogate()
         )
 
@@ -9085,6 +9086,11 @@ class Validate:
                 print("Data fails critical quality checks, aborting...")
                 return False
         ```
+
+        Note that this is just a suggestion for how to implement conditional workflow processes. You
+        should adapt this pattern to your specific requirements, which might include  different
+        threshold levels, custom logging mechanisms, or integration with your organization's data
+        pipelines and notification systems.
 
         See Also
         --------
