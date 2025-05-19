@@ -9034,16 +9034,22 @@ class Validate:
         import pointblank as pb
         pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
-        Let's create a validation plan with three steps and incremental thresholds. We'll then check
-        if any steps exceed the 'warning' threshold.
+        Below are some examples of how to use the `has_threshold_exceedances()` method. First, we'll
+        create a simple Polars DataFrame with a single column (`values`).
 
         ```{python}
-        import pointblank as pb
         import polars as pl
 
         tbl = pl.DataFrame({
             "values": [1, 2, 3, 4, 5, 0, -1]
         })
+        ```
+
+        Then a validation plan will be created with thresholds (`warning=0.1`, `error=0.2`,
+        `critical=0.3`). After interrogating, we display the validation report table:
+
+        ```{python}
+        import pointblank as pb
 
         validation = (
             pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
@@ -9056,19 +9062,19 @@ class Validate:
         validation
         ```
 
-        Check if any steps exceed warning threshold with the `has_threshold_exceedances()` method
-        and print a message if that's the case:
+        Let's check if any steps exceed the 'warning' threshold with the
+        `has_threshold_exceedances()` method. A message will be printed if that's the case:
 
         ```{python}
         if validation.has_threshold_exceedances(level="warning"):
             print("Some steps have exceeded the warning threshold")
         ```
 
-        Check if only steps 1 and 3 exceed the 'error' threshold (by using the `i=` argument):
+        Check if only steps 2 and 3 exceed the 'error' threshold through use of the `i=` argument:
 
         ```{python}
-        if validation.has_threshold_exceedances(level="error", i=[1, 3]):
-            print("Steps 1 and/or 3 have exceeded the error threshold")
+        if validation.has_threshold_exceedances(level="error", i=[2, 3]):
+            print("Steps 2 and/or 3 have exceeded the error threshold")
         ```
 
         You can use this in a workflow to conditionally trigger processes. Here's a snippet of how
