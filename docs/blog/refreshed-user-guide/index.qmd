@@ -1,7 +1,7 @@
 ---
 jupyter: python3
 html-table-processing: none
-title: A Refreshed User Guide
+title: Overhauling Pointblank's User Guide
 author: Rich Iannone
 date: 2025-05-20
 freeze: true
@@ -30,16 +30,9 @@ for the first row indicates that all 13 values in the column passed.
 In this post, we'll cover:
 
 - using a spiral sequence to balance introductory breadth with subsequent depth
-- improving examples
-- rounding out API coverage
+- improving examples with direct explanatory text
+- rounding out API coverage for cross-linking
 - surfacing advanced topics
-
-This documentation effort fulfills a key component of our
-[project roadmap](https://github.com/posit-dev/pointblank#roadmap), where we committed to
-providing "high-quality documentation and examples" for our users. As Pointblank's capabilities have
-grown, we recognized the need for documentation that not only keeps pace with these new features but
-also makes them more accessible to users at all experience levels. The improvements we're
-introducing today represent a significant step toward that goal.
 
 Let us walk you through the key improvements in our refreshed **User Guide**!
 
@@ -51,64 +44,26 @@ into different aspects of defining validation rules.
 
 ![](breadth-and-depth.png){height=80%}
 
-The new **User Guide** is now organized into five main sections that follow a natural progression
-for users:
-
-1. **Getting Started**: introduction and installation to get you up and running quickly
-2. **Validation Plan**: comprehensive coverage of creating validation plans from basic to advanced
-3. **Advanced Validation**: specialized techniques like expression-based validation and schema validation
-4. **Post Interrogation**: tools for analyzing and responding to validation results
-5. **Data Inspection**: methods for exploring and understanding your data
-
-With this structuring, we think it'll help newcomers who want to follow a linear learning path *and*
-experienced users who need to quickly find specific information.
-
-Here's how the **User Guide** sidebar looked before:
-
-![](docs-before.png){width=80%}
-
-This is it now:
-
-![](docs-now.png){width=80%}
-
-As you can see, more sections, more articles, and an overall nicer look for the sidebar!
+The introduction does a broad pass on the validation plan table diagram, identifying the core pieces
+of the output and then giving a quick overview of the code that produced it. This sets people up for
+the Validation Plan section in the guide, where each concept is discussed in depth.
 
 ## Improving Examples
 
-Every concept is now illustrated with practical, runnable examples that show both the code and its
-output. We've adopted an "example-first" approach throughout the guide where we:
+Examples are everywhere in the User Guide. We've tightened up our approach to examples by:
 
-- present code examples early in each section
-- show the actual output you'll see in your environment
-- follow with explanatory text that references what you've already seen
+- presenting example code, output, or both, early in each section
+- showing the actual output you'll see in your environment
+- following up with explanatory text that guides attention to specific places in the output
 
-This approach makes learning more intuitive. You see how something works before we explain why it
-works that way. For example:
+This approach makes learning more intuitive. Here's an excerpt that shows this in practice.
 
-```{python}
-import pointblank as pb
+![](explanation-of-visual.png){width=80%}
 
-# A simple validation that demonstrates core concepts
-validation = (
-   pb.Validate(data=pb.load_dataset("small_table"))
-   .col_vals_gt(columns="d", value=100)
-   .interrogate()
-)
-
-validation
-```
-
-After showing this example and its output, we explain the validation process, making it much easier
-to understand the concepts because you've already seen them in action. This pattern appears
-throughout the guide for everything from simple validations to complex workflows with multiple
-validation steps and custom actions.
-
-We've also significantly improved the presentation of console output. Previously, stdout text would
-blend in with the page content, making it difficult to distinguish from regular text. Now, all
-console output is displayed in a visually distinct container with a background color, making it
-more clear what's code, what's output, and what's explanatory text. This visual separation creates a
-much cleaner reading experience, particularly in sections with multiple code examples and their
-corresponding outputs.
+The blue arrow marks the flow of reading and the red arrows map where we anticipate people will look
+from the text to the output. Focusing explicitly on where we think attention will go forces us to
+think carefully about exactly what readers will get from the output. The hope is that readers get to
+work more quickly on new concepts.
 
 ## Rounding Out API Coverage
 
