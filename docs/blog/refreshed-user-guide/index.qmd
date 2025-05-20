@@ -43,11 +43,11 @@ We chose to use a spiral sequence for our [Introduction](../../user-guide/index.
 validation plan, while each article of the *Validation Plan* section dives
 deeper into different aspects of defining validation rules.
 
-:::{style="text-align: center;"}
+<div style="text-align: center;">
 
 ![](breadth-and-depth.png){style="width: 50%}
 
-:::
+</div>
 
 The introduction does a broad pass on the validation plan table diagram, identifying the core pieces
 of the output and then giving a quick overview of the code that produced it. This sets people up for
@@ -96,7 +96,11 @@ In this section, I'll highlight two advanced topics we added pages for:
 
 These are marked in the **User Guide** sidebar screenshot below:
 
+<div style="text-align: center;">
+
 ![](advanced-in-sidebar.png){style="width: 35%; text-align: center;"}
+
+</div>
 
 ### Segmentation
 
