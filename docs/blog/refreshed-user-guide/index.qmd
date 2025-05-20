@@ -43,7 +43,11 @@ We chose to use a spiral sequence for our [Introduction](../../user-guide/index.
 validation plan, while each article of the *Validation Plan* section dives
 deeper into different aspects of defining validation rules.
 
+<div style="text-align: center;">
+
 ![](breadth-and-depth.png){width=50%}
+
+</div>
 
 The introduction does a broad pass on the validation plan table diagram, identifying the core pieces
 of the output and then giving a quick overview of the code that produced it. This sets people up for
