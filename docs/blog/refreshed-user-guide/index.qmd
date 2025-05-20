@@ -40,15 +40,15 @@ for users:
 With this structuring, we think it'll help newcomers who want to follow a linear learning path *and*
 experienced users who need to quickly find specific information.
 
-Here's how the docs looked before, and how they look now:
+Here's how the **User Guide** sidebar looked before:
 
-::: {#fig-docs layout-ncol=2}
+![](docs-before.png){width=80%}
 
-![](docs-before.png)
+This is it now:
 
-![](docs-now.png)
+![](docs-now.png){width=80%}
 
-:::
+As you can see, more sections, more articles, and an overall nicer look for the sidebar!
 
 ## Enhanced Code Examples and Interactive Output
 
