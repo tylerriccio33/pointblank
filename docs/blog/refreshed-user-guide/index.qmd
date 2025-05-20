@@ -15,7 +15,24 @@ pb.config(report_incl_footer=False)
 ```
 
 The Pointblank documentation just got a major upgrade! We've completely overhauled our
-**User Guide** to make it more comprehensive, easier to navigate, and more visually appealing.
+**User Guide**. Our goal was to enable readers to start fast on validation and work through the
+many pieces needed in realistic situations.
+
+We realized that at the core of Pointblank is the validation plan. Its made up of rules, results,
+and steps.
+
+![](validation-three-things.png){width=80%}
+
+For example, the first row is a step that checks whether values in column 'a' are less than `10`.
+The `COLUMNS` and `VALUES` column contain the rules used to configure the step. The `PASS` column
+for the first row indicates that all 13 values in the column passed.
+
+In this post, we'll cover:
+
+- using a spiral sequence to balance introductory breadth with subsequent depth
+- improving examples
+- rounding out API coverage
+- surfacing advanced topics
 
 This documentation effort fulfills a key component of our
 [project roadmap](https://github.com/posit-dev/pointblank#roadmap), where we committed to
@@ -27,20 +44,6 @@ introducing today represent a significant step toward that goal.
 Let us walk you through the key improvements in our refreshed **User Guide**!
 
 ## Introduction: Embracing the Spiral Sequence
-
-At the core of Pointblank is the validation plan. Its made up of rules, results, and steps.
-
-![](validation-three-things.png){width=80%}
-
-For example, the first row is a step that checks whether values in column 'a' are less than `10`.
-The `COLUMNS` and `VALUES` column contain the rules used to configure the step. The `PASS` column
-for the first row indicates that all 13 values in the column passed.
-
-Here's each validation component marked in the diagram summarized:
-
-- validation steps: each step will execute a validation test
-- validation rules: the configuration used for a given step
-- validation results: the result of running a given step
 
 We chose to use a spiral sequence for our Introduction and Validation Plan section. The Introduction
 quickly covers parts of validation plan, while each page of the Validation Plan section dives deeper
@@ -167,23 +170,6 @@ cases in step reports often uncover obvious causes behind failures.
 in the [Interrogation and Reporting section](../../reference/index.qmd#interrogation-and-reporting).
 Critically, it's only one of 20 entries in the [User Guide](../../user-guide/index.qmd), which
 emphasizes its importance in validation workflows.
-
-## Advising on Best Practices
-
-Beyond just documenting the API, we've focused on providing our take on best practices. We have
-dedicated sections on important strategies like troubleshooting common patterns and best
-practices.
-
-For example, a brief is a short piece of text that describes a validation step:
-
-...provide an annotated image with briefs in a simple validation report table...
-
-Notice the small brief text being pointed to in the first step of the validation report. Briefs
-help readers interpret your validation.
-
-I'm not just interested in your ability to specify briefs, but what makes them effective. In the
-[Briefs]() article we provide a Best Practices section with five concrete guidelines
-for using Briefs effectively.
 
 ## Looking Forward
 
