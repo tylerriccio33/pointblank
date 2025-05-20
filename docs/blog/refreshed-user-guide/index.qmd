@@ -2,7 +2,7 @@
 jupyter: python3
 html-table-processing: none
 title: Overhauling Pointblank's User Guide
-author: Rich Iannone
+author: Rich Iannone and Michael Chow
 date: 2025-05-20
 freeze: true
 ---
@@ -42,7 +42,7 @@ We chose to use a spiral sequence for our Introduction and Validation Plan secti
 quickly covers parts of validation plan, while each page of the Validation Plan section dives deeper
 into different aspects of defining validation rules.
 
-![](breadth-and-depth.png){height=80%}
+![](breadth-and-depth.png){width=80%}
 
 The introduction does a broad pass on the validation plan table diagram, identifying the core pieces
 of the output and then giving a quick overview of the code that produced it. This sets people up for
@@ -91,7 +91,7 @@ In this section, I'll highlight two advanced topics we added pages for:
 
 These are marked in the User Guide sidebar screenshot below:
 
-![](advanced-in-sidebar.png){height=80%}
+![](advanced-in-sidebar.png){width=80%}
 
 ### Segmentation
 
