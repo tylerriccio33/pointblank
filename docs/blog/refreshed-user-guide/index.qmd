@@ -1,0 +1,148 @@
+---
+jupyter: python3
+html-table-processing: none
+title: A Refreshed User Guide
+author: Rich Iannone
+date: 2025-05-20
+freeze: true
+---
+
+```{python}
+#| echo: false
+#| output: false
+import pointblank as pb
+pb.config(report_incl_footer=False)
+```
+
+The Pointblank documentation just got a major upgrade! We've completely overhauled our
+**User Guide** to make it more comprehensive, easier to navigate, and more visually appealing.
+
+This documentation effort fulfills a key component of our
+[project roadmap](https://github.com/posit-dev/pointblank#roadmap), where we committed to
+providing "high-quality documentation and examples" for our users. As Pointblank's capabilities have
+grown, we recognized the need for documentation that not only keeps pace with these new features but
+also makes them more accessible to users at all experience levels. The improvements we're
+introducing today represent a significant step toward that goal.
+
+Let us walk you through the key improvements in our refreshed **User Guide**!
+
+## Logical Organization with Clear Navigation
+
+The new **User Guide** is now organized into five main sections that follow a natural progression
+for users:
+
+1. **Getting Started**: introduction and installation to get you up and running quickly
+2. **Validation Plan**: comprehensive coverage of creating validation plans from basic to advanced
+3. **Advanced Validation**: specialized techniques like expression-based validation and schema validation
+4. **Post Interrogation**: tools for analyzing and responding to validation results
+5. **Data Inspection**: methods for exploring and understanding your data
+
+With this structuring, we think it'll help newcomers who want to follow a linear learning path *and*
+experienced users who need to quickly find specific information.
+
+Here's how the docs looked before, and how they look now:
+
+::: {#fig-docs layout-ncol=2}
+
+![](docs-before.png)
+
+![](docs-now.png)
+
+:::
+
+## Enhanced Code Examples and Interactive Output
+
+Every concept is now illustrated with practical, runnable examples that show both the code and its
+output. We've adopted an "example-first" approach throughout the guide where we:
+
+- present code examples early in each section
+- show the actual output you'll see in your environment
+- follow with explanatory text that references what you've already seen
+
+This approach makes learning more intuitive. You see how something works before we explain why it
+works that way. For example:
+
+```{python}
+import pointblank as pb
+
+# A simple validation that demonstrates core concepts
+validation = (
+   pb.Validate(data=pb.load_dataset("small_table"))
+   .col_vals_gt(columns="d", value=100)
+   .interrogate()
+)
+
+validation
+```
+
+After showing this example and its output, we explain the validation process, making it much easier
+to understand the concepts because you've already seen them in action. This pattern appears
+throughout the guide for everything from simple validations to complex workflows with multiple
+validation steps and custom actions.
+
+We've also significantly improved the presentation of console output. Previously, stdout text would
+blend in with the page content, making it difficult to distinguish from regular text. Now, all
+console output is displayed in a visually distinct container with a background color, making it
+more clear what's code, what's output, and what's explanatory text. This visual separation creates a
+much cleaner reading experience, particularly in sections with multiple code examples and their
+corresponding outputs.
+
+## Comprehensive API Coverage
+
+We've significantly expanded our API documentation to cover:
+
+- **all validation methods** with detailed parameter explanations and use cases
+- **helper functions** that complement the validation workflow
+- **customization options** for reports, thresholds, and actions
+
+The new section on draft validation showcases how to leverage LLMs to automatically generate
+validation rules, and our expanded coverage of actions and final actions demonstrates how to
+integrate validation into your data pipelines.
+
+## Visual Improvements
+
+The refreshed guide features:
+
+- **clean, consistent styling** across all pages
+- **improved code highlighting** for better readability
+- **enhanced table formatting** for validation results
+- **clear visual hierarchies** with properly nested headers
+
+These visual improvements make the documentation not just more pleasant to read, but also easier to
+scan and reference when you need specific information quickly.
+
+## Dedicated Sections for Advanced Topics
+
+We've created in-depth guides for topics that previously had limited coverage:
+
+- **Step Reports**: a comprehensive guide to generating, customizing, and using detailed step reports
+- **Expressions**: advanced validation using column expressions
+- **Segmentation**: applying validations to specific segments of your data
+- **Draft Validation**: using LLMs to generate validation plans from your data
+
+Each of these sections includes best practices, common patterns, and troubleshooting tips to help
+you get the most out of these powerful features.
+
+## Practical Workflows and Best Practices
+
+Beyond just documenting the API, we've focused on providing practical guidance:
+
+- **Best practices sections** at the end of key topics
+- **Common patterns** for effective validation
+- **Troubleshooting tips** for resolving common issues
+- **Recommended workflows** that combine multiple features
+
+These practical insights come from real-world usage patterns and help you apply Pointblank
+effectively in your own data quality workflows.
+
+## Looking Forward
+
+The refreshed **User Guide** is just the beginning of our documentation improvements. We're
+committed to continuously enhancing our documentation to support your data validation needs.
+
+We'd love to hear your feedback on the new User Guide! Feel free to open an issue on our
+[GitHub repository](https://github.com/posit-dev/pointblank/issues) with suggestions, corrections,
+or requests for additional topics you'd like to see covered. You can also join our community
+discussions in the dedicated `#Documentation` channel on our
+[Discord server](https://discord.com/invite/YH7CybCNCQ), where you can share ideas, ask questions,
+and get help directly from the Pointblank team and other users.
