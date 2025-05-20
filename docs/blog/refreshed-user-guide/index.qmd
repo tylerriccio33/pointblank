@@ -89,56 +89,89 @@ corresponding outputs.
 
 ## Comprehensive API Coverage
 
-We've significantly expanded our API documentation to cover:
+Documentation has to balance jobs between a User Guide and an API Reference:
 
-- **all validation methods** with detailed parameter explanations and use cases
-- **helper functions** that complement the validation workflow
-- **customization options** for reports, thresholds, and actions
+- User Guide: explains concepts that cut across functions -- like common arguments across
+[validation methods](/user-guide/validation-methods.qmd) --
+- API Reference: explains each individual function
 
-The new section on draft validation showcases how to leverage LLMs to automatically generate
-validation rules, and our expanded coverage of actions and final actions demonstrates how to
-integrate validation into your data pipelines.
+Importantly, user guides often link to the API reference so, as part of this work, we made sure that
+all individual API entries are well-documented and linked to from the guide.
+Here's an excerpt from the User Guide that shows links marked:
 
-## Visual Improvements
-
-The refreshed guide features:
-
-- **clean, consistent styling** across all pages
-- **improved code highlighting** for better readability
-- **enhanced table formatting** for validation results
-- **clear visual hierarchies** with properly nested headers
-
-These visual improvements make the documentation not just more pleasant to read, but also easier to
-scan and reference when you need specific information quickly.
+![](links-in-guide.png){width=80%}
 
 ## Dedicated Sections for Advanced Topics
 
-We've created in-depth guides for topics that previously had limited coverage:
+There's a lot of potential slicing and dicing involved in validation, as well as work after
+validation (post interrogation) to make sense of the results. We added pages to the user guide for
+some core situations.
+In this section, I'll highlight two advanced topics we added pages for:
 
-- **Step Reports**: a comprehensive guide to generating, customizing, and using detailed step reports
-- **Expressions**: advanced validation using column expressions
-- **Segmentation**: applying validations to specific segments of your data
-- **Draft Validation**: using LLMs to generate validation plans from your data
+- segmentation: splitting a column into groups, and validating each group
+- step reports: view failing cases (e.g. view rows of data that failed validation)
 
-Each of these sections includes best practices, common patterns, and troubleshooting tips to help
-you get the most out of these powerful features.
+These are marked in the User Guide sidebar screenshot below:
 
-## Practical Workflows and Best Practices
+![](advanced-in-sidebar.png){height=80%}
 
-Beyond just documenting the API, we've focused on providing practical guidance:
+### Segmentation
 
-- **Best practices sections** at the end of key topics
-- **Common patterns** for effective validation
-- **Troubleshooting tips** for resolving common issues
-- **Recommended workflows** that combine multiple features
+Here's a screenshot of a validation report with two validation steps, one for each segment ('low'
+and 'high') in the `f` column of the `small_table` dataset.
 
-These practical insights come from real-world usage patterns and help you apply Pointblank
-effectively in your own data quality workflows.
+![](segments.png){width=80%}
+
+Notice that segments split columns into groups and apply the same validation to each of the groups.
+Each group is given its own step.
+
+Each of the 20+ validation methods accept a `segment=` argument. The value of the Segments page in
+the User Guide is to describe this cross-cutting behavior in a single place.
+
+Compare the `segments=` parameter in the API Reference (e.g., for [`col_vals_gt()`](../../reference/Validate.col_vals_gt.qmd))
+to the [Segments page in the User Guide](../../user-guide/segmentation.qmd) to get a feel for
+how each place documents segments.
+
+### Step Report
+
+Step reports display failing cases (e.g., rows) for a validation step, so you can dig deeper into
+validation failures. Here's a screenshot of a step report for some validation step 2:
+
+![](step-report.png){width=80%}
+
+Notice the arrow pointing to 'Step 2' in the title. Failing values are highlighted in red. Once we
+know we have failures, it's important to take action and discover *why* data is failing. Looking at
+cases in step reports often uncover obvious causes behind failures.
+
+`get_step_report()` is one of 50 entries in the API Reference. Here it is listed the API Reference,
+in the [Interrogation and Reporting section](../../reference/index.qmd#interrogation-and-reporting).
+Critically, it's only one of 20 entries in the [User Guide](../../user-guide/index.qmd), which
+emphasizes its importance in validation workflows.
+
+## Practical Workflows and Best Practices (just mention one of these quickly in an earlier section)
+
+Beyond just documenting the API, we've focused on providing our take on best practices. We have
+dedicated sections on important strategies like troubleshooting common patterns and best
+practices.
+
+For example, a brief is a short piece of text that describes a validation step:
+
+...provide an annotated image with briefs in a simple validation report table...
+
+Notice the small brief text being pointed to in the first step of the validation report. Briefs
+help readers interpret your validation.
+
+I'm not just interested in your ability to specify briefs, but what makes them effective. In the
+[Briefs]() article we provide a Best Practices section with five concrete guidelines
+for using Briefs effectively.
 
 ## Looking Forward
 
 The refreshed **User Guide** is just the beginning of our documentation improvements. We're
 committed to continuously enhancing our documentation to support your data validation needs.
+
+Michael Chow gave feedback on this User Guide in preparation for his
+[upcoming talk at SciPy 2025](https://cfp.scipy.org/scipy2025/talk/NRMNDX/).
 
 We'd love to hear your feedback on the new User Guide! Feel free to open an issue on our
 [GitHub repository](https://github.com/posit-dev/pointblank/issues) with suggestions, corrections,
