@@ -26,7 +26,27 @@ introducing today represent a significant step toward that goal.
 
 Let us walk you through the key improvements in our refreshed **User Guide**!
 
-## Logical Organization with Clear Navigation
+## Introduction: Embracing the Spiral Sequence
+
+At the core of Pointblank is the validation plan. Its made up of rules, results, and steps.
+
+![](validation-three-things.png){width=80%}
+
+For example, the first row is a step that checks whether values in column 'a' are less than `10`.
+The `COLUMNS` and `VALUES` column contain the rules used to configure the step. The `PASS` column
+for the first row indicates that all 13 values in the column passed.
+
+Here's each validation component marked in the diagram summarized:
+
+- validation steps: each step will execute a validation test
+- validation rules: the configuration used for a given step
+- validation results: the result of running a given step
+
+We chose to use a spiral sequence for our Introduction and Validation Plan section. The Introduction
+quickly covers parts of validation plan, while each page of the Validation Plan section dives deeper
+into different aspects of defining validation rules.
+
+![](breadth-and-depth.png){height=80%}
 
 The new **User Guide** is now organized into five main sections that follow a natural progression
 for users:
@@ -50,7 +70,7 @@ This is it now:
 
 As you can see, more sections, more articles, and an overall nicer look for the sidebar!
 
-## Enhanced Code Examples and Interactive Output
+## Improving Examples
 
 Every concept is now illustrated with practical, runnable examples that show both the code and its
 output. We've adopted an "example-first" approach throughout the guide where we:
@@ -87,7 +107,7 @@ more clear what's code, what's output, and what's explanatory text. This visual 
 much cleaner reading experience, particularly in sections with multiple code examples and their
 corresponding outputs.
 
-## Comprehensive API Coverage
+## Rounding Out API Coverage
 
 Documentation has to balance jobs between a User Guide and an API Reference:
 
@@ -101,7 +121,7 @@ Here's an excerpt from the User Guide that shows links marked:
 
 ![](links-in-guide.png){width=80%}
 
-## Dedicated Sections for Advanced Topics
+## Surfacing Advanced Topics
 
 There's a lot of potential slicing and dicing involved in validation, as well as work after
 validation (post interrogation) to make sense of the results. We added pages to the user guide for
@@ -148,7 +168,7 @@ in the [Interrogation and Reporting section](../../reference/index.qmd#interroga
 Critically, it's only one of 20 entries in the [User Guide](../../user-guide/index.qmd), which
 emphasizes its importance in validation workflows.
 
-## Practical Workflows and Best Practices (just mention one of these quickly in an earlier section)
+## Advising on Best Practices
 
 Beyond just documenting the API, we've focused on providing our take on best practices. We have
 dedicated sections on important strategies like troubleshooting common patterns and best
