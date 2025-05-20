@@ -21,7 +21,7 @@ many pieces needed in realistic situations.
 We realized that at the core of Pointblank is the validation plan. Its made up of rules, results,
 and steps.
 
-![](validation-three-things.png){width=80%}
+![](validation-three-things.png){width=80%, text-align=center}
 
 For example, the first row is a step that checks whether values in column 'a' are less than `10`.
 The `COLUMNS` and `VALUES` column contain the rules used to configure the step. The `PASS` column
@@ -42,7 +42,7 @@ We chose to use a spiral sequence for our Introduction and Validation Plan secti
 quickly covers parts of validation plan, while each page of the Validation Plan section dives deeper
 into different aspects of defining validation rules.
 
-![](breadth-and-depth.png){width=80%}
+![](breadth-and-depth.png){width=50%, text-align=center}
 
 The introduction does a broad pass on the validation plan table diagram, identifying the core pieces
 of the output and then giving a quick overview of the code that produced it. This sets people up for
@@ -58,7 +58,7 @@ Examples are everywhere in the User Guide. We've tightened up our approach to ex
 
 This approach makes learning more intuitive. Here's an excerpt that shows this in practice.
 
-![](explanation-of-visual.png){width=80%}
+![](explanation-of-visual.png){width=80%, text-align=center}
 
 The blue arrow marks the flow of reading and the red arrows map where we anticipate people will look
 from the text to the output. Focusing explicitly on where we think attention will go forces us to
@@ -77,7 +77,7 @@ Importantly, user guides often link to the API reference so, as part of this wor
 all individual API entries are well-documented and linked to from the guide.
 Here's an excerpt from the User Guide that shows links marked:
 
-![](links-in-guide.png){width=80%}
+![](links-in-guide.png){width=80%, text-align=center}
 
 ## Surfacing Advanced Topics
 
@@ -91,14 +91,14 @@ In this section, I'll highlight two advanced topics we added pages for:
 
 These are marked in the User Guide sidebar screenshot below:
 
-![](advanced-in-sidebar.png){width=80%}
+![](advanced-in-sidebar.png){width=35%, text-align=center}
 
 ### Segmentation
 
 Here's a screenshot of a validation report with two validation steps, one for each segment ('low'
 and 'high') in the `f` column of the `small_table` dataset.
 
-![](segments.png){width=80%}
+![](segments.png){width=80%, text-align=center}
 
 Notice that segments split columns into groups and apply the same validation to each of the groups.
 Each group is given its own step.
@@ -115,7 +115,7 @@ how each place documents segments.
 Step reports display failing cases (e.g., rows) for a validation step, so you can dig deeper into
 validation failures. Here's a screenshot of a step report for some validation step 2:
 
-![](step-report.png){width=80%}
+![](step-report.png){width=80%, text-align=center}
 
 Notice the arrow pointing to 'Step 2' in the title. Failing values are highlighted in red. Once we
 know we have failures, it's important to take action and discover *why* data is failing. Looking at
