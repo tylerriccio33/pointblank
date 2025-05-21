@@ -19,6 +19,9 @@ filters:
 
 interlinks:
   fast: true
+  autolinks: true
+  aliases:
+    pointblank: "pb"
   sources:
     numpy:
       url: https://numpy.org/doc/stable/
