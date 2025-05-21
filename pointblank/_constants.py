@@ -109,6 +109,7 @@ ROW_BASED_VALIDATION_TYPES = [
 ]
 
 IBIS_BACKENDS = [
+    "bigquery",
     "databricks",
     "duckdb",
     "memtable",
@@ -165,6 +166,7 @@ TABLE_TYPE_STYLES = {
     "parquet": {"background": "#3F9FF9", "text": "#FFFFFF", "label": "Parquet"},
     "memtable": {"background": "#2C3E50", "text": "#FFFFFF", "label": "Ibis memtable"},
     "mssql": {"background": "#E2E2E2", "text": "#222222", "label": "MSSQL"},
+    "bigquery": {"background": "#4285F4", "text": "#FFFFFF", "label": "BigQuery"},
     "pyspark": {"background": "#E66F21", "text": "#FFFFFF", "label": "Spark DataFrame"},
     "databricks": {"background": "#FF3621", "text": "#FFFFFF", "label": "Databricks"},
 }
