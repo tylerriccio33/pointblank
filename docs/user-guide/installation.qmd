@@ -80,6 +80,7 @@ pip install pointblank[duckdb]      # DuckDB
 pip install pointblank[postgres]    # PostgreSQL
 pip install pointblank[mysql]       # MySQL
 pip install pointblank[mssql]       # Microsoft SQL Server
+pip install pointblank[bigquery]    # BigQuery
 pip install pointblank[pyspark]     # Apache Spark
 pip install pointblank[databricks]  # Databricks
 pip install pointblank[snowflake]   # Snowflake
@@ -96,6 +97,7 @@ uv pip install pointblank[duckdb]      # DuckDB
 uv pip install pointblank[postgres]    # PostgreSQL
 uv pip install pointblank[mysql]       # MySQL
 uv pip install pointblank[mssql]       # Microsoft SQL Server
+uv pip install pointblank[bigquery]    # BigQuery
 uv pip install pointblank[pyspark]     # Apache Spark
 uv pip install pointblank[databricks]  # Databricks
 uv pip install pointblank[snowflake]   # Snowflake
@@ -112,6 +114,7 @@ conda install -c conda-forge pointblank-duckdb      # DuckDB
 conda install -c conda-forge pointblank-postgres    # PostgreSQL
 conda install -c conda-forge pointblank-mysql       # MySQL
 conda install -c conda-forge pointblank-mssql       # Microsoft SQL Server
+conda install -c conda-forge pointblank-bigquery    # BigQuery
 conda install -c conda-forge pointblank-pyspark     # Apache Spark
 conda install -c conda-forge pointblank-databricks  # Databricks
 conda install -c conda-forge pointblank-snowflake   # Snowflake
