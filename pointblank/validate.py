@@ -8991,12 +8991,12 @@ class Validate:
                 )
             raise AssertionError(msg)
 
-    def has_threshold_exceedances(self, level: str = "warning", i: int | None = None) -> bool:
+    def above_threshold(self, level: str = "warning", i: int | None = None) -> bool:
         """
         Check if any validation steps exceed a specified threshold level.
 
-        The `has_threshold_exceedances()` method checks whether validation steps exceed a given
-        threshold level. This provides a non-exception-based alternative to
+        The `above_threshold()` method checks whether validation steps exceed a given threshold
+        level. This provides a non-exception-based alternative to
         [`assert_below_threshold()`](`pointblank.Validate.assert_below_threshold`) for conditional
         workflow control based on validation results.
 
@@ -9034,8 +9034,8 @@ class Validate:
         import pointblank as pb
         pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
-        Below are some examples of how to use the `has_threshold_exceedances()` method. First, we'll
-        create a simple Polars DataFrame with a single column (`values`).
+        Below are some examples of how to use the `above_threshold()` method. First, we'll create a
+        simple Polars DataFrame with a single column (`values`).
 
         ```{python}
         import polars as pl
@@ -9062,18 +9062,18 @@ class Validate:
         validation
         ```
 
-        Let's check if any steps exceed the 'warning' threshold with the
-        `has_threshold_exceedances()` method. A message will be printed if that's the case:
+        Let's check if any steps exceed the 'warning' threshold with the `above_threshold()` method.
+        A message will be printed if that's the case:
 
         ```{python}
-        if validation.has_threshold_exceedances(level="warning"):
+        if validation.above_threshold(level="warning"):
             print("Some steps have exceeded the warning threshold")
         ```
 
         Check if only steps 2 and 3 exceed the 'error' threshold through use of the `i=` argument:
 
         ```{python}
-        if validation.has_threshold_exceedances(level="error", i=[2, 3]):
+        if validation.above_threshold(level="error", i=[2, 3]):
             print("Steps 2 and/or 3 have exceeded the error threshold")
         ```
 
@@ -9083,7 +9083,7 @@ class Validate:
         ```python
         def process_data(validation_obj):
             # Only continue processing if validation passes critical thresholds
-            if not validation_obj.has_threshold_exceedances(level="critical"):
+            if not validation_obj.above_threshold(level="critical"):
                 # Continue with processing
                 print("Data meets critical quality thresholds, proceeding...")
                 return True

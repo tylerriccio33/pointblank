@@ -10338,8 +10338,8 @@ def test_assert_below_threshold_auto_interrogate():
     validation.assert_below_threshold(level="warning")
 
 
-def test_has_threshold_exceedances_basic_cases():
-    """Test basic functionality of `has_threshold_exceedances()` with different threshold levels"""
+def test_above_threshold_basic_cases():
+    """Test basic functionality of `above_threshold()` with different threshold levels"""
 
     # Create a simple table where all values pass validation
     tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
@@ -10352,9 +10352,9 @@ def test_has_threshold_exceedances_basic_cases():
     )
 
     # Should return False for all threshold levels as there are no failures
-    assert validation.has_threshold_exceedances(level="warning") is False
-    assert validation.has_threshold_exceedances(level="error") is False
-    assert validation.has_threshold_exceedances(level="critical") is False
+    assert validation.above_threshold(level="warning") is False
+    assert validation.above_threshold(level="error") is False
+    assert validation.above_threshold(level="critical") is False
 
     # All values fail validation
     validation = (
@@ -10364,12 +10364,12 @@ def test_has_threshold_exceedances_basic_cases():
     )
 
     # Should return True for all threshold levels as 100% failure exceeds all thresholds
-    assert validation.has_threshold_exceedances(level="warning") is True
-    assert validation.has_threshold_exceedances(level="error") is True
-    assert validation.has_threshold_exceedances(level="critical") is True
+    assert validation.above_threshold(level="warning") is True
+    assert validation.above_threshold(level="error") is True
+    assert validation.above_threshold(level="critical") is True
 
 
-def test_has_threshold_exceedances_mixed_results():
+def test_above_threshold_mixed_results():
     """Test with mixed pass/fail results at different threshold levels"""
 
     tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
@@ -10382,16 +10382,16 @@ def test_has_threshold_exceedances_mixed_results():
     )
 
     # Should exceed warning threshold (0.1)
-    assert validation.has_threshold_exceedances(level="warning") is True
+    assert validation.above_threshold(level="warning") is True
 
     # Should exceed error threshold (0.3)
-    assert validation.has_threshold_exceedances(level="error") is True
+    assert validation.above_threshold(level="error") is True
 
     # Should not exceed critical threshold (0.8)
-    assert validation.has_threshold_exceedances(level="critical") is False
+    assert validation.above_threshold(level="critical") is False
 
 
-def test_has_threshold_exceedances_specific_step():
+def test_above_threshold_specific_step():
     """Test checking only a specific validation step"""
 
     tbl = pl.DataFrame(
@@ -10410,21 +10410,19 @@ def test_has_threshold_exceedances_specific_step():
     )
 
     # First step has no failures, so shouldn't exceed any threshold
-    assert validation.has_threshold_exceedances(level="warning", i=1) is False
+    assert validation.above_threshold(level="warning", i=1) is False
 
     # Second step has 40% failures
     assert (
-        validation.has_threshold_exceedances(level="warning", i=2) is True
+        validation.above_threshold(level="warning", i=2) is True
     )  # Exceeds warning (threshold 0.1)
+    assert validation.above_threshold(level="error", i=2) is True  # Exceeds error (threshold 0.3)
     assert (
-        validation.has_threshold_exceedances(level="error", i=2) is True
-    )  # Exceeds error (threshold 0.3)
-    assert (
-        validation.has_threshold_exceedances(level="critical", i=2) is False
+        validation.above_threshold(level="critical", i=2) is False
     )  # Doesn't exceed critical (threshold 0.5)
 
 
-def test_has_threshold_exceedances_multiple_steps():
+def test_above_threshold_multiple_steps():
     """Test checking for threshold exceedances with multiple steps and using list for `i=`"""
 
     tbl = pl.DataFrame(
@@ -10445,22 +10443,22 @@ def test_has_threshold_exceedances_multiple_steps():
     )
 
     # Check steps 1 and 2 - only step 2 exceeds warning/error but not critical
-    assert validation.has_threshold_exceedances(level="warning", i=[1, 2]) is True
-    assert validation.has_threshold_exceedances(level="error", i=[1, 2]) is True
-    assert validation.has_threshold_exceedances(level="critical", i=[1, 2]) is False
+    assert validation.above_threshold(level="warning", i=[1, 2]) is True
+    assert validation.above_threshold(level="error", i=[1, 2]) is True
+    assert validation.above_threshold(level="critical", i=[1, 2]) is False
 
     # Check steps 1 and 3 - step 3 exceeds all thresholds
-    assert validation.has_threshold_exceedances(level="warning", i=[1, 3]) is True
-    assert validation.has_threshold_exceedances(level="error", i=[1, 3]) is True
-    assert validation.has_threshold_exceedances(level="critical", i=[1, 3]) is True
+    assert validation.above_threshold(level="warning", i=[1, 3]) is True
+    assert validation.above_threshold(level="error", i=[1, 3]) is True
+    assert validation.above_threshold(level="critical", i=[1, 3]) is True
 
     # Check all steps - should have exceedances at all levels
-    assert validation.has_threshold_exceedances(level="warning") is True
-    assert validation.has_threshold_exceedances(level="error") is True
-    assert validation.has_threshold_exceedances(level="critical") is True
+    assert validation.above_threshold(level="warning") is True
+    assert validation.above_threshold(level="error") is True
+    assert validation.above_threshold(level="critical") is True
 
 
-def test_has_threshold_exceedances_invalid_level():
+def test_above_threshold_invalid_level():
     """Test with an invalid threshold level"""
 
     tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
@@ -10469,14 +10467,14 @@ def test_has_threshold_exceedances_invalid_level():
 
     # Should raise ValueError for invalid level
     with pytest.raises(ValueError, match="Invalid threshold level"):
-        validation.has_threshold_exceedances(level="invalid_level")
+        validation.above_threshold(level="invalid_level")
 
     # Also test with capitalized input - should be normalized
-    assert validation.has_threshold_exceedances(level="WARNING") is False
+    assert validation.above_threshold(level="WARNING") is False
 
 
-def test_has_threshold_exceedances_no_interrogation():
-    """Test that has_threshold_exceedances returns False when no validation has been run"""
+def test_above_threshold_no_interrogation():
+    """Test that `above_threshold()` returns False when no validation has been run"""
 
     tbl = pl.DataFrame({"values": [1, 2, 3, 4, 5]})
 
@@ -10486,9 +10484,9 @@ def test_has_threshold_exceedances_no_interrogation():
     ).col_vals_gt(columns="values", value=0)
 
     # Should return False for all levels when validation hasn't been run
-    assert validation.has_threshold_exceedances(level="warning") is False
-    assert validation.has_threshold_exceedances(level="error") is False
-    assert validation.has_threshold_exceedances(level="critical") is False
+    assert validation.above_threshold(level="warning") is False
+    assert validation.above_threshold(level="error") is False
+    assert validation.above_threshold(level="critical") is False
 
 
 def test_prep_column_text():
