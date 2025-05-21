@@ -515,6 +515,7 @@ def _get_api_text() -> str:
         "Validate.all_passed",
         "Validate.assert_passing",
         "Validate.assert_below_threshold",
+        "Validate.above_threshold",
         "Validate.n",
         "Validate.n_passed",
         "Validate.n_failed",
