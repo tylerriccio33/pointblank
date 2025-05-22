@@ -31,6 +31,7 @@ website:
   search:
     show-item-context: true
   page-navigation: true
+  bread-crumbs: false
   favicon: assets/fav-logo.png
   site-url: https://posit-dev.github.io/pointblank/
   description: "Find out if your data is what you think it is"
@@ -55,15 +56,23 @@ website:
         - section: "Getting Started"
           contents:
             - user-guide/index.qmd
-            - user-guide/thresholds.qmd
-            - user-guide/actions.qmd
-        - section: "Defining Validation Steps"
+            - user-guide/installation.qmd
+        - section: "Validation Plan"
           contents:
-            - user-guide/types.qmd
-            - user-guide/columns.qmd
+            - user-guide/validation-overview.qmd
+            - user-guide/validation-methods.qmd
+            - user-guide/column-selection-patterns.qmd
             - user-guide/preprocessing.qmd
             - user-guide/segmentation.qmd
+            - user-guide/thresholds.qmd
+            - user-guide/actions.qmd
             - user-guide/briefs.qmd
+        - section: "Advanced Validation"
+          contents:
+            - user-guide/expressions.qmd
+            - user-guide/schema-validation.qmd
+            - user-guide/assertions.qmd
+            - user-guide/draft-validation.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd
@@ -90,7 +99,7 @@ quartodoc:
   sections:
     - title: Validate
       desc: >
-        When peforming data validation, you'll need the `Validate` class to get the process started.
+        When performing data validation, you'll need the `Validate` class to get the process started.
         It's given the target table and you can optionally provide some metadata and/or failure
         thresholds (using the `Thresholds` class or through shorthands for this task). The
         `Validate` class has numerous methods for defining validation steps and for obtaining
@@ -126,9 +135,9 @@ quartodoc:
         - name: Validate.col_vals_not_null
         - name: Validate.col_vals_regex
         - name: Validate.col_vals_expr
-        - name: Validate.col_exists
         - name: Validate.rows_distinct
         - name: Validate.rows_complete
+        - name: Validate.col_exists
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
         - name: Validate.col_count_match
@@ -168,6 +177,8 @@ quartodoc:
         - name: Validate.get_data_extracts
         - name: Validate.all_passed
         - name: Validate.assert_passing
+        - name: Validate.assert_below_threshold
+        - name: Validate.above_threshold
         - name: Validate.n
         - name: Validate.n_passed
         - name: Validate.n_failed

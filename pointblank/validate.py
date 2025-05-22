@@ -636,6 +636,11 @@ def preview(
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1134,6 +1139,11 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1663,6 +1673,11 @@ def get_column_count(data: FrameT | Any) -> int:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1741,6 +1756,11 @@ def get_row_count(data: FrameT | Any) -> int:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -2007,6 +2027,11 @@ class Validate:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -8031,7 +8056,7 @@ class Validate:
 
         After interrogation is complete, the `Validate` object will have gathered information, and
         we can use methods like [`n_passed()`](`pointblank.Validate.n_passed`),
-        [`f_failed()`](`pointblank.Validate.f_failed`)`, etc., to understand how the table performed
+        [`f_failed()`](`pointblank.Validate.f_failed`), etc., to understand how the table performed
         against the validation plan. A visual representation of the validation results can be viewed
         by printing the `Validate` object; this will display the validation table in an HTML viewing
         environment.
@@ -8772,6 +8797,10 @@ class Validate:
         assertion made is printed in the `AssertionError` message if a failure occurs, ensuring
         some details are preserved.
 
+        If the validation has not yet been interrogated, this method will automatically call
+        [`interrogate()`](`pointblank.Validate.interrogate`) with default parameters before checking
+        for passing tests.
+
         Raises
         -------
         AssertionError
@@ -8781,8 +8810,9 @@ class Validate:
         --------
         In the example below, we'll use a simple Polars DataFrame with three columns (`a`, `b`, and
         `c`). There will be three validation steps, and the second step will have a failing test
-        unit (the value `10` isn't less than `9`). After interrogation, the `assert_passing()`
-        method is used to assert that all validation steps passed perfectly.
+        unit (the value `10` isn't less than `9`). The `assert_passing()` method is used to assert
+        that all validation steps passed perfectly, automatically performing the interrogation if
+        needed.
 
         ```{python}
         #| error: True
@@ -8803,12 +8833,16 @@ class Validate:
             .col_vals_gt(columns="a", value=0)
             .col_vals_lt(columns="b", value=9) # this assertion is false
             .col_vals_in_set(columns="c", set=["a", "b"])
-            .interrogate()
         )
 
+        # No need to call [`interrogate()`](`pointblank.Validate.interrogate`) explicitly
         validation.assert_passing()
         ```
         """
+        # Check if validation has been interrogated
+        if not hasattr(self, "time_start") or self.time_start is None:
+            # Auto-interrogate with default parameters
+            self.interrogate()
 
         if not self.all_passed():
             failed_steps = [
@@ -8820,6 +8854,306 @@ class Validate:
                 [f"- Step {i + 1}: {autobrief}" for i, autobrief in failed_steps]
             )
             raise AssertionError(msg)
+
+    def assert_below_threshold(
+        self, level: str = "warning", i: int | None = None, message: str | None = None
+    ) -> None:
+        """
+        Raise an `AssertionError` if validation steps exceed a specified threshold level.
+
+        The `assert_below_threshold()` method checks whether validation steps' failure rates are
+        below a given threshold level (`"warning"`, `"error"`, or `"critical"`). This is
+        particularly useful in automated testing environments where you want to ensure your data
+        quality meets minimum standards before proceeding.
+
+        If any validation step exceeds the specified threshold level, an `AssertionError` will be
+        raised with details about which steps failed. If the validation has not yet been
+        interrogated, this method will automatically call
+        [`interrogate()`](`pointblank.Validate.interrogate`) with default parameters.
+
+        Parameters
+        ----------
+        level
+            The threshold level to check against, which could be any of `"warning"` (the default),
+            `"error"`, or `"critical"`. An `AssertionError` will be raised if any validation step
+            exceeds this level.
+        i
+            Specific validation step number(s) to check. Can be provided as a single integer or a
+            list of integers. If `None` (the default), all steps are checked.
+        message
+            Custom error message to use if assertion fails. If `None`, a default message will be
+            generated that lists the specific steps that exceeded the threshold.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        AssertionError
+            If any specified validation step exceeds the given threshold level.
+        ValueError
+            If an invalid threshold level is provided.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        Below are some examples of how to use the `assert_below_threshold()` method. First, we'll
+        create a simple Polars DataFrame with two columns (`a` and `b`).
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame({
+            "a": [7, 4, 9, 7, 12],
+            "b": [9, 8, 10, 5, 10]
+        })
+        ```
+
+        Then a validation plan will be created with thresholds (`warning=0.1`, `error=0.2`,
+        `critical=0.3`). After interrogating, we display the validation report table:
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
+            .col_vals_gt(columns="a", value=5)   # 1 failing test unit
+            .col_vals_lt(columns="b", value=10)  # 2 failing test units
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Using `assert_below_threshold(level="warning")` will raise an `AssertionError` if any step
+        exceeds the 'warning' threshold:
+
+        ```{python}
+        try:
+            validation.assert_below_threshold(level="warning")
+        except AssertionError as e:
+            print(f"Assertion failed: {e}")
+        ```
+
+        Check a specific step against the 'critical' threshold using the `i=` parameter:
+
+        ```{python}
+        validation.assert_below_threshold(level="critical", i=1)  # Won't raise an error
+        ```
+
+        As the first step is below the 'critical' threshold (it exceeds the 'warning' and 'error'
+        thresholds), no error is raised and nothing is printed.
+
+        We can also provide a custom error message with the `message=` parameter. Let's try that
+        here:
+
+        ```{python}
+        try:
+            validation.assert_below_threshold(
+                level="error",
+                message="Data quality too low for processing!"
+            )
+        except AssertionError as e:
+            print(f"Custom error: {e}")
+        ```
+
+        See Also
+        --------
+        - [`warning()`](`pointblank.Validate.warning`): get the 'warning' status for each validation
+        step
+        - [`error()`](`pointblank.Validate.error`): get the 'error' status for each validation step
+        - [`critical()`](`pointblank.Validate.critical`): get the 'critical' status for each
+        validation step
+        - [`assert_passing()`](`pointblank.Validate.assert_passing`): assert all validations pass
+        completely
+        """
+        # Check if validation has been interrogated
+        if not hasattr(self, "time_start") or self.time_start is None:
+            # Auto-interrogate with default parameters
+            self.interrogate()
+
+        # Validate the level parameter
+        level = level.lower()
+        if level not in ["warning", "error", "critical"]:
+            raise ValueError(
+                f"Invalid threshold level: {level}. Must be one of 'warning', 'error', or 'critical'."
+            )
+
+        # Get the threshold status using the appropriate method
+        if level == "warning":
+            status = self.warning(i=i)
+        elif level == "error":
+            status = self.error(i=i)
+        elif level == "critical":
+            status = self.critical(i=i)
+
+        # Find any steps that exceeded the threshold
+        failures = []
+        for step_num, exceeded in status.items():
+            if exceeded:
+                # Get the step's description
+                validation_step = self.validation_info[step_num - 1]
+                step_descriptor = (
+                    validation_step.autobrief
+                    if hasattr(validation_step, "autobrief") and validation_step.autobrief
+                    else f"Validation step {step_num}"
+                )
+                failures.append(f"Step {step_num}: {step_descriptor}")
+
+        # If any failures were found, raise an AssertionError
+        if failures:
+            if message:
+                msg = message
+            else:
+                msg = f"The following steps exceeded the {level} threshold level:\n" + "\n".join(
+                    failures
+                )
+            raise AssertionError(msg)
+
+    def above_threshold(self, level: str = "warning", i: int | None = None) -> bool:
+        """
+        Check if any validation steps exceed a specified threshold level.
+
+        The `above_threshold()` method checks whether validation steps exceed a given threshold
+        level. This provides a non-exception-based alternative to
+        [`assert_below_threshold()`](`pointblank.Validate.assert_below_threshold`) for conditional
+        workflow control based on validation results.
+
+        This method is useful in scenarios where you want to check if any validation steps failed
+        beyond a certain threshold without raising an exception, allowing for more flexible
+        programmatic responses to validation issues.
+
+        Parameters
+        ----------
+        level
+            The threshold level to check against. Valid options are: `"warning"` (the least severe
+            threshold level), `"error"` (the middle severity threshold level), and `"critical"` (the
+            most severe threshold level). The default is `"warning"`.
+        i
+            Specific validation step number(s) to check. If a single integer, checks only that step.
+            If a list of integers, checks all specified steps. If `None` (the default), checks all
+            validation steps. Step numbers are 1-based (first step is `1`, not `0`).
+
+        Returns
+        -------
+        bool
+            `True` if any of the specified validation steps exceed the given threshold level,
+            `False` otherwise.
+
+        Raises
+        ------
+        ValueError
+            If an invalid threshold level is provided.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        Below are some examples of how to use the `above_threshold()` method. First, we'll create a
+        simple Polars DataFrame with a single column (`values`).
+
+        ```{python}
+        import polars as pl
+
+        tbl = pl.DataFrame({
+            "values": [1, 2, 3, 4, 5, 0, -1]
+        })
+        ```
+
+        Then a validation plan will be created with thresholds (`warning=0.1`, `error=0.2`,
+        `critical=0.3`). After interrogating, we display the validation report table:
+
+        ```{python}
+        import pointblank as pb
+
+        validation = (
+            pb.Validate(data=tbl, thresholds=(0.1, 0.2, 0.3))
+            .col_vals_gt(columns="values", value=0)
+            .col_vals_lt(columns="values", value=10)
+            .col_vals_between(columns="values", left=0, right=5)
+            .interrogate()
+        )
+
+        validation
+        ```
+
+        Let's check if any steps exceed the 'warning' threshold with the `above_threshold()` method.
+        A message will be printed if that's the case:
+
+        ```{python}
+        if validation.above_threshold(level="warning"):
+            print("Some steps have exceeded the warning threshold")
+        ```
+
+        Check if only steps 2 and 3 exceed the 'error' threshold through use of the `i=` argument:
+
+        ```{python}
+        if validation.above_threshold(level="error", i=[2, 3]):
+            print("Steps 2 and/or 3 have exceeded the error threshold")
+        ```
+
+        You can use this in a workflow to conditionally trigger processes. Here's a snippet of how
+        you might use this in a function:
+
+        ```python
+        def process_data(validation_obj):
+            # Only continue processing if validation passes critical thresholds
+            if not validation_obj.above_threshold(level="critical"):
+                # Continue with processing
+                print("Data meets critical quality thresholds, proceeding...")
+                return True
+            else:
+                # Log failure and stop processing
+                print("Data fails critical quality checks, aborting...")
+                return False
+        ```
+
+        Note that this is just a suggestion for how to implement conditional workflow processes. You
+        should adapt this pattern to your specific requirements, which might include  different
+        threshold levels, custom logging mechanisms, or integration with your organization's data
+        pipelines and notification systems.
+
+        See Also
+        --------
+        - [`assert_below_threshold()`](`pointblank.Validate.assert_below_threshold`): a similar
+        method that raises an exception if thresholds are exceeded
+        - [`warning()`](`pointblank.Validate.warning`): get the 'warning' status for each validation
+        step
+        - [`error()`](`pointblank.Validate.error`): get the 'error' status for each validation step
+        - [`critical()`](`pointblank.Validate.critical`): get the 'critical' status for each
+        validation step
+        """
+        # Ensure validation has been run
+        if not hasattr(self, "time_start") or self.time_start is None:
+            return False
+
+        # Validate the level parameter
+        level = level.lower()
+        if level not in ["warning", "error", "critical"]:
+            raise ValueError(
+                f"Invalid threshold level: {level}. Must be one of 'warning', 'error', or 'critical'."
+            )
+
+        # Get the threshold status using the appropriate method
+        if level == "warning":
+            status = self.warning(i=i)
+        elif level == "error":
+            status = self.error(i=i)
+        elif level == "critical":
+            status = self.critical(i=i)
+
+        # Return True if any steps exceeded the threshold
+        return any(status.values())
 
     def n(self, i: int | list[int] | None = None, scalar: bool = False) -> dict[int, int] | int:
         """
