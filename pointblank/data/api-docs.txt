@@ -107,6 +107,11 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -8717,6 +8722,11 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -8885,6 +8895,11 @@ missing_vals_tbl(data: 'FrameT | Any') -> 'GT'
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -9184,6 +9199,11 @@ get_column_count(data: 'FrameT | Any') -> 'int'
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -9241,6 +9261,11 @@ get_row_count(data: 'FrameT | Any') -> 'int'
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
