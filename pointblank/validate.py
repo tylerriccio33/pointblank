@@ -636,6 +636,11 @@ def preview(
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1134,6 +1139,11 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1663,6 +1673,11 @@ def get_column_count(data: FrameT | Any) -> int:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -1741,6 +1756,11 @@ def get_row_count(data: FrameT | Any) -> int:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -2007,6 +2027,11 @@ class Validate:
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - PySpark table (`"pyspark"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
