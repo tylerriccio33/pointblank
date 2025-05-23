@@ -216,7 +216,7 @@ def send_slack_notification(
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(critical=notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -248,7 +248,7 @@ def send_slack_notification(
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             final_actions=pb.FinalActions(notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -316,7 +316,7 @@ def send_slack_notification(
             actions=pb.Actions(default=notify_slack),
             final_actions=pb.FinalActions(notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()

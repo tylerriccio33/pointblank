@@ -1007,7 +1007,7 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
     and you want to validate columns that have two digits at the end of the name, you can use
-    `columns=matches(r"\d{2}$")`. This will select the `rev_01`, `rev_02`, `profit_01`, and
+    `columns=matches(r"[0-9]{2}$")`. This will select the `rev_01`, `rev_02`, `profit_01`, and
     `profit_02` columns.
 
     There will be a validation step created for every resolved column. Note that if there aren't any
@@ -1061,7 +1061,7 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     [`col()`](`pointblank.col`) function, like this:
 
     ```python
-    col(matches(r"^\d{5}") & ends_with("_id"))
+    col(matches(r"^[0-9]{5}") & ends_with("_id"))
     ```
 
     There are four operators that can be used to compose column selectors:
@@ -1107,7 +1107,7 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
 
     validation = (
         pb.Validate(data=tbl)
-        .col_vals_regex(columns=pb.matches("id|identifier"), pattern=r"ID\d{4}")
+        .col_vals_regex(columns=pb.matches("id|identifier"), pattern=r"ID[0-9]{4}")
         .interrogate()
     )
 
@@ -1115,7 +1115,7 @@ def matches(pattern: str, case_sensitive: bool = False) -> Matches:
     ```
 
     From the results of the validation table we get two validation steps, one for `id_old` and one
-    for `new_identifier`. The values in both columns all match the pattern `"ID\d{4}"`.
+    for `new_identifier`. The values in both columns all match the pattern `"ID[0-9]{4}"`.
 
     We can also use the `matches()` function in combination with other column selectors (within
     [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
