@@ -88,6 +88,17 @@ def _get_tbl_type(data: FrameT | Any) -> str:
     return "unknown"  # pragma: no cover
 
 
+def _is_narwhals_table(data: any) -> bool:
+    # Check if the data is a Narwhals DataFrame
+    type_str = str(type(data)).lower()
+
+    if "narwhals" in type_str:
+        # If the object is not a Narwhals DataFrame, return False
+        return True
+
+    return False
+
+
 def _is_lazy_frame(data: any) -> bool:
     # Check if the data is a Polars or Narwhals DataFrame
     type_str = str(type(data)).lower()
