@@ -70,6 +70,7 @@ from pointblank._utils import (
     _get_tbl_type,
     _is_lazy_frame,
     _is_lib_present,
+    _is_narwhals_table,
     _is_value_a_df,
     _select_df_lib,
 )
@@ -10492,6 +10493,10 @@ class Validate:
         if tbl_info == "polars":
             if _is_lazy_frame(self.data):
                 tbl_info = "polars-lazy"
+
+        # Determine if the input table is a Narwhals DF
+        if _is_narwhals_table(self.data):
+            tbl_info = "narwhals"
 
         # Get the thresholds object
         thresholds = self.thresholds
