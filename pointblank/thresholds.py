@@ -404,7 +404,7 @@ class Actions:
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(critical="Major data quality issue found in step {step}."),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -434,7 +434,7 @@ class Actions:
             data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(
             columns="session_duration",
