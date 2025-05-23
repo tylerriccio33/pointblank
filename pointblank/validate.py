@@ -68,6 +68,7 @@ from pointblank._utils import (
     _format_to_integer_value,
     _get_fn_name,
     _get_tbl_type,
+    _is_lazy_frame,
     _is_lib_present,
     _is_value_a_df,
     _select_df_lib,
