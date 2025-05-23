@@ -4979,7 +4979,7 @@ def test_comprehensive_validation_with_polars_lazyframe():
         Validate(
             data=small_table_lazy,
             tbl_name="small_table",
-            label="Simple pointblank validation example",
+            label="Validation example with Polars LazyFrame",
             thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
         )
         .col_vals_gt(columns="d", value=100)
