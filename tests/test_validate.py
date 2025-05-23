@@ -5012,9 +5012,9 @@ def test_comprehensive_validation_with_polars_lazyframe():
         .rows_complete(columns_subset=["a", "b", "c"])
         .col_vals_expr(expr=pl.col("d") > pl.col("a"))
         .conjointly(
-            lambda df: df["d"] > df["a"],
-            lambda df: df["a"] > 0,
-            lambda df: df["a"] + df["d"] < 12000,
+            lambda df: pl.col("d") > pl.col("a"),
+            lambda df: pl.col("a") > 0,
+            lambda df: pl.col("a") + pl.col("d") < 12000,
         )
         .specially(expr=lambda: [True, True])
         .interrogate()
