@@ -288,8 +288,8 @@ class DataScan:
 
             formatted_data = formatted_data.with_columns(
                 nw.when(nw.col("coltype").str.contains(r"\bDate\b", literal=False))
-                .then(nw.col(c).str.replace_all("-", "<br>"))
-                .otherwise(c)
+                .then(nw.col(c).cast(nw.String).str.replace_all("-", "<br>"))
+                .otherwise(nw.col(c).cast(nw.String))
                 for c in date_stats
             )
 
@@ -300,8 +300,8 @@ class DataScan:
             datetime_idx = [c for c in present_stat_cols if c in ("min", "max")]
             formatted_data = formatted_data.with_columns(
                 nw.when(nw.col("coltype").str.contains(r"\bDatetime\b", literal=False))
-                .then(nw.col(c).str.replace_all("-", "<br>"))
-                .otherwise(c)
+                .then(nw.col(c).cast(nw.String).str.replace_all("-", "<br>"))
+                .otherwise(nw.col(c).cast(nw.String))
                 for c in datetime_idx
             )
 
