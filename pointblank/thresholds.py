@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable
 
-__all__ = ["Thresholds", "Actions"]
+__all__ = ["Thresholds", "Actions", "FinalActions"]
 
 
 @dataclass
@@ -304,7 +304,9 @@ class Actions:
     to different levels of severity when a threshold is reached. Those thresholds can be defined
     using the [`Thresholds`](`pointblank.Thresholds`) class or various shorthand forms. Actions
     don't have to be defined for all threshold levels; if an action is not defined for a level in
-    exceedance, no action will be taken.
+    exceedance, no action will be taken. Likewise, there is no negative consequence (other than a
+    no-op) for defining actions for thresholds that don't exist (e.g., setting an action for the
+    'critical' level when no corresponding 'critical' threshold has been set).
 
     Parameters
     ----------
@@ -317,6 +319,14 @@ class Actions:
     critical
         A string, `Callable`, or list of `Callable`/string values for the 'critical' level. Using
         `None` means no action should be performed at the 'critical' level.
+    default
+        A string, `Callable`, or list of `Callable`/string values for all threshold levels. This
+        parameter can be used to set the same action for all threshold levels. If an action is
+        defined for a specific threshold level, it will override the action set for all levels.
+    highest_only
+        A boolean value that, when set to `True` (the default), results in executing only the action
+        for the highest threshold level that is exceeded. Useful when you want to ensure that only
+        the most severe action is taken when multiple threshold levels are exceeded.
 
     Returns
     -------
@@ -363,6 +373,15 @@ class Actions:
     displayed as `"WARNING: 'col_vals_gt' threshold exceeded for column a."` when the 'warning'
     threshold is exceeded in a 'col_vals_gt' validation step involving column `a`.
 
+    Crafting Callables with `get_action_metadata()`
+    -----------------------------------------------
+    When creating a callable function to be used as an action, you can use the
+    [`get_action_metadata()`](`pointblank.get_action_metadata`) function to retrieve metadata about
+    the step where the action is executed. This metadata contains information about the validation
+    step, including the step type, level, step number, column name, and associated value. You can
+    use this information to craft your action message or to take specific actions based on the
+    metadata provided.
+
     Examples
     --------
     ```{python}
@@ -385,7 +404,7 @@ class Actions:
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(critical="Major data quality issue found in step {step}."),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -415,7 +434,7 @@ class Actions:
             data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(
             columns="session_duration",
@@ -433,16 +452,34 @@ class Actions:
     all three thresholds are exceeded in step 3, the 'warning' action of executing the function
     occurs (resulting in a message being printed to the console). If actions were set for the other
     two threshold levels, they would also be executed.
+
+    See Also
+    --------
+    The [`get_action_metadata()`](`pointblank.get_action_metadata`) function, which can be used to
+    retrieve metadata about the step where the action is executed.
     """
 
     warning: str | Callable | list[str | Callable] | None = None
     error: str | Callable | list[str | Callable] | None = None
     critical: str | Callable | list[str | Callable] | None = None
+    default: str | Callable | list[str | Callable] | None = None
+    highest_only: bool = True
 
     def __post_init__(self):
         self.warning = self._ensure_list(self.warning)
         self.error = self._ensure_list(self.error)
         self.critical = self._ensure_list(self.critical)
+
+        if self.default is not None:
+            self.default = self._ensure_list(self.default)
+
+        # For any unset threshold level, set the default action
+        if self.warning is None:
+            self.warning = self.default
+        if self.error is None:
+            self.error = self.default
+        if self.critical is None:
+            self.critical = self.default
 
     def _ensure_list(
         self, value: str | Callable | list[str | Callable] | None
@@ -461,3 +498,144 @@ class Actions:
 
     def _get_action(self, level: str) -> list[str | Callable]:
         return getattr(self, level)
+
+
+@dataclass
+class FinalActions:
+    """
+    Define actions to be taken after validation is complete.
+
+    Final actions are executed after all validation steps have been completed. They provide a
+    mechanism to respond to the overall validation results, such as sending alerts when critical
+    failures are detected or generating summary reports.
+
+    Parameters
+    ----------
+    *actions
+        One or more actions to execute after validation. An action can be (1) a callable function
+        that will be executed with no arguments, or (2) a string message that will be printed to the
+        console.
+
+    Returns
+    -------
+    FinalActions
+        An `FinalActions` object. This can be used when using the
+        [`Validate`](`pointblank.Validate`) class (to set final actions for the validation
+        workflow).
+
+    Types of Actions
+    ----------------
+    Final actions can be defined in two different ways:
+
+    1. **String**: A message to be displayed when the validation is complete.
+    2. **Callable**: A function that is called when the validation is complete.
+
+    The actions are executed at the end of the validation workflow. When providing a string, it will
+    simply be printed to the console. A callable will also be executed at the time of validation
+    completion. Several strings and callables can be provided to the `FinalActions` class, and
+    they will be executed in the order they are provided.
+
+    Crafting Callables with `get_validation_summary()`
+    -------------------------------------------------
+    When creating a callable function to be used as a final action, you can use the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function to retrieve the
+    summary of the validation results. This summary contains information about the validation
+    workflow, including the number of test units, the number of failing test units, and the
+    threshold levels that were exceeded. You can use this information to craft your final action
+    message or to take specific actions based on the validation results.
+
+    Examples
+    --------
+    Final actions provide a powerful way to respond to the overall results of a validation workflow.
+    They're especially useful for sending notifications, generating reports, or taking corrective
+    actions based on the complete validation outcome.
+
+    The following example shows how to create a final action that checks for critical failures
+    and sends an alert:
+
+    ```python
+    import pointblank as pb
+
+    def send_alert():
+        summary = pb.get_validation_summary()
+        if summary["highest_severity"] == "critical":
+            print(f"ALERT: Critical validation failures found in {summary['table_name']}")
+
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(send_alert)
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    In this example, the `send_alert()` function is defined to check the validation summary for
+    critical failures. If any are found, an alert message is printed to the console. The function is
+    passed to the `FinalActions` class, which ensures it will be executed after all validation steps
+    are complete. Note that we used the
+    [`get_validation_summary()`](`pointblank.get_validation_summary`) function to retrieve the
+    summary of the validation results to help craft the alert message.
+
+    Multiple final actions can be provided in a sequence. They will be executed in the order they
+    are specified after all validation steps have completed:
+
+    ```python
+    validation = (
+        pb.Validate(
+            data=my_data,
+            final_actions=pb.FinalActions(
+                "Validation complete.",  # a string message
+                send_alert,              # a callable function
+                generate_report          # another callable function
+            )
+        )
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+    ```
+
+    See Also
+    --------
+    The [`get_validation_summary()`](`pointblank.get_validation_summary`) function, which can be
+    used to retrieve the summary of the validation results.
+    """
+
+    actions: list | str | Callable
+
+    def __init__(self, *args):
+        # Check that all arguments are either strings or callables
+        for arg in args:
+            if not isinstance(arg, (str, Callable)) and not (
+                isinstance(arg, list) and all(isinstance(item, (str, Callable)) for item in arg)
+            ):
+                raise TypeError(
+                    f"All final actions must be strings, callables, or lists of strings/callables. "
+                    f"Got {type(arg).__name__} instead."
+                )
+
+        if len(args) == 0:
+            self.actions = []
+        elif len(args) == 1:
+            # If a single action is provided, store it directly (not in a list)
+            self.actions = args[0]
+        else:
+            # Multiple actions, store as a list
+            self.actions = list(args)
+
+    def __repr__(self) -> str:
+        if isinstance(self.actions, list):
+            action_reprs = ", ".join(
+                f"'{a}'" if isinstance(a, str) else a.__name__ for a in self.actions
+            )
+            return f"FinalActions([{action_reprs}])"
+        elif isinstance(self.actions, str):
+            return f"FinalActions('{self.actions}')"
+        elif callable(self.actions):
+            return f"FinalActions({self.actions.__name__})"
+        else:
+            return f"FinalActions({self.actions})"  # pragma: no cover
+
+    def __str__(self) -> str:
+        return self.__repr__()

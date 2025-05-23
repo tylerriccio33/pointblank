@@ -1,6 +1,7 @@
 ---
-title: Checking Missingness in a Table
+title: Missing Values Reporting
 jupyter: python3
+toc-expand: 2
 html-table-processing: none
 ---
 
@@ -28,6 +29,7 @@ the `nycflights` dataset, which has a lot of missing values:
 import pointblank as pb
 
 nycflights = pb.load_dataset(dataset="nycflights", tbl_type="polars")
+
 pb.missing_vals_tbl(nycflights)
 ```
 
@@ -61,6 +63,7 @@ The `small_table` dataset has only 13 rows to it. Let's use that as a Pandas Dat
 
 ```{python}
 small_table = pb.load_dataset(dataset="small_table", tbl_type="pandas")
+
 pb.missing_vals_tbl(small_table)
 ```
 
@@ -73,6 +76,7 @@ it:
 
 ```{python}
 game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
+
 pb.missing_vals_tbl(game_revenue)
 ```
 

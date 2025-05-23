@@ -119,7 +119,7 @@ class DraftValidation:
     data = pb.load_dataset(dataset="nycflights", tbl_type="duckdb")
 
     # Draft a validation plan for the "nycflights" table
-    pb.DraftValidation(data=nycflights, model="anthropic:claude-3-5-sonnet-latest")
+    pb.DraftValidation(data=data, model="anthropic:claude-3-5-sonnet-latest")
     ```
 
     The output will be a drafted validation plan for the `"nycflights"` table and this will appear
@@ -228,7 +228,7 @@ class DraftValidation:
         prompt = (  # pragma: no cover
             f"{api_and_examples_text}"
             "--------------------------"
-            "Knowing what you now know about the pointblank package in Python, can you write a "
+            "Knowing what you now know about the Pointblank package in Python, can you write a "
             "thorough validation plan for the following table?"
             "Here is the JSON summary for the table:"
             " "

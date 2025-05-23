@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -95,6 +96,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, ColumnLiteral):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -110,6 +115,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] > ibis.literal(self.compare),
@@ -126,6 +135,10 @@ class Interrogator:
         # Local backends (Narwhals) ---------------------------------
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+        compare_expr = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=compare_expr
+        )
 
         return (
             self.x.with_columns(
@@ -158,6 +171,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -173,6 +190,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] < ibis.literal(self.compare),
@@ -189,6 +210,10 @@ class Interrogator:
         # Local backends (Narwhals) ---------------------------------
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+        compare_expr = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=compare_expr
+        )
 
         return (
             self.x.with_columns(
@@ -221,6 +246,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -236,6 +265,10 @@ class Interrogator:
                 )
 
             else:
+                #
+                # Ibis column-to-literal comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                     pb_is_good_2=self.x[self.column] == ibis.literal(self.compare),
@@ -296,6 +329,10 @@ class Interrogator:
         else:
             compare_expr = _get_compare_expr_nw(compare=self.compare)
 
+            compare_expr = _modify_datetime_compare_val(
+                tgt_column=self.x[self.column], compare_val=compare_expr
+            )
+
             tbl = self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
                 pb_is_good_2=(
@@ -328,6 +365,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -342,6 +383,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=ibis.ifelse(
@@ -377,8 +421,12 @@ class Interrogator:
                 ).to_native()
 
             else:
+                compare_expr = _modify_datetime_compare_val(
+                    tgt_column=self.x[self.column], compare_val=self.compare
+                )
+
                 return self.x.with_columns(
-                    pb_is_good_=nw.col(self.column) != nw.lit(self.compare),
+                    pb_is_good_=nw.col(self.column) != nw.lit(compare_expr),
                 ).to_native()
 
         # If either column has null values, we need to handle the comparison
@@ -496,10 +544,14 @@ class Interrogator:
             if ref_col_has_null_vals:
                 # Create individual cases for Pandas and Polars
 
+                compare_expr = _modify_datetime_compare_val(
+                    tgt_column=self.x[self.column], compare_val=self.compare
+                )
+
                 if is_pandas_dataframe(self.x.to_native()):
                     tbl = self.x.with_columns(
                         pb_is_good_1=nw.col(self.column).is_null(),
-                        pb_is_good_2=nw.lit(self.column) != nw.lit(self.compare),
+                        pb_is_good_2=nw.lit(self.column) != nw.lit(compare_expr),
                     )
 
                     if not self.na_pass:
@@ -519,7 +571,7 @@ class Interrogator:
                         pb_is_good_2=nw.lit(self.na_pass),  # Pass if any Null in val or compare
                     )
 
-                    tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != nw.lit(self.compare))
+                    tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != nw.lit(compare_expr))
 
                     tbl = tbl.with_columns(
                         pb_is_good_=(
@@ -539,6 +591,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -553,6 +609,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=self.x[self.column] >= ibis.literal(self.compare),
@@ -569,6 +628,10 @@ class Interrogator:
         # Local backends (Narwhals) ---------------------------------
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+        compare_expr = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=compare_expr
+        )
 
         tbl = (
             self.x.with_columns(
@@ -601,6 +664,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.compare, Column):
+                #
+                # Ibis column-to-column comparison
+                #
+
                 tbl = self.x.mutate(
                     pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
                     & ibis.literal(self.na_pass),
@@ -615,6 +682,9 @@ class Interrogator:
                     "pb_is_good_1", "pb_is_good_2"
                 )
 
+            #
+            # Ibis column-to-literal comparison
+            #
             tbl = self.x.mutate(
                 pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
                 pb_is_good_2=self.x[self.column] <= ibis.literal(self.compare),
@@ -631,6 +701,10 @@ class Interrogator:
         # Local backends (Narwhals) ---------------------------------
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
+
+        compare_expr = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=compare_expr
+        )
 
         return (
             self.x.with_columns(
@@ -663,6 +737,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
+                #
+                # Ibis column-to-column/column or column-to-column/literal comparison
+                #
+
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -718,6 +796,10 @@ class Interrogator:
                 ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
             else:
+                #
+                # Ibis column-to-literal/literal comparison
+                #
+
                 low_val = ibis.literal(self.low)
                 high_val = ibis.literal(self.high)
 
@@ -751,6 +833,11 @@ class Interrogator:
 
         low_val = _get_compare_expr_nw(compare=self.low)
         high_val = _get_compare_expr_nw(compare=self.high)
+
+        low_val = _modify_datetime_compare_val(tgt_column=self.x[self.column], compare_val=low_val)
+        high_val = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=high_val
+        )
 
         tbl = self.x.with_columns(
             pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
@@ -819,6 +906,10 @@ class Interrogator:
             import ibis
 
             if isinstance(self.low, Column) or isinstance(self.high, Column):
+                #
+                # Ibis column-to-column/column or column-to-column/literal comparison
+                #
+
                 if isinstance(self.low, Column):
                     low_val = self.x[self.low.name]
                 else:
@@ -898,6 +989,9 @@ class Interrogator:
                     pb_is_good_=tbl.pb_is_good_1 | (tbl.pb_is_good_2 | tbl.pb_is_good_3)
                 ).drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3")
 
+            #
+            # Ibis column-to-literal/literal comparison
+            #
             low_val = ibis.literal(self.low)
             high_val = ibis.literal(self.high)
 
@@ -931,6 +1025,11 @@ class Interrogator:
 
         low_val = _get_compare_expr_nw(compare=self.low)
         high_val = _get_compare_expr_nw(compare=self.high)
+
+        low_val = _modify_datetime_compare_val(tgt_column=self.x[self.column], compare_val=low_val)
+        high_val = _modify_datetime_compare_val(
+            tgt_column=self.x[self.column], compare_val=high_val
+        )
 
         tbl = self.x.with_columns(
             pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
@@ -991,14 +1090,20 @@ class Interrogator:
     def isin(self) -> FrameT | Any:
         # Ibis backends ---------------------------------------------
 
+        can_be_null: bool = None in self.set
+
         if self.tbl_type in IBIS_BACKENDS:
-            return self.x.mutate(pb_is_good_=self.x[self.column].isin(self.set))
+            base_expr = self.x[self.column].isin(self.set)
+            if can_be_null:
+                base_expr = base_expr | self.x[self.column].isnull()
+            return self.x.mutate(pb_is_good_=base_expr)
 
         # Local backends (Narwhals) ---------------------------------
+        base_expr: nw.Expr = nw.col(self.column).is_in(self.set)
+        if can_be_null:
+            base_expr = base_expr | nw.col(self.column).is_null()
 
-        return self.x.with_columns(
-            pb_is_good_=nw.col(self.column).is_in(self.set),
-        ).to_native()
+        return self.x.with_columns(pb_is_good_=base_expr).to_native()
 
     def notin(self) -> FrameT | Any:
         # Ibis backends ---------------------------------------------
@@ -1113,6 +1218,36 @@ class Interrogator:
         # Add the series to the input table
         tbl = tbl.with_columns(pb_is_good_=~pb_is_good_series)
 
+        return tbl.to_native()
+
+    def rows_complete(self) -> FrameT | Any:
+        # Ibis backends ---------------------------------------------
+
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.x
+
+            # Determine the number of null values in each row (column subsets are handled in
+            # the `_check_nulls_across_columns_ibis()` function)
+            tbl = _check_nulls_across_columns_ibis(table=tbl, columns_subset=self.columns_subset)
+
+            # Failing rows will have the value `True` in the generated column, so we need to negate
+            # the result to get the passing rows
+            return tbl.mutate(pb_is_good_=~tbl["_any_is_null_"]).drop("_any_is_null_")
+
+        # Local backends (Narwhals) ---------------------------------
+
+        tbl = self.x
+
+        # Determine the number of null values in each row (column subsets are handled in
+        # the `_check_nulls_across_columns_nw()` function)
+        tbl = _check_nulls_across_columns_nw(table=tbl, columns_subset=self.columns_subset)
+
+        # Failing rows will have the value `True` in the generated column, so we need to negate
+        # the result to get the passing rows
+        tbl = tbl.with_columns(pb_is_good_=~nw.col("_any_is_null_"))
+        tbl = tbl.drop("_any_is_null_")
+
+        # Convert the table to a native format
         return tbl.to_native()
 
 
@@ -1691,6 +1826,58 @@ class RowsDistinct:
 
 
 @dataclass
+class RowsComplete:
+    """
+    Check if rows in a DataFrame are complete.
+
+    Parameters
+    ----------
+    data_tbl
+        A data table.
+    columns_subset
+        A list of columns to check for completeness.
+    threshold
+        The maximum number of failing test units to allow.
+    tbl_type
+        The type of table to use for the assertion.
+
+    Returns
+    -------
+    bool
+        `True` when test units pass below the threshold level for failing test units, `False`
+        otherwise.
+    """
+
+    data_tbl: FrameT
+    columns_subset: list[str] | None
+    threshold: int
+    tbl_type: str = "local"
+
+    def __post_init__(self):
+        if self.tbl_type == "local":
+            # Convert the DataFrame to a format that narwhals can work with, and:
+            #  - check if the `column=` exists
+            #  - check if the `column=` type is compatible with the test
+            tbl = _column_subset_test_prep(df=self.data_tbl, columns_subset=self.columns_subset)
+
+        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
+        #       for now, just pass the table as is
+        if self.tbl_type in IBIS_BACKENDS:
+            tbl = self.data_tbl
+
+        # Collect results for the test units; the results are a list of booleans where
+        # `True` indicates a passing test unit
+        self.test_unit_res = Interrogator(
+            x=tbl,
+            columns_subset=self.columns_subset,
+            tbl_type=self.tbl_type,
+        ).rows_complete()
+
+    def get_test_results(self):
+        return self.test_unit_res
+
+
+@dataclass
 class ColSchemaMatch:
     """
     Check if a column exists in a DataFrame or has a certain data type.
@@ -1879,6 +2066,289 @@ class ColCountMatch:
         return self.test_unit_res
 
 
+class ConjointlyValidation:
+    def __init__(self, data_tbl, expressions, threshold, tbl_type):
+        self.data_tbl = data_tbl
+        self.expressions = expressions
+        self.threshold = threshold
+
+        # Detect the table type
+        if tbl_type in (None, "local"):
+            # Detect the table type using _get_tbl_type()
+            self.tbl_type = _get_tbl_type(data=data_tbl)
+        else:
+            self.tbl_type = tbl_type
+
+    def get_test_results(self):
+        """Evaluate all expressions and combine them conjointly."""
+
+        if "polars" in self.tbl_type:
+            return self._get_polars_results()
+        elif "pandas" in self.tbl_type:
+            return self._get_pandas_results()
+        elif "duckdb" in self.tbl_type or "ibis" in self.tbl_type:
+            return self._get_ibis_results()
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
+
+    def _get_polars_results(self):
+        """Process expressions for Polars DataFrames."""
+        import polars as pl
+
+        polars_expressions = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with native Polars expressions
+                expr_result = expr_fn(self.data_tbl)
+                if isinstance(expr_result, pl.Expr):
+                    polars_expressions.append(expr_result)
+                else:
+                    raise TypeError("Not a valid Polars expression")
+            except Exception as e:
+                try:
+                    # Try to get a ColumnExpression
+                    col_expr = expr_fn(None)
+                    if hasattr(col_expr, "to_polars_expr"):
+                        polars_expr = col_expr.to_polars_expr()
+                        polars_expressions.append(polars_expr)
+                    else:  # pragma: no cover
+                        raise TypeError(f"Cannot convert {type(col_expr)} to Polars expression")
+                except Exception as e:  # pragma: no cover
+                    print(f"Error evaluating expression: {e}")
+
+        # Combine results with AND logic
+        if polars_expressions:
+            final_result = polars_expressions[0]
+            for expr in polars_expressions[1:]:
+                final_result = final_result & expr
+
+            # Create results table with boolean column
+            results_tbl = self.data_tbl.with_columns(pb_is_good_=final_result)
+            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.with_columns(pb_is_good_=pl.lit(True))  # pragma: no cover
+        return results_tbl  # pragma: no cover
+
+    def _get_pandas_results(self):
+        """Process expressions for pandas DataFrames."""
+        import pandas as pd
+
+        pandas_series = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with pandas DataFrame
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check that it's a pandas Series with bool dtype
+                if isinstance(expr_result, pd.Series):
+                    if expr_result.dtype == bool or pd.api.types.is_bool_dtype(expr_result):
+                        pandas_series.append(expr_result)
+                    else:  # pragma: no cover
+                        raise TypeError(
+                            f"Expression returned Series of type {expr_result.dtype}, expected bool"
+                        )
+                else:  # pragma: no cover
+                    raise TypeError(f"Expression returned {type(expr_result)}, expected pd.Series")
+
+            except Exception as e:
+                try:
+                    # Try as a ColumnExpression (for pb.expr_col style)
+                    col_expr = expr_fn(None)
+
+                    if hasattr(col_expr, "to_pandas_expr"):
+                        # Watch for NotImplementedError here and re-raise it
+                        try:
+                            pandas_expr = col_expr.to_pandas_expr(self.data_tbl)
+                            pandas_series.append(pandas_expr)
+                        except NotImplementedError as nie:  # pragma: no cover
+                            # Re-raise NotImplementedError with the original message
+                            raise NotImplementedError(str(nie))
+                    else:  # pragma: no cover
+                        raise TypeError(f"Cannot convert {type(col_expr)} to pandas Series")
+                except NotImplementedError as nie:  # pragma: no cover
+                    # Re-raise NotImplementedError
+                    raise NotImplementedError(str(nie))
+                except Exception as nested_e:  # pragma: no cover
+                    print(f"Error evaluating pandas expression: {e} -> {nested_e}")
+
+        # Combine results with AND logic
+        if pandas_series:
+            final_result = pandas_series[0]
+            for series in pandas_series[1:]:
+                final_result = final_result & series
+
+            # Create results table with boolean column
+            results_tbl = self.data_tbl.copy()
+            results_tbl["pb_is_good_"] = final_result
+            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.copy()  # pragma: no cover
+        results_tbl["pb_is_good_"] = pd.Series(  # pragma: no cover
+            [True] * len(self.data_tbl), index=self.data_tbl.index
+        )
+        return results_tbl  # pragma: no cover
+
+    def _get_ibis_results(self):
+        """Process expressions for Ibis tables (including DuckDB)."""
+        import ibis
+
+        ibis_expressions = []
+
+        for expr_fn in self.expressions:
+            # Strategy 1: Try direct evaluation with native Ibis expressions
+            try:
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check if it's a valid Ibis expression
+                if hasattr(expr_result, "_ibis_expr"):  # pragma: no cover
+                    ibis_expressions.append(expr_result)
+                    continue  # Skip to next expression if this worked
+            except Exception:  # pragma: no cover
+                pass  # Silently continue to Strategy 2
+
+            # Strategy 2: Try with ColumnExpression
+            try:  # pragma: no cover
+                # Skip this strategy if we don't have an expr_col implementation
+                if not hasattr(self, "to_ibis_expr"):
+                    continue
+
+                col_expr = expr_fn(None)
+
+                # Skip if we got None
+                if col_expr is None:
+                    continue
+
+                # Convert ColumnExpression to Ibis expression
+                if hasattr(col_expr, "to_ibis_expr"):
+                    ibis_expr = col_expr.to_ibis_expr(self.data_tbl)
+                    ibis_expressions.append(ibis_expr)
+            except Exception:  # pragma: no cover
+                # Silent failure - we already tried both strategies
+                pass
+
+        # Combine expressions
+        if ibis_expressions:  # pragma: no cover
+            try:
+                final_result = ibis_expressions[0]
+                for expr in ibis_expressions[1:]:
+                    final_result = final_result & expr
+
+                # Create results table with boolean column
+                results_tbl = self.data_tbl.mutate(pb_is_good_=final_result)
+                return results_tbl
+            except Exception as e:
+                print(f"Error combining Ibis expressions: {e}")
+
+        # Default case
+        results_tbl = self.data_tbl.mutate(pb_is_good_=ibis.literal(True))
+        return results_tbl
+
+
+class SpeciallyValidation:
+    def __init__(self, data_tbl, expression, threshold, tbl_type):
+        self.data_tbl = data_tbl
+        self.expression = expression
+        self.threshold = threshold
+
+        # Detect the table type
+        if tbl_type in (None, "local"):
+            # Detect the table type using _get_tbl_type()
+            self.tbl_type = _get_tbl_type(data=data_tbl)
+        else:
+            self.tbl_type = tbl_type
+
+    def get_test_results(self) -> any | list[bool]:
+        """Evaluate the expression get either a list of booleans or a results table."""
+
+        # Get the expression and inspect whether there is a `data` argument
+        expression = self.expression
+
+        import inspect
+
+        # During execution of `specially` validation
+        sig = inspect.signature(expression)
+        params = list(sig.parameters.keys())
+
+        # Execute the function based on its signature
+        if len(params) == 0:
+            # No parameters: call without arguments
+            result = expression()
+        elif len(params) == 1:
+            # One parameter: pass the data table
+            data_tbl = self.data_tbl
+            result = expression(data_tbl)
+        else:
+            # More than one parameter - this doesn't match either allowed signature
+            raise ValueError(
+                f"The function provided to 'specially()' should have either no parameters or a "
+                f"single 'data' parameter, but it has {len(params)} parameters: {params}"
+            )
+
+        # Determine if the object is a DataFrame by inspecting the string version of its type
+        if (
+            "pandas" in str(type(result))
+            or "polars" in str(type(result))
+            or "ibis" in str(type(result))
+        ):
+            # Get the type of the table
+            tbl_type = _get_tbl_type(data=result)
+
+            if "pandas" in tbl_type:
+                # If it's a Pandas DataFrame, check if the last column is a boolean column
+                last_col = result.iloc[:, -1]
+
+                import pandas as pd
+
+                if last_col.dtype == bool or pd.api.types.is_bool_dtype(last_col):
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result.rename(columns={result.columns[-1]: "pb_is_good_"}, inplace=True)
+            elif "polars" in tbl_type:
+                # If it's a Polars DataFrame, check if the last column is a boolean column
+                last_col_name = result.columns[-1]
+                last_col_dtype = result.schema[last_col_name]
+
+                import polars as pl
+
+                if last_col_dtype == pl.Boolean:
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result = result.rename({last_col_name: "pb_is_good_"})
+            elif tbl_type in IBIS_BACKENDS:
+                # If it's an Ibis table, check if the last column is a boolean column
+                last_col_name = result.columns[-1]
+                result_schema = result.schema()
+                is_last_col_bool = str(result_schema[last_col_name]) == "boolean"
+
+                if is_last_col_bool:
+                    # If the last column is a boolean column, rename it as `pb_is_good_`
+                    result = result.rename(pb_is_good_=last_col_name)
+
+            else:  # pragma: no cover
+                raise NotImplementedError(f"Support for {tbl_type} is not yet implemented")
+
+        elif isinstance(result, bool):
+            # If it's a single boolean, return that as a list
+            return [result]
+
+        elif isinstance(result, list):
+            # If it's a list, check that it is a boolean list
+            if all(isinstance(x, bool) for x in result):
+                # If it's a list of booleans, return it as is
+                return result
+            else:
+                # If it's not a list of booleans, raise an error
+                raise TypeError("The result is not a list of booleans.")
+        else:  # pragma: no cover
+            # If it's not a DataFrame or a list, raise an error
+            raise TypeError("The result is not a DataFrame or a list of booleans.")
+
+        # Return the results table or list of booleans
+        return result
+
+
 @dataclass
 class NumberOfTestUnits:
     """
@@ -1919,3 +2389,81 @@ def _column_has_null_values(table: FrameT, column: str) -> bool:
         return False
 
     return True
+
+
+def _check_nulls_across_columns_ibis(table, columns_subset):
+    # Get all column names from the table
+    column_names = columns_subset if columns_subset else table.columns
+
+    # Build the expression by combining each column's isnull() with OR operations
+    null_expr = functools.reduce(
+        lambda acc, col: acc | table[col].isnull() if acc is not None else table[col].isnull(),
+        column_names,
+        None,
+    )
+
+    # Add the expression as a new column to the table
+    result = table.mutate(_any_is_null_=null_expr)
+
+    return result
+
+
+def _check_nulls_across_columns_nw(table, columns_subset):
+    # Get all column names from the table
+    column_names = columns_subset if columns_subset else table.columns
+
+    # Build the expression by combining each column's `is_null()` with OR operations
+    null_expr = functools.reduce(
+        lambda acc, col: acc | table[col].is_null() if acc is not None else table[col].is_null(),
+        column_names,
+        None,
+    )
+
+    # Add the expression as a new column to the table
+    result = table.with_columns(_any_is_null_=null_expr)
+
+    return result
+
+
+def _modify_datetime_compare_val(tgt_column: any, compare_val: any) -> any:
+    tgt_col_dtype_str = str(tgt_column.dtype).lower()
+
+    if compare_val is isinstance(compare_val, Column):  # pragma: no cover
+        return compare_val
+
+    # Get the type of `compare_expr` and convert, if necessary, to the type of the column
+    compare_type_str = str(type(compare_val)).lower()
+
+    if "datetime.datetime" in compare_type_str:
+        compare_type = "datetime"
+    elif "datetime.date" in compare_type_str:
+        compare_type = "date"
+    else:
+        compare_type = "other"
+
+    if "datetime" in tgt_col_dtype_str:
+        tgt_col_dtype = "datetime"
+    elif "date" in tgt_col_dtype_str or "object" in tgt_col_dtype_str:
+        # Object type is used for date columns in Pandas
+        tgt_col_dtype = "date"
+    else:
+        tgt_col_dtype = "other"
+
+    # Handle each combination of `compare_type` and `tgt_col_dtype`, coercing only the
+    # `compare_expr` to the type of the column
+    if compare_type == "datetime" and tgt_col_dtype == "date":
+        # Assume that `compare_expr` is a datetime.datetime object and strip the time part
+        # to get a date object
+        compare_expr = compare_val.date()
+
+    elif compare_type == "date" and tgt_col_dtype == "datetime":
+        import datetime
+
+        # Assume that `compare_expr` is a `datetime.date` object so add in the time part
+        # to get a `datetime.datetime` object
+        compare_expr = datetime.datetime.combine(compare_val, datetime.datetime.min.time())
+
+    else:
+        return compare_val
+
+    return compare_expr

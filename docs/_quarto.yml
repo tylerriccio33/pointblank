@@ -31,6 +31,7 @@ website:
   search:
     show-item-context: true
   page-navigation: true
+  bread-crumbs: false
   favicon: assets/fav-logo.png
   site-url: https://posit-dev.github.io/pointblank/
   description: "Find out if your data is what you think it is"
@@ -42,6 +43,8 @@ website:
         file: demos/index.qmd
       - href: reference/index.qmd
         text: API Reference
+      - href: blog/index.qmd
+        text: Pointblog
     right:
       - icon: discord
         href: https://discord.com/invite/YH7CybCNCQ
@@ -53,16 +56,26 @@ website:
         - section: "Getting Started"
           contents:
             - user-guide/index.qmd
+            - user-guide/installation.qmd
+        - section: "Validation Plan"
+          contents:
+            - user-guide/validation-overview.qmd
+            - user-guide/validation-methods.qmd
+            - user-guide/column-selection-patterns.qmd
+            - user-guide/preprocessing.qmd
+            - user-guide/segmentation.qmd
             - user-guide/thresholds.qmd
             - user-guide/actions.qmd
-        - section: "Defining Validation Steps"
+            - user-guide/briefs.qmd
+        - section: "Advanced Validation"
           contents:
-            - user-guide/types.qmd
-            - user-guide/columns.qmd
-            - user-guide/across.qmd
-            - user-guide/preprocessing.qmd
+            - user-guide/expressions.qmd
+            - user-guide/schema-validation.qmd
+            - user-guide/assertions.qmd
+            - user-guide/draft-validation.qmd
         - section: "Post Interrogation"
           contents:
+            - user-guide/step-reports.qmd
             - user-guide/extracts.qmd
             - user-guide/sundering.qmd
         - section: "Data Inspection"
@@ -86,7 +99,7 @@ quartodoc:
   sections:
     - title: Validate
       desc: >
-        When peforming data validation, you'll need the `Validate` class to get the process started.
+        When performing data validation, you'll need the `Validate` class to get the process started.
         It's given the target table and you can optionally provide some metadata and/or failure
         thresholds (using the `Thresholds` class or through shorthands for this task). The
         `Validate` class has numerous methods for defining validation steps and for obtaining
@@ -96,6 +109,8 @@ quartodoc:
           members: []
         - name: Thresholds
         - name: Actions
+          members: []
+        - name: FinalActions
         - name: Schema
           members: []
         - name: DraftValidation
@@ -120,11 +135,14 @@ quartodoc:
         - name: Validate.col_vals_not_null
         - name: Validate.col_vals_regex
         - name: Validate.col_vals_expr
-        - name: Validate.col_exists
         - name: Validate.rows_distinct
+        - name: Validate.rows_complete
+        - name: Validate.col_exists
         - name: Validate.col_schema_match
         - name: Validate.row_count_match
         - name: Validate.col_count_match
+        - name: Validate.conjointly
+        - name: Validate.specially
     - title: Column Selection
       desc: >
         A flexible way to select columns for validation is to use the `col()` function along with
@@ -142,6 +160,7 @@ quartodoc:
         - name: everything
         - name: first_n
         - name: last_n
+        - name: expr_col
     - title: Interrogation and Reporting
       desc: >
         The validation plan is put into action when `interrogate()` is called. The workflow for
@@ -158,6 +177,8 @@ quartodoc:
         - name: Validate.get_data_extracts
         - name: Validate.all_passed
         - name: Validate.assert_passing
+        - name: Validate.assert_below_threshold
+        - name: Validate.above_threshold
         - name: Validate.n
         - name: Validate.n_passed
         - name: Validate.n_failed
@@ -171,19 +192,35 @@ quartodoc:
         The *Inspection and Assistance* group contains functions that are helpful for getting to
         grips on a new data table. Use the `DataScan` class to get a quick overview of the data,
         `preview()` to see the first and last few rows of a table, `col_summary_tbl()` for a
-        column-level summary of a table, `missing_vals_tbl()` to see where there are missing values
-        in a table, and `get_column_count()`/`get_row_count()` to get the number of columns and rows
-        in a table. Several datasets included in the package can be accessed via the
-        `load_dataset()` function. Finally, the `config()` utility lets us set global configuration
-        parameters. Want to chat with an assistant? Use the `assistant()` function to get help with
-        Pointblank.
+        column-level summary of a table, and `missing_vals_tbl()` to see where there are missing
+        values in a table. Several datasets included in the package can be accessed via the
+        `load_dataset()` function. On the assistance side, the `assistant()` function can be used to
+        get help with Pointblank.
       contents:
         - name: DataScan
         - name: preview
         - name: col_summary_tbl
         - name: missing_vals_tbl
+        - name: assistant
+        - name: load_dataset
+    - title: Utility Functions
+      desc: >
+        The *Utility Functions* group contains functions that are useful accessing metadata about
+        the target data. Use `get_column_count()` or `get_row_count()` to get the number of columns
+        or rows in a table. The `get_action_metadata()` function is useful when building custom
+        actions since it returns metadata about the validation step that's triggering the action.
+        Lastly, the `config()` utility lets us set global configuration parameters.
+      contents:
         - name: get_column_count
         - name: get_row_count
-        - name: load_dataset
+        - name: get_action_metadata
+        - name: get_validation_summary
         - name: config
-        - name: assistant
+    - title: Prebuilt Actions
+      desc: >
+        The *Prebuilt Actions* group contains a function that can be used to send a Slack
+        notification when validation steps exceed failure threshold levels or just to provide a
+        summary of the validation results, including the status, number of steps, passing and
+        failing steps, table information, and timing details.
+      contents:
+        - name: send_slack_notification

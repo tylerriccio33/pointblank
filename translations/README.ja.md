@@ -1,0 +1,247 @@
+<div align="center">
+
+<a href="https://posit-dev.github.io/pointblank/"><img src="https://posit-dev.github.io/pointblank/assets/pointblank_logo.svg" width="75%"/></a>
+
+_美しく強力なデータ検証_
+
+[![Python Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
+[![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pointblank)](https://pypistats.org/packages/pointblank)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/pointblank.svg)](https://anaconda.org/conda-forge/pointblank)
+[![License](https://img.shields.io/github/license/posit-dev/pointblank)](https://img.shields.io/github/license/posit-dev/pointblank)
+
+[![CI Build](https://github.com/posit-dev/pointblank/actions/workflows/ci-tests.yaml/badge.svg)](https://github.com/posit-dev/pointblank/actions/workflows/ci-tests.yaml)
+[![Codecov branch](https://img.shields.io/codecov/c/github/posit-dev/pointblank/main.svg)](https://codecov.io/gh/posit-dev/pointblank)
+[![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Documentation](https://img.shields.io/badge/docs-project_website-blue.svg)](https://posit-dev.github.io/pointblank/)
+
+[![Contributors](https://img.shields.io/github/contributors/posit-dev/pointblank)](https://github.com/posit-dev/pointblank/graphs/contributors)
+[![Discord](https://img.shields.io/discord/1345877328982446110?color=%237289da&label=Discord)](https://discord.com/invite/YH7CybCNCQ)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
+
+</div>
+
+<div align="center">
+   <a href="../README.md">English</a> |
+   <a href="README.fr.md">Français</a> |
+   <a href="README.de.md">Deutsch</a> |
+   <a href="README.it.md">Italiano</a> |
+   <a href="README.es.md">Español</a> |
+   <a href="README.pt-BR.md">Português</a> |
+   <a href="README.nl.md">Nederlands</a> |
+   <a href="README.zh-CN.md">简体中文</a> |
+   <a href="README.ko.md">한국어</a> |
+   <a href="README.hi.md">हिन्दी</a> |
+   <a href="README.ar.md">العربية</a>
+</div>
+
+## Pointblank とは？
+
+Pointblank は、データ品質を確保する方法を変革する、強力かつエレガントな Python 向けデータ検証フレームワークです。直感的で連鎖可能な API により、包括的な品質チェックに対してデータをすばやく検証し、データの問題をすぐに対処可能にする素晴らしいインタラクティブなレポートを通じて結果を視覚化できます。
+
+あなたがデータサイエンティスト、データエンジニア、またはアナリストであっても、Pointblank は分析やダウンストリームシステムに影響を与える前にデータ品質の問題を捉えるのに役立ちます。
+
+## 30 秒でスタート
+
+```python
+import pointblank as pb
+
+validation = (
+   pb.Validate(data=pb.load_dataset(dataset="small_table"))
+   .col_vals_gt(columns="d", value=100)             # 値 > 100 を検証
+   .col_vals_le(columns="c", value=5)               # 値 <= 5 を検証
+   .col_exists(columns=["date", "date_time"])       # 列の存在を確認
+   .interrogate()                                   # 実行して結果を収集
+)
+
+# REPLで検証レポートを取得:
+validation.get_tabular_report().show()
+
+# ノートブックでは単純に:
+validation
+```
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
+</div>
+
+<br>
+
+## なぜ Pointblank を選ぶのか？
+
+- **現在のスタックと連携** - Polars、Pandas、DuckDB、MySQL、PostgreSQL、SQLite、Parquet、PySpark、Snowflake などとシームレスに統合！
+- **美しいインタラクティブレポート** - 問題を強調し、データ品質の伝達を支援する明確な検証結果
+- **構成可能な検証パイプライン** - 検証ステップを完全なデータ品質ワークフローにチェーン化
+- **しきい値ベースのアラート** - カスタムアクションで「警告」「エラー」「重大」しきい値を設定
+- **実用的な出力** - 結果を使用してテーブルをフィルタリング、問題のあるデータを抽出、またはダウンストリームプロセスをトリガー
+
+## 実世界の例
+
+```python
+import pointblank as pb
+import polars as pl
+
+# データをロード
+sales_data = pl.read_csv("sales_data.csv")
+
+# 包括的な検証を作成
+validation = (
+   pb.Validate(
+      data=sales_data,
+      tbl_name="sales_data",           # レポート用テーブル名
+      label="実世界の例",                # レポートに表示される検証ラベル
+      thresholds=(0.01, 0.02, 0.05),   # 警告、エラー、重大問題のしきい値を設定
+      actions=pb.Actions(              # しきい値超過に対するアクションを定義
+         critical="ステップ {step} で重大なデータ品質問題が見つかりました ({time})。"
+      ),
+      final_actions=pb.FinalActions(   # 検証全体の最終アクションを定義
+         pb.send_slack_notification(
+            webhook_url="https://hooks.slack.com/services/your/webhook/url"
+         )
+      ),
+      brief=True,                      # 各ステップに自動生成された概要を追加
+      lang="ja",
+   )
+   .col_vals_between(            # 精度で数値範囲をチェック
+      columns=["price", "quantity"],
+      left=0, right=1000
+   )
+   .col_vals_not_null(           # '_id'で終わる列にnull値がないことを確認
+      columns=pb.ends_with("_id")
+   )
+   .col_vals_regex(              # 正規表現でパターンを検証
+      columns="email",
+      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+   )
+   .col_vals_in_set(             # カテゴリ値をチェック
+      columns="status",
+      set=["pending", "shipped", "delivered", "returned"]
+   )
+   .conjointly(                  # 複数の条件を組み合わせる
+      lambda df: pb.expr_col("revenue") == pb.expr_col("price") * pb.expr_col("quantity"),
+      lambda df: pb.expr_col("tax") >= pb.expr_col("revenue") * 0.05
+   )
+   .interrogate()
+)
+```
+
+```
+ステップ 7 で重大なデータ品質問題が見つかりました (2025-04-16 15:03:04.685612+00:00)。
+```
+
+```python
+# チームと共有できるHTMLレポートを取得
+validation.get_tabular_report().show("browser")
+```
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-sales-data.ja.png" width="800px">
+</div>
+
+```python
+# 特定のステップの失敗レコードレポートを取得
+validation.get_step_report(i=3).show("browser")  # ステップ3の失敗レコードを取得
+```
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/pointblank-step-report.png" width="800px">
+</div>
+
+<br>
+
+## Pointblank を際立たせる特徴
+
+- **完全な検証ワークフロー** - データアクセスから検証、レポート作成まで単一のパイプラインで
+- **コラボレーション向けに構築** - 美しいインタラクティブレポートを通じて同僚と結果を共有
+- **実用的な出力** - 必要なものを正確に取得：カウント、抽出、要約、または完全なレポート
+- **柔軟な展開** - ノートブック、スクリプト、またはデータパイプラインで使用
+- **カスタマイズ可能** - 特定のニーズに合わせて検証ステップとレポートを調整
+- **国際化** - レポートは英語、スペイン語、フランス語、ドイツ語を含む 20 以上の言語で生成可能
+
+## ドキュメントと例
+
+[ドキュメントサイト](https://posit-dev.github.io/pointblank)で以下をご覧ください：
+
+- [ユーザーガイド](https://posit-dev.github.io/pointblank/user-guide/)
+- [API リファレンス](https://posit-dev.github.io/pointblank/reference/)
+- [サンプルギャラリー](https://posit-dev.github.io/pointblank/demos/)
+- [Pointblog](https://posit-dev.github.io/pointblank/blog/)
+
+## コミュニティに参加
+
+あなたのご意見をお待ちしています！以下の方法でつながりましょう：
+
+- [GitHub Issues](https://github.com/posit-dev/pointblank/issues) - バグや機能リクエスト用
+- [_Discord サーバー_](https://discord.com/invite/YH7CybCNCQ) - ディスカッションとサポート
+- [貢献ガイドライン](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) - Pointblank の改善に協力したい場合
+
+## インストール
+
+pip を使用して Pointblank をインストールできます：
+
+```bash
+pip install pointblank
+```
+
+Conda-Forge からもインストールできます：
+
+```bash
+conda install conda-forge::pointblank
+```
+
+Polars または Pandas がインストールされていない場合は、Pointblank を使用するためにどちらかをインストールする必要があります。
+
+```bash
+pip install "pointblank[pl]" # PolarsとPointblankをインストール
+pip install "pointblank[pd]" # PandasとPointblankをインストール
+```
+
+DuckDB、MySQL、PostgreSQL、または SQLite で Pointblank を使用するには、適切なバックエンドで Ibis をインストールします：
+
+```bash
+pip install "pointblank[duckdb]"   # Ibis + DuckDBとPointblankをインストール
+pip install "pointblank[mysql]"    # Ibis + MySQLとPointblankをインストール
+pip install "pointblank[postgres]" # Ibis + PostgreSQLとPointblankをインストール
+pip install "pointblank[sqlite]"   # Ibis + SQLiteとPointblankをインストール
+```
+
+## 技術的詳細
+
+Pointblank は、Polars および Pandas DataFrame の操作に[Narwhals](https://github.com/narwhals-dev/narwhals)を使用し、データベースとファイル形式のサポートに[Ibis](https://github.com/ibis-project/ibis)と統合しています。このアーキテクチャは、さまざまなソースからの表形式データを検証するための一貫した API を提供します。
+
+## Pointblank への貢献
+
+Pointblank の継続的な開発に貢献する方法はたくさんあります。いくつかの貢献は簡単かもしれません（タイプミスの修正、ドキュメントの改善、機能リクエストの問題提出など）が、他の貢献はより多くの時間と注意が必要かもしれません（質問への回答やコード変更の PR 提出など）。あなたが提供できるどんな助けも非常に感謝されることを知ってください！
+
+始め方については[貢献ガイドライン](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md)をご覧ください。
+
+## ロードマップ
+
+私たちは以下の機能で Pointblank を積極的に改善しています：
+
+1. 包括的なデータ品質チェックのための追加検証メソッド
+2. 高度なログ機能
+3. しきい値超過のためのメッセージングアクション（Slack、メール）
+4. LLM 駆動の検証提案とデータディクショナリ生成
+5. パイプラインの移植性のための JSON/YAML 設定
+6. コマンドラインからの検証のための CLI ユーティリティ
+7. 拡張バックエンドサポートと認証
+8. 高品質なドキュメントと例
+
+機能や改善のアイデアがある場合は、遠慮なく私たちと共有してください！私たちは Pointblank を改善する方法を常に探しています。
+
+## 行動規範
+
+Pointblank プロジェクトは[貢献者行動規範](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)とともに公開されていることにご注意ください。<br>このプロジェクトに参加することにより、あなたはその条件に従うことに同意したことになります。
+
+## 📄 ライセンス
+
+Pointblank は MIT ライセンスの下でライセンスされています。
+
+© Posit Software, PBC.
+
+## 🏛️ ガバナンス
+
+このプロジェクトは主に
+[Rich Iannone](https://bsky.app/profile/richmeister.bsky.social)によって維持されています。他の著者が時折
+これらのタスクの一部を支援することがあります。

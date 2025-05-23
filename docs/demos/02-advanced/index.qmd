@@ -15,7 +15,6 @@ A validation with a comprehensive set of rules.
 
 import pointblank as pb
 import polars as pl
-import narwhals as nw
 
 validation = (
     pb.Validate(
@@ -52,7 +51,6 @@ validation
 ```python
 import pointblank as pb
 import polars as pl
-import narwhals as nw
 
 validation = (
     pb.Validate(

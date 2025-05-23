@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-There are many ways to contribute to the ongoing development of the pointblank package. Some contributions can be rather easy to do (e.g., fixing typos, improving documentation, filing issues for feature requests or problems, etc.) whereas other contributions can require more time and patience (like answering questions and submitting pull requests with code changes). Just know that help provided in any capacity is very much appreciated.
+There are many ways to contribute to the ongoing development of the Pointblank package. Some contributions can be rather easy to do (e.g., fixing typos, improving documentation, filing issues for feature requests or problems, etc.) whereas other contributions can require more time and patience (like answering questions and submitting pull requests with code changes). Just know that help provided in any capacity is very much appreciated.
 
 ## Filing Issues
 
@@ -10,7 +10,7 @@ If you believe you found a bug, minimal reproducible example (MRE) for your post
 
 One way to help is by simply answering questions. It's amazing how a little conversation could lead to better insights on a problem. Don't quite know the answer? That's okay too. We're all in this together.
 
-Where might you answer user questions? Some of the forums for Q&A on pointblank include the _Issues_ and _Discussion_ pages in the repo. Good etiquette is key during these interactions: be a good person to all who ask questions.
+Where might you answer user questions? Some of the forums for Q&A on Pointblank include the _Issues_ and _Discussion_ pages in the repo. Good etiquette is key during these interactions: be a good person to all who ask questions.
 
 ### Making Pull Requests
 
@@ -19,7 +19,7 @@ Should you consider making a pull request (PR), please file an issue first and e
 Once there is consensus that a PR based on the issue would be helpful, adhering to the following process will make things proceed more quickly:
 
 - Create a separate Git branch for each PR
-- The pointblank package follows the [Style Guide for Python Code](https://peps.python.org/pep-0008/) so please adopt those guidelines in your submitted code as best as possible
+- The Pointblank package follows the [Style Guide for Python Code](https://peps.python.org/pep-0008/) so please adopt those guidelines in your submitted code as best as possible
 - Comment your code, particularly in those hard-to-understand areas
 - Add test cases that cover the changes made in the PR; having tests for any new codepaths will help guard against regressions
 

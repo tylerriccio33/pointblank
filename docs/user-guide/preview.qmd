@@ -1,6 +1,7 @@
 ---
 title: Previewing Data
 jupyter: python3
+toc-expand: 2
 html-table-processing: none
 ---
 
@@ -30,6 +31,7 @@ works. It requires only a table and, for this first example, let's use the `nycf
 import pointblank as pb
 
 nycflights = pb.load_dataset(dataset="nycflights", tbl_type="polars")
+
 pb.preview(nycflights)
 ```
 
@@ -49,6 +51,7 @@ option. Let's try that with the `game_revenue` dataset as a DuckDB table:
 
 ```{python}
 game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
+
 pb.preview(game_revenue, show_row_numbers=False)
 ```
 
@@ -63,6 +66,7 @@ that out with the `small_table` dataset as a Pandas DataFrame:
 
 ```{python}
 small_table = pb.load_dataset(dataset="small_table", tbl_type="pandas")
+
 pb.preview(small_table, n_head=3, n_tail=1)
 ```
 
@@ -71,6 +75,7 @@ and `n_tail=` values:
 
 ```{python}
 small_table = pb.load_dataset(dataset="small_table", tbl_type="pandas")
+
 pb.preview(small_table, n_head=10, n_tail=10)
 ```
 

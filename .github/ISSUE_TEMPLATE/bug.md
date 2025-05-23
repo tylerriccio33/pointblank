@@ -1,6 +1,6 @@
 ---
 name: Bug
-about: Something is wrong with 'pointblank'.
+about: Something is wrong with 'Pointblank'.
 title: ""
 labels: "Type: ☹︎ Bug"
 ---
@@ -28,7 +28,7 @@ What should have happened? Please be as specific as possible.
 ## Development environment
 
 - Operating System: [e.g., Linux, macOS, Windows]
-- pointblank Version: [e.g., 0.0.1]
+- Pointblank Version: [e.g., 0.0.1]
 
 ## Additional context
 
