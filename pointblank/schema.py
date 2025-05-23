@@ -4,7 +4,7 @@ import copy
 from dataclasses import dataclass
 
 from pointblank._constants import IBIS_BACKENDS
-from pointblank._utils import _get_tbl_type, _is_lib_present
+from pointblank._utils import _get_tbl_type, _is_lazy_frame, _is_lib_present
 
 __all__ = ["Schema"]
 
@@ -321,7 +321,10 @@ class Schema:
             self.columns = list(schema_dict.items())
 
         elif table_type == "polars":
-            schema_dict = dict(self.tbl.schema.items())
+            if _is_lazy_frame(data=self.tbl):
+                schema_dict = dict(self.tbl.collect_schema())
+            else:
+                schema_dict = dict(self.tbl.schema.items())
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 
