@@ -8284,12 +8284,28 @@ class Validate:
                     data_tbl=data_tbl_step, segments_expr=validation.segments
                 )
 
+            # ------------------------------------------------
+            # Determine table type and `collect()` if needed
+            # ------------------------------------------------
+
+            if tbl_type not in IBIS_BACKENDS:
+                tbl_type = "local"
+
+            # If the table is a lazy frame, we need to collect it
+            if _is_lazy_frame(data_tbl_step):
+                data_tbl_step = data_tbl_step.collect()
+
+            # ------------------------------------------------
+            # Set the number of test units
+            # ------------------------------------------------
+
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
             )
 
-            if tbl_type not in IBIS_BACKENDS:
-                tbl_type = "local"
+            # ------------------------------------------------
+            # Validation stage
+            # ------------------------------------------------
 
             if assertion_category == "COMPARE_ONE":
                 results_tbl = ColValsCompareOne(
