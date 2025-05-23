@@ -87,6 +87,7 @@ dev = [
     "pytest-xdist>=3.6.1",
     "quartodoc>=0.8.1; python_version >= '3.9'",
     "ruff>=0.9.9",
+    "shiny>=1.4.0",
 ]
 
 [project.urls]
