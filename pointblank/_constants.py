@@ -160,6 +160,7 @@ TABLE_TYPE_STYLES = {
     "pandas": {"background": "#150458", "text": "#FFFFFF", "label": "Pandas"},
     "polars": {"background": "#0075FF", "text": "#FFFFFF", "label": "Polars"},
     "polars-lazy": {"background": "#0075FF", "text": "#FFFFFF", "label": "Polars (LazyFrame)"},
+    "narwhals": {"background": "#78BEAF", "text": "#222222", "label": "Narwhals"},
     "duckdb": {"background": "#000000", "text": "#FFFFFF", "label": "DuckDB"},
     "mysql": {"background": "#EBAD40", "text": "#222222", "label": "MySQL"},
     "postgres": {"background": "#3E638B", "text": "#FFFFFF", "label": "PostgreSQL"},
