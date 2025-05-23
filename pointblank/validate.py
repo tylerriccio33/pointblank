@@ -1723,6 +1723,9 @@ def get_column_count(data: FrameT | Any) -> int:
     elif "pandas" in str(type(data)):
         return data.shape[1]
 
+    elif "narwhals" in str(type(data)):
+        return len(data.columns)
+
     else:
         raise ValueError("The input table type supplied in `data=` is not supported.")
 
@@ -1814,6 +1817,9 @@ def get_row_count(data: FrameT | Any) -> int:
         return int(data.height)
 
     elif "pandas" in str(type(data)):
+        return data.shape[0]
+
+    elif "narwhals" in str(type(data)):
         return data.shape[0]
 
     else:
