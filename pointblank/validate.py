@@ -10482,6 +10482,11 @@ class Validate:
         # Get information on the input data table
         tbl_info = _get_tbl_type(data=self.data)
 
+        # If the table is a Polars one, determine if it's a LazyFrame
+        if tbl_info == "polars":
+            if _is_lazy_frame(self.data):
+                tbl_info = "polars-lazy"
+
         # Get the thresholds object
         thresholds = self.thresholds
 
