@@ -95,8 +95,6 @@ homepage = "https://github.com/posit-dev/pointblank"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra --cov=pointblank"
-asyncio_mode = "strict"
-asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.ruff]
