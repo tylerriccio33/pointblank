@@ -585,7 +585,7 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(critical="Major data quality issue found in step {step}."),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -615,7 +615,7 @@ Actions(warning: 'str | Callable | list[str | Callable] | None' = None, error: '
             data=pb.load_dataset(dataset="game_revenue", tbl_type="duckdb"),
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(
             columns="session_duration",
@@ -6236,7 +6236,7 @@ matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
     `[rev_01, rev_02, profit_01, profit_02, age]`
 
     and you want to validate columns that have two digits at the end of the name, you can use
-    `columns=matches(r"\d{2}$")`. This will select the `rev_01`, `rev_02`, `profit_01`, and
+    `columns=matches(r"[0-9]{2}$")`. This will select the `rev_01`, `rev_02`, `profit_01`, and
     `profit_02` columns.
 
     There will be a validation step created for every resolved column. Note that if there aren't any
@@ -6290,7 +6290,7 @@ matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
     [`col()`](`pointblank.col`) function, like this:
 
     ```python
-    col(matches(r"^\d{5}") & ends_with("_id"))
+    col(matches(r"^[0-9]{5}") & ends_with("_id"))
     ```
 
     There are four operators that can be used to compose column selectors:
@@ -6329,7 +6329,7 @@ matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
 
     validation = (
         pb.Validate(data=tbl)
-        .col_vals_regex(columns=pb.matches("id|identifier"), pattern=r"ID\d{4}")
+        .col_vals_regex(columns=pb.matches("id|identifier"), pattern=r"ID[0-9]{4}")
         .interrogate()
     )
 
@@ -6337,7 +6337,7 @@ matches(pattern: 'str', case_sensitive: 'bool' = False) -> 'Matches'
     ```
 
     From the results of the validation table we get two validation steps, one for `id_old` and one
-    for `new_identifier`. The values in both columns all match the pattern `"ID\d{4}"`.
+    for `new_identifier`. The values in both columns all match the pattern `"ID[0-9]{4}"`.
 
     We can also use the `matches()` function in combination with other column selectors (within
     [`col()`](`pointblank.col`)) to create more complex column selection criteria (i.e., to select
@@ -9705,7 +9705,7 @@ send_slack_notification(webhook_url: 'str | None' = None, step_msg: 'str | None'
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             actions=pb.Actions(critical=notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -9737,7 +9737,7 @@ send_slack_notification(webhook_url: 'str | None' = None, step_msg: 'str | None'
             thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
             final_actions=pb.FinalActions(notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
@@ -9805,7 +9805,7 @@ send_slack_notification(webhook_url: 'str | None' = None, step_msg: 'str | None'
             actions=pb.Actions(default=notify_slack),
             final_actions=pb.FinalActions(notify_slack),
         )
-        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}\d{3}")
+        .col_vals_regex(columns="player_id", pattern=r"[A-Z]{12}[0-9]{3}")
         .col_vals_gt(columns="item_revenue", value=0.05)
         .col_vals_gt(columns="session_duration", value=15)
         .interrogate()
