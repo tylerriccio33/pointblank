@@ -13405,7 +13405,7 @@ def _create_text_expr(lang: str, for_failure: bool) -> str:
     return EXPECT_FAIL_TEXT[f"col_vals_expr_{type_}_text"][lang]
 
 
-def _create_text_col_exists(lang: str, column: str | None, for_failure: bool = False) -> str:
+def _create_text_col_exists(lang: str, column: str, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
