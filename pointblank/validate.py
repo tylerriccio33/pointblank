@@ -9948,11 +9948,13 @@ class Validate:
         Get the rows that failed for each validation step.
 
         After the [`interrogate()`](`pointblank.Validate.interrogate`) method has been called, the
-        `get_data_extracts()` method can be used to extract the rows that failed in each row-based
-        validation step (e.g., [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`), etc.). The
-        method returns a dictionary of tables containing the rows that failed in every row-based
-        validation function. If `frame=True` and `i=` is a scalar, the value is conveniently
-        returned as a table (forgoing the dictionary structure).
+        `get_data_extracts()` method can be used to extract the rows that failed in each
+        column-value or row-based validation step (e.g.,
+        [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`),
+        [`rows_distinct()`](`pointblank.Validate.rows_distinct`), etc.). The method returns a
+        dictionary of tables containing the rows that failed in every validation step. If
+        `frame=True` and `i=` is a scalar, the value is conveniently returned as a table (forgoing
+        the dictionary structure).
 
         Parameters
         ----------
@@ -9965,13 +9967,13 @@ class Validate:
         Returns
         -------
         dict[int, FrameT | None] | FrameT | None
-            A dictionary of tables containing the rows that failed in every row-based validation
-            step or a DataFrame.
+            A dictionary of tables containing the rows that failed in every compatible validation
+            step. Alternatively, it can be a DataFrame if `frame=True` and `i=` is a scalar.
 
-        Validation Methods that are Row-Based
-        -------------------------------------
-        The following validation methods are row-based and will have rows extracted when there are
-        failing test units.
+        Compatible Validation Methods for Yielding Extracted Rows
+        ---------------------------------------------------------
+        The following validation methods operate on column values and will have rows extracted when
+        there are failing test units.
 
         - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
         - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
@@ -9986,11 +9988,20 @@ class Validate:
         - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
         - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
         - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
-        - [`rows_distinct()`](`pointblank.Validate.rows_distinct`)
+        - [`col_vals_expr()`](`pointblank.Validate.col_vals_expr`)
+        - [`conjointly()`](`pointblank.Validate.conjointly`)
 
-        An extracted row means that a test unit failed for that row in the validation step. The
-        extracted rows are a subset of the original table and are useful for further analysis or for
-        understanding the nature of the failing test units.
+        An extracted row for these validation methods means that a test unit failed for that row in
+        the validation step.
+
+        These row-based validation methods will also have rows extracted should there be failing
+        rows:
+
+        - [`rows_distinct()`](`pointblank.Validate.rows_distinct`)
+        - [`rows_complete()`](`pointblank.Validate.rows_complete`)
+
+        The extracted rows are a subset of the original table and are useful for further analysis
+        or for understanding the nature of the failing test units.
 
         Examples
         --------
@@ -10246,10 +10257,10 @@ class Validate:
         Get the data that passed or failed the validation steps.
 
         Validation of the data is one thing but, sometimes, you want to use the best part of the
-        input dataset for something else. The `get_sundered_data()` method works with a Validate
+        input dataset for something else. The `get_sundered_data()` method works with a `Validate`
         object that has been interrogated (i.e., the
         [`interrogate()`](`pointblank.Validate.interrogate`) method was used). We can get either the
-        'pass' data piece (rows with no failing test units across all row-based validation
+        'pass' data piece (rows with no failing test units across all column-value based validation
         functions), or, the 'fail' data piece (rows with at least one failing test unit across the
         same series of validations).
 
@@ -10258,7 +10269,7 @@ class Validate:
         There are some caveats to sundering. The validation steps considered for this splitting will
         only involve steps where:
 
-        - of certain check types, where test units are cells checked row-by-row (e.g., the
+        - of certain check types, where test units are cells checked down a column (e.g., the
         `col_vals_*()` methods)
         - `active=` is not set to `False`
         - `pre=` has not been given an expression for modifying the input table
@@ -11324,24 +11335,25 @@ class Validate:
         Types of Step Reports
         ---------------------
         The `get_step_report()` method produces a report based on the *type* of validation step.
-        The following row-based validation methods will produce a report that shows the rows of the
-        data that failed because of failing test units within one or more columns failed:
+        The following column-value or row-based validation step validation methods will produce a
+        report that shows the rows of the data that failed:
 
         - [`col_vals_gt()`](`pointblank.Validate.col_vals_gt`)
+        - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
         - [`col_vals_lt()`](`pointblank.Validate.col_vals_lt`)
+        - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
         - [`col_vals_eq()`](`pointblank.Validate.col_vals_eq`)
         - [`col_vals_ne()`](`pointblank.Validate.col_vals_ne`)
-        - [`col_vals_ge()`](`pointblank.Validate.col_vals_ge`)
-        - [`col_vals_le()`](`pointblank.Validate.col_vals_le`)
         - [`col_vals_between()`](`pointblank.Validate.col_vals_between`)
         - [`col_vals_outside()`](`pointblank.Validate.col_vals_outside`)
         - [`col_vals_in_set()`](`pointblank.Validate.col_vals_in_set`)
         - [`col_vals_not_in_set()`](`pointblank.Validate.col_vals_not_in_set`)
-        - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
         - [`col_vals_null()`](`pointblank.Validate.col_vals_null`)
         - [`col_vals_not_null()`](`pointblank.Validate.col_vals_not_null`)
-        - [`rows_complete()`](`pointblank.Validate.rows_complete`)
+        - [`col_vals_regex()`](`pointblank.Validate.col_vals_regex`)
+        - [`col_vals_expr()`](`pointblank.Validate.col_vals_expr`)
         - [`conjointly()`](`pointblank.Validate.conjointly`)
+        - [`rows_complete()`](`pointblank.Validate.rows_complete`)
 
         The [`rows_distinct()`](`pointblank.Validate.rows_distinct`) validation step will produce a
         report that shows duplicate rows (or duplicate values in one or a set of columns as defined
