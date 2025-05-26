@@ -27,8 +27,8 @@ This article will cover:
 
 ## The Validation Methods that Work with Data Extracts
 
-The following validation methods are row-based and will have rows extracted when there are failing
-test units:
+The following validation methods operate on column values and will have rows extracted when there
+are failing test units in those rows:
 
 - [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
 - [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
@@ -43,15 +43,19 @@ test units:
 - [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
 - [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
 - [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
+- [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
+- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
+
+These row-based validation methods will also have rows extracted should there be failing rows:
+
 - [`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)
 - [`rows_complete()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_complete.html)
-- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
 
 Note that some validation methods like
 [`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
 [`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
-don't generate row-based data extracts because they validate structural aspects of the data rather
-than row values.
+don't generate data extracts because they validate structural aspects of the table rather than
+checking column values.
 
 ## Accessing Data Extracts
 
@@ -93,10 +97,10 @@ it initiates the download of a CSV file, and that file contains the data extract
 step. The `CSV` button only appears when:
 
 1. there is a non-zero number of failing test units
-2. the validation step is based on the use of a row-based validation method (the methods outlined
-above)
+2. the validation step is based on the use of a column-value or a row-based validation method (the
+methods outlined in the section entitled *The Validation Methods that Work with Data Extracts*)
 
-Access to CSV data for the row-based errors is useful when the validation report is shared with
+Access to CSV data for the test unit errors is useful when the validation report is shared with
 other data quality stakeholders, since it is easily accessible and doesn't require further use of
 Pointblank. The stakeholder can simply open the downloaded CSV in their preferred spreadsheet
 software, import it into a different analysis environment like R or Julia, or process it with any
