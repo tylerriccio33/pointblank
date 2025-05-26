@@ -68,7 +68,9 @@ from pointblank._utils import (
     _format_to_integer_value,
     _get_fn_name,
     _get_tbl_type,
+    _is_lazy_frame,
     _is_lib_present,
+    _is_narwhals_table,
     _is_value_a_df,
     _select_df_lib,
 )
@@ -1722,6 +1724,9 @@ def get_column_count(data: FrameT | Any) -> int:
     elif "pandas" in str(type(data)):
         return data.shape[1]
 
+    elif "narwhals" in str(type(data)):
+        return len(data.columns)
+
     else:
         raise ValueError("The input table type supplied in `data=` is not supported.")
 
@@ -1813,6 +1818,9 @@ def get_row_count(data: FrameT | Any) -> int:
         return int(data.height)
 
     elif "pandas" in str(type(data)):
+        return data.shape[0]
+
+    elif "narwhals" in str(type(data)):
         return data.shape[0]
 
     else:
@@ -8284,12 +8292,28 @@ class Validate:
                     data_tbl=data_tbl_step, segments_expr=validation.segments
                 )
 
+            # ------------------------------------------------
+            # Determine table type and `collect()` if needed
+            # ------------------------------------------------
+
+            if tbl_type not in IBIS_BACKENDS:
+                tbl_type = "local"
+
+            # If the table is a lazy frame, we need to collect it
+            if _is_lazy_frame(data_tbl_step):
+                data_tbl_step = data_tbl_step.collect()
+
+            # ------------------------------------------------
+            # Set the number of test units
+            # ------------------------------------------------
+
             validation.n = NumberOfTestUnits(df=data_tbl_step, column=column).get_test_units(
                 tbl_type=tbl_type
             )
 
-            if tbl_type not in IBIS_BACKENDS:
-                tbl_type = "local"
+            # ------------------------------------------------
+            # Validation stage
+            # ------------------------------------------------
 
             if assertion_category == "COMPARE_ONE":
                 results_tbl = ColValsCompareOne(
@@ -10475,6 +10499,19 @@ class Validate:
 
         # Get information on the input data table
         tbl_info = _get_tbl_type(data=self.data)
+
+        # If the table is a Polars one, determine if it's a LazyFrame
+        if tbl_info == "polars":
+            if _is_lazy_frame(self.data):
+                tbl_info = "polars-lazy"
+
+        # Determine if the input table is a Narwhals DF
+        if _is_narwhals_table(self.data):
+            # Determine if the Narwhals table is a LazyFrame
+            if _is_lazy_frame(self.data):
+                tbl_info = "narwhals-lazy"
+            else:
+                tbl_info = "narwhals"
 
         # Get the thresholds object
         thresholds = self.thresholds

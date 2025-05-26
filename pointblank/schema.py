@@ -4,7 +4,7 @@ import copy
 from dataclasses import dataclass
 
 from pointblank._constants import IBIS_BACKENDS
-from pointblank._utils import _get_tbl_type, _is_lib_present
+from pointblank._utils import _get_tbl_type, _is_lazy_frame, _is_lib_present, _is_narwhals_table
 
 __all__ = ["Schema"]
 
@@ -315,13 +315,24 @@ class Schema:
         table_type = _get_tbl_type(self.tbl)
 
         # Collect column names and dtypes from the DataFrame and store as a list of tuples
-        if table_type == "pandas":
+        if _is_narwhals_table(self.tbl):
+            if _is_lazy_frame(data=self.tbl):
+                schema_dict = dict(self.tbl.collect_schema())
+            else:
+                schema_dict = dict(self.tbl.schema.items())
+            schema_dict = {k: str(v) for k, v in schema_dict.items()}
+            self.columns = list(schema_dict.items())
+
+        elif table_type == "pandas":
             schema_dict = dict(self.tbl.dtypes)
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 
         elif table_type == "polars":
-            schema_dict = dict(self.tbl.schema.items())
+            if _is_lazy_frame(data=self.tbl):
+                schema_dict = dict(self.tbl.collect_schema())
+            else:
+                schema_dict = dict(self.tbl.schema.items())
             schema_dict = {k: str(v) for k, v in schema_dict.items()}
             self.columns = list(schema_dict.items())
 

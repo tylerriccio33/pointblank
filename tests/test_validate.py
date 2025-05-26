@@ -4971,6 +4971,101 @@ def test_col_schema_match_columns_only():
     )
 
 
+def test_comprehensive_validation_with_polars_lazyframe():
+    # Create a lazyframe from the small_table dataset
+    small_table_lazy = load_dataset(dataset="small_table", tbl_type="polars").lazy()
+
+    (
+        Validate(
+            data=small_table_lazy,
+            tbl_name="small_table",
+            label="Validation example with Polars LazyFrame",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+        )
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_lt(columns="c", value=5)
+        .col_vals_eq(columns="a", value=3)
+        .col_vals_ne(columns="c", value=10, na_pass=True)
+        .col_vals_le(columns="a", value=7)
+        .col_vals_ge(columns="d", value=500, na_pass=True)
+        .col_vals_between(columns="c", left=0, right=10, na_pass=True)
+        .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
+        .col_vals_eq(columns="a", value=10, active=False)
+        .col_vals_ge(columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20))
+        .col_vals_gt(
+            columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+        )
+        .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
+        .col_vals_null(columns="c")
+        .col_vals_not_null(columns="date_time")
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns="z")
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
+        .row_count_match(count=13)
+        .row_count_match(count=2, inverse=True)
+        .col_count_match(count=8)
+        .col_count_match(count=2, inverse=True)
+        .rows_distinct()
+        .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
+        .col_vals_expr(expr=pl.col("d") > pl.col("a"))
+        .conjointly(
+            lambda df: pl.col("d") > pl.col("a"),
+            lambda df: pl.col("a") > 0,
+            lambda df: pl.col("a") + pl.col("d") < 12000,
+        )
+        .specially(expr=lambda: [True, True])
+        .interrogate()
+    )
+
+
+def test_comprehensive_validation_with_narwhals_dataframe():
+    # Create a Narwhals DF from the small_table dataset
+    small_table_nw = nw.from_native(load_dataset(dataset="small_table", tbl_type="polars"))
+
+    (
+        Validate(
+            data=small_table_nw,
+            tbl_name="small_table",
+            label="Validation example with Narwhals DataFrame (from Polars DF)",
+            thresholds=Thresholds(warning=0.10, error=0.25, critical=0.35),
+        )
+        .col_vals_gt(columns="d", value=100)
+        .col_vals_lt(columns="c", value=5)
+        .col_vals_eq(columns="a", value=3)
+        .col_vals_ne(columns="c", value=10, na_pass=True)
+        .col_vals_le(columns="a", value=7)
+        .col_vals_ge(columns="d", value=500, na_pass=True)
+        .col_vals_between(columns="c", left=0, right=10, na_pass=True)
+        .col_vals_outside(columns="a", left=8, right=9, inclusive=(False, True))
+        .col_vals_eq(columns="a", value=10, active=False)
+        .col_vals_ge(columns="a", value=20, pre=lambda dfn: dfn.with_columns(nw.col("a") * 20))
+        .col_vals_gt(
+            columns="new", value=20, pre=lambda dfn: dfn.with_columns(new=nw.col("a") * 15)
+        )
+        .col_vals_in_set(columns="f", set=["low", "mid", "high"])
+        .col_vals_not_in_set(columns="f", set=["l", "h", "m"])
+        .col_vals_null(columns="c")
+        .col_vals_not_null(columns="date_time")
+        .col_vals_regex(columns="b", pattern=r"[0-9]-[a-z]{3}-[0-9]{3}")
+        .col_exists(columns="z")
+        .col_schema_match(schema=Schema(columns=[("a", "Int64")]), complete=False, in_order=False)
+        .row_count_match(count=13)
+        .row_count_match(count=2, inverse=True)
+        .col_count_match(count=8)
+        .col_count_match(count=2, inverse=True)
+        .rows_distinct()
+        .rows_distinct(columns_subset=["a", "b", "c"])
+        .rows_complete()
+        .rows_complete(columns_subset=["a", "b", "c"])
+        .col_vals_expr(expr=nw.col("d") > nw.col("a"))
+        .specially(expr=lambda: [True, True])
+        .interrogate()
+    )
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_TRUE_DATES_TIMES_LIST)
 def test_date_validation_across_cols(request, tbl_fixture):
     tbl = request.getfixturevalue(tbl_fixture)
