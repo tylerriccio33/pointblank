@@ -13754,11 +13754,9 @@ def _get_assertion_icon(icon: list[str], length_val: int = 30) -> list[str]:
     return icon_svg
 
 
-def _replace_svg_dimensions(svg: list[str], height_width: int | float) -> list[str]:
+def _replace_svg_dimensions(svg: str, height_width: int | float) -> str:
     svg = re.sub(r'width="[0-9]*?px', f'width="{height_width}px', svg)
-    svg = re.sub(r'height="[0-9]*?px', f'height="{height_width}px', svg)
-
-    return svg
+    return re.sub(r'height="[0-9]*?px', f'height="{height_width}px', svg)
 
 
 def _get_title_text(
