@@ -94,7 +94,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from typing import Any
 
-    from pointblank._typing import AbsoluteBounds, Tolerance
+    from pointblank._typing import AbsoluteBounds, Tolerance, _CompliantValue, _CompliantValues
 
 __all__ = [
     "Validate",
@@ -12110,7 +12110,7 @@ def _process_action_str(
 
 
 def _create_autobrief_or_failure_text(
-    assertion_type: str, lang: str, column: str | None, values: str | None, for_failure: bool
+    assertion_type: str, lang: str, column: str, values: str | None, for_failure: bool
 ) -> str:
     if assertion_type in [
         "col_vals_gt",
@@ -12250,7 +12250,7 @@ def _expect_failure_type(for_failure: bool) -> str:
 def _create_text_comparison(
     assertion_type: str,
     lang: str,
-    column: str | list[str] | None,
+    column: str | list[str],
     values: str | None,
     for_failure: bool = False,
 ) -> str:
@@ -12276,7 +12276,7 @@ def _create_text_comparison(
 
 def _create_text_between(
     lang: str,
-    column: str | None,
+    column: str,
     value_1: str,
     value_2: str,
     not_: bool = False,
@@ -12306,7 +12306,7 @@ def _create_text_between(
 
 
 def _create_text_set(
-    lang: str, column: str | None, values: list[any], not_: bool = False, for_failure: bool = False
+    lang: str, column: str, values: list[any], not_: bool = False, for_failure: bool = False
 ) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
@@ -12328,9 +12328,7 @@ def _create_text_set(
     return text
 
 
-def _create_text_null(
-    lang: str, column: str | None, not_: bool = False, for_failure: bool = False
-) -> str:
+def _create_text_null(lang: str, column: str, not_: bool = False, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
@@ -12347,9 +12345,7 @@ def _create_text_null(
     return text
 
 
-def _create_text_regex(
-    lang: str, column: str | None, pattern: str, for_failure: bool = False
-) -> str:
+def _create_text_regex(lang: str, column: str, pattern: str, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     column_text = _prep_column_text(column=column)
@@ -12416,7 +12412,7 @@ def _create_text_rows_complete(
     return text
 
 
-def _create_text_row_count_match(lang: str, value: int, for_failure: bool = False) -> str:
+def _create_text_row_count_match(lang: str, value: dict, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     values_text = _prep_values_text(value["count"], lang=lang)
@@ -12424,7 +12420,7 @@ def _create_text_row_count_match(lang: str, value: int, for_failure: bool = Fals
     return EXPECT_FAIL_TEXT[f"row_count_match_n_{type_}_text"][lang].format(values_text=values_text)
 
 
-def _create_text_col_count_match(lang: str, value: int, for_failure: bool = False) -> str:
+def _create_text_col_count_match(lang: str, value: dict, for_failure: bool = False) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
     values_text = _prep_values_text(value["count"], lang=lang)
@@ -12447,19 +12443,13 @@ def _create_text_specially(lang: str, for_failure: bool = False) -> str:
 def _prep_column_text(column: str | list[str]) -> str:
     if isinstance(column, list):
         return "`" + str(column[0]) + "`"
-    elif isinstance(column, str):
+    if isinstance(column, str):
         return "`" + column + "`"
-    else:
-        return ""
+    raise AssertionError
 
 
 def _prep_values_text(
-    values: str
-    | int
-    | float
-    | datetime.datetime
-    | datetime.date
-    | list[str | int | float | datetime.datetime | datetime.date],
+    values: _CompliantValue | _CompliantValues,
     lang: str,
     limit: int = 3,
 ) -> str:
