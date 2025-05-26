@@ -14136,9 +14136,10 @@ def _transform_assertion_str(
     return type_upd
 
 
-def _pre_processing_funcs_to_str(pre: Callable) -> str | list[str]:
+def _pre_processing_funcs_to_str(pre: Callable) -> str | list[str] | None:
     if isinstance(pre, Callable):
         return _get_callable_source(fn=pre)
+    return None
 
 
 def _get_callable_source(fn: Callable) -> str:
