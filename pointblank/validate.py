@@ -10507,7 +10507,11 @@ class Validate:
 
         # Determine if the input table is a Narwhals DF
         if _is_narwhals_table(self.data):
-            tbl_info = "narwhals"
+            # Determine if the Narwhals table is a LazyFrame
+            if _is_lazy_frame(self.data):
+                tbl_info = "narwhals-lazy"
+            else:
+                tbl_info = "narwhals"
 
         # Get the thresholds object
         thresholds = self.thresholds
