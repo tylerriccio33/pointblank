@@ -13279,7 +13279,7 @@ def _create_autobrief_or_failure_text(
     if assertion_type == "specially":
         return _create_text_specially(lang=lang, for_failure=for_failure)
 
-    return None  # pragma: no cover
+    raise NotImplementedError  # pragma: no cover
 
 
 def _expect_failure_type(for_failure: bool) -> str:
@@ -13345,7 +13345,7 @@ def _create_text_between(
 
 
 def _create_text_set(
-    lang: str, column: str, values: list[any], not_: bool = False, for_failure: bool = False
+    lang: str, column: str, values: list[Any], not_: bool = False, for_failure: bool = False
 ) -> str:
     type_ = _expect_failure_type(for_failure=for_failure)
 
