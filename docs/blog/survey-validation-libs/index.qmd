@@ -12,3 +12,29 @@ a superfast DataFrame library, developers need validation tools that work seamle
 this survey (conducted halfway through 2025) we'll explore four Python validation libraries that
 support Polars DataFrames. Each one is sufficiently different enough from another, and so they each
 bring their own strengths and ideal use cases to the table.
+
+The Python libraries we're covering are:
+
+1. Pandera
+2. Patito
+3. Pointblank
+4. Validoopsie
+
+We'll run through a number of examples with each of the libraries, using this Polars DataFrame as
+the table to validate:
+
+```{python}
+import polars as pl
+
+# Standard dataset for all validation examples
+data = pl.DataFrame({
+    "user_id": [1, 2, 3, 4, 5],
+    "age": [25, 30, 22, 45, 35],
+    "email": [
+        "user1@example.com", "user2@example.com", "invalid-email",
+        "user4@example.com", "user5@example.com"
+    ],
+    "score": [85.5, 92.0, 78.3, 88.7, 95.2]
+})
+```
+
