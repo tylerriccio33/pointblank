@@ -133,6 +133,12 @@ except pt.exceptions.DataFrameValidationError as e:
     print(f"Validation failed: {e}")
 ```
 
+This example showcases Patito's model-centric approach where validation rules are embedded in class
+definitions. The use of Python's type hints and Pydantic's Field syntax makes the validation rules
+self-documenting. Notably, Patito reports all validation errors at once, providing a fairly
+comprehensive view of data quality issues, whereas other libraries (e.g., Pandera) stop at the first
+failure.
+
 ## 3. Pointblank: Comprehensive Validation with Beautiful Reports
 
 Pointblank is a comprehensive data validation framework designed to make data quality assessment
