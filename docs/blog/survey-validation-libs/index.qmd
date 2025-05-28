@@ -239,3 +239,10 @@ namespaced categories (`ValuesValidation`, `StringValidation`, `TypeValidation`)
 type is grouped logically, making it easy to discover and use the right validation for your needs.
 The modular design promotes code organization and reusability across different validation scenarios.
 
+### Comparisons
+
+Validoopsie's functional approach contrasts with Pandera's schema-first methodology and Patito's
+object-oriented models. Unlike Pointblank's comprehensive reporting focus, Validoopsie emphasizes
+simplicity and composability. The library is more lightweight than the others but still provides a
+generous suite of validation checks.
+
