@@ -326,4 +326,35 @@ Pandera requires you to fix issues iteratively, running validation multiple time
 problems. This makes Patito more efficient for debugging data quality issues in development and
 testing scenarios.
 
+## Choosing the Right Library
 
+Each validation library excels in different scenarios. Here's a quick reference guide to help you
+pick the right tool for your specific needs:
+
+| Use Case                        | Recommended Library | Why?                                                |
+|---------------------------------|---------------------|-----------------------------------------------------|
+| Type-safe pipelines             | Pandera             | Strong typing, mypy integration, statistical checks |
+| Stakeholder reporting           | Pointblank          | Beautiful interactive reports, threshold management |
+| API data validation             | Patito              | Pydantic integration, serialization support         |
+| Statistical validation          | Pandera             | Hypothesis testing, distribution checks             |
+| Comprehensive data quality      | Pointblank          | Full validation workflow, segmentation, alerting    |
+| Custom validation logic         | Validoopsie         | Highly customizable, functional composition         |
+
+The way I see it is that you probably shouldn't feel locked into one choice. Many teams use
+different libraries for different parts of their data pipeline, leveraging each tool's strengths
+where they most matter. So, by extension, it's conceivable that the use of different validation
+libraries could work across projects and even within individual projects.
+
+## Summary and Wrapping Up
+
+The Python ecosystem offers truly excellent options for validating Polars DataFrames! Choosing is
+always tough but this is how one could make the decision based on specific needs:
+
+- for type-safe, statistical validation, Pandera is ideal
+- for model-driven API validation, go with Patito
+- for functional, composable validation, Validoopsie fits well
+- for data quality reporting and stakeholder communication, Pointblank is a great choice
+
+Each library has evolved to serve different aspects of the data validation ecosystem. Try them all
+and, with a little understanding of their strengths, you'll get good and picking the right
+validation tool for your specific use case.
