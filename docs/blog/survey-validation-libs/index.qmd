@@ -122,6 +122,26 @@ Pointblank launched with Polars support as a core feature from its initial Pytho
 2024, built on top of the Narwhals and Ibis compatibility layers to provide consistent DataFrame
 operations across multiple backends including Polars, Pandas, and database connections.
 
+```{python}
+import pointblank as pb
+
+schema = pb.Schema(
+    columns=[("user_id", "Int64"), ("age", "Int64"), ("email", "String"), ("score", "Float64")]
+)
+
+validation = (
+    pb.Validate(data=user_data, label="An example.", tbl_name="users", thresholds=(0.1, 0.2, 0.3))
+    .col_vals_gt(columns="user_id", value=0)
+    .col_vals_between(columns="age", left=18, right=80)
+    .col_vals_regex(columns="email", pattern=r"^[^@]+@[^@]+\.[^@]+$")
+    .col_vals_between(columns="score", left=0, right=100)
+    .col_schema_match(schema=schema)
+    .interrogate()
+)
+
+validation
+```
+
 ## 4. Validoopsie: Composable Checks
 
 Validoopsie is built around composable validation principles, providing a toolkit for creating
