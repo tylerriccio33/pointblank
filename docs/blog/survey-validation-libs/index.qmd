@@ -38,3 +38,10 @@ data = pl.DataFrame({
 })
 ```
 
+## 1. Pandera: Schema-First Validation with Statistical Checks
+
+Pandera is a statistical data validation toolkit designed to provide a flexible and expressive API
+for performing data validation on dataframe-like objects. The library centers on schema-first
+validation, where you define the expected structure and constraints of your data upfront. You can
+enable both runtime validation and static type checking integration. Pandera added Polars support in
+version `0.19.0` (early 2024).
