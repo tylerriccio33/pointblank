@@ -82,6 +82,7 @@ look like rather than writing imperative validation logic. The schema acts as bo
 as a validation contract. Notice how multiple checks can be applied to a single column (here, the
 `age` column receives two checks), and the validation either succeeds completely or provides
 error information about what failed.
+
 ## 2. Patito: Pydantic-Style Data Models for DataFrames
 
 Patito brings Pydantic's well-received model-based validation approach to DataFrame validation,
@@ -149,4 +150,47 @@ reusable validation functions organized into logical modules. The library's emph
 of validation logic from modular, testable components that can be combined in flexible ways to
 create complex validation workflows. Like Pointblank, Validoopsie had Polars support from the very
 first release (early-2025).
+
+```{python}
+from validoopsie import Validate
+from narwhals.dtypes import Int64, Float64, String
+
+# Composable validation checks using our standard dataset
+validation = (
+    Validate(user_data)
+    .ValuesValidation.ColumnValuesToBeBetween(
+        column="user_id",
+        min_value=0
+    )
+    .ValuesValidation.ColumnValuesToBeBetween(
+        column="age",
+        min_value=18,
+        max_value=80
+    )
+    .StringValidation.PatternMatch(
+        column="email",
+        pattern=r"^[^@]+@[^@]+\.[^@]+$"
+    )
+    .ValuesValidation.ColumnValuesToBeBetween(
+        column="score",
+        min_value=0,
+        max_value=100
+    )
+    .TypeValidation.TypeCheck(
+        frame_schema_definition={
+            "user_id": Int64,
+            "age": Int64,
+            "email": String,
+            "score": Float64
+        }
+    )
+)
+
+# Check if validation passed
+try:
+    validation.validate()
+    print("Validation successful!")
+except Exception as e:
+    print(f"Validation failed: {e}")
+```
 
