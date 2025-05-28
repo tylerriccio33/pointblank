@@ -213,9 +213,11 @@ quality issues.
 ### Comparisons
 
 Unlike Pandera's schema-first approach, Pointblank focuses on step-by-step validation with detailed
-reporting. Compared to Patito's model-based validation, Pointblank provides much richer reporting
+reporting. Compared to the other frameworks surveyed here, Pointblank provides much richer reporting
 and analysis capabilities. And while the API shares much with Validoopsie's compositional approach,
-Pointblank emphasizes stakeholder communication and comprehensive data quality assessment.
+Pointblank emphasizes stakeholder communication through reporting and comprehensive data quality
+assessment.
+
 
 ## 4. Validoopsie: Composable Checks
 
