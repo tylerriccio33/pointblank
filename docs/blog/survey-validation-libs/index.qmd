@@ -27,11 +27,11 @@ the table to validate:
 import polars as pl
 
 # Standard dataset for all validation examples
-data = pl.DataFrame({
+user_data = pl.DataFrame({
     "user_id": [1, 2, 3, 4, 5],
-    "age": [25, 30, 22, 45, 35],
+    "age": [25, 30, 22, 45, 95],  # <- very high age
     "email": [
-        "user1@example.com", "user2@example.com", "invalid-email",
+        "user1@example.com", "user2@example.com", "invalid-email",  # <- an invalid email
         "user4@example.com", "user5@example.com"
     ],
     "score": [85.5, 92.0, 78.3, 88.7, 95.2]
