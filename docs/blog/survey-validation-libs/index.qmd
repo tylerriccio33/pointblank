@@ -83,6 +83,27 @@ as a validation contract. Notice how multiple checks can be applied to a single 
 `age` column receives two checks), and the validation either succeeds completely or provides
 error information about what failed.
 
+### Comparisons
+
+Both Pandera and Patito use declarative, schema-first approaches, but differ in their design
+philosophies:
+
+- Pandera uses a dictionary-like schema structure with Column objects, focusing on statistical
+validation capabilities
+- Patito uses Pydantic model classes, focusing on integration with existing Pydantic workflows
+- Unlike Pointblank's step-by-step validation reporting, both Pandera and Patito validate entire
+schemas at once
+- Key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
+stops at the first failure
+
+The choice between them often comes down to whether you prefer Pandera's statistical focus or
+Patito's Pydantic integration.
+
+Unlike Pointblank's step-by-step validation reporting, Pandera validates the entire schema at once.
+Compared to Patito's model-based approach, Pandera focuses more on statistical validation
+capabilities. Unlike Validoopsie's and Pointblank's functional composition, Pandera uses a more
+declarative, schema-centric approach.
+
 ## 2. Patito: Pydantic-Style Data Models for DataFrames
 
 Patito brings Pydantic's well-received model-based validation approach to DataFrame validation,
