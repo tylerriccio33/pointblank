@@ -133,6 +133,8 @@ Patito launched with Polars support from the beginning (in late 2022). Native Po
 touted as one of its core features, reflecting the growing adoption of Polars in the Python
 ecosystem.
 
+### Example
+
 ```{python}
 import patito as pt
 from typing import Annotated
@@ -183,6 +185,8 @@ reports that can be shared with both technical and non-technical team members.
 Pointblank launched with Polars support as a core feature from its initial Python release in late
 2024, built on top of the Narwhals and Ibis compatibility layers to provide consistent DataFrame
 operations across multiple backends including Polars, Pandas, and database connections.
+
+### Example
 
 ```{python}
 import pointblank as pb
@@ -241,6 +245,8 @@ reusable validation functions organized into logical modules. The library's emph
 of validation logic from modular, testable components that can be combined in flexible ways to
 create complex validation workflows. Like Pointblank, Validoopsie had Polars support from the very
 first release (early-2025).
+
+### Example
 
 ```{python}
 from validoopsie import Validate
