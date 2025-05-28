@@ -38,6 +38,16 @@ user_data = pl.DataFrame({
 })
 ```
 
+We'll try to run the same data validation across the surveyed libraries, so we'll check:
+
+- the schema
+- that `user_id` values are greater than `0`
+- that `age` values are between `18` and `80` (inclusive)
+- that `email` strings match to an email-checking regex
+- that `score` is between `0` and `100` (again with inclusive bounds)
+
+Now let's begin by looking at Pandera.
+
 ## 1. Pandera: Schema-First Validation with Statistical Checks
 
 Pandera is a statistical data validation toolkit designed to provide a flexible and expressive API
