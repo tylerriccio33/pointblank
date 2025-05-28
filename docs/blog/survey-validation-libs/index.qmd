@@ -1,7 +1,7 @@
 ---
 jupyter: python3
 html-table-processing: none
-title: "Python Validation Libraries that Work Well with Polars (mid-2025 Edition)"
+title: "Validation Libraries for Polars (2025 Edition)"
 author: Rich Iannone
 date: 2025-06-01
 freeze: true
