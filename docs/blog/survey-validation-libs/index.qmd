@@ -92,6 +92,25 @@ making it particularly appealing to developers already using Pydantic in their a
 Patito launched with Polars support from the beginning (in late 2022). Native Polars integration is
 touted as one of its core features, reflecting the growing adoption of Polars in the Python
 ecosystem.
+
+```{python}
+import patito as pt
+from typing import Annotated
+
+class UserModel(pt.Model):
+    user_id: int = pt.Field(gt=0)
+    age: Annotated[int, pt.Field(ge=18, le=80)]
+    email: str = pt.Field(pattern=r"^[^@]+@[^@]+\.[^@]+$")
+    score: float = pt.Field(ge=0.0, le=100.0)
+
+# Validate using the model
+try:
+    UserModel.validate(user_data)
+    print("Validation successful!")
+except pt.exceptions.DataFrameValidationError as e:
+    print(f"Validation failed: {e}")
+```
+
 ## 3. Pointblank: Comprehensive Validation with Beautiful Reports
 
 Pointblank is a comprehensive data validation framework designed to make data quality assessment
