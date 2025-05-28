@@ -316,3 +316,14 @@ flexibility for custom validation logic, or want to build reusable validation co
 shared across projects. It's great for teams that value simplicity, testability, and the ability to
 compose complex validation workflows from simple building blocks.
 
+### Comparisons
+
+Patito differs from Pandera in several key ways beyond just the Pydantic compatibility. A crucial
+difference is in error reporting behavior: Patito provides all validation errors in a single pass,
+while Pandera stops at the first validation failure. This means with Patito, you can see all the
+data quality issues at once (both the age constraint violation and the invalid email), whereas
+Pandera requires you to fix issues iteratively, running validation multiple times to discover all
+problems. This makes Patito more efficient for debugging data quality issues in development and
+testing scenarios.
+
+
