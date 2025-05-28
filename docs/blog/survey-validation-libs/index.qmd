@@ -87,3 +87,14 @@ making it particularly appealing to developers already using Pydantic in their a
 Patito launched with Polars support from the beginning (in late 2022). Native Polars integration is
 touted as one of its core features, reflecting the growing adoption of Polars in the Python
 ecosystem.
+## 3. Pointblank: Comprehensive Validation with Beautiful Reports
+
+Pointblank is a comprehensive data validation framework designed to make data quality assessment
+both thorough and accessible to stakeholders. Originally inspired by the R package of the same name,
+Pointblank's primary mission is to provide validation workflows that generate beautiful, interactive
+reports that can be shared with both technical and non-technical team members.
+
+Pointblank launched with Polars support as a core feature from its initial Python release in late
+2024, built on top of the Narwhals and Ibis compatibility layers to provide consistent DataFrame
+operations across multiple backends including Polars, Pandas, and database connections.
+
