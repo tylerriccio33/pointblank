@@ -157,6 +157,22 @@ self-documenting. Notably, Patito reports all validation errors at once, providi
 comprehensive view of data quality issues, whereas other libraries (e.g., Pandera) stop at the first
 failure.
 
+### Unique Strengths and When to Use
+
+- Pydantic-style model definitions with familiar syntax for Pydantic users
+- automatic serialization/deserialization between formats
+- rich type system integration with Python's typing system
+- model inheritance and composition for complex data structures
+- seamless integration with existing Pydantic-based applications
+- built-in support for nested data structures and complex types
+
+People should choose Patito when they're already using Pydantic in their applications and want
+consistent validation patterns across APIs and data processing. It's good for teams building data
+applications where DataFrame validation needs to integrate with web APIs, or when you need to
+serialize/deserialize data between different formats while maintaining validation guarantees.
+Patito is also great for model-driven development workflows where data models serve multiple
+purposes beyond just validation.
+
 ## 3. Pointblank: Comprehensive Validation with Beautiful Reports
 
 Pointblank is a comprehensive data validation framework designed to make data quality assessment
