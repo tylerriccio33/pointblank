@@ -104,6 +104,24 @@ Compared to Patito's model-based approach, Pandera focuses more on statistical v
 capabilities. Unlike Validoopsie's and Pointblank's functional composition, Pandera uses a more
 declarative, schema-centric approach.
 
+### Unique Strengths and When to Use
+
+Here are some of stand-out features that Pandera has:
+
+- type-safe schema definitions with `mypy` integration
+- statistical hypothesis testing for data distributions
+- excellent integration with Pandas, Polars, and Arrow support
+- declarative schema syntax that serves as documentation
+- built-in support for data coercion and transformation
+
+Data practitioners should choose Pandera when building type-safe data pipelines where schema
+validation is critical, especially in data science workflows that require statistical validation.
+It's ideal for users that value static type checking, need to validate statistical properties of
+their data, or want schemas that double as documentation.
+
+Pandera also excels in environments where data contracts between teams are important and where the
+statistical properties of data matter as much as basic type checking.
+
 ## 2. Patito: Pydantic-Style Data Models for DataFrames
 
 Patito brings Pydantic's well-received model-based validation approach to DataFrame validation,
