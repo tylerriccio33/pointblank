@@ -194,3 +194,8 @@ except Exception as e:
     print(f"Validation failed: {e}")
 ```
 
+This example showcases Validoopsie's modular approach where validation rules are organized into
+namespaced categories (`ValuesValidation`, `StringValidation`, `TypeValidation`). Each validation
+type is grouped logically, making it easy to discover and use the right validation for your needs.
+The modular design promotes code organization and reusability across different validation scenarios.
+
