@@ -55,3 +55,25 @@ for performing data validation on dataframe-like objects. The library centers on
 validation, where you define the expected structure and constraints of your data upfront. You can
 enable both runtime validation and static type checking integration. Pandera added Polars support in
 version `0.19.0` (early 2024).
+
+### Example
+
+```{python}
+import pandera.polars as pa
+
+# Define schema using our standard dataset
+schema = pa.DataFrameSchema({
+    "user_id": pa.Column(pl.Int64, checks=pa.Check.gt(0)),
+    "age": pa.Column(pl.Int64, checks=[pa.Check.ge(18), pa.Check.le(80)]),
+    "email": pa.Column(pl.Utf8, checks=pa.Check.str_matches(r"^[^@]+@[^@]+\.[^@]+$")),
+    "score": pa.Column(pl.Float64, checks=pa.Check.in_range(0, 100))
+})
+
+# Validate the schema
+try:
+    validated_data = schema.validate(user_data)
+    print("Validation successful!")
+except pa.errors.SchemaError as e:
+    print(f"Validation failed: {e}")
+```
+
