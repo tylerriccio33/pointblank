@@ -77,6 +77,11 @@ except pa.errors.SchemaError as e:
     print(f"Validation failed: {e}")
 ```
 
+This example demonstrates Pandera's declarative approach, where you define what your data should
+look like rather than writing imperative validation logic. The schema acts as both documentation and
+as a validation contract. Notice how multiple checks can be applied to a single column (here, the
+`age` column receives two checks), and the validation either succeeds completely or provides
+error information about what failed.
 ## 2. Patito: Pydantic-Style Data Models for DataFrames
 
 Patito brings Pydantic's well-received model-based validation approach to DataFrame validation,
