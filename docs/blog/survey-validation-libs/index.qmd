@@ -98,3 +98,11 @@ Pointblank launched with Polars support as a core feature from its initial Pytho
 2024, built on top of the Narwhals and Ibis compatibility layers to provide consistent DataFrame
 operations across multiple backends including Polars, Pandas, and database connections.
 
+## 4. Validoopsie: Composable Checks
+
+Validoopsie is built around composable validation principles, providing a toolkit for creating
+reusable validation functions organized into logical modules. The library's emphasizes the building
+of validation logic from modular, testable components that can be combined in flexible ways to
+create complex validation workflows. Like Pointblank, Validoopsie had Polars support from the very
+first release (early-2025).
+
