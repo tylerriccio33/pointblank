@@ -170,6 +170,19 @@ validation = (
 validation
 ```
 
+This example demonstrates Pointblank's chainable validation approach where each validation step is
+clearly defined and can be configured with different threshold levels. The resulting validation
+object provides rich, interactive reporting that shows not just what passed or failed, but detailed
+statistics about the validation process. The threshold system allows for nuanced responses to data
+quality issues.
+
+### Comparisons
+
+Unlike Pandera's schema-first approach, Pointblank focuses on step-by-step validation with detailed
+reporting. Compared to Patito's model-based validation, Pointblank provides much richer reporting
+and analysis capabilities. And while the API shares much with Validoopsie's compositional approach,
+Pointblank emphasizes stakeholder communication and comprehensive data quality assessment.
+
 ## 4. Validoopsie: Composable Checks
 
 Validoopsie is built around composable validation principles, providing a toolkit for creating
