@@ -91,9 +91,9 @@ philosophies:
 - Pandera uses a dictionary-like schema structure with Column objects, focusing on statistical
 validation capabilities
 - Patito uses Pydantic model classes, focusing on integration with existing Pydantic workflows
-- Unlike Pointblank's step-by-step validation reporting, both Pandera and Patito validate entire
+- unlike Pointblank's step-by-step validation reporting, both Pandera and Patito validate entire
 schemas at once
-- Key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
+- key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
 stops at the first failure
 
 The choice between them often comes down to whether you prefer Pandera's statistical focus or
