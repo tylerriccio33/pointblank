@@ -374,14 +374,14 @@ def test_validate_class_lang_locale():
 def test_null_vals_in_set(data: Any) -> None:
     validate = (
         Validate(data)
-        .col_vals_in_set(["foo"], set=[1, 2, None])
-        .col_vals_in_set(["bar"], set=["winston", "cat", None])
+        .col_vals_in_set(columns="foo", set=[1, 2, None])
+        .col_vals_in_set(columns="bar", set=["winston", "cat", None])
         .interrogate()
     )
 
     validate.assert_passing()
 
-    validate = Validate(data).col_vals_in_set("foo", [1, 2]).interrogate()
+    validate = Validate(data).col_vals_in_set(columns="foo", set=[1, 2]).interrogate()
 
     with pytest.raises(AssertionError):
         validate.assert_passing()
