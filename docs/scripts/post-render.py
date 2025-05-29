@@ -21,6 +21,17 @@ for html_file in html_files:
 
     with open(html_file, "r") as file:
         content = file.readlines()
+
+    # For the literal text `Validate.` in the <h1> tag:
+    # - enclose within a span and use the `color: gray;` style
+    content = [
+        line.replace(
+            '<h1 class="title">Validate.',
+            '<h1 class="title"><span style="color: gray;">Validate.</span>',
+        )
+        for line in content
+    ]
+
     # If the inner content of the <h1> tag either:
     # - has a literal `.` in it, or
     # - doesn't start with a capital letter,
