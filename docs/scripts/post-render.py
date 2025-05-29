@@ -62,6 +62,12 @@ for html_file in html_files:
         for line in content
     ]
 
+    # For the first <p> tag in the file, add a style attribute to set the font size to 22px
+    for i, line in enumerate(content):
+        if "<p>" in line:
+            content[i] = line.replace("<p>", '<p style="font-size: 22px;">')
+            break
+
     with open(html_file, "w") as file:
         file.writelines(content)
 
