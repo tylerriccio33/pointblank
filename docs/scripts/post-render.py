@@ -57,7 +57,7 @@ for html_file in html_files:
 
     # Add classification labels (class/method/function) to h1 headers
     for i, line in enumerate(content):
-        h1_match = re.search(r'<h1\s+class="title"[^>]*>(.*?)</h1>', line)
+        h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", line)
         if h1_match:
             h1_content = h1_match.group(1)
 
