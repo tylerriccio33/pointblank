@@ -82,8 +82,18 @@ for html_file in html_files:
             content[i] = line.replace("<p>", '<p style="font-size: 22px;">')
             break
 
+    # Fix return value formatting in individual function pages
+    content_str = "".join(content)
+    return_value_pattern = (
+        r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
+    )
+    return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
+    content_str = re.sub(return_value_pattern, return_value_replacement, content_str)
+    content = content_str.splitlines(keepends=True)
+
     with open(html_file, "w") as file:
         file.writelines(content)
+
 
 # Modify the `index.html` file in the `_site/reference/` directory
 index_file = "_site/reference/index.html"
@@ -147,38 +157,6 @@ if os.path.exists(index_file):
     nav_pattern = r'(<nav[^>]*>.*?<h2[^>]*>.*?</h2>\s*<ul>\s*)<li><a[^>]*href="[^"]*#api-reference"[^>]*>API Reference</a>\s*<ul[^>]*>(.*?)</ul></li>\s*(</ul>\s*</nav>)'
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
-
-    # Debug: Extract actual content around return sections
-    return_sections = re.findall(
-        r"<h2[^>]*doc-section-returns[^>]*>.*?</h2>\s*<dl>.*?</dl>", content, re.DOTALL
-    )
-    if return_sections:
-        print(f"Found {len(return_sections)} return sections")
-        for i, section in enumerate(return_sections):
-            print(f"Return section {i + 1}:")
-            print(section[:200] + "..." if len(section) > 200 else section)
-            print("-" * 50)
-    else:
-        print("No return sections found")
-
-    # Debug: Look for any parameter-name spans
-    param_spans = re.findall(r'<span class="parameter-name"[^>]*>.*?</span>', content)
-    print(f"Found {len(param_spans)} parameter-name spans:")
-    for span in param_spans[:5]:  # Show first 5
-        print(f"  {span}")
-
-    # Debug: Look for any parameter-annotation-sep spans
-    sep_spans = re.findall(r'<span class="parameter-annotation-sep"[^>]*>.*?</span>', content)
-    print(f"Found {len(sep_spans)} parameter-annotation-sep spans:")
-    for span in sep_spans[:5]:  # Show first 5
-        print(f"  {span}")
-
-    # Fix return value formatting
-    return_value_pattern = (
-        r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
-    )
-    return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
-    content = re.sub(return_value_pattern, return_value_replacement, content)
 
     with open(index_file, "w") as file:
         file.write(content)
