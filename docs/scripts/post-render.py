@@ -123,6 +123,25 @@ if os.path.exists(index_file):
     table_pattern = r'<table class="caption-top table">\s*<tbody>(.*?)</tbody>\s*</table>'
     content = re.sub(table_pattern, convert_table_to_dl, content, flags=re.DOTALL)
 
+    # Add () to methods and functions in <a> tags within <dt> elements
+    def add_parens_to_functions(match):
+        full_tag = match.group(0)
+        link_text = match.group(1)
+
+        # Rules for adding ():
+        # - Don't touch capitalized content (classes)
+        # - Add () if text has a period (methods like Validate.col_vals_gt)
+        # - Add () if text doesn't start with capital (functions like starts_with, load_dataset)
+        if "." in link_text or (link_text and not link_text[0].isupper()):
+            # Replace the link text with the same text + ()
+            return full_tag.replace(f">{link_text}</a>", f">{link_text}()</a>")
+
+        return full_tag
+
+    # Find all <a> tags within <dt> elements and apply the function
+    dt_link_pattern = r"<dt><a[^>]*>([^<]+)</a></dt>"
+    content = re.sub(dt_link_pattern, add_parens_to_functions, content)
+
     with open(index_file, "w") as file:
         file.write(content)
 
