@@ -117,7 +117,7 @@ if os.path.exists(index_file):
                 dl_items.append(f"{dt}\n{dd}")
 
         dl_content = "\n\n".join(dl_items)
-        return f'<div class="caption-top table">\n<dl style="margin-top: 10px;">\n\n{dl_content}\n\n</dl>\n</div>'
+        return f'<div class="caption-top table" style="border-top-style: dashed; border-bottom-style: dashed;">\n<dl style="margin-top: 10px;">\n\n{dl_content}\n\n</dl>\n</div>'
 
     # Replace all table structures with dl/dt/dd
     table_pattern = r'<table class="caption-top table">\s*<tbody>(.*?)</tbody>\s*</table>'
