@@ -89,6 +89,16 @@ for html_file in html_files:
             new_line = line.replace(h1_content, new_h1_content)
             content[i] = new_line
 
+    # Remove the literal text `Validate.` from the h1 tag
+    # TODO: Add line below stating the class name for the method
+    content = [
+        line.replace(
+            '<h1 class="title">Validate.',
+            '<h1 class="title">',
+        )
+        for line in content
+    ]
+
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
         line.replace(
@@ -106,17 +116,6 @@ for html_file in html_files:
         )
         for line in content
     ]
-
-    # Remove the literal text `Validate.` from the h1 tag
-    content = [
-        line.replace(
-            '<h1 class="title">Validate.',
-            '<h1 class="title">',
-        )
-        for line in content
-    ]
-
-    # TODO: Add line below stating the class name for the method
 
     # Fix malformed `****kwargs**` string
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
