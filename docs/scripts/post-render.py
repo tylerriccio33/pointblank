@@ -71,15 +71,18 @@ for html_file in html_files:
                 if "." in text_for_classification:
                     label_type = "method"
                     label_color = "steelblue"
+                    background_color = "#E3F2FF"
                 else:
                     label_type = "class"
                     label_color = "darkgreen"
+                    background_color = "#E3FEE3"
             else:
                 label_type = "function"
                 label_color = "darkorange"
+                background_color = "#FFF1E0"
 
             # Create the label span
-            label_span = f'<span style="font-size: 16px; border-style: solid; border-width: 2px; border-color: {label_color}; margin-left: 4px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
+            label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
             # Add the label to the end of the h1 content
             new_h1_content = h1_content + label_span
@@ -90,7 +93,7 @@ for html_file in html_files:
     content = [
         line.replace(
             '<h1 class="title">',
-            "<h1 class=\"title\" style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\">",
+            "<h1 class=\"title\" style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.75rem;\">",
         )
         for line in content
     ]
@@ -99,7 +102,7 @@ for html_file in html_files:
     content = [
         line.replace(
             "<h1>",
-            "<h1 style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\">",
+            "<h1 style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.75rem;\">",
         )
         for line in content
     ]
