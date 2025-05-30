@@ -73,6 +73,9 @@ for html_file in html_files:
         for line in content
     ]
 
+    # Replace erroneous `****kwargs**` with `<strong>**kwargs</strong>`
+    content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
+
     # For the first <p> tag in the file, add a style attribute to set the font size to 22px
     for i, line in enumerate(content):
         if "<p>" in line:
@@ -81,5 +84,51 @@ for html_file in html_files:
 
     with open(html_file, "w") as file:
         file.writelines(content)
+
+# Modify the `index.html` file in the `_site/reference/` directory
+index_file = "_site/reference/index.html"
+
+if os.path.exists(index_file):
+    print(f"Processing index file: {index_file}")
+
+    with open(index_file, "r") as file:
+        content = file.read()
+
+    # Convert tables to dl/dt/dd format
+    def convert_table_to_dl(match):
+        table_content = match.group(1)
+
+        # Extract all table rows
+        row_pattern = r"<tr[^>]*>(.*?)</tr>"
+        rows = re.findall(row_pattern, table_content, re.DOTALL)
+
+        dl_items = []
+        for row in rows:
+            # Extract the two td elements
+            td_pattern = r"<td[^>]*>(.*?)</td>"
+            tds = re.findall(td_pattern, row, re.DOTALL)
+
+            if len(tds) == 2:
+                link_content = tds[0].strip()
+                description = tds[1].strip()
+
+                dt = f"<dt>{link_content}</dt>"
+                dd = f'<dd style="text-indent: 20px; margin-top: -3px;">{description}</dd>'
+                dl_items.append(f"{dt}\n{dd}")
+
+        dl_content = "\n\n".join(dl_items)
+        return f'<div class="caption-top table">\n<dl style="margin-top: 10px;">\n\n{dl_content}\n\n</dl>\n</div>'
+
+    # Replace all table structures with dl/dt/dd
+    table_pattern = r'<table class="caption-top table">\s*<tbody>(.*?)</tbody>\s*</table>'
+    content = re.sub(table_pattern, convert_table_to_dl, content, flags=re.DOTALL)
+
+    with open(index_file, "w") as file:
+        file.write(content)
+
+    print("Index file processing complete")
+else:
+    print(f"Index file not found: {index_file}")
+
 
 print("Finished processing all files")
