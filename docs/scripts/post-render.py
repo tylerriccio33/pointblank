@@ -81,7 +81,8 @@ for html_file in html_files:
                 label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
                 new_h1_content = h1_content + label_span
-                new_line = line.replace
+                new_line = line.replace(h1_content, new_h1_content)
+                content[i] = new_line
 
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
