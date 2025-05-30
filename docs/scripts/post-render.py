@@ -148,13 +148,21 @@ if os.path.exists(index_file):
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
 
-    # Fix return value formatting in dl/dt/dd structures
-    # Target only spans that follow an empty parameter-name span in Returns sections
-    return_value_pattern = r'(<h2[^>]*doc-section-returns[^>]*>.*?</h2>\s*<dl>\s*<dt>\s*<code><span class="parameter-name"></span>\s*)<span class="parameter-annotation-sep">:</span>'
-    return_value_replacement = (
-        r'\1<span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
+    # Debug: Check if the pattern exists
+    if (
+        '<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
+        in content
+    ):
+        print("Found target pattern in content")
+    else:
+        print("Target pattern not found in content")
+
+    # Fix return value formatting
+    return_value_pattern = (
+        r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
     )
-    content = re.sub(return_value_pattern, return_value_replacement, content, flags=re.DOTALL)
+    return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
+    content = re.sub(return_value_pattern, return_value_replacement, content)
 
     with open(index_file, "w") as file:
         file.write(content)
