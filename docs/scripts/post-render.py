@@ -55,6 +55,37 @@ for html_file in html_files:
             # Replace the h1 tag with the modified content
             content[i] = line[:start] + h1_content + line[end:]
 
+    # Add classification labels (class/method/function) to h1 headers
+    for i, line in enumerate(content):
+        h1_match = re.search(r'<h1\s+class="title"[^>]*>(.*?)</h1>', line)
+        if h1_match:
+            h1_content = h1_match.group(1)
+
+            # Extract the actual text content (removing HTML tags for classification)
+            text_content = re.sub(r"<[^>]+>", "", h1_content).strip()
+            # Remove () if present for classification
+            text_for_classification = text_content.replace("()", "")
+
+            # Determine the type based on the rules
+            if text_for_classification and text_for_classification[0].isupper():
+                if "." in text_for_classification:
+                    label_type = "method"
+                    label_color = "steelblue"
+                else:
+                    label_type = "class"
+                    label_color = "darkgreen"
+            else:
+                label_type = "function"
+                label_color = "darkorange"
+
+            # Create the label span
+            label_span = f'<span style="font-size: 16px; border-style: solid; border-width: 2px; border-color: {label_color}; margin-left: 4px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
+
+            # Add the label to the end of the h1 content
+            new_h1_content = h1_content + label_span
+            new_line = line.replace(h1_content, new_h1_content)
+            content[i] = new_line
+
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
         line.replace(
