@@ -148,6 +148,14 @@ if os.path.exists(index_file):
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
 
+    # Fix return value formatting in dl/dt/dd structures
+    # Target only spans that follow an empty parameter-name span (return values)
+    return_value_pattern = (
+        r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
+    )
+    return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
+    content = re.sub(return_value_pattern, return_value_replacement, content)
+
     with open(index_file, "w") as file:
         file.write(content)
 
