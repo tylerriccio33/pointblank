@@ -229,6 +229,77 @@ def _check_column_exists(dfn: nw.DataFrame, column: str) -> None:
         raise ValueError(f"Column '{column}' not found in DataFrame.")
 
 
+def _count_true_values_in_column(
+    tbl: FrameT,
+    column: str,
+    inverse: bool = False,
+) -> int:
+    """
+    Count the number of `True` values in a specified column of a table.
+
+    Parameters
+    ----------
+    tbl
+        A Narwhals-compatible DataFrame or table-like object.
+    column
+        The column in which to count the `True` values.
+    inverse
+        If `True`, count the number of `False` values instead.
+
+    Returns
+    -------
+    int
+        The count of `True` (or `False`) values in the specified column.
+    """
+
+    # Convert the DataFrame to a Narwhals DataFrame (no detrimental effect if
+    # already a Narwhals DataFrame)
+    tbl_nw = nw.from_native(tbl)
+
+    # Filter the table based on the column and whether we want to count True or False values
+    tbl_filtered = tbl_nw.filter(nw.col(column) if not inverse else ~nw.col(column))
+
+    # Always collect table if it is a LazyFrame; this is required to get the row count
+    if _is_lazy_frame(tbl_filtered):
+        tbl_filtered = tbl_filtered.collect()
+
+    return len(tbl_filtered)
+
+
+def _count_null_values_in_column(
+    tbl: FrameT,
+    column: str,
+) -> int:
+    """
+    Count the number of Null values in a specified column of a table.
+
+    Parameters
+    ----------
+    tbl
+        A Narwhals-compatible DataFrame or table-like object.
+    column
+        The column in which to count the Null values.
+
+    Returns
+    -------
+    int
+        The count of Null values in the specified column.
+    """
+
+    # Convert the DataFrame to a Narwhals DataFrame (no detrimental effect if
+    # already a Narwhals DataFrame)
+    tbl_nw = nw.from_native(tbl)
+
+    # Filter the table to get rows where the specified column is Null
+    tbl_filtered = tbl_nw.filter(nw.col(column).is_null())
+
+    # Always collect table if it is a LazyFrame; this is required to get the row count
+    if _is_lazy_frame(tbl_filtered):
+        tbl_filtered = tbl_filtered.collect()
+
+    return len(tbl_filtered)
+
+
 def _is_numeric_dtype(dtype: str) -> bool:
     """
     Check if a given data type string represents a numeric type.

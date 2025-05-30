@@ -64,6 +64,8 @@ from pointblank._typing import SegmentSpec
 from pointblank._utils import (
     _check_any_df_lib,
     _check_invalid_fields,
+    _count_null_values_in_column,
+    _count_true_values_in_column,
     _derive_bounds,
     _format_to_integer_value,
     _get_fn_name,
@@ -8504,36 +8506,32 @@ class Validate:
 
                 else:
                     # If the result is not a list, then we assume it's a table in the conventional
-                    # form (where the column is `pb_is_good_` exists, with boolean values)
-
+                    # form (where the column is `pb_is_good_` exists, with boolean values
                     results_tbl = results_tbl_list
 
             # If the results table is not `None`, then we assume there is a table with a column
             # called `pb_is_good_` that contains boolean values; we can then use this table to
             # determine the number of test units that passed and failed
             if results_tbl is not None:
-                # Extract the `pb_is_good_` column from the table as a results list
-                if tbl_type in IBIS_BACKENDS:
-                    # Select the DataFrame library to use for getting the results list
-                    df_lib = _select_df_lib(preference="polars")
-                    df_lib_name = df_lib.__name__
+                # Count the number of passing and failing test units
+                validation.n_passed = _count_true_values_in_column(
+                    tbl=results_tbl, column="pb_is_good_"
+                )
+                validation.n_failed = _count_true_values_in_column(
+                    tbl=results_tbl, column="pb_is_good_", inverse=True
+                )
 
-                    if df_lib_name == "pandas":
-                        results_list = (
-                            results_tbl.select("pb_is_good_").to_pandas()["pb_is_good_"].to_list()
-                        )
-                    else:
-                        results_list = (
-                            results_tbl.select("pb_is_good_").to_polars()["pb_is_good_"].to_list()
-                        )
+                # Solely for the col_vals_in_set assertion type, any Null values in the
+                # `pb_is_good_` column are counted as failing test units
+                if assertion_type == "col_vals_in_set":
+                    null_count = _count_null_values_in_column(tbl=results_tbl, column="pb_is_good_")
+                    validation.n_failed += null_count
 
-                else:
-                    results_list = nw.from_native(results_tbl)["pb_is_good_"].to_list()
+                # For column-value validations, the number of test units is the number of rows
+                validation.n = get_row_count(data=results_tbl)
 
-                validation.all_passed = all(results_list)
-                validation.n = len(results_list)
-                validation.n_passed = results_list.count(True)
-                validation.n_failed = results_list.count(False)
+                # Set the `all_passed` attribute based on whether there are any failing test units
+                validation.all_passed = validation.n_failed == 0
 
             # Calculate fractions of passing and failing test units
             # - `f_passed` is the fraction of test units that passed
