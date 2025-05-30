@@ -118,13 +118,13 @@ for html_file in html_files:
 
     # TODO: Add line below stating the class name for the method
 
-    # Replace erroneous `****kwargs**` with `<strong>**kwargs</strong>`
+    # Fix malformed `****kwargs**` string
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
 
     # For the first <p> tag in the file, add a style attribute to set the font size to 22px
     for i, line in enumerate(content):
         if "<p>" in line:
-            content[i] = line.replace("<p>", '<p style="font-size: 22px; font-style: italic;">')
+            content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
             break
 
     # Fix return value formatting in individual function pages
