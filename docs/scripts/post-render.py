@@ -24,15 +24,30 @@ for html_file in html_files:
     with open(html_file, "r") as file:
         content = file.readlines()
 
-    # For the literal text `Validate.` in the h1 tag:
-    # - enclose within a span and use the `color: gray;` style
-    # content = [
-    #     line.replace(
-    #         '<h1 class="title">Validate.',
-    #         '<h1 class="title"><span style="color: gray;">Validate.</span>',
-    #     )
-    #     for line in content
-    # ]
+    # Determine the classification of each h1 tag based on its content
+    classification_info = {}
+    for i, line in enumerate(content):
+        h1_match = re.search(r'<h1\s+class="title">(.*?)</h1>', line)
+        if h1_match:
+            original_h1_content = h1_match.group(1).strip()
+            # Store classification based on original content
+            if original_h1_content and original_h1_content[0].isupper():
+                if "." in original_h1_content:
+                    classification_info[i] = ("method", "steelblue", "#E3F2FF")
+                else:
+                    classification_info[i] = ("class", "darkgreen", "#E3FEE3")
+            else:
+                classification_info[i] = ("function", "darkorange", "#FFF1E0")
+
+    # Remove the literal text `Validate.` from the h1 tag
+    # TODO: Add line below stating the class name for the method
+    content = [
+        line.replace(
+            '<h1 class="title">Validate.',
+            '<h1 class="title">',
+        )
+        for line in content
+    ]
 
     # If the inner content of the h1 tag either:
     # - has a literal `.` in it, or
@@ -55,49 +70,18 @@ for html_file in html_files:
             # Replace the h1 tag with the modified content
             content[i] = line[:start] + h1_content + line[end:]
 
-    # Add classification labels (class/method/function) to h1 headers
+    # Add classification labels using stored info
     for i, line in enumerate(content):
-        h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", line)
-        if h1_match:
-            h1_content = h1_match.group(1)
+        if i in classification_info:
+            h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", line)
+            if h1_match:
+                h1_content = h1_match.group(1)
+                label_type, label_color, background_color = classification_info[i]
 
-            # Extract the actual text content (removing HTML tags for classification)
-            text_content = re.sub(r"<[^>]+>", "", h1_content).strip()
-            # Remove () if present for classification
-            text_for_classification = text_content.replace("()", "")
+                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
-            # Determine the type based on the rules
-            if text_for_classification and text_for_classification[0].isupper():
-                if "." in text_for_classification:
-                    label_type = "method"
-                    label_color = "steelblue"
-                    background_color = "#E3F2FF"
-                else:
-                    label_type = "class"
-                    label_color = "darkgreen"
-                    background_color = "#E3FEE3"
-            else:
-                label_type = "function"
-                label_color = "darkorange"
-                background_color = "#FFF1E0"
-
-            # Create the label span
-            label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
-
-            # Add the label to the end of the h1 content
-            new_h1_content = h1_content + label_span
-            new_line = line.replace(h1_content, new_h1_content)
-            content[i] = new_line
-
-    # Remove the literal text `Validate.` from the h1 tag
-    # TODO: Add line below stating the class name for the method
-    content = [
-        line.replace(
-            '<h1 class="title">Validate.',
-            '<h1 class="title">',
-        )
-        for line in content
-    ]
+                new_h1_content = h1_content + label_span
+                new_line = line.replace
 
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
