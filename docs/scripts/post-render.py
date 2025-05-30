@@ -34,11 +34,6 @@ for html_file in html_files:
     #     for line in content
     # ]
 
-    # Remove the literal text `Validate.` from the h1 tag
-    content = [line.replace('<span style="color: gray;">Validate.</span>', "") for line in content]
-
-    # TODO: Add line below stating the class name for the method
-
     # If the inner content of the h1 tag either:
     # - has a literal `.` in it, or
     # - doesn't start with a capital letter,
@@ -98,7 +93,7 @@ for html_file in html_files:
     content = [
         line.replace(
             '<h1 class="title">',
-            "<h1 class=\"title\" style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.75rem;\">",
+            "<h1 class=\"title\" style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.25rem;\">",
         )
         for line in content
     ]
@@ -107,10 +102,21 @@ for html_file in html_files:
     content = [
         line.replace(
             "<h1>",
-            "<h1 style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.75rem;\">",
+            "<h1 style=\"font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.25rem;\">",
         )
         for line in content
     ]
+
+    # Remove the literal text `Validate.` from the h1 tag
+    content = [
+        line.replace(
+            '<h1 class="title">Validate.',
+            '<h1 class="title">',
+        )
+        for line in content
+    ]
+
+    # TODO: Add line below stating the class name for the method
 
     # Replace erroneous `****kwargs**` with `<strong>**kwargs</strong>`
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
