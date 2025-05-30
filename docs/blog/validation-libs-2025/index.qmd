@@ -91,9 +91,7 @@ philosophies:
 - Pandera uses a dictionary-like schema structure with Column objects, focusing on statistical
 validation capabilities
 - Patito uses Pydantic model classes, focusing on integration with existing Pydantic workflows
-- unlike Pointblank's step-by-step validation reporting, both Pandera and Patito validate entire
-schemas at once
-- key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
+- a key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
 stops at the first failure
 
 The choice between them often comes down to whether you prefer Pandera's statistical focus or
@@ -158,6 +156,34 @@ definitions. The use of Python's type hints and Pydantic's Field syntax makes th
 self-documenting. Notably, Patito reports all validation errors at once, providing a fairly
 comprehensive view of data quality issues, whereas other libraries (e.g., Pandera) stop at the first
 failure.
+
+### Column Validation Approaches: Pandera vs Patito
+
+**Pandera offers a much more extensive and flexible system for column validation** compared to
+Patito's field-based approach. While Patito provides a solid set of built-in field constraints
+(like `gt`, `le`, `regex`, `unique`, etc.) that cover common validation scenarios, Pandera's Check
+system is designed for both simple and highly sophisticated validation logic.
+
+The key architectural difference seems to lie in extensibility and complexity. Pandera's `Check`
+objects accept arbitrary functions, allowing you to write custom validation logic that can be as
+simple as `lambda s: s > 0` or as complex as statistical hypothesis tests using scipy. You can
+create vectorized checks that operate on entire Series objects for performance, element-wise checks
+for atomic validation, and even grouped checks that validate subsets of data based on other columns.
+Patito's `Field` constraints, while clean and declarative, are more limited to the predefined
+validation types that Pydantic and Patito provide.
+
+Pandera also supports advanced validation patterns that Patito doesn't directly offer, such as
+wide-form data checks (validating relationships across multiple columns), grouped validation (where
+checks are applied to subsets of data based on grouping columns), and the ability to raise warnings
+instead of errors for non-critical validation failures. While Patito does support custom constraints
+through Polars expressions via the `constraints` parameter, this requires knowledge of Polars
+expression syntax and, depending on where you're coming from, could be less intuitive than Pandera's
+function-based approach.
+
+For most common validation scenarios, Patito's field-based validation is simpler and more readable,
+especially for teams already familiar with Pydantic. However, for complex data validation
+requirements, statistical validation, or when you need maximum flexibility in defining validation
+logic, Pandera's Check system provides significantly more power and extensibility.
 
 ### Unique Strengths and When to Use
 
