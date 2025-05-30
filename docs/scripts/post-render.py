@@ -26,13 +26,18 @@ for html_file in html_files:
 
     # For the literal text `Validate.` in the h1 tag:
     # - enclose within a span and use the `color: gray;` style
-    content = [
-        line.replace(
-            '<h1 class="title">Validate.',
-            '<h1 class="title"><span style="color: gray;">Validate.</span>',
-        )
-        for line in content
-    ]
+    # content = [
+    #     line.replace(
+    #         '<h1 class="title">Validate.',
+    #         '<h1 class="title"><span style="color: gray;">Validate.</span>',
+    #     )
+    #     for line in content
+    # ]
+
+    # Remove the literal text `Validate.` from the h1 tag
+    content = [line.replace('<span style="color: gray;">Validate.</span>', "") for line in content]
+
+    # TODO: Add line below stating the class name for the method
 
     # If the inner content of the h1 tag either:
     # - has a literal `.` in it, or
@@ -113,7 +118,7 @@ for html_file in html_files:
     # For the first <p> tag in the file, add a style attribute to set the font size to 22px
     for i, line in enumerate(content):
         if "<p>" in line:
-            content[i] = line.replace("<p>", '<p style="font-size: 22px;">')
+            content[i] = line.replace("<p>", '<p style="font-size: 22px; font-style: italic;">')
             break
 
     # Fix return value formatting in individual function pages
