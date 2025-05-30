@@ -13,6 +13,8 @@ from pointblank._utils import (
     _check_column_type,
     _check_invalid_fields,
     _column_test_prep,
+    _count_true_values_in_column,
+    _count_null_values_in_column,
     _format_to_float_value,
     _format_to_integer_value,
     _get_assertion_from_fname,
@@ -27,6 +29,8 @@ from pointblank._utils import (
     _is_duration_dtype,
     _select_df_lib,
 )
+
+from pointblank.validate import load_dataset
 
 
 @pytest.fixture
@@ -323,6 +327,21 @@ def test_check_column_test_prep_raises(request, tbl_fixture):
     # Column not present in DataFrame
     with pytest.raises(ValueError):
         _column_test_prep(df=tbl, column="invalid", allowed_types=["numeric"])
+
+
+@pytest.mark.parametrize("tbl_type", ["polars", "duckdb"])
+def test_count_true_values_in_column(tbl_type):
+    data = load_dataset(dataset="small_table", tbl_type=tbl_type)
+
+    assert _count_true_values_in_column(tbl=data, column="e") == 8
+    assert _count_true_values_in_column(tbl=data, column="e", inverse=True) == 5
+
+
+@pytest.mark.parametrize("tbl_type", ["polars", "duckdb"])
+def test_count_null_values_in_column(tbl_type):
+    data = load_dataset(dataset="small_table", tbl_type=tbl_type)
+
+    assert _count_null_values_in_column(tbl=data, column="c") == 2
 
 
 def test_format_to_integer_value():
