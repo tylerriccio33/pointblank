@@ -24,15 +24,30 @@ for html_file in html_files:
     with open(html_file, "r") as file:
         content = file.readlines()
 
-    # For the literal text `Validate.` in the h1 tag:
-    # - enclose within a span and use the `color: gray;` style
-    # content = [
-    #     line.replace(
-    #         '<h1 class="title">Validate.',
-    #         '<h1 class="title"><span style="color: gray;">Validate.</span>',
-    #     )
-    #     for line in content
-    # ]
+    # Determine the classification of each h1 tag based on its content
+    classification_info = {}
+    for i, line in enumerate(content):
+        h1_match = re.search(r'<h1\s+class="title">(.*?)</h1>', line)
+        if h1_match:
+            original_h1_content = h1_match.group(1).strip()
+            # Store classification based on original content
+            if original_h1_content and original_h1_content[0].isupper():
+                if "." in original_h1_content:
+                    classification_info[i] = ("method", "steelblue", "#E3F2FF")
+                else:
+                    classification_info[i] = ("class", "darkgreen", "#E3FEE3")
+            else:
+                classification_info[i] = ("function", "darkorange", "#FFF1E0")
+
+    # Remove the literal text `Validate.` from the h1 tag
+    # TODO: Add line below stating the class name for the method
+    content = [
+        line.replace(
+            '<h1 class="title">Validate.',
+            '<h1 class="title">',
+        )
+        for line in content
+    ]
 
     # If the inner content of the h1 tag either:
     # - has a literal `.` in it, or
@@ -55,39 +70,19 @@ for html_file in html_files:
             # Replace the h1 tag with the modified content
             content[i] = line[:start] + h1_content + line[end:]
 
-    # Add classification labels (class/method/function) to h1 headers
+    # Add classification labels using stored info
     for i, line in enumerate(content):
-        h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", line)
-        if h1_match:
-            h1_content = h1_match.group(1)
+        if i in classification_info:
+            h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", line)
+            if h1_match:
+                h1_content = h1_match.group(1)
+                label_type, label_color, background_color = classification_info[i]
 
-            # Extract the actual text content (removing HTML tags for classification)
-            text_content = re.sub(r"<[^>]+>", "", h1_content).strip()
-            # Remove () if present for classification
-            text_for_classification = text_content.replace("()", "")
+                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
-            # Determine the type based on the rules
-            if text_for_classification and text_for_classification[0].isupper():
-                if "." in text_for_classification:
-                    label_type = "method"
-                    label_color = "steelblue"
-                    background_color = "#E3F2FF"
-                else:
-                    label_type = "class"
-                    label_color = "darkgreen"
-                    background_color = "#E3FEE3"
-            else:
-                label_type = "function"
-                label_color = "darkorange"
-                background_color = "#FFF1E0"
-
-            # Create the label span
-            label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
-
-            # Add the label to the end of the h1 content
-            new_h1_content = h1_content + label_span
-            new_line = line.replace(h1_content, new_h1_content)
-            content[i] = new_line
+                new_h1_content = h1_content + label_span
+                new_line = line.replace(h1_content, new_h1_content)
+                content[i] = new_line
 
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
@@ -107,27 +102,37 @@ for html_file in html_files:
         for line in content
     ]
 
-    # Remove the literal text `Validate.` from the h1 tag
-    content = [
-        line.replace(
-            '<h1 class="title">Validate.',
-            '<h1 class="title">',
-        )
-        for line in content
-    ]
-
-    # TODO: Add line below stating the class name for the method
-
     # Fix malformed `****kwargs**` string
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
 
-    # For the first <p> tag in the file, add a style attribute to set the font size to 22px
+    # For the first <p> tag in the file (which is always a one-line description) add a style
+    # attribute to set the font size to 20px
     for i, line in enumerate(content):
         if "<p>" in line:
             content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
             break
 
-    # Fix return value formatting in individual function pages
+    # Style the first and second <dl> tags with different borders
+    dl_count = 0
+    for i, line in enumerate(content):
+        if "<dl>" in line:
+            dl_count += 1
+            if dl_count == 1:
+                # First <dl> tag - green border
+                content[i] = line.replace(
+                    "<dl>",
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem;">',
+                )
+            elif dl_count == 2:
+                # Second <dl> tag - indigo border
+                content[i] = line.replace(
+                    "<dl>",
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem;">',
+                )
+                break  # Stop after finding the second one
+
+    # Fix return value formatting in individual function pages, removing the `:` before the
+    # return value and adjusting the style of the parameter annotation separator
     content_str = "".join(content)
     return_value_pattern = (
         r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
@@ -135,6 +140,12 @@ for html_file in html_files:
     return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
     content_str = re.sub(return_value_pattern, return_value_replacement, content_str)
     content = content_str.splitlines(keepends=True)
+
+    # Turn all h3 tags into h4 tags
+    content = [line.replace("<h3", "<h4").replace("</h3>", "</h4>") for line in content]
+
+    # Turn all h2 tags into h3 tags
+    content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
 
     with open(html_file, "w") as file:
         file.writelines(content)
@@ -202,6 +213,15 @@ if os.path.exists(index_file):
     nav_pattern = r'(<nav[^>]*>.*?<h2[^>]*>.*?</h2>\s*<ul>\s*)<li><a[^>]*href="[^"]*#api-reference"[^>]*>API Reference</a>\s*<ul[^>]*>(.*?)</ul></li>\s*(</ul>\s*</nav>)'
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
+
+    # Place a horizontal rule at the end of the page
+    main_end_pattern = r"</main>"
+    main_end_replacement = (
+        "</main>\n"
+        '<hr style="padding: 0; margin: 0;">\n'
+        '<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div>'
+    )
+    content = re.sub(main_end_pattern, main_end_replacement, content)
 
     with open(index_file, "w") as file:
         file.write(content)
