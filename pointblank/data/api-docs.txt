@@ -3347,9 +3347,9 @@ col_vals_not_in_set(self, columns: 'str | list[str] | Column | ColumnSelector | 
 
 col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, segments: 'SegmentSpec | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
-        Validate whether values in a column are NULL.
+        Validate whether values in a column are Null.
 
-        The `col_vals_null()` validation method checks whether column values in a table are NULL.
+        The `col_vals_null()` validation method checks whether column values in a table are Null.
         This validation will operate over the number of test units that is equal to the number
         of rows in the table.
 
@@ -3529,10 +3529,10 @@ col_vals_null(self, columns: 'str | list[str] | Column | ColumnSelector | Column
 
 col_vals_not_null(self, columns: 'str | list[str] | Column | ColumnSelector | ColumnSelectorNarwhals', pre: 'Callable | None' = None, segments: 'SegmentSpec | None' = None, thresholds: 'int | float | bool | tuple | dict | Thresholds' = None, actions: 'Actions | None' = None, brief: 'str | bool | None' = None, active: 'bool' = True) -> 'Validate'
 
-        Validate whether values in a column are not NULL.
+        Validate whether values in a column are not Null.
 
         The `col_vals_not_null()` validation method checks whether column values in a table are not
-        NULL. This validation will operate over the number of test units that is equal to the number
+        Null. This validation will operate over the number of test units that is equal to the number
         of rows in the table.
 
         Parameters

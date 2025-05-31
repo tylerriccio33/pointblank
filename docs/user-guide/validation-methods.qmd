@@ -79,7 +79,7 @@ flexibility across different validation types:
 - `na_pass=`: controls how missing values are handled (only for column value validation methods)
 
 For column validation methods, the `na_pass=` parameter determines whether missing values
-(NULL/None/NA) should pass validation (this parameter is covered in a later section).
+(Null/None/NA) should pass validation (this parameter is covered in a later section).
 
 These arguments follow a consistent pattern across validation methods, so you don't need to memorize
 different parameter sets for each function. This systematic approach makes Pointblank more intuitive
