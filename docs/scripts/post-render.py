@@ -112,14 +112,24 @@ for html_file in html_files:
             content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
             break
 
-    # For each of the <dl> tags in the file, add style attributes that set a dashed border
-    content = [
-        line.replace(
-            "<dl>",
-            '<dl style="border-style: dashed; border-width: 1px; border-color: #c66f00; padding: 1rem;">',
-        )
-        for line in content
-    ]
+    # Style the first and second <dl> tags with different borders
+    dl_count = 0
+    for i, line in enumerate(content):
+        if "<dl>" in line:
+            dl_count += 1
+            if dl_count == 1:
+                # First <dl> tag - green border
+                content[i] = line.replace(
+                    "<dl>",
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem;">',
+                )
+            elif dl_count == 2:
+                # Second <dl> tag - indigo border
+                content[i] = line.replace(
+                    "<dl>",
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem;">',
+                )
+                break  # Stop after finding the second one
 
     # Fix return value formatting in individual function pages, removing the `:` before the
     # return value and adjusting the style of the parameter annotation separator
@@ -132,7 +142,7 @@ for html_file in html_files:
     content = content_str.splitlines(keepends=True)
 
     # Turn all h3 tags into h4 tags
-    content = [line.replace("<h3", "<h4").replace("</h3", "</h4>") for line in content]
+    content = [line.replace("<h3", "<h4").replace("</h3>", "</h4>") for line in content]
 
     # Turn all h2 tags into h3 tags
     content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
