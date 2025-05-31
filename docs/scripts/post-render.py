@@ -214,6 +214,15 @@ if os.path.exists(index_file):
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
 
+    # Place a horizontal rule at the end of the page
+    main_end_pattern = r"<!-- /main -->"
+    main_end_replacement = (
+        "<!-- /main -->\n"
+        '<hr style="padding: 0; margin: 0;">\n'
+        '<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div>'
+    )
+    content = re.sub(main_end_pattern, main_end_replacement, content)
+
     with open(index_file, "w") as file:
         file.write(content)
 
