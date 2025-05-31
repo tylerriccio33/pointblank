@@ -105,13 +105,24 @@ for html_file in html_files:
     # Fix malformed `****kwargs**` string
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
 
-    # For the first <p> tag in the file, add a style attribute to set the font size to 22px
+    # For the first <p> tag in the file (which is always a one-line description) add a style
+    # attribute to set the font size to 20px
     for i, line in enumerate(content):
         if "<p>" in line:
             content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
             break
 
-    # Fix return value formatting in individual function pages
+    # For each of the <dl> tags in the file, add style attributes that set a dashed border
+    content = [
+        line.replace(
+            "<dl>",
+            '<dl style="border-style: dashed; border-width: 1px; border-color: #c66f00; padding: 1rem;">',
+        )
+        for line in content
+    ]
+
+    # Fix return value formatting in individual function pages, removing the `:` before the
+    # return value and adjusting the style of the parameter annotation separator
     content_str = "".join(content)
     return_value_pattern = (
         r'<span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span>'
@@ -119,6 +130,12 @@ for html_file in html_files:
     return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
     content_str = re.sub(return_value_pattern, return_value_replacement, content_str)
     content = content_str.splitlines(keepends=True)
+
+    # Turn all h3 tags into h4 tags
+    content = [line.replace("<h3", "<h4").replace("</h3", "</h4>") for line in content]
+
+    # Turn all h2 tags into h3 tags
+    content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
 
     with open(html_file, "w") as file:
         file.writelines(content)
