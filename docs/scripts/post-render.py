@@ -105,29 +105,39 @@ for html_file in html_files:
     # Move the first <p> tag (description) to immediately after the title header
     content_str = "".join(content)
 
-    # Find the title header block and the first <p> tag
+    # Find the title header block
     title_header_match = re.search(
         r'(<header[^>]*class="quarto-title-block[^"]*"[^>]*>.*?</header>)', content_str, re.DOTALL
     )
 
-    # Look for the first <p> tag that comes after the header AND after any <div class="sourceCode">
     if title_header_match:
         header_end = title_header_match.end()
 
-        # Find the first <div class="sourceCode"> after the header
-        sourceCode_match = re.search(r'<div class="sourceCode"[^>]*>', content_str[header_end:])
+        # Find the section that contains the actual content (starting with the h1)
+        section_match = re.search(r'(<section[^>]*class="level1"[^>]*>)', content_str[header_end:])
 
-        if sourceCode_match:
-            sourceCode_start = header_end + sourceCode_match.start()
+        if section_match:
+            section_start = header_end + section_match.start()
 
-            # Look for the first <p> tag that comes after the sourceCode div
-            remaining_content = content_str[sourceCode_start:]
-            first_p_match = re.search(r"(<p[^>]*>.*?</p>)", remaining_content, re.DOTALL)
+            # Find the first standalone <p> tag within this section (after any sourceCode divs)
+            section_content = content_str[section_start:]
 
-            if first_p_match:
-                p_content = first_p_match.group(1)
-                p_start = sourceCode_start + first_p_match.start()
-                p_end = sourceCode_start + first_p_match.end()
+            # Look for the first <p> that's not inside a div class="sourceCode"
+            # This regex finds <p> tags that are not preceded by <div class="sourceCode"
+            p_match = re.search(
+                r'(?<!<div class="sourceCode"[^>]*>\s*)(<p[^>]*>.*?</p>)',
+                section_content,
+                re.DOTALL,
+            )
+
+            if p_match:
+                p_content = p_match.group(1)
+                p_start_in_section = p_match.start(1)
+                p_end_in_section = p_match.end(1)
+
+                # Convert to absolute positions
+                p_start = section_start + p_start_in_section
+                p_end = section_start + p_end_in_section
 
                 # Apply italic styling to the description
                 p_content_styled = (
@@ -136,11 +146,12 @@ for html_file in html_files:
                     else p_content
                 )
 
-                # Move the <p> tag to immediately after the header (before the sourceCode div)
+                # Move the <p> tag to immediately after the header
                 content_str = (
                     content_str[:header_end]
                     + "\n\n"
                     + p_content_styled
+                    + "\n\n"
                     + content_str[header_end:p_start]
                     + content_str[p_end:]
                 )
