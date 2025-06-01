@@ -102,38 +102,37 @@ for html_file in html_files:
         for line in content
     ]
 
-    # Fix malformed `****kwargs**` string
-    content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
-
-    # Swap the order of the first <p> tag (description) and the first <dl> tag (signature)
+    # Move the first <p> tag (description) to immediately after the title header
     content_str = "".join(content)
 
-    # Find the first <p> tag and the first <dl> tag
+    # Find the title header block and the first <p> tag
+    title_header_match = re.search(
+        r'(<header[^>]*class="quarto-title-block[^"]*"[^>]*>.*?</header>)', content_str, re.DOTALL
+    )
     first_p_match = re.search(r"(<p[^>]*>.*?</p>)", content_str, re.DOTALL)
-    first_dl_match = re.search(r"(<dl[^>]*>.*?</dl>)", content_str, re.DOTALL)
 
-    if first_p_match and first_dl_match:
+    if title_header_match and first_p_match:
         # Get the positions
+        header_start, header_end = title_header_match.span()
         p_start, p_end = first_p_match.span()
-        dl_start, dl_end = first_dl_match.span()
 
-        # Only swap if the <p> tag comes before the <dl> tag
-        if p_start < dl_start:
+        # Only move if the <p> tag comes after the header
+        if p_start > header_end:
             p_content = first_p_match.group(1)
-            dl_content = first_dl_match.group(1)
 
             # Apply italic styling to the description
             p_content_styled = p_content.replace(
                 "<p>", '<p style="font-size: 20px; font-style: italic;">'
             )
 
-            # Replace in reverse order to maintain position accuracy
+            # Remove the <p> tag from its original position and insert it after the header
             content_str = (
-                content_str[:p_start]
-                + dl_content
-                + content_str[p_end:dl_start]
+                content_str[:header_end]
+                + "\n"
                 + p_content_styled
-                + content_str[dl_end:]
+                + "\n"
+                + content_str[header_end:p_start]
+                + content_str[p_end:]
             )
 
     content = content_str.splitlines(keepends=True)
