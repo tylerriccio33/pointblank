@@ -109,31 +109,41 @@ for html_file in html_files:
     title_header_match = re.search(
         r'(<header[^>]*class="quarto-title-block[^"]*"[^>]*>.*?</header>)', content_str, re.DOTALL
     )
-    first_p_match = re.search(r"(<p[^>]*>.*?</p>)", content_str, re.DOTALL)
 
-    if title_header_match and first_p_match:
-        # Get the positions
-        header_start, header_end = title_header_match.span()
-        p_start, p_end = first_p_match.span()
+    # Look for the first <p> tag that comes after the header AND after any <div class="sourceCode">
+    if title_header_match:
+        header_end = title_header_match.end()
 
-        # Only move if the <p> tag comes after the header
-        if p_start > header_end:
-            p_content = first_p_match.group(1)
+        # Find the first <div class="sourceCode"> after the header
+        sourceCode_match = re.search(r'<div class="sourceCode"[^>]*>', content_str[header_end:])
 
-            # Apply italic styling to the description
-            p_content_styled = p_content.replace(
-                "<p>", '<p style="font-size: 20px; font-style: italic;">'
-            )
+        if sourceCode_match:
+            sourceCode_start = header_end + sourceCode_match.start()
 
-            # Remove the <p> tag from its original position and insert it after the header
-            content_str = (
-                content_str[:header_end]
-                + "\n"
-                + p_content_styled
-                + "\n"
-                + content_str[header_end:p_start]
-                + content_str[p_end:]
-            )
+            # Look for the first <p> tag that comes after the sourceCode div
+            remaining_content = content_str[sourceCode_start:]
+            first_p_match = re.search(r"(<p[^>]*>.*?</p>)", remaining_content, re.DOTALL)
+
+            if first_p_match:
+                p_content = first_p_match.group(1)
+                p_start = sourceCode_start + first_p_match.start()
+                p_end = sourceCode_start + first_p_match.end()
+
+                # Apply italic styling to the description
+                p_content_styled = (
+                    p_content.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
+                    if "style=" not in p_content
+                    else p_content
+                )
+
+                # Move the <p> tag to immediately after the header (before the sourceCode div)
+                content_str = (
+                    content_str[:header_end]
+                    + "\n\n"
+                    + p_content_styled
+                    + content_str[header_end:p_start]
+                    + content_str[p_end:]
+                )
 
     content = content_str.splitlines(keepends=True)
 
