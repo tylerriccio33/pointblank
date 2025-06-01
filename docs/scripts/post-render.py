@@ -105,12 +105,38 @@ for html_file in html_files:
     # Fix malformed `****kwargs**` string
     content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
 
-    # For the first <p> tag in the file (which is always a one-line description) add a style
-    # attribute to set the font size to 20px
-    for i, line in enumerate(content):
-        if "<p>" in line:
-            content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
-            break
+    # Swap the order of the first <p> tag (description) and the first <dl> tag (signature)
+    content_str = "".join(content)
+
+    # Find the first <p> tag and the first <dl> tag
+    first_p_match = re.search(r"(<p[^>]*>.*?</p>)", content_str, re.DOTALL)
+    first_dl_match = re.search(r"(<dl[^>]*>.*?</dl>)", content_str, re.DOTALL)
+
+    if first_p_match and first_dl_match:
+        # Get the positions
+        p_start, p_end = first_p_match.span()
+        dl_start, dl_end = first_dl_match.span()
+
+        # Only swap if the <p> tag comes before the <dl> tag
+        if p_start < dl_start:
+            p_content = first_p_match.group(1)
+            dl_content = first_dl_match.group(1)
+
+            # Apply italic styling to the description
+            p_content_styled = p_content.replace(
+                "<p>", '<p style="font-size: 20px; font-style: italic;">'
+            )
+
+            # Replace in reverse order to maintain position accuracy
+            content_str = (
+                content_str[:p_start]
+                + dl_content
+                + content_str[p_end:dl_start]
+                + p_content_styled
+                + content_str[dl_end:]
+            )
+
+    content = content_str.splitlines(keepends=True)
 
     # Style the first and second <dl> tags with different borders
     dl_count = 0
