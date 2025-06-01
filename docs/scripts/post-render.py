@@ -123,12 +123,31 @@ for html_file in html_files:
             section_content = content_str[section_start:]
 
             # Look for the first <p> that's not inside a div class="sourceCode"
-            # This regex finds <p> tags that are not preceded by <div class="sourceCode"
-            p_match = re.search(
-                r'(?<!<div class="sourceCode"[^>]*>\s*)(<p[^>]*>.*?</p>)',
-                section_content,
-                re.DOTALL,
-            )
+            # Use a different approach to avoid variable-width lookbehind
+            p_matches = re.finditer(r"(<p[^>]*>.*?</p>)", section_content, re.DOTALL)
+
+            p_match = None
+            for match in p_matches:
+                p_start_pos = match.start()
+                # Check if this <p> tag is preceded by a sourceCode div
+                preceding_text = section_content[:p_start_pos]
+                # Look for the last occurrence of <div class="sourceCode" before this <p>
+                last_sourcecode_div = re.findall(
+                    r'<div[^>]*class="[^"]*sourceCode[^"]*"[^>]*>', preceding_text
+                )
+
+                if not last_sourcecode_div:
+                    # No sourceCode div found before this <p>, so this is our target
+                    p_match = match
+                    break
+                else:
+                    # Check if there's a closing </div> after the last sourceCode div
+                    last_div_pos = preceding_text.rfind(last_sourcecode_div[-1])
+                    text_after_div = preceding_text[last_div_pos:]
+                    if "</div>" in text_after_div:
+                        # The sourceCode div is closed, so this <p> is outside it
+                        p_match = match
+                        break
 
             if p_match:
                 p_content = p_match.group(1)
