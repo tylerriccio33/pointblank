@@ -147,6 +147,17 @@ for html_file in html_files:
     # Turn all h2 tags into h3 tags
     content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
 
+    # Place a horizontal rule at the end of each reference page
+    content_str = "".join(content)
+    main_end_pattern = r"</main>"
+    main_end_replacement = (
+        "</main>\n"
+        '<hr style="padding: 0; margin: 0;">\n'
+        '<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div>'
+    )
+    content_str = re.sub(main_end_pattern, main_end_replacement, content_str)
+    content = content_str.splitlines(keepends=True)
+
     with open(html_file, "w") as file:
         file.writelines(content)
 
@@ -213,15 +224,6 @@ if os.path.exists(index_file):
     nav_pattern = r'(<nav[^>]*>.*?<h2[^>]*>.*?</h2>\s*<ul>\s*)<li><a[^>]*href="[^"]*#api-reference"[^>]*>API Reference</a>\s*<ul[^>]*>(.*?)</ul></li>\s*(</ul>\s*</nav>)'
     nav_replacement = r"\1\2\3"
     content = re.sub(nav_pattern, nav_replacement, content, flags=re.DOTALL)
-
-    # Place a horizontal rule at the end of the page
-    main_end_pattern = r"</main>"
-    main_end_replacement = (
-        "</main>\n"
-        '<hr style="padding: 0; margin: 0;">\n'
-        '<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div>'
-    )
-    content = re.sub(main_end_pattern, main_end_replacement, content)
 
     with open(index_file, "w") as file:
         file.write(content)
