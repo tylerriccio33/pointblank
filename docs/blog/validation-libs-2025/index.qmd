@@ -9,9 +9,12 @@ freeze: true
 
 Data validation is a very important part of any data pipeline. And with Polars gaining popularity as
 a superfast and feature-packed DataFrame library, developers need validation tools that work
-seamlessly with it. In this survey (conducted halfway through 2025) we'll explore five Python
-validation libraries that support Polars DataFrames. Each one is sufficiently different enough the
-other and they each bring their own strengths and ideal use cases to the table.
+seamlessly with it. But here's the thing: not all validation libraries are created equal, and
+choosing the wrong one can lead to frustration, technical debt, or validation gaps that could bite
+you later.
+
+In this survey (conducted halfway through 2025) we'll explore five Python validation libraries that
+support Polars DataFrames, each bringing distinct strengths to different validation challenges.
 
 The Python libraries we're covering are:
 
