@@ -234,7 +234,7 @@ for html_file in html_files:
     content_str = re.sub(return_value_pattern, return_value_replacement, content_str)
 
     # Fix double asterisks in kwargs parameters
-    content_str = content_str.replace("****kwargs**", "**kwargs")
+    content_str = content_str.replace("****kwargs**", "**<strong>kwargs</strong>")
 
     content = content_str.splitlines(keepends=True)
 
