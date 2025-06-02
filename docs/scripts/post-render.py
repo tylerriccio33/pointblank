@@ -103,79 +103,45 @@ for html_file in html_files:
     ]
 
     # Move the first <p> tag (description) to immediately after the title header
-    content_str = "".join(content)
+    header_end_line = None
+    first_p_line = None
+    first_p_content = None
+    found_sourcecode = False
 
-    # Find the title header block
-    title_header_match = re.search(
-        r'(<header[^>]*class="quarto-title-block[^"]*"[^>]*>.*?</header>)', content_str, re.DOTALL
-    )
+    # First pass: find the header end and the first <p> tag after sourceCode
+    for i, line in enumerate(content):
+        # Find where the header ends
+        if "</header>" in line:
+            header_end_line = i
 
-    if title_header_match:
-        header_end = title_header_match.end()
+        # Look for the sourceCode div
+        if '<div class="sourceCode" id="cb1">' in line:
+            found_sourcecode = True
 
-        # Find the section that contains the actual content (starting with the h1)
-        section_match = re.search(r'(<section[^>]*class="level1"[^>]*>)', content_str[header_end:])
+        # Find the first <p> tag after we've seen the sourceCode div
+        if found_sourcecode and first_p_line is None and line.strip().startswith("<p"):
+            first_p_line = i
+            first_p_content = line
+            break
 
-        if section_match:
-            section_start = header_end + section_match.start()
+    # If we found both the header end and the first <p> tag, move it
+    if header_end_line is not None and first_p_line is not None:
+        # Apply italic styling to the description
+        if "style=" not in first_p_content:
+            styled_p = first_p_content.replace(
+                "<p>", '<p style="font-size: 20px; font-style: italic;">'
+            )
+        else:
+            styled_p = first_p_content
 
-            # Find the first standalone <p> tag within this section (after any sourceCode divs)
-            section_content = content_str[section_start:]
+        # Remove the original <p> line
+        content.pop(first_p_line)
 
-            # Look for the first <p> that's not inside a div class="sourceCode"
-            # Use a different approach to avoid variable-width lookbehind
-            p_matches = re.finditer(r"(<p[^>]*>.*?</p>)", section_content, re.DOTALL)
-
-            p_match = None
-            for match in p_matches:
-                p_start_pos = match.start()
-                # Check if this <p> tag is preceded by a sourceCode div
-                preceding_text = section_content[:p_start_pos]
-                # Look for the last occurrence of <div class="sourceCode" before this <p>
-                last_sourcecode_div = re.findall(
-                    r'<div[^>]*class="[^"]*sourceCode[^"]*"[^>]*>', preceding_text
-                )
-
-                if not last_sourcecode_div:
-                    # No sourceCode div found before this <p>, so this is our target
-                    p_match = match
-                    break
-                else:
-                    # Check if there's a closing </div> after the last sourceCode div
-                    last_div_pos = preceding_text.rfind(last_sourcecode_div[-1])
-                    text_after_div = preceding_text[last_div_pos:]
-                    if "</div>" in text_after_div:
-                        # The sourceCode div is closed, so this <p> is outside it
-                        p_match = match
-                        break
-
-            if p_match:
-                p_content = p_match.group(1)
-                p_start_in_section = p_match.start(1)
-                p_end_in_section = p_match.end(1)
-
-                # Convert to absolute positions
-                p_start = section_start + p_start_in_section
-                p_end = section_start + p_end_in_section
-
-                # Apply italic styling to the description
-                p_content_styled = (
-                    p_content.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
-                    if "style=" not in p_content
-                    else p_content
-                )
-
-                # Move the <p> tag to immediately after the header
-                content_str = (
-                    content_str[:header_end]
-                    + "\n\n"
-                    + p_content_styled
-                    + "\n\n"
-                    + content_str[header_end:p_start]
-                    + content_str[p_end:]
-                )
-
-    content = content_str.splitlines(keepends=True)
+        # Insert the styled <p> line after the header (accounting for the removed line)
+        insert_position = header_end_line + 1 if first_p_line > header_end_line else header_end_line
+        content.insert(insert_position, "\n")  # Add spacing
+        content.insert(insert_position + 1, styled_p)
+        content.insert(insert_position + 2, "\n")  # Add spacing
 
     # Style the first and second <dl> tags with different borders
     dl_count = 0
