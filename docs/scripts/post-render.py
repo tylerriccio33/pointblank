@@ -27,7 +27,12 @@ for html_file in html_files:
     # Determine the classification of each h1 tag based on its content
     classification_info = {}
     for i, line in enumerate(content):
+        # Look for both class="title" and styled h1 tags
         h1_match = re.search(r'<h1\s+class="title">(.*?)</h1>', line)
+        if not h1_match:
+            # Also check for h1 tags with style attribute (for level1 section titles)
+            h1_match = re.search(r'<h1\s+style="[^"]*">(.*?)</h1>', line)
+
         if h1_match:
             original_h1_content = h1_match.group(1).strip()
             # Store classification based on original content
@@ -54,8 +59,11 @@ for html_file in html_files:
     # - doesn't start with a capital letter,
     # then add `()` to the end of the content of the h1 tag
     for i, line in enumerate(content):
-        # Use regex to find the h1 tag with potential whitespace variations
+        # Use regex to find h1 tags (both class="title" and styled versions)
         h1_match = re.search(r'<h1\s+class="title">', line)
+        if not h1_match:
+            h1_match = re.search(r'<h1\s+style="[^"]*">', line)
+
         if h1_match:
             # Extract the content of the h1 tag
             start = h1_match.end()
@@ -78,11 +86,32 @@ for html_file in html_files:
                 h1_content = h1_match.group(1)
                 label_type, label_color, background_color = classification_info[i]
 
-                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px; vertical-align: 3.5px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
+                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 1px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px; vertical-align: 3.5px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
                 new_h1_content = h1_content + label_span
                 new_line = line.replace(h1_content, new_h1_content)
                 content[i] = new_line
+
+    # Wrap bare h1 tags (those with style attribute but no quarto-title wrapper) in proper structure
+    for i, line in enumerate(content):
+        # Look for h1 tags with style attribute that aren't already wrapped
+        if "<h1 style=" in line and "SFMono-Regular" in line:
+            # Check if this h1 is already wrapped in quarto-title div
+            # Look at previous lines to see if there's a quarto-title div
+            is_wrapped = False
+            for j in range(max(0, i - 5), i):
+                if 'class="quarto-title"' in content[j]:
+                    is_wrapped = True
+                    break
+
+            # If not wrapped, wrap it
+            if not is_wrapped:
+                # Extract the h1 content
+                h1_content = line.strip()
+
+                # Replace the line with the wrapped version
+                wrapped_h1 = f'<div class="quarto-title">\n{h1_content}\n</div>\n'
+                content[i] = wrapped_h1
 
     # Add a style attribute to the h1 tag to use a monospace font for code-like appearance
     content = [
@@ -102,15 +131,79 @@ for html_file in html_files:
         for line in content
     ]
 
-    # Fix malformed `****kwargs**` string
-    content = [line.replace("****kwargs**", "<strong>**kwargs</strong>") for line in content]
+    # Move the first <p> tag (description) to immediately after the title header
+    header_end_line = None
+    first_p_line = None
+    first_p_content = None
+    found_sourcecode = False
+    title_line = None
+    sourcecode_line = None
 
-    # For the first <p> tag in the file (which is always a one-line description) add a style
-    # attribute to set the font size to 20px
+    # First pass: find the header end, title, sourcecode, and the first <p> tag after sourceCode
     for i, line in enumerate(content):
-        if "<p>" in line:
-            content[i] = line.replace("<p>", '<p style="font-size: 20px; font-style: italic;">')
+        # Find where the header ends
+        if "</header>" in line:
+            header_end_line = i
+
+        # Find the title line (either in header or in level1 section)
+        if '<h1 class="title"' in line or ("<h1 style=" in line and "SFMono-Regular" in line):
+            title_line = i
+
+        # Look for the sourceCode div
+        if '<div class="sourceCode" id="cb1">' in line:
+            found_sourcecode = True
+            sourcecode_line = i
+
+        # Find the first <p> tag after we've seen the sourceCode div
+        if found_sourcecode and first_p_line is None and line.strip().startswith("<p"):
+            first_p_line = i
+            first_p_content = line
             break
+
+    # Determine where to insert the description paragraph
+    # If title is after header, insert after title; otherwise insert after header
+    if (
+        header_end_line is not None
+        and first_p_line is not None
+        and title_line is not None
+        and sourcecode_line is not None
+    ):
+        if title_line > header_end_line:
+            # Title is in a separate section, insert after title
+            insert_after_line = title_line
+        else:
+            # Title is in header, insert after header
+            insert_after_line = header_end_line
+
+        # Apply italic styling to the description
+        if "style=" not in first_p_content:
+            styled_p = first_p_content.replace(
+                "<p>", '<p style="font-size: 20px; font-style: italic;">'
+            )
+        else:
+            styled_p = first_p_content
+
+        # Remove the original <p> line
+        content.pop(first_p_line)
+
+        # Adjust sourcecode_line since we removed a line before it
+        if first_p_line < sourcecode_line:
+            sourcecode_line -= 1
+
+        # Insert the styled <p> line after the determined position (accounting for the removed line)
+        insert_position = (
+            insert_after_line + 1 if first_p_line > insert_after_line else insert_after_line
+        )
+        content.insert(insert_position, "\n")  # Add spacing
+        content.insert(insert_position + 1, styled_p)
+        content.insert(insert_position + 2, "\n")  # Add spacing
+
+        # Adjust sourcecode_line since we added lines before it
+        sourcecode_line += 3
+
+        # Add "USAGE" label before the sourceCode div
+        usage_label = '<p style="font-size: 12px; color: rgb(170, 170, 170); margin-bottom: -14px;">USAGE</p>\n'
+        content.insert(sourcecode_line, usage_label)
 
     # Style the first and second <dl> tags with different borders
     dl_count = 0
