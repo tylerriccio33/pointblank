@@ -195,6 +195,14 @@ a.sidebar-item-text.sidebar-link.text-start > span {
     border-top-width: 2px;
 }
 
+.nav-footer-left {
+    color: rgb(48, 48, 48);
+}
+
+.nav-footer-right {
+    color: rgb(48, 48, 48);
+}
+
 @keyframes footerGradient {
     0% {
         background-position: 0% 50%;
