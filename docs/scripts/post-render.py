@@ -253,7 +253,7 @@ for html_file in html_files:
         r'(<h3[^>]*class="[^"]*doc-section-examples[^"]*"[^>]*>)(.*?Examples.*?)(</h3>)'
     )
     examples_replacement = r"""\1<span style="
-        background: linear-gradient(-45deg, #d63031, #00b894, #0984e3, #6c5ce7, #fdcb6e, #a29bfe, #e84393, #2d3436);
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
         background-size: 400% 400%;
         animation: examplesGradient 6s ease-in-out infinite;
         -webkit-background-clip: text;
@@ -263,7 +263,7 @@ for html_file in html_files:
         font-size: 1.2em;
     ">\2</span>\3
     <hr style="
-        background: linear-gradient(-45deg, #d63031, #00b894, #0984e3, #6c5ce7, #fdcb6e, #a29bfe, #e84393, #2d3436);
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
         background-size: 400% 400%;
         animation: examplesGradient 12s ease-in-out infinite;
         height: 3px;
