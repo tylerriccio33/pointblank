@@ -403,6 +403,20 @@ match your schema expectations (e.g., integers loaded as strings from CSV files)
 Dataframely features soft validation and failure introspection. As one of Dataframely's standout
 features, it brings a fairly sophisticated approach to validation failures. Rather than just raising
 exceptions, it provides detailed failure analysis:
+
+```{python}
+# Soft validation: separate valid and invalid rows
+good_data, failure_info = UserSchema.filter(user_data, cast=True)
+
+print("Valid rows:", len(good_data))
+print("Failure counts:", failure_info.counts())
+print("Co-occurrence analysis:", failure_info.cooccurrence_counts())
+
+# Inspect the actual failed rows
+failed_rows = failure_info.invalid()
+print("Failed data:", failed_rows)
+```
+
 ### Comparisons
 
 Patito differs from Pandera in several key ways beyond just the Pydantic compatibility. A crucial
