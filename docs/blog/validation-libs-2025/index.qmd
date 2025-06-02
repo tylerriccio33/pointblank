@@ -1,17 +1,17 @@
 ---
 jupyter: python3
 html-table-processing: none
-title: "Validation Libraries for Polars (2025 Edition)"
+title: "Data Validation Libraries for Polars (2025 Edition)"
 author: Rich Iannone
 date: 2025-06-01
 freeze: true
 ---
 
 Data validation is a very important part of any data pipeline. And with Polars gaining popularity as
-a superfast DataFrame library, developers need validation tools that work seamlessly with it. In
-this survey (conducted halfway through 2025) we'll explore four Python validation libraries that
-support Polars DataFrames. Each one is sufficiently different enough from another, and so they each
-bring their own strengths and ideal use cases to the table.
+a superfast and feature-packed DataFrame library, developers need validation tools that work
+seamlessly with it. In this survey (conducted halfway through 2025) we'll explore five Python
+validation libraries that support Polars DataFrames. Each one is sufficiently different enough the
+other and they each bring their own strengths and ideal use cases to the table.
 
 The Python libraries we're covering are:
 
@@ -19,6 +19,19 @@ The Python libraries we're covering are:
 2. Patito
 3. Pointblank
 4. Validoopsie
+5. Dataframely
+
+In doing this survey, I've learned about which of them are most well-suited to the different data
+validation use cases. Here are my recommendations for what to use and when:
+
+| Use Case                     | Recommended Library | Why?                                                |
+|------------------------------|---------------------|-----------------------------------------------------|
+| Type-safe pipelines          | Pandera             | Strong typing, mypy integration, statistical checks |
+| Stakeholder reporting        | Pointblank          | Beautiful interactive reports, threshold management |
+| API data validation          | Patito              | Pydantic integration, serialization support         |
+| Statistical validation       | Pandera             | Hypothesis testing, distribution checks             |
+| Comprehensive data quality   | Pointblank          | Full validation workflow, segmentation, alerting    |
+| Custom validation logic      | Validoopsie         | Highly customizable, functional composition         |
 
 We'll run through a number of examples with each of the libraries, using this Polars DataFrame as
 the table to validate:
@@ -354,22 +367,42 @@ testing scenarios.
 
 ## Choosing the Right Library
 
-Each validation library excels in different scenarios. Here's a quick reference guide to help you
-pick the right tool for your specific needs:
+With five solid validation libraries to choose from, the decision often comes down to your team's
+specific workflow, existing tech stack, and validation requirements. Here are some practical
+considerations to help guide your choice:
 
-| Use Case                        | Recommended Library | Why?                                                |
-|---------------------------------|---------------------|-----------------------------------------------------|
-| Type-safe pipelines             | Pandera             | Strong typing, mypy integration, statistical checks |
-| Stakeholder reporting           | Pointblank          | Beautiful interactive reports, threshold management |
-| API data validation             | Patito              | Pydantic integration, serialization support         |
-| Statistical validation          | Pandera             | Hypothesis testing, distribution checks             |
-| Comprehensive data quality      | Pointblank          | Full validation workflow, segmentation, alerting    |
-| Custom validation logic         | Validoopsie         | Highly customizable, functional composition         |
+*Start with your existing tools*
 
-The way I see it is that you probably shouldn't feel locked into one choice. Many teams use
-different libraries for different parts of their data pipeline, leveraging each tool's strengths
-where they most matter. So, by extension, it's conceivable that the use of different validation
-libraries could work across projects and even within individual projects.
+If you're already using Pydantic extensively, Patito will feel natural. A teams that is heavily
+invested in type checking and statistical analysis should probably gravitate toward Pandera. If
+you're building data products that need stakeholder buy-in, Pointblank's reporting capabilities
+become incredibly useful in that context.
+
+*Consider your validation complexity*
+
+For straightforward schema validation and type checking, any of these libraries will work well. But
+if you need statistical hypothesis testing, Pandera is your best bet. For highly custom validation
+logic that needs to be composed and reused, Validoopsie shines. When validation results need to be
+communicated to non-technical stakeholders, Pointblank's interactive reports are basically
+unmatched.
+
+*Think about your team's preferences*
+
+There's a human dimension here. Some data teams might prefer the declarative, schema-first approach
+of Pandera and Patito, whereas others like the step-by-step, method-chaining style of Pointblank and
+Validoopsie. There's really no right or wrong choice here. It's all about what feels right and most
+natural for your team's coding style and mental model.
+
+*Don't feel locked into one choice*
+
+My hunch is that many teams already successfully use different libraries for different parts of
+their data pipeline. They're leveraging each tool's strengths where they matter most. So you could
+conceivably use Patito for API validation, Pandera for statistical checks in your analysis pipeline,
+and Pointblank for generating stakeholder reports (use 'em all!). This multi-library approach can be
+particularly effective in larger organizations with diverse validation needs.
+
+I suppose the key is to start with one library that fits your immediate needs, learn it well, and
+then consider expanding your toolkit as your validation requirements evolve.
 
 ## Summary and Wrapping Up
 
