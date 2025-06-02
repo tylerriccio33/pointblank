@@ -424,13 +424,34 @@ print("Failed data:", failed_rows)
 
 ### Comparisons
 
-Patito differs from Pandera in several key ways beyond just the Pydantic compatibility. A crucial
-difference is in error reporting behavior: Patito provides all validation errors in a single pass,
-while Pandera stops at the first validation failure. This means with Patito, you can see all the
-data quality issues at once (both the age constraint violation and the invalid email), whereas
-Pandera requires you to fix issues iteratively, running validation multiple times to discover all
-problems. This makes Patito more efficient for debugging data quality issues in development and
-testing scenarios.
+While both Dataframely and Pandera offer schema-first validation approaches, they serve different
+validation philosophies. Pandera excels in statistical validation with hypothesis testing and
+distribution checks, making it ideal for data science workflows where statistical properties matter.
+Dataframely, by contrast, emphasizes relational data integrity and type safety, providing more
+sophisticated failure analysis and collection-level validation capabilities that Pandera doesn't
+offer.
+
+The relationship between Dataframely and Patito is particularly interesting since both use
+class-based schema definitions. However, Dataframely extends far beyond Patito's Pydantic-focused
+approach. Where Patito provides clean, simple validation with excellent API integration, Dataframely
+offers advanced features like collection validation, group rules, and comprehensive failure
+introspection. Teams already invested in Pydantic workflows might prefer Patito's simplicity, while
+those building complex data systems will appreciate Dataframely's feature set.
+
+Dataframely and Pointblank represent two different approaches to comprehensive data validation.
+Pointblank shines in stakeholder communication with its beautiful interactive reports and
+threshold-based alerting systems, making it perfect for data quality reporting. Dataframely focuses
+instead on type safety and complex validation logic, with unique collection validation capabilities
+that no other library in this survey provides. The choice between these two will comes down to
+whether your priority is communicating validation results or ensuring complex data relationships
+remain consistent.
+
+When compared to Validoopsie's functional composition approach, Dataframely offers a more
+structured, schema-centric methodology. Validoopsie's strength lies in its composability and
+lightweight design, making it excellent for building reusable validation components. Dataframely's
+architecture is more opinionated but provides advanced type system integration and static analysis
+capabilities that go well beyond what Validoopsie offers.
+
 
 ## Choosing the Right Library
 
