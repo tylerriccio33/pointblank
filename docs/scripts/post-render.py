@@ -255,7 +255,7 @@ for html_file in html_files:
     examples_replacement = r"""\1<span style="
         background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
         background-size: 400% 400%;
-        animation: examplesGradient 6s ease-in-out infinite;
+        animation: examplesGradient 8s ease-in-out infinite;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -265,7 +265,7 @@ for html_file in html_files:
     <hr style="
         background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
         background-size: 400% 400%;
-        animation: examplesGradient 12s ease-in-out infinite;
+        animation: examplesGradient 16s ease-in-out infinite;
         height: 3px;
         border: none;
         margin: 10px 0;
