@@ -244,6 +244,37 @@ for html_file in html_files:
     # Turn all h2 tags into h3 tags
     content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
 
+    # Add gradient animation to Examples headers and horizontal rules
+    content_str = "".join(content)
+
+    # Find and replace Examples headers with animated gradient styling
+    examples_pattern = (
+        r'(<h3[^>]*class="[^"]*doc-section-examples[^"]*"[^>]*>)(.*?Examples.*?)(</h3>)'
+    )
+    examples_replacement = r"""\1<span style="
+        background: linear-gradient(-45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #ff7675, #6c5ce7);
+        background-size: 400% 400%;
+        animation: examplesGradient 3s ease-in-out infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+        font-size: 1.2em;
+    ">\2</span>\3
+    <hr style="
+        background: linear-gradient(-45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #ff7675, #6c5ce7);
+        background-size: 400% 400%;
+        animation: examplesGradient 3s ease-in-out infinite;
+        height: 3px;
+        border: none;
+        margin: 10px 0;
+        border-radius: 2px;
+    ">"""
+
+    content_str = re.sub(examples_pattern, examples_replacement, content_str, flags=re.DOTALL)
+
+    content = content_str.splitlines(keepends=True)
+
     # Place a horizontal rule at the end of each reference page
     content_str = "".join(content)
     main_end_pattern = r"</main>"
