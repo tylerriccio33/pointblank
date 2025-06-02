@@ -172,6 +172,13 @@ a.sidebar-item-text.sidebar-link.text-start > span {
 	}
 }
 
+.nav-link.active {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgba(101, 180, 237, 0.75);
+    text-underline-offset: 4px;
+}
+
 #navbarCollapse > ul.navbar-nav.navbar-nav-scroll.ms-auto > li {
     padding-right: 5px
 }
