@@ -33,8 +33,10 @@ validation use cases. Here are my recommendations for what to use and when:
 | Stakeholder reporting        | Pointblank          | Beautiful interactive reports, threshold management |
 | API data validation          | Patito              | Pydantic integration, serialization support         |
 | Statistical validation       | Pandera             | Hypothesis testing, distribution checks             |
+| Complex relational data      | Dataframely         | Collection validation, type safety, failure analysis|
 | Comprehensive data quality   | Pointblank          | Full validation workflow, segmentation, alerting    |
 | Custom validation logic      | Validoopsie         | Highly customizable, functional composition         |
+| Production data pipelines    | Dataframely         | Soft validation, schema inheritance, external tool integration |
 
 We'll run through a number of examples with each of the libraries, using this Polars DataFrame as
 the table to validate:
