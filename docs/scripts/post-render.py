@@ -201,8 +201,8 @@ for html_file in html_files:
         # Adjust sourcecode_line since we added lines before it
         sourcecode_line += 3
 
-        # Add "Usage" label before the sourceCode div
-        usage_label = '<p style="font-size: 12px; color: rgb(115, 115, 115); margin-bottom: -12px;">Usage</p>\n'
+        # Add "USAGE" label before the sourceCode div
+        usage_label = '<p style="font-size: 12px; color: rgb(170, 170, 170); margin-bottom: -14px;">USAGE</p>\n'
         content.insert(sourcecode_line, usage_label)
 
     # Style the first and second <dl> tags with different borders
