@@ -392,6 +392,17 @@ except Exception as e:
     print(f"Validation failed: {e}")
 ```
 
+This example showcases Dataframely's class-based schema approach with several notable features:
+primary key constraints, comprehensive type validation with bounds, regex pattern matching, and
+custom validation rules using the `@dy.rule()` decorator (used here for age range checking).
+
+The `cast=True` parameter automatically coerces column types to match the schema definitions. This
+is really useful when working with data from external sources where column types might not exactly
+match your schema expectations (e.g., integers loaded as strings from CSV files).
+
+Dataframely features soft validation and failure introspection. As one of Dataframely's standout
+features, it brings a fairly sophisticated approach to validation failures. Rather than just raising
+exceptions, it provides detailed failure analysis:
 ### Comparisons
 
 Patito differs from Pandera in several key ways beyond just the Pydantic compatibility. A crucial
