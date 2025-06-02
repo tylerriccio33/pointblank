@@ -178,7 +178,8 @@ for html_file in html_files:
         # Apply italic styling to the description
         if "style=" not in first_p_content:
             styled_p = first_p_content.replace(
-                "<p>", '<p style="font-size: 20px; font-style: italic;">'
+                "<p>",
+                '<p style="font-size: 1rem; font-style: italic; margin-top: -10px; line-height: 1;">',
             )
         else:
             styled_p = first_p_content
@@ -214,13 +215,13 @@ for html_file in html_files:
                 # First <dl> tag - green border
                 content[i] = line.replace(
                     "<dl>",
-                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem;">',
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem; padding-bottom: 0.25rem;">',
                 )
             elif dl_count == 2:
                 # Second <dl> tag - indigo border
                 content[i] = line.replace(
                     "<dl>",
-                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem;">',
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem; padding-bottom: 0.25rem;">',
                 )
                 break  # Stop after finding the second one
 
@@ -243,6 +244,37 @@ for html_file in html_files:
 
     # Turn all h2 tags into h3 tags
     content = [line.replace("<h2", "<h3").replace("</h2>", "</h3>") for line in content]
+
+    # Add gradient animation to Examples headers and horizontal rules
+    content_str = "".join(content)
+
+    # Find and replace Examples headers with animated gradient styling
+    examples_pattern = (
+        r'(<h3[^>]*class="[^"]*doc-section-examples[^"]*"[^>]*>)(.*?Examples.*?)(</h3>)'
+    )
+    examples_replacement = r"""\1<span style="
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
+        background-size: 400% 400%;
+        animation: examplesGradient 8s ease-in-out infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+        font-size: 1.2em;
+    ">\2</span>\3
+    <hr style="
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
+        background-size: 400% 400%;
+        animation: examplesGradient 16s ease-in-out infinite;
+        height: 3px;
+        border: none;
+        margin: 10px 0;
+        border-radius: 2px;
+    ">"""
+
+    content_str = re.sub(examples_pattern, examples_replacement, content_str, flags=re.DOTALL)
+
+    content = content_str.splitlines(keepends=True)
 
     # Place a horizontal rule at the end of each reference page
     content_str = "".join(content)
