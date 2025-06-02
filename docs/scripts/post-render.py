@@ -178,7 +178,8 @@ for html_file in html_files:
         # Apply italic styling to the description
         if "style=" not in first_p_content:
             styled_p = first_p_content.replace(
-                "<p>", '<p style="font-size: 20px; font-style: italic;">'
+                "<p>",
+                '<p style="font-size: 1rem; font-style: italic; margin-top: -10px; line-height: 1;">',
             )
         else:
             styled_p = first_p_content
