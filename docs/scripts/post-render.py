@@ -215,13 +215,13 @@ for html_file in html_files:
                 # First <dl> tag - green border
                 content[i] = line.replace(
                     "<dl>",
-                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem;">',
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem; padding-bottom: 0.25rem;">',
                 )
             elif dl_count == 2:
                 # Second <dl> tag - indigo border
                 content[i] = line.replace(
                     "<dl>",
-                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem;">',
+                    '<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem; padding-bottom: 0.25rem;">',
                 )
                 break  # Stop after finding the second one
 
