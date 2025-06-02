@@ -452,6 +452,28 @@ lightweight design, making it excellent for building reusable validation compone
 architecture is more opinionated but provides advanced type system integration and static analysis
 capabilities that go well beyond what Validoopsie offers.
 
+### Unique Strengths and When to Use
+
+Dataframely's standout features include:
+
+- advanced type safety with full mypy integration and generic DataFrame types
+- collection validation for ensuring consistency across related DataFrames
+- group-based validation rules using `@dy.rule(group_by=[...])` for aggregate constraints
+- schema inheritance for reducing code duplication in related schemas
+- production-ready soft validation that separates valid and invalid data
+
+One might choose Dataframely when building complex data systems where:
+
+- type safety and static analysis are critical for code quality
+- you need to validate relationships between multiple related DataFrames
+- you're working with production pipelines that need to handle partial data quality issues
+gracefully
+- schema reuse and inheritance would benefit your codebase organization
+
+Dataframely is particularly well-suited for data engineering teams building robust, type-safe data
+pipelines where the relationships between different data entities are as important as the validation
+of individual DataFrames. Its collection validation capabilities make it uniquely powerful for
+ensuring referential integrity in complex data workflows.
 
 ## Choosing the Right Library
 
@@ -461,10 +483,12 @@ considerations to help guide your choice:
 
 *Start with your existing tools*
 
-If you're already using Pydantic extensively, Patito will feel natural. A teams that is heavily
+If you're already using Pydantic extensively, Patito will feel natural. Teams that are heavily
 invested in type checking and statistical analysis should probably gravitate toward Pandera. If
 you're building data products that need stakeholder buy-in, Pointblank's reporting capabilities
-become incredibly useful in that context.
+become incredibly useful in that context. For teams already committed to strong typing and static
+analysis workflows, Dataframely's advanced type safety features will feel like a natural extension
+of your existing practices.
 
 *Consider your validation complexity*
 
@@ -472,22 +496,25 @@ For straightforward schema validation and type checking, any of these libraries 
 if you need statistical hypothesis testing, Pandera is your best bet. For highly custom validation
 logic that needs to be composed and reused, Validoopsie shines. When validation results need to be
 communicated to non-technical stakeholders, Pointblank's interactive reports are basically
-unmatched.
+unmatched. If you're dealing with complex relational data where multiple DataFrames need to maintain
+consistency with each other, Dataframely's collection validation capabilities are unique in the
+ecosystem.
 
 *Think about your team's preferences*
 
 There's a human dimension here. Some data teams might prefer the declarative, schema-first approach
-of Pandera and Patito, whereas others like the step-by-step, method-chaining style of Pointblank and
-Validoopsie. There's really no right or wrong choice here. It's all about what feels right and most
-natural for your team's coding style and mental model.
+of Pandera, Patito, and Dataframely, whereas others like the step-by-step, method-chaining style of
+Pointblank and Validoopsie. There's really no right or wrong choice here. It's all about what feels
+right and most natural for your team's coding style and mental model.
 
 *Don't feel locked into one choice*
 
 My hunch is that many teams already successfully use different libraries for different parts of
 their data pipeline. They're leveraging each tool's strengths where they matter most. So you could
 conceivably use Patito for API validation, Pandera for statistical checks in your analysis pipeline,
-and Pointblank for generating stakeholder reports (use 'em all!). This multi-library approach can be
-particularly effective in larger organizations with diverse validation needs.
+Pointblank for generating stakeholder reports, and Dataframely for complex data engineering
+workflows (use 'em all!). This multi-library approach can be particularly effective in larger
+organizations with diverse validation needs.
 
 I suppose the key is to start with one library that fits your immediate needs, learn it well, and
 then consider expanding your toolkit as your validation requirements evolve.
@@ -497,11 +524,12 @@ then consider expanding your toolkit as your validation requirements evolve.
 The Python ecosystem offers truly excellent options for validating Polars DataFrames! Choosing is
 always tough but this is how one could make the decision based on specific needs:
 
-- for type-safe, statistical validation, Pandera is ideal
-- for model-driven API validation, go with Patito
-- for functional, composable validation, Validoopsie fits well
-- for data quality reporting and stakeholder communication, Pointblank is a great choice
+- for type-safe, statistical validation, **Pandera** is ideal
+- for model-driven API validation, go with **Patito**
+- for functional, composable validation, **Validoopsie** fits well
+- for data quality reporting and stakeholder communication, **Pointblank** is a great choice
+- for complex relational data systems with advanced type safety, **Dataframely** is it
 
 Each library has evolved to serve different aspects of the data validation ecosystem. Try them all
-and, with a little understanding of their strengths, you'll get good and picking the right
+and, with a little understanding of their strengths, you'll get good at picking the right data
 validation tool for your specific use case.
