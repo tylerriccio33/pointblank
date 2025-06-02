@@ -24,6 +24,7 @@ jobs:
           python -m pip install pandera
           python -m pip install patito
           python -m pip install validoopsie
+          python -m pip install dataframely
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
       - name: Build docs
