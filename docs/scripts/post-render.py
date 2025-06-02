@@ -27,7 +27,12 @@ for html_file in html_files:
     # Determine the classification of each h1 tag based on its content
     classification_info = {}
     for i, line in enumerate(content):
+        # Look for both class="title" and styled h1 tags
         h1_match = re.search(r'<h1\s+class="title">(.*?)</h1>', line)
+        if not h1_match:
+            # Also check for h1 tags with style attribute (for level1 section titles)
+            h1_match = re.search(r'<h1\s+style="[^"]*">(.*?)</h1>', line)
+
         if h1_match:
             original_h1_content = h1_match.group(1).strip()
             # Store classification based on original content
@@ -54,8 +59,11 @@ for html_file in html_files:
     # - doesn't start with a capital letter,
     # then add `()` to the end of the content of the h1 tag
     for i, line in enumerate(content):
-        # Use regex to find the h1 tag with potential whitespace variations
+        # Use regex to find h1 tags (both class="title" and styled versions)
         h1_match = re.search(r'<h1\s+class="title">', line)
+        if not h1_match:
+            h1_match = re.search(r'<h1\s+style="[^"]*">', line)
+
         if h1_match:
             # Extract the content of the h1 tag
             start = h1_match.end()
@@ -78,7 +86,7 @@ for html_file in html_files:
                 h1_content = h1_match.group(1)
                 label_type, label_color, background_color = classification_info[i]
 
-                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 2px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px; vertical-align: 3.5px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
+                label_span = f'<span style="font-size: 0.75rem; border-style: solid; border-width: 1px; border-color: {label_color}; background-color: {background_color}; margin-left: 12px; vertical-align: 3.5px;"><code style="background-color: transparent; color: {label_color};">{label_type}</code></span>'
 
                 new_h1_content = h1_content + label_span
                 new_line = line.replace(h1_content, new_h1_content)
