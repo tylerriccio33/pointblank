@@ -214,7 +214,7 @@ a.sidebar-item-text.sidebar-link.text-start > span {
     padding-left: 20px;
     padding-right: 20px;
     padding-top: 1px;
-    padding-bottom: 1px;
+    padding-bottom: 10px;
     background-color: rgb(241, 252, 243);
 }
 
