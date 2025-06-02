@@ -232,6 +232,10 @@ for html_file in html_files:
     )
     return_value_replacement = r'<span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span>'
     content_str = re.sub(return_value_pattern, return_value_replacement, content_str)
+
+    # Fix double asterisks in kwargs parameters
+    content_str = content_str.replace("****kwargs**", "**kwargs")
+
     content = content_str.splitlines(keepends=True)
 
     # Turn all h3 tags into h4 tags
