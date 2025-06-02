@@ -355,6 +355,43 @@ flexibility for custom validation logic, or want to build reusable validation co
 shared across projects. It's great for teams that value simplicity, testability, and the ability to
 compose complex validation workflows from simple building blocks.
 
+## 5. Dataframely: Type-Safe Schema Validation with Advanced Features
+
+Dataframely is a comprehensive data validation framework that brings type-safe schema validation to
+Polars DataFrames with some of the most advanced features in the ecosystem. The library focuses on
+providing both runtime validation and static type checking, with particular strengths in
+collection validation for related DataFrames and extensive integration capabilities with external
+tools.
+
+Dataframely launched in early 2025 with native Polars support as a core feature, built specifically
+for the modern data ecosystem with first-class support for complex validation scenarios.
+
+### Example
+
+```{python}
+import polars as pl
+import dataframely as dy
+
+class UserSchema(dy.Schema):
+    user_id = dy.Int64(primary_key=True, min=1)
+    age = dy.Int64(nullable=False)
+    email = dy.String(nullable=False, regex=r"^[^@]+@[^@]+\.[^@]+$")
+    score = dy.Float64(nullable=False, min=0.0, max=100.0)
+
+    # Use @dy.rule() for age range validation
+    @dy.rule()
+    def age_in_range() -> pl.Expr:
+        return pl.col("age").is_between(18, 80, closed="both")
+
+# Validate using the schema
+try:
+    validated_data = UserSchema.validate(user_data, cast=True)
+    print("Validation successful!")
+    print(validated_data)
+except Exception as e:
+    print(f"Validation failed: {e}")
+```
+
 ### Comparisons
 
 Patito differs from Pandera in several key ways beyond just the Pydantic compatibility. A crucial
