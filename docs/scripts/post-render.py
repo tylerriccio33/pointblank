@@ -107,12 +107,17 @@ for html_file in html_files:
     first_p_line = None
     first_p_content = None
     found_sourcecode = False
+    title_line = None
 
-    # First pass: find the header end and the first <p> tag after sourceCode
+    # First pass: find the header end, title, and the first <p> tag after sourceCode
     for i, line in enumerate(content):
         # Find where the header ends
         if "</header>" in line:
             header_end_line = i
+
+        # Find the title line (either in header or in level1 section)
+        if '<h1 class="title"' in line or ("<h1 style=" in line and "SFMono-Regular" in line):
+            title_line = i
 
         # Look for the sourceCode div
         if '<div class="sourceCode" id="cb1">' in line:
@@ -124,8 +129,16 @@ for html_file in html_files:
             first_p_content = line
             break
 
-    # If we found both the header end and the first <p> tag, move it
-    if header_end_line is not None and first_p_line is not None:
+    # Determine where to insert the description paragraph
+    # If title is after header, insert after title; otherwise insert after header
+    if header_end_line is not None and first_p_line is not None and title_line is not None:
+        if title_line > header_end_line:
+            # Title is in a separate section, insert after title
+            insert_after_line = title_line
+        else:
+            # Title is in header, insert after header
+            insert_after_line = header_end_line
+
         # Apply italic styling to the description
         if "style=" not in first_p_content:
             styled_p = first_p_content.replace(
@@ -137,8 +150,10 @@ for html_file in html_files:
         # Remove the original <p> line
         content.pop(first_p_line)
 
-        # Insert the styled <p> line after the header (accounting for the removed line)
-        insert_position = header_end_line + 1 if first_p_line > header_end_line else header_end_line
+        # Insert the styled <p> line after the determined position (accounting for the removed line)
+        insert_position = (
+            insert_after_line + 1 if first_p_line > insert_after_line else insert_after_line
+        )
         content.insert(insert_position, "\n")  # Add spacing
         content.insert(insert_position + 1, styled_p)
         content.insert(insert_position + 2, "\n")  # Add spacing
