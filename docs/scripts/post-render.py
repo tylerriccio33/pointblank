@@ -116,8 +116,9 @@ for html_file in html_files:
     first_p_content = None
     found_sourcecode = False
     title_line = None
+    sourcecode_line = None
 
-    # First pass: find the header end, title, and the first <p> tag after sourceCode
+    # First pass: find the header end, title, sourcecode, and the first <p> tag after sourceCode
     for i, line in enumerate(content):
         # Find where the header ends
         if "</header>" in line:
@@ -130,6 +131,7 @@ for html_file in html_files:
         # Look for the sourceCode div
         if '<div class="sourceCode" id="cb1">' in line:
             found_sourcecode = True
+            sourcecode_line = i
 
         # Find the first <p> tag after we've seen the sourceCode div
         if found_sourcecode and first_p_line is None and line.strip().startswith("<p"):
@@ -139,7 +141,12 @@ for html_file in html_files:
 
     # Determine where to insert the description paragraph
     # If title is after header, insert after title; otherwise insert after header
-    if header_end_line is not None and first_p_line is not None and title_line is not None:
+    if (
+        header_end_line is not None
+        and first_p_line is not None
+        and title_line is not None
+        and sourcecode_line is not None
+    ):
         if title_line > header_end_line:
             # Title is in a separate section, insert after title
             insert_after_line = title_line
@@ -158,6 +165,10 @@ for html_file in html_files:
         # Remove the original <p> line
         content.pop(first_p_line)
 
+        # Adjust sourcecode_line since we removed a line before it
+        if first_p_line < sourcecode_line:
+            sourcecode_line -= 1
+
         # Insert the styled <p> line after the determined position (accounting for the removed line)
         insert_position = (
             insert_after_line + 1 if first_p_line > insert_after_line else insert_after_line
@@ -165,6 +176,13 @@ for html_file in html_files:
         content.insert(insert_position, "\n")  # Add spacing
         content.insert(insert_position + 1, styled_p)
         content.insert(insert_position + 2, "\n")  # Add spacing
+
+        # Adjust sourcecode_line since we added lines before it
+        sourcecode_line += 3
+
+        # Add "Usage" label before the sourceCode div
+        usage_label = '<p style="font-size: 12px; color: rgb(115, 115, 115); margin-bottom: -12px;">Usage</p>\n'
+        content.insert(sourcecode_line, usage_label)
 
     # Style the first and second <dl> tags with different borders
     dl_count = 0
