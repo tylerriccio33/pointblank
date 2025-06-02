@@ -58,13 +58,13 @@ user_data = pl.DataFrame({
 
 We'll try to run the same data validation across the surveyed libraries, so we'll check:
 
-- the schema
-- that `user_id` values are greater than `0`
-- that `age` values are between `18` and `80` (inclusive)
-- that `email` strings match to an email-checking regex
-- that `score` is between `0` and `100` (again with inclusive bounds)
+- schema validation (correct column types)
+- `user_id` values greater than `0`
+- `age` values between `18` and `80` (inclusive)
+- `email` strings matching a basic email regex pattern
+- `score` values between `0` and `100` (inclusive)
 
-Now let's begin by looking at Pandera.
+Now let's dive into each library, starting with the statistically-focused Pandera.
 
 ## 1. Pandera: Schema-First Validation with Statistical Checks
 
