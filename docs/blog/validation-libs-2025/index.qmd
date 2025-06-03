@@ -208,14 +208,15 @@ logic, Pandera's Check system provides significantly more power and extensibilit
 - rich type system integration with Python's typing system
 - model inheritance and composition for complex data structures
 - seamless integration with existing Pydantic-based applications
-- built-in support for nested data structures and complex types
+- row-level object modeling for converting DataFrame rows to Python objects with methods
+- mock data generation for testing with `.examples()` method
 
 People should choose Patito when they're already using Pydantic in their applications and want
-consistent validation patterns across APIs and data processing. It's good for teams building data
-applications where DataFrame validation needs to integrate with web APIs, or when you need to
-serialize/deserialize data between different formats while maintaining validation guarantees.
-Patito is also great for model-driven development workflows where data models serve multiple
-purposes beyond just validation.
+consistent validation patterns across data processing and application logic. It's great when you
+need to validate DataFrames and then work with individual rows as rich Python objects with embedded
+business logic and methods (e.g., a `Product` row that has a `.url` property or
+`.calculate_discount()` method). Patito is also good when you need to generate realistic test data
+and want object-oriented interfaces for their data models.
 
 ## 3. Pointblank: Comprehensive Validation with Beautiful Reports
 
