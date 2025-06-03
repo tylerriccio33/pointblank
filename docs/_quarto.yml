@@ -21,7 +21,7 @@ interlinks:
   fast: true
   autolink: true
   aliases:
-    pointblank: null
+    pointblank: [null, pb]
   sources:
     numpy:
       url: https://numpy.org/doc/stable/
