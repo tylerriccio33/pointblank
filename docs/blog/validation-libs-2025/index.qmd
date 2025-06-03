@@ -281,13 +281,17 @@ Pointblank also excels in production data monitoring scenarios, data observabili
 situations where understanding the nuances of data quality issues matters more than simple pass/fail
 validation.
 
-## 4. Validoopsie: Composable Checks
+## 4. Validoopsie: Composable Checks with Smart Failure Handling
 
 Validoopsie is built around composable validation principles, providing a toolkit for creating
-reusable validation functions organized into logical modules. The library's emphasizes the building
-of validation logic from modular, testable components that can be combined in flexible ways to
-create complex validation workflows. Like Pointblank, Validoopsie had Polars support from the very
-first release (early-2025).
+reusable validation functions organized into logical modules. Drawing inspiration from Great
+Expectations but with a much lighter footprint, Validoopsie emphasizes building validation logic
+from modular, testable components that can be combined in flexible ways to create complex validation
+workflows. The library had Polars support from its very first release (early-2025).
+
+What sets Validoopsie apart is its sophisticated approach to handling validation failures through
+*impact levels* and *threshold tolerances*. These features that give you fine-grained control over
+how your validation pipeline behaves when things go wrong.
 
 ### Example
 
@@ -295,26 +299,32 @@ first release (early-2025).
 from validoopsie import Validate
 from narwhals.dtypes import Int64, Float64, String
 
-# Composable validation checks using our standard dataset
+# Composable validation checks with impact levels and thresholds
 validation = (
     Validate(user_data)
     .ValuesValidation.ColumnValuesToBeBetween(
         column="user_id",
-        min_value=0
+        min_value=0,
+        impact="high"  # Critical - will raise exception
     )
     .ValuesValidation.ColumnValuesToBeBetween(
         column="age",
         min_value=18,
-        max_value=80
+        max_value=80,
+        threshold=0.1,  # Allow 10% failures
+        impact="medium"  # Important but not critical
     )
     .StringValidation.PatternMatch(
         column="email",
-        pattern=r"^[^@]+@[^@]+\.[^@]+$"
+        pattern=r"^[^@]+@[^@]+\.[^@]+$",
+        threshold=0.05,  # Allow 5% malformed emails
+        impact="low"  # Record but don't interrupt
     )
     .ValuesValidation.ColumnValuesToBeBetween(
         column="score",
         min_value=0,
-        max_value=100
+        max_value=100,
+        impact="medium"
     )
     .TypeValidation.TypeCheck(
         frame_schema_definition={
@@ -322,42 +332,104 @@ validation = (
             "age": Int64,
             "email": String,
             "score": Float64
-        }
+        },
+        impact="high"  # Schema compliance is critical
     )
 )
 
-# Check if validation passed
-try:
-    validation.validate()
-    print("Validation successful!")
-except Exception as e:
-    print(f"Validation failed: {e}")
+# Get validation results
+validation.validate()
+
+# Access detailed results for analysis
+print("Validation results:", validation.results)
 ```
 
-This example showcases Validoopsie's modular approach where validation rules are organized into
-namespaced categories (`ValuesValidation`, `StringValidation`, `TypeValidation`). Each validation
-type is grouped logically, making it easy to discover and use the right validation for your needs.
-The modular design promotes code organization and reusability across different validation scenarios.
+This example showcases Validoopsie's key differentiators: modular validation categories
+(`ValuesValidation`, `StringValidation`, `TypeValidation`) combined with *impact levels* that
+control failure behavior and *thresholds* that allow controlled tolerance for data quality issues.
+Unlike other libraries that treat all validation failures equally, Validoopsie lets you specify
+which validations are critical ("high" impact raises exceptions) versus informational ("low" impact
+just logs results).
+
+### Advanced Features
+
+Validoopsie's most powerful feature is its three-tier impact system combined with threshold
+tolerance:
+
+```{python}
+# Example showing sophisticated failure handling
+validation = (
+    Validate(user_data)
+    # Critical validation - no tolerance
+    .NullValidation.ColumnNotBeNull(
+        column="user_id",
+        impact="high"    # Will raise an exception if any Null values found
+    )
+    # Important validation with tolerance
+    .StringValidation.PatternMatch(
+        column="email",
+        pattern=r"^[^@]+@[^@]+\.[^@]+$",
+        threshold=0.15,  # Allow up to 15% malformed emails
+        impact="medium"  # Log failures but don't stop processing
+    )
+    # Informational validation
+    .ValuesValidation.ColumnValuesToBeBetween(
+        column="score",
+        min_value=90,
+        max_value=100,
+        threshold=0.8,  # Allow 80% to be outside "excellent" range
+        impact="low"    # Just track high performers
+    )
+)
+
+validation.validate()
+```
 
 ### Comparisons
 
 Validoopsie's functional approach contrasts with Pandera's schema-first methodology and Patito's
-object-oriented models. Unlike Pointblank's comprehensive reporting focus, Validoopsie emphasizes
-simplicity and composability. The library is more lightweight than the others but still provides a
-generous suite of validation checks.
+object-oriented models. While Pandera focuses on statistical validation and Patito emphasizes
+Pydantic integration, Validoopsie prioritizes flexibility and operational robustness.
+
+Compared to Pointblank, both libraries offer sophisticated threshold-based failure handling using
+numeric values (e.g., 0.1 for 10% tolerance), but they differ in their architectural approach:
+Validoopsie combines numeric thresholds with impact levels (low/medium/high) that control the
+behavioral response to threshold breaches, while Pointblank integrates thresholds directly into its
+comprehensive reporting and alerting system. Both support custom validation, but Validoopsie uses a
+modular validation catalog approach while Pointblank's `specially()` method integrates seamlessly
+with its step-by-step reporting workflow.
+
+The library's Great Expectations inspiration is evident in its modular design, but Validoopsie
+delivers this functionality with a much lighter dependency footprint and simpler API. Teams
+familiar with Great Expectations will find Validoopsie's approach familiar but more streamlined.
 
 ### Unique Strengths and When to Use
 
-- highly composable validation rules that can be mixed and matched
-- custom validator creation with a simple, consistent API
-- pipeline-friendly design that integrates well with data processing workflows
-- minimal dependencies and lightweight footprint
-- excellent support for creating domain-specific validation libraries
+Validoopsie's standout features include:
 
-Data practitioners should choose Validoopsie when they prefer a composable approach, need
-flexibility for custom validation logic, or want to build reusable validation components that can be
-shared across projects. It's great for teams that value simplicity, testability, and the ability to
-compose complex validation workflows from simple building blocks.
+- graduated failure handling through impact levels (low/medium/high) combined with numeric
+  thresholds that control both tolerance levels and behavioral responses to failures
+- numeric threshold tolerance allowing controlled acceptance of data quality issues (e.g., "allow
+  10% email format failures" with `threshold=0.1`)
+- being a lightweight Great Expectations alternative with similar composability but minimal
+dependencies
+- an extensive validation catalog organized into logical namespaces (Date, String, Null, Values,
+etc.)
+- custom validation framework with consistent patterns for creating domain-specific rules
+
+Choose Validoopsie when you need:
+
+- operational resilience in production pipelines where partial data quality issues shouldn't
+  stop processing
+- fine-grained control over validation failure behavior with different criticality levels
+- lightweight Great Expectations functionality without the complexity and dependencies
+- custom validation development with a clear, consistent framework
+- modular validation design that promotes reusability across projects
+
+Validoopsie is particularly well-suited for data engineering teams building robust production
+pipelines where data quality monitoring is important but pipeline availability is critical. Its
+impact/threshold system makes it uniquely powerful for environments where you need to distinguish
+between "nice to have" and "must have" data quality requirements.
 
 ## 5. Dataframely: Type-Safe Schema Validation with Advanced Features
 
