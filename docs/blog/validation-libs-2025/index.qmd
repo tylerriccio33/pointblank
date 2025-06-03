@@ -421,9 +421,7 @@ Unlike other libraries that treat all validation failures equally, Validoopsie l
 which validations are critical ("high" impact raises exceptions) versus informational ("low" impact
 just logs results).
 
-### Advanced Features
-
-Validoopsie's most powerful feature is its three-tier impact system combined with threshold
+Validoopsie's most powerful feature is its three-tier `impact=` system combined with `threshold=`
 tolerance:
 
 ```{python}
@@ -485,7 +483,8 @@ Validoopsie's standout features include:
   thresholds that control both tolerance levels and behavioral responses to failures
 - numeric threshold tolerance allowing controlled acceptance of data quality issues (e.g., "allow
   10% email format failures" with `threshold=0.1`)
-- built-in structured logging using loguru allows for automatic logging of validation results, failures, and performance metrics (unique among these libraries)
+- built-in structured logging using loguru allows for automatic logging of validation results,
+failures, and performance metrics (unique among these libraries)
 - being a lightweight Great Expectations alternative with similar composability but minimal
 dependencies
 - an extensive validation catalog organized into logical namespaces (Date, String, Null, Values,
