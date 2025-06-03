@@ -3,7 +3,7 @@ jupyter: python3
 html-table-processing: none
 title: "Data Validation Libraries for Polars (2025 Edition)"
 author: Rich Iannone
-date: 2025-06-01
+date: 2025-06-06
 freeze: true
 ---
 
