@@ -16,30 +16,28 @@ you later.
 In this survey (conducted halfway through 2025) we'll explore five Python validation libraries that
 support Polars DataFrames, each bringing distinct strengths to different validation challenges.
 
-The Python libraries we're covering are:
+Here are the unique strengths for each library:
 
-1. Pandera
-2. Patito
-3. Pointblank
-4. Validoopsie
-5. Dataframely
+| Library     | Best Features |
+|-------------|---------------|
+| [Pandera](https://github.com/unionai-oss/pandera) | Statistical testing, schema-first validation, mypy integration |
+| [Patito](https://github.com/JakobGM/patito) | Pydantic integration, model-based validation, serialization |
+| [Pointblank](https://github.com/posit-dev/pointblank) | Interactive reports, threshold management, stakeholder communication |
+| [Validoopsie](https://github.com/akmalsoliev/Validoopsie) | Composable validation, impact levels, lightweight Great Expectations alternative |
+| [Dataframely](https://github.com/Quantco/dataframely) | Collection validation, advanced type safety, failure analysis |
 
-In doing this survey, I've learned about which of them are most well-suited to the different data
-validation use cases. Here are my recommendations for what to use and when:
+Based on these strengths, here are my recommendations for which libraries to use according to use case:
 
-| Use Case                     | Recommended Library | Why?                                                |
-|------------------------------|---------------------|-----------------------------------------------------|
-| Type-safe pipelines          | Pandera             | Strong typing, mypy integration, statistical checks |
-| Stakeholder reporting        | Pointblank          | Beautiful interactive reports, threshold management |
-| API data validation          | Patito              | Pydantic integration, serialization support         |
-| Statistical validation       | Pandera             | Hypothesis testing, distribution checks             |
-| Complex relational data      | Dataframely         | Collection validation, type safety, failure analysis|
-| Comprehensive data quality   | Pointblank          | Full validation workflow, segmentation, alerting    |
-| Custom validation logic      | Validoopsie         | Highly customizable, functional composition         |
-| Production data pipelines    | Dataframely         | Soft validation, schema inheritance, external tool integration |
+| Use Case                     | Best Libraries        | Description |
+|------------------------------|-----------------------|-------------|
+| Type-safe pipelines          | Pandera, Dataframely, Patito | Static type checking and compile-time validation |
+| Stakeholder reporting        | Pointblank            | Sharing validation results with non-technical teams |
+| Row-level object modeling    | Patito                | Converting DataFrame rows to Python objects with business logic |
+| Statistical validation       | Pandera               | Testing data distributions and statistical properties |
+| Data quality improvement     | Pointblank, Validoopsie | Gradual quality improvement with threshold tracking |
 
-We'll run through a number of examples with each of the libraries, using this Polars DataFrame as
-the table to validate:
+We'll run through examples with **Pandera**, **Patito**, **Pointblank**, **Validoopsie**, and
+**Dataframely**, using this Polars DataFrame as our test case:
 
 ```{python}
 import polars as pl
