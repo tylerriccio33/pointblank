@@ -18,13 +18,41 @@ support Polars DataFrames, each bringing distinct strengths to different validat
 
 Here are the unique strengths for each library:
 
-| Library     | Best Features |
-|-------------|---------------|
-| [Pandera](https://github.com/unionai-oss/pandera) | Statistical testing, schema-first validation, mypy integration |
-| [Patito](https://github.com/JakobGM/patito) | Pydantic integration, model-based validation, serialization |
-| [Pointblank](https://github.com/posit-dev/pointblank) | Interactive reports, threshold management, stakeholder communication |
-| [Validoopsie](https://github.com/akmalsoliev/Validoopsie) | Built-in logging, composable validation, impact levels, lightweight Great Expectations alternative |
-| [Dataframely](https://github.com/Quantco/dataframely) | Collection validation, advanced type safety, failure analysis |
+```{python}
+#| echo: false
+import polars as pl
+from great_tables import GT
+
+# Create DataFrame with library information
+library_features = pl.DataFrame(
+    {
+        "lib": [
+            '<a href="https://github.com/unionai-oss/pandera" style="color: #333333; text-underline-offset: 3px;">Pandera</a>',
+            '<a href="https://github.com/JakobGM/patito" style="color: #333333; text-underline-offset: 3px;">Patito</a>',
+            '<a href="https://github.com/posit-dev/pointblank" style="color: #333333; text-underline-offset: 3px;">Pointblank</a>',
+            '<a href="https://github.com/akmalsoliev/Validoopsie" style="color: #333333; text-underline-offset: 3px;">Validoopsie</a>',
+            '<a href="https://github.com/Quantco/dataframely" style="color: #333333; text-underline-offset: 3px;">Dataframely</a>',
+        ],
+        "stars": [3835, 463, 166, 62, 315],
+        "feat": [
+            "Statistical testing, schema-first validation, mypy integration",
+            "Pydantic integration, model-based validation, serialization",
+            "Interactive reports, threshold management, stakeholder communication",
+            "Built-in logging, composable validation, impact levels, lightweight Great Expectations alternative",
+            "Collection validation, advanced type safety, failure analysis",
+        ],
+    }
+)
+
+# Create Great Tables version
+(
+    GT(library_features)
+    .cols_label(lib="Library", stars="⭐", feat="Best Features")
+    .fmt_markdown(columns="lib")
+    .fmt_integer(columns="stars")
+    .opt_horizontal_padding(scale=2)
+)
+```
 
 Based on these strengths, here are my recommendations for which libraries to use according to use case:
 
