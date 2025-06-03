@@ -42,7 +42,7 @@ library_features = pl.DataFrame(
         ],
         "stars": [3835, 463, 166, 62, 315],
         "feat": [
-            "Statistical testing, schema-first validation, mypy integration",
+            "Statistical testing, schema-centric validation, mypy integration",
             "Pydantic integration, model-based validation, row-level objects",
             "Interactive reports, threshold management, stakeholder communication",
             "Built-in logging, composable validation, impact levels, lightweight Great Expectations alternative",
@@ -131,7 +131,7 @@ Now let's dive into each library, starting with the statistically-focused Pander
 ## 1. Pandera: Schema-First Validation with Statistical Checks
 
 Pandera is a statistical data validation toolkit designed to provide a flexible and expressive API
-for performing data validation on dataframe-like objects. The library centers on schema-first
+for performing data validation on dataframe-like objects. The library centers on schema-centric
 validation, where you define the expected structure and constraints of your data upfront. You can
 enable both runtime validation and static type checking integration. Pandera added Polars support in
 version `0.19.0` (early 2024).
@@ -165,7 +165,7 @@ error information about what failed.
 
 ### Comparisons
 
-Both Pandera and Patito use declarative, schema-first approaches, but differ in their design
+Both Pandera and Patito use declarative, schema-centric approaches, but differ in their design
 philosophies:
 
 - Pandera uses a dictionary-like schema structure with Column objects for defining validation rules
@@ -468,7 +468,7 @@ complexity of larger validation frameworks.
 
 ### Comparisons
 
-Validoopsie's functional approach contrasts with Pandera's schema-first methodology and Patito's
+Validoopsie's functional approach contrasts with Pandera's schema-centric methodology and Patito's
 object-oriented models. While Pandera focuses on statistical validation and Patito emphasizes
 Pydantic integration, Validoopsie prioritizes flexibility and operational robustness.
 
@@ -583,7 +583,7 @@ print("Failed data:", failed_rows)
 
 ### Comparisons
 
-While both Dataframely and Pandera offer schema-first validation approaches, they serve different
+While both Dataframely and Pandera offer schema-centric validation approaches, they serve different
 validation philosophies. Pandera excels in statistical validation with hypothesis testing and
 distribution checks, making it ideal for data science workflows where statistical properties matter.
 Dataframely, by contrast, emphasizes relational data integrity and type safety, providing more
