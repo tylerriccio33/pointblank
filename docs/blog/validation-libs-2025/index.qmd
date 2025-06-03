@@ -260,10 +260,16 @@ quality issues.
 ### Comparisons
 
 Unlike Pandera's schema-first approach, Pointblank focuses on step-by-step validation with detailed
-reporting. Compared to the other frameworks surveyed here, Pointblank provides much richer reporting
-and analysis capabilities. And while the API shares much with Validoopsie's compositional approach,
-Pointblank emphasizes stakeholder communication through reporting and comprehensive data quality
-assessment.
+reporting and flexible failure thresholds that can be set at both the global and individual
+validation step level. Both Pointblank and Validoopsie use numeric threshold values for granular
+control over acceptable failure rates, but they differ in their primary focus: Pointblank emphasizes
+comprehensive reporting and stakeholder communication, while Validoopsie prioritizes operational
+resilience through its impact level system (low/medium/high) that controls whether threshold
+breaches are logged, reported, or raise exceptions.
+
+While both libraries support custom validation logic, Pointblank's `specially()` method integrates
+seamlessly with its reporting system, whereas Validoopsie provides a structured framework for
+creating custom validation classes that fit into its modular validation catalog.
 
 ### Unique Strengths and When to Use
 
