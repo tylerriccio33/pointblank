@@ -689,11 +689,11 @@ then consider expanding your toolkit as your validation requirements evolve.
 The Python ecosystem offers truly excellent options for validating Polars DataFrames! Choosing is
 always tough but this is how one could make the decision based on specific needs:
 
-- for **type-safe pipelines**, **Pandera**, **Dataframely**, or **Patito** are ideal
-- for **stakeholder reporting**, **Pointblank** is a great choice
-- for **row-level object modeling**, go with **Patito**
-- for **statistical validation**, **Pandera** is perfect
-- for **data quality improvement**, **Pointblank** or **Validoopsie** fit well
+- for type-safe pipelines, **Pandera**, **Dataframely**, or **Patito** are ideal
+- for stakeholder reporting, **Pointblank** is a great choice
+- for row-level object modeling, go with **Patito**
+- for statistical validation, **Pandera** is perfect
+- for data quality improvement, **Pointblank** or **Validoopsie** fit well
 
 Each library has evolved to serve different aspects of the data validation ecosystem. Try them all
 and, with a little understanding of their strengths, you'll get good at picking the right data
