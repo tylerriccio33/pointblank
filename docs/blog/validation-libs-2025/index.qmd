@@ -180,7 +180,7 @@ Patito's Pydantic integration.
 
 Unlike Pointblank's step-by-step validation reporting, Pandera validates the entire schema at once.
 Compared to Patito's model-based approach, Pandera focuses more on statistical validation
-capabilities. Unlike Validoopsie's and Pointblank's functional composition, Pandera uses a more
+capabilities. Unlike Validoopsie's and Pointblank's method chaining style, Pandera uses a more
 declarative, schema-centric approach.
 
 ### Unique Strengths and When to Use
@@ -605,11 +605,13 @@ that no other library in this survey provides. The choice between these two will
 whether your priority is communicating validation results or ensuring complex data relationships
 remain consistent.
 
-When compared to Validoopsie's functional composition approach, Dataframely offers a more
-structured, schema-centric methodology. Validoopsie's strength lies in its composability and
-lightweight design, making it excellent for building reusable validation components. Dataframely's
-architecture is more opinionated but provides advanced type system integration and static analysis
-capabilities that go well beyond what Validoopsie offers.
+When compared to Validoopsie's method chaining approach, Dataframely offers a more structured,
+schema-centric methodology with advanced type safety features that Validoopsie doesn't provide.
+While Validoopsie excels in operational flexibility and lightweight design for building reusable
+validation components, Dataframely's strength lies in its comprehensive type system integration,
+collection validation capabilities, and sophisticated failure analysis. And that makes it ideal for
+complex data engineering workflows where relationships between multiple DataFrames matter as much as
+individual DataFrame validation.
 
 ### Unique Strengths and When to Use
 
