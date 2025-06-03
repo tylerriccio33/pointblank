@@ -698,3 +698,14 @@ always tough but this is how one could make the decision based on specific needs
 Each library has evolved to serve different aspects of the data validation ecosystem. Try them all
 and, with a little understanding of their strengths, you'll get good at picking the right data
 validation tool for your specific use case.
+
+This survey represents our understanding of these libraries as of mid-2025. Given the rapid pace of
+development in the Python data ecosystem, some details may become outdated or contain inaccuracies
+(we may have even gotten things wrong at the outset). If you notice any errors or have updates to
+share, we'd love to hear from you! Please reach out through:
+
+- [GitHub Issues](https://github.com/posit-dev/pointblank/issues)
+- [GitHub Discussions](https://github.com/posit-dev/pointblank/discussions)
+- Our [Discord Server](https://discord.com/invite/YH7CybCNCQ)
+
+Your feedback helps keep this resource accurate and useful for the community.
