@@ -577,6 +577,21 @@ unmatched. If you're dealing with complex relational data where multiple DataFra
 consistency with each other, Dataframely's collection validation capabilities are unique in the
 ecosystem.
 
+*Think about failure tolerance requirements*
+
+One of the most important architectural differences among these libraries is how they handle
+validation failures. Only Pointblank and Validoopsie offer numeric threshold-based failure
+tolerance. This is the ability to accept a controlled percentage of validation failures without
+treating the entire validation as failed.
+
+This distinction can be crucial for production environments where some level of data quality issues
+is acceptable and you need fine-grained control over when validations should fail versus warn. In
+many real-world scenarios, poor data quality is a given reality, and the goal becomes gradually
+improving quality over time rather than enforcing perfection. Thresholds can then be seen not as
+simple failure tolerances but more like data quality metrics and improvement goals (e.g., you might
+start with `threshold=0.15` for email validation and progressively tighten to `0.05` as upstream
+systems improve).
+
 *Think about your team's preferences*
 
 There's a human dimension here. Some data teams might prefer the declarative, schema-first approach
