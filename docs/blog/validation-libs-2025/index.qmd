@@ -16,6 +16,14 @@ you later.
 In this survey (conducted halfway through 2025) we'll explore five Python validation libraries that
 support Polars DataFrames, each bringing distinct strengths to different validation challenges.
 
+::: {.callout-note}
+Great Expectations, while being one of the most established data validation frameworks in the Python
+ecosystem, is not included in this survey as it doesn't yet offer native Polars support. See [this
+issue](https://github.com/great-expectations/great_expectations/issues/10702) and
+[this discussion](https://github.com/great-expectations/great_expectations/discussions/10144) for
+the inside baseball.
+:::
+
 Here are the unique strengths for each library:
 
 ```{python}
