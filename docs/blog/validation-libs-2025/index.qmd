@@ -23,7 +23,7 @@ Here are the unique strengths for each library:
 | [Pandera](https://github.com/unionai-oss/pandera) | Statistical testing, schema-first validation, mypy integration |
 | [Patito](https://github.com/JakobGM/patito) | Pydantic integration, model-based validation, serialization |
 | [Pointblank](https://github.com/posit-dev/pointblank) | Interactive reports, threshold management, stakeholder communication |
-| [Validoopsie](https://github.com/akmalsoliev/Validoopsie) | Composable validation, impact levels, lightweight Great Expectations alternative |
+| [Validoopsie](https://github.com/akmalsoliev/Validoopsie) | Built-in logging, composable validation, impact levels, lightweight Great Expectations alternative |
 | [Dataframely](https://github.com/Quantco/dataframely) | Collection validation, advanced type safety, failure analysis |
 
 Based on these strengths, here are my recommendations for which libraries to use according to use case:
@@ -405,6 +405,10 @@ comprehensive reporting and alerting system. Both support custom validation, but
 modular validation catalog approach while Pointblank's `specially()` method integrates seamlessly
 with its step-by-step reporting workflow.
 
+Validoopsie is the only library in this survey that provides built-in logging capabilities, making
+it particularly valuable for production environments where validation events need to be tracked and
+monitored.
+
 The library's Great Expectations inspiration is evident in its modular design, but Validoopsie
 delivers this functionality with a much lighter dependency footprint and simpler API. Teams
 familiar with Great Expectations will find Validoopsie's approach familiar but more streamlined.
@@ -417,6 +421,7 @@ Validoopsie's standout features include:
   thresholds that control both tolerance levels and behavioral responses to failures
 - numeric threshold tolerance allowing controlled acceptance of data quality issues (e.g., "allow
   10% email format failures" with `threshold=0.1`)
+- built-in structured logging using loguru allows for automatic logging of validation results, failures, and performance metrics (unique among these libraries)
 - being a lightweight Great Expectations alternative with similar composability but minimal
 dependencies
 - an extensive validation catalog organized into logical namespaces (Date, String, Null, Values,
@@ -427,6 +432,7 @@ Choose Validoopsie when you need:
 
 - operational resilience in production pipelines where partial data quality issues shouldn't
   stop processing
+- comprehensive validation logging and monitoring for observability in production environments
 - fine-grained control over validation failure behavior with different criticality levels
 - lightweight Great Expectations functionality without the complexity and dependencies
 - custom validation development with a clear, consistent framework
