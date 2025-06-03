@@ -10,8 +10,7 @@ freeze: true
 Recently, I've been giving workshops to data teams on Pointblank. These sorts of engagements
 energize me, and I truly enjoy hearing what people are concerned with when it comes to data
 validation. If *your* team is interested, I would love to schedule something with y'all! Please
-reach out at rich@posit.co or message me on the Pointblank Discord
-([link to Pointblank server](https://discord.com/invite/YH7CybCNCQ)).
+reach out at rich@posit.co or message me on the ([Pointblank Discord](https://discord.com/invite/YH7CybCNCQ)).
 
 Workshops have been especially helpful for understanding how people use and share Pointblank's
 [validation results table](../../user-guide/index.qmd). For example, I learned that people like to
