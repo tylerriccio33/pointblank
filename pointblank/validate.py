@@ -917,7 +917,7 @@ def _generate_display_table(
         k: v.split("(")[0] if "(" in v else v for k, v in col_dtype_dict.items()
     }
 
-    # Create a dictionary of column and row positions where the value is None/NA/NULL
+    # Create a dictionary of column and row positions where the value is None/NA/Null
     # This is used to highlight these values in the table
     if df_lib_name_gt == "polars":
         none_values = {k: data[k].is_null().to_list() for k in col_names}
@@ -5253,9 +5253,9 @@ class Validate:
         active: bool = True,
     ) -> Validate:
         """
-        Validate whether values in a column are NULL.
+        Validate whether values in a column are Null.
 
-        The `col_vals_null()` validation method checks whether column values in a table are NULL.
+        The `col_vals_null()` validation method checks whether column values in a table are Null.
         This validation will operate over the number of test units that is equal to the number
         of rows in the table.
 
@@ -5492,10 +5492,10 @@ class Validate:
         active: bool = True,
     ) -> Validate:
         """
-        Validate whether values in a column are not NULL.
+        Validate whether values in a column are not Null.
 
         The `col_vals_not_null()` validation method checks whether column values in a table are not
-        NULL. This validation will operate over the number of test units that is equal to the number
+        Null. This validation will operate over the number of test units that is equal to the number
         of rows in the table.
 
         Parameters

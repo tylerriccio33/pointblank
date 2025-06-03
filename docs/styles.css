@@ -172,10 +172,72 @@ a.sidebar-item-text.sidebar-link.text-start > span {
 	}
 }
 
+.nav-link.active {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgba(101, 180, 237, 0.75);
+    text-underline-offset: 4px;
+}
+
 #navbarCollapse > ul.navbar-nav.navbar-nav-scroll.ms-auto > li {
     padding-right: 5px
 }
 
 .shrink-example .cell-output table {
     zoom: 60%;
+}
+
+.nav-footer {
+    background: linear-gradient(-45deg,
+        rgba(4, 119, 139, 0.15),
+        rgba(28, 127, 240, 0.2),
+        rgba(0, 108, 147, 0.12),
+        rgba(5, 97, 76, 0.18),
+        rgba(173, 216, 230, 0.25));
+    background-size: 400% 400%;
+    animation: footerGradient 15s ease infinite;
+    padding-top: 20px;
+    border-top-color: rgba(4, 119, 139, 0.4);
+    border-top-style: solid;
+    border-top-width: 2px;
+}
+
+.nav-footer-left {
+    color: rgb(48, 48, 48);
+}
+
+.nav-footer-right {
+    color: rgb(48, 48, 48);
+}
+
+#examples {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 1px;
+    padding-bottom: 10px;
+    background-color: rgb(241, 252, 243);
+}
+
+@keyframes footerGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes examplesGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
