@@ -195,9 +195,10 @@ statistical properties of data matter as much as basic type checking.
 ## 2. Patito: Pydantic-Style Data Models for DataFrames
 
 Patito brings Pydantic's well-received model-based validation approach to DataFrame validation,
-creating a bridge between API data validation and DataFrame processing. The library's primary goal
-is to provide a familiar, Pydantic-style interface for defining and validating DataFrame schemas,
-making it particularly appealing to developers already using Pydantic in their applications.
+creating a bridge between Pydantic-style data validation and DataFrame processing. The library's
+primary goal is to provide a familiar, Pydantic-style interface for defining and validating
+DataFrame schemas, making it particularly appealing to developers already using Pydantic in their
+applications.
 
 Patito launched with Polars support from the beginning (in late 2022). Native Polars integration is
 touted as one of its core features, reflecting the growing adoption of Polars in the Python
@@ -572,10 +573,10 @@ offer.
 
 The relationship between Dataframely and Patito is particularly interesting since both use
 class-based schema definitions. However, Dataframely extends far beyond Patito's Pydantic-focused
-approach. Where Patito provides clean, simple validation with excellent API integration, Dataframely
-offers advanced features like collection validation, group rules, and comprehensive failure
-introspection. Teams already invested in Pydantic workflows might prefer Patito's simplicity, while
-those building complex data systems will appreciate Dataframely's feature set.
+approach. Where Patito provides clean, simple validation with excellent Pydantic integration,
+Dataframely offers advanced features like collection validation, group rules, and comprehensive
+failure introspection. Teams already invested in Pydantic workflows might prefer Patito's
+simplicity, while those building complex data systems will appreciate Dataframely's feature set.
 
 Dataframely and Pointblank represent two different approaches to comprehensive data validation.
 Pointblank shines in stakeholder communication with its beautiful interactive reports and
