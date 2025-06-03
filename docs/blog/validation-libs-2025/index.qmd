@@ -168,9 +168,10 @@ error information about what failed.
 Both Pandera and Patito use declarative, schema-first approaches, but differ in their design
 philosophies:
 
-- Pandera uses a dictionary-like schema structure with Column objects, focusing on statistical
-validation capabilities
-- Patito uses Pydantic model classes, focusing on integration with existing Pydantic workflows
+- Pandera uses a dictionary-like schema structure with Column objects for defining validation rules
+- Patito uses Pydantic model classes with familiar Field syntax for validation constraints
+- Pandera focuses heavily on statistical validation capabilities like hypothesis testing
+- Patito emphasizes integration with existing Pydantic workflows and object modeling
 - a key behavioral difference: Patito reports all validation errors in a single pass, while Pandera
 stops at the first failure
 
