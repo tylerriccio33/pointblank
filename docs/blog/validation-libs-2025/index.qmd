@@ -43,7 +43,7 @@ library_features = pl.DataFrame(
         "stars": [3835, 463, 166, 62, 315],
         "feat": [
             "Statistical testing, schema-first validation, mypy integration",
-            "Pydantic integration, model-based validation, serialization",
+            "Pydantic integration, model-based validation, row-level objects",
             "Interactive reports, threshold management, stakeholder communication",
             "Built-in logging, composable validation, impact levels, lightweight Great Expectations alternative",
             "Collection validation, advanced type safety, failure analysis",
@@ -269,7 +269,6 @@ logic, Pandera's Check system provides significantly more power and extensibilit
 ### Unique Strengths and When to Use
 
 - Pydantic-style model definitions with familiar syntax for Pydantic users
-- automatic serialization/deserialization between formats
 - rich type system integration with Python's typing system
 - model inheritance and composition for complex data structures
 - seamless integration with existing Pydantic-based applications
