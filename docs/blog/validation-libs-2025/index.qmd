@@ -23,7 +23,6 @@ Here are the unique strengths for each library:
 import polars as pl
 from great_tables import GT
 
-# Create DataFrame with library information
 library_features = pl.DataFrame(
     {
         "lib": [
@@ -44,7 +43,6 @@ library_features = pl.DataFrame(
     }
 )
 
-# Create Great Tables version
 (
     GT(library_features)
     .cols_label(lib="Library", stars="⭐", feat="Best Features")
@@ -56,16 +54,46 @@ library_features = pl.DataFrame(
 
 Based on these strengths, here are my recommendations for which libraries to use according to use case:
 
-| Use Case                     | Best Libraries        | Description |
-|------------------------------|-----------------------|-------------|
-| Type-safe pipelines          | Pandera, Dataframely, Patito | Static type checking and compile-time validation |
-| Stakeholder reporting        | Pointblank            | Sharing validation results with non-technical teams |
-| Row-level object modeling    | Patito                | Converting DataFrame rows to Python objects with business logic |
-| Statistical validation       | Pandera               | Testing data distributions and statistical properties |
-| Data quality improvement     | Pointblank, Validoopsie | Gradual quality improvement with threshold tracking |
+```{python}
+#| echo: false
 
-We'll run through examples with **Pandera**, **Patito**, **Pointblank**, **Validoopsie**, and
-**Dataframely**, using this Polars DataFrame as our test case:
+use_cases = pl.DataFrame({
+    "use_case": [
+        "Type-safe pipelines",
+        "Stakeholder reporting",
+        "Row-level object modeling",
+        "Statistical validation",
+        "Data quality improvement"
+    ],
+    "libs": [
+        "Pandera, Dataframely, Patito",
+        "Pointblank",
+        "Patito",
+        "Pandera",
+        "Pointblank, Validoopsie"
+    ],
+    "desc": [
+        "Static type checking and compile-time validation",
+        "Sharing validation results with non-technical teams",
+        "Converting DataFrame rows to Python objects with business logic",
+        "Testing data distributions and statistical properties",
+        "Gradual quality improvement with threshold tracking"
+    ]
+})
+
+(
+    GT(use_cases)
+    .cols_label(
+        use_case="Use Case",
+        libs="Best Libraries",
+        desc="Description"
+    )
+    .opt_horizontal_padding(scale=2)
+)
+```
+
+We are going to run through examples with **Pandera**, **Patito**, **Pointblank**, **Validoopsie**,
+and **Dataframely**, using this Polars DataFrame as our test case:
 
 ```{python}
 import polars as pl
