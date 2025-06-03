@@ -537,7 +537,7 @@ import polars as pl
 import dataframely as dy
 
 class UserSchema(dy.Schema):
-    user_id = dy.Int64(primary_key=True, min=1)
+    user_id = dy.Int64(primary_key=True, min=1, nullable=False)
     age = dy.Int64(nullable=False)
     email = dy.String(nullable=False, regex=r"^[^@]+@[^@]+\.[^@]+$")
     score = dy.Float64(nullable=False, min=0.0, max=100.0)
