@@ -676,10 +676,10 @@ right and most natural for your team's coding style and mental model.
 
 My hunch is that many teams already successfully use different libraries for different parts of
 their data pipeline. They're leveraging each tool's strengths where they matter most. So you could
-conceivably use Patito for API validation, Pandera for statistical checks in your analysis pipeline,
-Pointblank for generating stakeholder reports, and Dataframely for complex data engineering
-workflows (use 'em all!). This multi-library approach can be particularly effective in larger
-organizations with diverse validation needs.
+conceivably use Patito for Pydantic-style validation, Pandera for statistical checks in your
+analysis pipeline, Pointblank for generating stakeholder reports, and Dataframely for complex data
+engineering workflows (use 'em all!). This multi-library approach can be particularly effective in
+larger organizations with diverse validation needs.
 
 I suppose the key is to start with one library that fits your immediate needs, learn it well, and
 then consider expanding your toolkit as your validation requirements evolve.
