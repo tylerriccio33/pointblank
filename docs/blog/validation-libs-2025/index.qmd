@@ -188,10 +188,18 @@ declarative, schema-centric approach.
 Here are some of stand-out features that Pandera has:
 
 - type-safe schema definitions with `mypy` integration
-- statistical hypothesis testing for data distributions
+- statistical hypothesis testing for data distributions: perform t-tests, chi-square tests, and
+custom statistical tests directly in your validation schema
 - excellent integration with Pandas, Polars, and Arrow support
 - declarative schema syntax that serves as documentation
 - built-in support for data coercion and transformation
+
+This statistical validation capability goes beyond basic type and range checking to test actual data
+relationships and distributional assumptions. For example, you can validate that the mean height of
+group `"M"` is significantly greater than group `"F"` using a two-sample t-test, or test whether a
+column follows a normal distribution. This makes Pandera uniquely powerful for data science
+workflows where the statistical properties of your data are as important as individual data points
+meeting basic constraints.
 
 Data practitioners should choose Pandera when building type-safe data pipelines where schema
 validation is critical, especially in data science workflows that require statistical validation.
