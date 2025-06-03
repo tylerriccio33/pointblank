@@ -92,29 +92,29 @@ We'll cover most of these common arguments in their own dedicated sections later
 
 These methods check individual values within columns against specific criteria:
 
-- **Comparison checks** (`Validate.col_vals_gt()`, `Validate.col_vals_lt()`, etc.) for comparing
+- **Comparison checks** (`~~Validate.col_vals_gt()`, `~~Validate.col_vals_lt()`, etc.) for comparing
 values to thresholds or other columns
 
-- **Range checks** (`Validate.col_vals_between()`, `Validate.col_vals_outside()`) for verifying
+- **Range checks** (`~~Validate.col_vals_between()`, `~~Validate.col_vals_outside()`) for verifying
 that values fall within or outside specific ranges
 
-- **Set membership checks** (`Validate.col_vals_in_set()`, `Validate.col_vals_not_in_set()`) for
+- **Set membership checks** (`~~Validate.col_vals_in_set()`, `~~Validate.col_vals_not_in_set()`) for
 validating values against predefined sets
 
-- **Null value checks** (`Validate.col_vals_null()`, `Validate.col_vals_not_null()`) for testing
+- **Null value checks** (`~~Validate.col_vals_null()`, `~~Validate.col_vals_not_null()`) for testing
 presence or absence of null values
 
-- **Pattern matching checks** (`Validate.col_vals_regex()`) for validating text patterns with
+- **Pattern matching checks** (`~~Validate.col_vals_regex()`) for validating text patterns with
 regular expressions
 
-- **Custom expression checks** (`Validate.col_vals_expr()`) for complex validations using custom
+- **Custom expression checks** (`~~Validate.col_vals_expr()`) for complex validations using custom
 expressions
 
 Now let's look at some key examples from select categories of column value validations.
 
 ### Comparison Checks
 
-Let's start with a simple example of how `Validate.col_vals_gt()` might be used to check if the
+Let's start with a simple example of how `~~Validate.col_vals_gt()` might be used to check if the
 values in a column are greater than a specified value.
 
 ```{python}
@@ -157,7 +157,7 @@ This validation checks that values in column `a` are less than values in column 
 ### Checking of Missing Values
 
 A very common thing to validate is that there are no Null/NA/missing values in a column. The
-`Validate.col_vals_not_null()` method checks for the presence of missing values:
+`~~Validate.col_vals_not_null()` method checks for the presence of missing values:
 
 ```{python}
 (
@@ -171,7 +171,7 @@ Column `a` has no missing values and the above validation proves this.
 
 ### Checking Strings with Regexes
 
-A regular expression (regex) validation via the `Validate.col_vals_regex()` validation method checks
+A regular expression (regex) validation via the `~~Validate.col_vals_regex()` validation method checks
 if values in a column match a specified pattern. Here's an example with two validation steps, each
 checking text values in a column:
 
@@ -211,15 +211,15 @@ Row-based validations focus on examining properties that span across entire rows
 individual columns. These are essential for detecting issues that can't be found by looking at
 columns in isolation:
 
-- `Validate.rows_distinct()`: ensures no duplicate rows exist in the table
-- `Validate.rows_complete()`: verifies that no rows contain any missing values
+- `~~Validate.rows_distinct()`: ensures no duplicate rows exist in the table
+- `~~Validate.rows_complete()`: verifies that no rows contain any missing values
 
 These row-level validations are particularly valuable for ensuring data integrity and completeness
 at the record level, which is crucial for many analytical and operational data applications.
 
 ### Checking Row Distinctness
 
-Here's an example where we check for duplicate rows with `Validate.rows_distinct()`:
+Here's an example where we check for duplicate rows with `~~Validate.rows_distinct()`:
 
 ```{python}
 (
@@ -229,7 +229,7 @@ Here's an example where we check for duplicate rows with `Validate.rows_distinct
 )
 ```
 
-We can also adapt the `Validate.rows_distinct()` check to use a single column or a subset of
+We can also adapt the `~~Validate.rows_distinct()` check to use a single column or a subset of
 columns. To do that, we need to use the `columns_subset=` parameter. Here's an example of that:
 
 ```{python}
@@ -243,7 +243,7 @@ columns. To do that, we need to use the `columns_subset=` parameter. Here's an e
 ### Checking Row Completeness
 
 Another important validation is checking for complete rows: rows that have no missing values across
-all columns or a specified subset of columns. The `Validate.rows_complete()` validation method
+all columns or a specified subset of columns. The `~~Validate.rows_complete()` validation method
 performs this check.
 
 Here's an example checking if all rows in the table are complete (have no missing values in any
@@ -264,10 +264,10 @@ As the report indicates, there are some incomplete rows in the table.
 Table structure validations ensure that the overall architecture of your data meets expectations.
 These structural checks form a foundation for more detailed data quality assessments:
 
-- `Validate.col_exists()`: verifies a column exists in the table
-- `Validate.col_schema_match()`: ensures table matches a defined schema
-- `Validate.col_count_match()`: confirms the table has the expected number of columns
-- `Validate.row_count_match()`: verifies the table has the expected number of rows
+- `~~Validate.col_exists()`: verifies a column exists in the table
+- `~~Validate.col_schema_match()`: ensures table matches a defined schema
+- `~~Validate.col_count_match()`: confirms the table has the expected number of columns
+- `~~Validate.row_count_match()`: verifies the table has the expected number of rows
 
 These structural validations provide essential checks on the fundamental organization of your data
 tables, ensuring they have the expected dimensions and components needed for reliable data analysis.
@@ -290,10 +290,10 @@ That column is present, so the single test unit of this validation step is a pas
 ### Checking the Table Schema
 
 For deeper checks of table structure, a schema validation can be performed with the
-`Validate.col_schema_match()` validation method, where the goal is to check whether the structure of
+`~~Validate.col_schema_match()` validation method, where the goal is to check whether the structure of
 a table matches an expected schema. To define an expected table schema, we need to use the `Schema`
 class. Here is a simple example that (1) prepares a schema consisting of column names, (2) uses that
-`schema` object in a `Validate.col_schema_match()` validation step:
+`schema` object in a `~~Validate.col_schema_match()` validation step:
 
 ```{python}
 schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
@@ -305,7 +305,7 @@ schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 )
 ```
 
-The `Validate.col_schema_match()` validation step will only have a single test unit (signifying pass
+The `~~Validate.col_schema_match()` validation step will only have a single test unit (signifying pass
 or fail). We can see in the above validation report that the column schema validation passed.
 
 More often, a schema will be defined using column names and column types. We can do that by using a
@@ -333,7 +333,7 @@ schema = pb.Schema(
 )
 ```
 
-The `Validate.col_schema_match()` validation method has several boolean parameters for making the
+The `~~Validate.col_schema_match()` validation method has several boolean parameters for making the
 checks less stringent:
 
 - `complete=`: requires exact column matching (all expected columns must exist, no extra columns allowed)
@@ -349,7 +349,7 @@ necessary or practical for your use case.
 
 Row and column count validations check the number of rows and columns in a table.
 
-Using `Validate.row_count_match()` checks whether the number of rows in a table matches a specified
+Using `~~Validate.row_count_match()` checks whether the number of rows in a table matches a specified
 count.
 
 ```{python}
@@ -360,7 +360,7 @@ count.
 )
 ```
 
-The `Validate.col_count_match()` validation method checks if the number of columns in a table
+The `~~Validate.col_count_match()` validation method checks if the number of columns in a table
 matches a specified count.
 
 ```{python}
