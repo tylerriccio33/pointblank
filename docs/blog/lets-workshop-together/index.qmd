@@ -1,7 +1,7 @@
 ---
 jupyter: python3
 html-table-processing: none
-title: "C'mon C'mon: Let's Have a Pointblank Workshop!"
+title: "C'mon C'mon: Let's Do a Pointblank Workshop!"
 author: Rich Iannone
 date: 2025-06-03
 freeze: true
