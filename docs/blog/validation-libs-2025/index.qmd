@@ -719,4 +719,4 @@ share, we'd love to hear from you! Please reach out through:
 - [GitHub Discussions](https://github.com/posit-dev/pointblank/discussions)
 - Our [Discord Server](https://discord.com/invite/YH7CybCNCQ)
 
-Your feedback helps keep this resource accurate and useful for the community.
+Any feedback you provide helps keep this resource accurate and useful for the community!
