@@ -24,6 +24,8 @@ issue](https://github.com/great-expectations/great_expectations/issues/10702) an
 the inside baseball.
 :::
 
+## Recommendations
+
 Here are the unique strengths for each library:
 
 ```{python}
@@ -99,6 +101,8 @@ use_cases = pl.DataFrame({
     .opt_horizontal_padding(scale=2)
 )
 ```
+
+## Setup
 
 We are going to run through examples with **Pandera**, **Patito**, **Pointblank**, **Validoopsie**,
 and **Dataframely**, using this Polars DataFrame as our test case:
