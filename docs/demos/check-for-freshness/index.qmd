@@ -25,10 +25,9 @@ cutoff_date = date(2023, 12, 31) - timedelta(days=3)
 
 validation = (
     pb.Validate(data=global_sales)
-    .rows_distinct()  # Check that we have some data first
     .specially(
         expr=lambda df: df.filter(pl.col("timestamp") >= cutoff_date).height > 0,
-        brief="Recent data availability check: there's at least some data in the last 3 days."
+        brief="Recent data availability check: there is data in the last 3 days."
     )
     .col_vals_between(
         columns="timestamp",
@@ -59,10 +58,9 @@ cutoff_date = date(2023, 12, 31) - timedelta(days=3)
 
 validation = (
     pb.Validate(data=global_sales)
-    .rows_distinct()  # Check that we have some data first
     .specially(
         expr=lambda df: df.filter(pl.col("timestamp") >= cutoff_date).height > 0,
-        brief="Recent data availability check: there's at least some data in the last 3 days."
+        brief="Recent data availability check: there is data in the last 3 days."
     )
     .col_vals_between(
         columns="timestamp",
