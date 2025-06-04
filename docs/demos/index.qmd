@@ -92,6 +92,16 @@ h3 a {
 </div>
 :::
 
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Step Report for a Schema Check](./07-validation-with-actions/index.qmd)
+</div>
+<a href="https://posit-dev.github.io/pointblank/demos/07-validation-with-actions/"><img style='padding-bottom: 10px;' src="img/validation_with_actions.png" width="100%"></img></a>
+<p style='text-align: center;'>Configure actions to trigger when validation thresholds are exceeded, such as logging warnings or errors.</p>
+</div>
+:::
+
 :::::
 
 ::::::
