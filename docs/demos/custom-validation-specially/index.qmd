@@ -87,7 +87,7 @@ validation
 
 ```{python}
 # | echo: false
-pb.preview(pb.load_dataset(dataset="game_revenue", tbl_type="polars"), n_head=20, n_tail=20)
+pb.preview(pb.load_dataset(dataset="game_revenue", tbl_type="polars"))
 ```
 
 </details>
