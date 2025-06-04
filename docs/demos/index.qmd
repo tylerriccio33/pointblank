@@ -92,6 +92,26 @@ h3 a {
 </div>
 :::
 
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Step-Level Actions](./07-validation-with-actions/index.qmd)
+</div>
+<a href="https://posit-dev.github.io/pointblank/demos/07-validation-with-actions/"><img style='padding-bottom: 10px;' src="img/validation_with_actions.png" width="100%"></img></a>
+<p style='text-align: center;'>Configure actions to trigger when validation thresholds are exceeded, such as logging warnings or errors.</p>
+</div>
+:::
+
+:::{.g-col-lg-6 .g-col-12 .example}
+<div style='text-align: center;'>
+<div style='padding-top: 20px; padding-bottom: 10px;'>
+[Final Actions](./08-validation-with-final-actions/index.qmd)
+</div>
+<a href="https://posit-dev.github.io/pointblank/demos/08-validation-with-final-actions/"><img style='padding-bottom: 10px;' src="img/validation_with_final_actions.png" width="100%"></img></a>
+<p style='text-align: center;'>Execute actions after validation completes, such as sending alerts or generating summary reports.</p>
+</div>
+:::
+
 :::::
 
 ::::::
@@ -132,6 +152,12 @@ For far more specialized validations, modify the table with the `pre=` argument 
 
 [Verifying Row and Column Counts](./check-row-column-counts/index.qmd)<br>
 Check the dimensions of the table with the `*_count_match()` validation methods.
+
+[Validating Datetime Values and Data Freshness](./check-for-freshness/index.qmd)<br>
+Use date-based validations to ensure your data is current and within expected time ranges.
+
+[Custom Validation with `specially()`](./custom-validation-specially/index.qmd)<br>
+Create bespoke validations using `specially()` to implement domain-specific business rules.
 
 [Set Failure Threshold Levels](./failure-thresholds/index.qmd)<br>
 Set threshold levels to better gauge adverse data quality.
