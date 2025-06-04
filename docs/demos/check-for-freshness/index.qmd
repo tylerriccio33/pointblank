@@ -17,14 +17,13 @@ import pointblank as pb
 import polars as pl
 from datetime import date, timedelta
 
-# Load the `global_sales` dataset
-global_sales = pb.load_dataset(dataset="global_sales", tbl_type="polars")
-
 # Supposing it is 2023-12-31, there should be data available in the last 3 days
 cutoff_date = date(2023, 12, 31) - timedelta(days=3)
 
 validation = (
-    pb.Validate(data=global_sales)
+    pb.Validate(
+        data=pb.load_dataset(dataset="global_sales", tbl_type="polars")
+    )
     .specially(
         expr=lambda df: df.filter(pl.col("timestamp") >= cutoff_date).height > 0,
         brief="Recent data availability check: there is data in the last 3 days."
@@ -50,14 +49,13 @@ import pointblank as pb
 import polars as pl
 from datetime import date, timedelta
 
-# Load the `global_sales` dataset
-global_sales = pb.load_dataset(dataset="global_sales", tbl_type="polars")
-
 # Supposing it is 2023-12-31, there should be data available in the last 3 days
 cutoff_date = date(2023, 12, 31) - timedelta(days=3)
 
 validation = (
-    pb.Validate(data=global_sales)
+    pb.Validate(
+        data=pb.load_dataset(dataset="global_sales", tbl_type="polars")
+    )
     .specially(
         expr=lambda df: df.filter(pl.col("timestamp") >= cutoff_date).height > 0,
         brief="Recent data availability check: there is data in the last 3 days."
@@ -83,7 +81,7 @@ validation
 
 ```{python}
 # | echo: false
-pb.preview(pb.load_dataset(dataset="global_sales", tbl_type="polars"), n_head=20, n_tail=20)
+pb.preview(pb.load_dataset(dataset="global_sales", tbl_type="polars"))
 ```
 
 </details>
