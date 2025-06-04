@@ -8,7 +8,7 @@ html-table-processing: none
 
 ### Validation with Final Actions
 
-Execute actions after all validation steps are complete, such as sending alerts or generating summary reports based on overall validation results.
+Execute actions after validation completes, such as sending alerts or generating summary reports.
 
 ```{python}
 #| echo: false

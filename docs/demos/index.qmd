@@ -108,7 +108,7 @@ h3 a {
 [Final Actions](./08-validation-with-final-actions/index.qmd)
 </div>
 <a href="https://posit-dev.github.io/pointblank/demos/08-validation-with-final-actions/"><img style='padding-bottom: 10px;' src="img/validation_with_final_actions.png" width="100%"></img></a>
-<p style='text-align: center;'>Execute actions after all validation steps are complete, such as sending alerts or generating summary reports based on overall validation results.</p>
+<p style='text-align: center;'>Execute actions after validation completes, such as sending alerts or generating summary reports.</p>
 </div>
 :::
 
