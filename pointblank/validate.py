@@ -9840,7 +9840,7 @@ class Validate:
         Get the 'critical' level status for each validation step.
 
         The 'critical' status for a validation step is `True` if the fraction of failing test units
-        meets or exceeds the threshold for the notification level. Otherwise, the status is `False`.
+        meets or exceeds the threshold for the 'critical' level. Otherwise, the status is `False`.
 
         The ascribed name of 'critical' is semantic and is thus simply a status indicator that could
         be used to trigger some action to be take. Here's how it fits in with other status
@@ -9852,14 +9852,14 @@ class Validate:
         severity
         - 'critical': the status obtained by calling `critical()`, most severe
 
-        This method provides a dictionary of the notification status for each validation step. If
-        the `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a
-        scalar instead of a dictionary.
+        This method provides a dictionary of the 'critical' status for each validation step. If the
+        `scalar=True` argument is provided and `i=` is a scalar, the value is returned as a scalar
+        instead of a dictionary.
 
         Parameters
         ----------
         i
-            The validation step number(s) from which the notification status is obtained. Can be
+            The validation step number(s) from which the 'critical' status is obtained. Can be
             provided as a list of integers or a single integer. If `None`, all steps are included.
         scalar
             If `True` and `i=` is a scalar, return the value as a scalar instead of a dictionary.
@@ -9867,7 +9867,7 @@ class Validate:
         Returns
         -------
         dict[int, bool] | bool
-            A dictionary of the notification status for each validation step or a scalar value.
+            A dictionary of the 'critical' status for each validation step or a scalar value.
 
         Examples
         --------
