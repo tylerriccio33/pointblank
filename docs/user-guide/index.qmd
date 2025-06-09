@@ -80,7 +80,7 @@ Note these three key pieces in the code:
 
 This common pattern is used in a validation workflow, where
 `Validate` and
-`~~Validate.interrogate()` bookend a validation plan generated through calling validation methods.
+`~~.Validate.interrogate()` bookend a validation plan generated through calling validation methods.
 
 In the next few sections we'll go a bit further by understanding how we can measure data quality and
 respond to failures.
