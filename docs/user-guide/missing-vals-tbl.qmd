@@ -12,18 +12,16 @@ import pointblank as pb
 ```
 
 Sometimes values just aren't there: they're missing. This can either be expected or another thing to
-worry about. Either way, we can dig a little deeper if need be and use the
-[`missing_vals_tbl()`](https://posit-dev.github.io/pointblank/reference/missing_vals_tbl.html)
+worry about. Either way, we can dig a little deeper if need be and use the `missing_vals_tbl()`
 function to generate a summary table that can elucidate how many values are missing, and roughly
 where.
 
-## Using and Understanding `missing_vals_tbl()`
+## Using and Understanding `missing_vals_tbl()`{.qd-no-link}
 
 The missing values table is arranged a lot like the column summary table (generated via the
-[`col_summary_tbl()`](https://posit-dev.github.io/pointblank/reference/col_summary_tbl.html)
-function) in that columns of the input table are arranged as rows in the reporting table. Let's use
-[`missing_vals_tbl()`](https://posit-dev.github.io/pointblank/reference/missing_vals_tbl.html) on
-the `nycflights` dataset, which has a lot of missing values:
+`col_summary_tbl()` function) in that columns of the input table are arranged as rows in the
+reporting table. Let's use `missing_vals_tbl()` on the `nycflights` dataset, which has a lot of
+missing values:
 
 ```{python}
 import pointblank as pb
@@ -59,7 +57,7 @@ of missingness of more variable and not related to the other columns containing 
 ## Missing Value Tables from the Other Datasets
 
 The `small_table` dataset has only 13 rows to it. Let's use that as a Pandas DataFrame with
-[`missing_vals_tbl()`](https://posit-dev.github.io/pointblank/reference/missing_vals_tbl.html):
+`missing_vals_tbl()`:
 
 ```{python}
 small_table = pb.load_dataset(dataset="small_table", tbl_type="pandas")
@@ -71,8 +69,7 @@ It appears that only column `c` has missing values. And since the table is very 
 row count, most of the row sectors contain only a single row.
 
 The `game_revenue` dataset has *no* missing values. And this can be easily proven by using
-[`missing_vals_tbl()`](https://posit-dev.github.io/pointblank/reference/missing_vals_tbl.html) with
-it:
+`missing_vals_tbl()` with it:
 
 ```{python}
 game_revenue = pb.load_dataset(dataset="game_revenue", tbl_type="duckdb")
