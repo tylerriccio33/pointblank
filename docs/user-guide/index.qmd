@@ -169,7 +169,7 @@ example, you can generate console messages, Slack notifications, and more.
 
 ## Navigating the User Guide
 
-As you continue exploring Pointblank's capabilities, you'll find the **User Guide* organized into
+As you continue exploring Pointblank's capabilities, you'll find the **User Guide** organized into
 sections that will help you navigate the various features.
 
 ### Getting Started
