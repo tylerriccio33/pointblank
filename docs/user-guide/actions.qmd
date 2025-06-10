@@ -175,7 +175,7 @@ callable functions offer more flexibility through access to detailed metadata. W
 as actions, you can retrieve comprehensive information about the validation context, allowing for
 complex logic and dynamic responses to validation issues.
 
-### Using `get_action_metadata()` in Callables
+### Using `get_action_metadata()`{.qd-no-link} in Callables
 
 To access information about the validation step where an action was triggered, we can call
 `get_action_metadata()` in the body of a function to be used within `Actions`. This provides useful
@@ -401,7 +401,7 @@ after the simple string message.
 All actions will be executed in the order they are provided after all validation steps have
 completed.
 
-### Using `get_validation_summary()` in Final Actions
+### Using `get_validation_summary()`{.qd-no-link} in Final Actions
 
 When creating a callable function to use with `FinalActions`, you can access information about the
 overall validation results using the `get_validation_summary()` function. This gives you a
