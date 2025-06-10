@@ -14,12 +14,9 @@ pb.config(report_incl_footer=False)
 
 While Pointblank offers many specialized validation functions for common data quality checks,
 sometimes you need more flexibility for complex validation requirements. This is where
-expression-based validation with
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-comes in.
+expression-based validation with `~~Validate.col_vals_expr()` comes in.
 
-The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-method allows you to:
+The `~~Validate.col_vals_expr()` method allows you to:
 
 - combine multiple conditions in a single validation step
 - access row-wise values across multiple columns
@@ -28,10 +25,8 @@ Now let's explore how to use these capabilities through a collection of examples
 
 ## Basic Usage
 
-At its core,
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-validates whether an expression evaluates to `True` for each row in your data. Here's a simple
-example:
+At its core, `~~Validate.col_vals_expr()` validates whether an expression evaluates to `True` for
+each row in your data. Here's a simple example:
 
 ```{python}
 import pointblank as pb
@@ -71,10 +66,8 @@ The expression should:
 
 ## Complex Expressions
 
-The real power of
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-comes with complex expressions that would be difficult to represent using the standard validation
-functions:
+The real power of `~~Validate.col_vals_expr()` comes with complex expressions that would be
+difficult to represent using the standard validation functions:
 
 ```{python}
 # Load game_revenue dataset as a Polars DataFrame
@@ -110,7 +103,8 @@ employee_df = pl.DataFrame({
 (
     pb.Validate(data=employee_df, tbl_name="employee_data")
     .col_vals_expr(
-        # Complex condition with multiple comparisons
+
+        # Complex condition with multiple comparisons ---
         expr=(
             (pl.col("age") >= 18) &
             (pl.col("income") / (pl.col("years_experience") + 1) <= 25000)
@@ -129,7 +123,8 @@ When working with expressions, consider how to handle null/missing values:
 (
     pb.Validate(data=small_table_pl)
     .col_vals_expr(
-        # Check for nulls before division
+
+        # Check for nulls before division ---
         expr=(pl.col("c").is_not_null()) & ((pl.col("c") / pl.col("a")) > 1.5),
         brief="Ratio of `c`/`a` should exceed 1.5 (when `c` is not null)."
     )
@@ -140,7 +135,7 @@ When working with expressions, consider how to handle null/missing values:
 ## Best Practices
 
 Here are some tips and tricks for effectively using expression-based validation with
-[`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html).
+`~~Validate.col_vals_expr()`.
 
 ### Document Your Expressions
 
@@ -151,7 +146,8 @@ Always provide clear documentation in the `brief=` parameter:
     pb.Validate(data=small_table_pl)
     .col_vals_expr(
         expr=pl.col("d") > pl.col("a") * 1.5,
-        # Document which columns are being compared
+
+        # Document which columns are being compared ---
         brief="Column `d` should be at least 1.5 times larger than column `a`."
     )
     .interrogate()
@@ -166,7 +162,8 @@ Consider potential edge cases like division by zero or nulls:
 (
     pb.Validate(data=small_table_pl)
     .col_vals_expr(
-        # Check denominator before division
+
+        # Check denominator before division ---
         expr=(pl.col("a") != 0) & (pl.col("d") / pl.col("a") > 1.5),
         brief="Ratio of `d`/`a` should exceed 1.5 (avoiding division by zero)."
     )
@@ -181,11 +178,10 @@ is correct before applying it to large datasets.
 
 ## Conclusion
 
-The [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-method provides a powerful way to implement complex validation logic in Pointblank when standard
-validation methods aren't sufficient. By leveraging expressions, you can create sophisticated data
-quality checks tailored to your specific requirements, combining conditions across multiple columns
-and applying transformations as needed.
+The `~~Validate.col_vals_expr()` method provides a powerful way to implement complex validation
+logic in Pointblank when standard validation methods aren't sufficient. By leveraging expressions,
+you can create sophisticated data quality checks tailored to your specific requirements, combining
+conditions across multiple columns and applying transformations as needed.
 
 This flexibility makes expression-based validation an essential tool for addressing complex data
 quality scenarios in your validation workflows.
