@@ -22,12 +22,12 @@ receiving its own validation step. Rather than validating an entire table at onc
 validate different partitions separately and get separate results for each.
 
 The `segments=` argument is available in many validation methods; typically it's in those methods
-that check values within rows, and those methods that examine entire rows (`rows_distinct()`,
-`rows_complete()`). When you use it, Pointblank will:
+that check values within rows, and those methods that examine entire rows
+(`~~Validate.rows_distinct()`, `~~Validate.rows_complete()`). When you use it, Pointblank will:
 
-1. Split your data according to your segmentation criteria
-2. Run the validation separately on each segment
-3. Report results individually for each segment
+1. split your data according to your segmentation criteria
+2. run the validation separately on each segment
+3. report results individually for each segment
 
 Let's explore how to use the `segments=` argument through a few practical examples.
 
@@ -55,9 +55,10 @@ validation_1 = (
         label="Segmented validation by category"
     )
     .col_vals_gt(
-        columns="d",
-        value=100,
-        segments="f"  # Segment by values in column f
+        columns="d", value=100,
+
+        # Segment by unique values in column `f` ---
+        segments="f"
     )
     .interrogate()
 )
@@ -112,7 +113,9 @@ validation_3 = (
     .col_vals_gt(
         columns="d",
         value=100,
-        segments=["f", ("a", [1, 2])]  # Segment by values in `f` AND specific values in `a`
+
+        # Segment by values in `f` AND specific values in `a` ---
+        segments=["f", ("a", [1, 2])]
     )
     .interrogate()
 )
@@ -139,12 +142,15 @@ validation_4 = (
         label="Segmentation with preprocessing",
     )
     .col_vals_gt(
-        columns="d",
-        value=100,
+        columns="d", value=100,
+
+        # Create a column containing categorical values ---
         pre=lambda df: df.with_columns(
             d_category=pl.when(pl.col("d") > 150).then(pl.lit("high")).otherwise(pl.lit("low"))
         ),
-        segments="d_category",  # Segment by the computed column generated via `pre=`
+
+        # Segment by the computed column `d_category` generated via `pre=` ---
+        segments="d_category",
     )
     .interrogate()
 )
@@ -160,13 +166,13 @@ In this example, we first create a derived column `d_category` based on whether 
 
 Segmentation is particularly useful when:
 
-1. **Data quality standards vary by group**: different regions, product lines, or customer segments
+1. Data quality standards vary by group: different regions, product lines, or customer segments
 might have different acceptable thresholds
-2. **Identifying problem areas**: segmentation helps pinpoint exactly where data quality issues
+2. Identifying problem areas: segmentation helps pinpoint exactly where data quality issues
 exist, rather than just knowing that some issue exists somewhere in the data
-3. **Generating detailed reports**: by segmenting, you get more granular reporting that can be
+3. Generating detailed reports: by segmenting, you get more granular reporting that can be
 shared with different stakeholders responsible for different parts of the data
-4. **Tracking improvements over time**: segmented validations make it easier to see if data quality
+4. Tracking improvements over time: segmented validations make it easier to see if data quality
 is improving in specific areas that were previously problematic
 
 By using segmentation strategically in these scenarios, you can transform your data validation from
@@ -180,10 +186,10 @@ relevant stakeholders.
 So why use segmentation instead of just creating separate validation steps for each segment using
 filtering in the `pre=` argument? Well, segmentation offers several nice advantages:
 
-1. **Conciseness**: you define your validation logic once, not repeatedly for each segment
-2. **Consistency**: we can be certain that the same validation is applied uniformly across segments
-3. **Clarity**: the validation report will clearly organize results by segment (with extra labeling)
-4. **Convenience**: there's no need to manually extract and filter subsets of your data
+1. Conciseness: you define your validation logic once, not repeatedly for each segment
+2. Consistency: we can be certain that the same validation is applied uniformly across segments
+3. Clarity: the validation report will clearly organize results by segment (with extra labeling)
+4. Convenience: there's no need to manually extract and filter subsets of your data
 
 Segmentation can end of simplifying your validation code while also providing more structured and
 informative reporting about different portions of your data.
@@ -247,14 +253,14 @@ Effective data segmentation requires thoughtful planning about how to divide you
 make sense for your validation needs. When implementing segmentation in your data validation
 workflow, consider these key principles:
 
-1. **Choose meaningful segments**: select segmentation columns that align with your business logic
-and organizational structure
+1. Choose meaningful segments: select segmentation columns that align with your business logic and
+organizational structure
 
-2. **Use preprocessing when needed**: if your raw data doesn't have good segmentation columns,
-create them through preprocessing (with the `pre=` argument)
+2. Use preprocessing when needed: if your raw data doesn't have good segmentation columns, create
+them through preprocessing (with the `pre=` argument)
 
-3. **Combine with actions**: for critical segments, define segment-specific actions using the
-`actions=` parameter to respond to validation failures.
+3. Combine with actions: for critical segments, define segment-specific actions using the `actions=`
+parameter to respond to validation failures.
 
 By implementing these best practices, you'll create more targeted, maintainable, and actionable data
 validations. Segmentation becomes most powerful when it aligns with natural divisions in your data
