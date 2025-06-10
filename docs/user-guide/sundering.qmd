@@ -178,7 +178,7 @@ mutation may drastically reduce the number of rows).
 
 ## Practical Applications of Sundering
 
-*1. Creating Clean Datasets for Analysis*
+### 1. Creating Clean Datasets for Analysis
 
 One of the most common use cases for sundering is preparing validated data for downstream analysis:
 
@@ -204,7 +204,7 @@ standards, reducing the risk of misleading results or spurious conclusions due t
 records. By making validation an explicit step in your analytical workflow, you create a natural
 quality gate that prevents invalid data from influencing your findings.
 
-*2. Creating Parallel Workflows for Clean and Problematic Data*
+### 2. Creating Parallel Workflows for Clean and Problematic Data
 
 You can use sundering to create parallel processing paths:
 
@@ -227,7 +227,7 @@ automated notifications to data stewards when issues arise. By establishing clea
 handling both data streams, you create a systematic approach to data quality that balances immediate
 analytical needs with longer-term data improvement goals.
 
-*3. Data Quality Monitoring and Improvement*
+### 3. Data Quality Monitoring and Improvement
 
 Tracking the ratio of passing to failing rows over time can help monitor data quality trends:
 
