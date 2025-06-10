@@ -24,8 +24,7 @@ issues.
 ## Creating a Step Report
 
 To create a step report, you first need to run a validation and then use the
-[`get_step_report()`](https://posit-dev.github.io/pointblank/reference/Validate.get_step_report.html)
-method, specifying which validation step you want to examine:
+`~~Validate.get_step_report()` method, specifying which validation step you want to examine:
 
 ```{python}
 import pointblank as pb
@@ -74,11 +73,9 @@ step with `i=2`, and so on.
 A step report consists of several key components that provide detailed information about the
 validation step:
 
-1. **Header**: displays the validation step number, type of validation, and a brief description
-2. **Table Body**: presents either the failing rows, a sample of completely passing data, or an
-expected/actual comparison (for a
-[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
-step)
+1. Header: displays the validation step number, type of validation, and a brief description
+2. Table Body: presents either the failing rows, a sample of completely passing data, or an
+expected/actual comparison (for a `~~Validate.col_schema_match()` step)
 
 The step report table highlights passing and failing rows, making it easy to identify problematic
 data points. This is especially useful for diagnosing issues when dealing with large datasets.
@@ -88,22 +85,20 @@ data points. This is especially useful for diagnosing issues when dealing with l
 It's important to note that step reports vary in appearance and structure depending on the type of
 validation method used:
 
-- **Value-based validations** (like
-[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html),
-[`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)):
-show individual rows that failed validation
-- **Uniqueness checks** ([`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)):
-group together the duplicate records in order of appearance
-- **Schema validations** ([`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)):
-display column-level information about expected vs. actual data types
+- Value-based validations (like `~~Validate.col_vals_gt()`, `~~Validate.col_vals_in_set()`): show
+individual rows that failed validation
+- Uniqueness checks (`~~Validate.rows_distinct()`): group together the duplicate records in order of
+appearance
+- Schema validations (`~~Validate.col_schema_match()`): display column-level information about
+expected vs. actual data types
 
 Additionally, step reports for value-based validations and uniqueness checks operate in two distinct
 modes:
 
-1. **When errors are present**: The report shows only the failing rows and, for value-based
-validations, clearly highlights the column under study
-2. **When no errors exist**: The report header clearly indicates success, and a sample of the data
-is shown (along with the studied column highlighted, for value-based validations)
+1. When errors are present: The report shows only the failing rows and, for value-based validations,
+clearly highlights the column under study
+2. When no errors exist: The report header clearly indicates success, and a sample of the data is
+shown (along with the studied column highlighted, for value-based validations)
 
 This variation in reporting style allows step reports to effectively communicate the specific type
 of validation being performed and display relevant information in the most appropriate format. When
@@ -214,9 +209,8 @@ see exactly where the schema expectations differ from reality.
 ## Customizing Step Reports
 
 Step reports can be customized with several parameters to better focus your analysis and tailor the
-output to your specific needs. The
-[`get_step_report()`](https://posit-dev.github.io/pointblank/reference/Validate.get_step_report.html)
-method offers multiple customization options to help you create more effective reports.
+output to your specific needs. The `~~Validate.get_step_report()` method offers multiple
+customization options to help you create more effective reports.
 
 When a dataset has many columns, you might want to focus on just those relevant to your analysis.
 You can create a step report containing only a subset of the columns in the target table:
@@ -224,7 +218,9 @@ You can create a step report containing only a subset of the columns in the targ
 ```{python}
 validation.get_step_report(
     i=2,
-    columns_subset=["id", "category", "status"]  # Only show these columns
+
+    # Only show these columns ---
+    columns_subset=["id", "category", "status"]
 )
 ```
 
@@ -237,7 +233,9 @@ of rows shown in the report:
 ```{python}
 validation.get_step_report(
     i=2,
-    limit=2  # Only show up to 2 failing rows
+
+    # Only show up to 2 failing rows ---
+    limit=2
 )
 ```
 
@@ -370,8 +368,7 @@ failing_ratios
 
 This extracts the failing rows from the validation step, which you can then further analyze or fix
 as needed. Note that the parameter `i=2` corresponds directly to the step number shown in the
-validation report; it's the same numbering system used for
-[`get_step_report()`](https://posit-dev.github.io/pointblank/reference/Validate.get_step_report.html).
+validation report; it's the same numbering system used for `~~Validate.get_step_report()`.
 
 These extracts are particularly valuable for analysts who need to:
 
@@ -425,22 +422,21 @@ step number from the validation report.
 
 Here are some guidelines for effectively using step reports in your data validation workflow:
 
-1. **Generate step reports selectively**: create reports only for steps that require detailed
+1. Generate step reports selectively: create reports only for steps that require detailed
 investigation rather than for all steps
 
-2. **Use the `limit=` parameter for large datasets**: when working with large datasets, focus only
+2. Use the `limit=` parameter for large datasets: when working with large datasets, focus only
 on a subset of failing rows to avoid information overload
 
-3. **Share specific step reports with stakeholders**: when collaborating with domain experts, share
+3. Share specific step reports with stakeholders: when collaborating with domain experts, share
 relevant step reports to help them understand and address specific data quality issues (and
 customize the header to improve clarity)
 
-4. **Combine with extracts for deeper analysis**: use the
-[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
-method to extract the failing rows for further analysis or correction
+4. Combine with extracts for deeper analysis: use the `~~Validate.get_data_extracts()` method to
+extract the failing rows for further analysis or correction
 
-5. **Document findings from step reports**: when you discover patterns or insights from step
-reports, document them to inform future data quality improvements
+5. Document findings from step reports: when you discover patterns or insights from step reports,
+document them to inform future data quality improvements
 
 Remember that step reports are most valuable when used strategically as part of a broader data
 quality framework. By following these best practices, you can use step reports not just for
