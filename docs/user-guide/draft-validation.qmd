@@ -12,7 +12,7 @@ dataset or when you need to quickly establish baseline validation coverage.
 The `DraftValidation` class connects to various LLM providers to analyze your data's characteristics
 and generate a complete validation plan tailored to its structure and content.
 
-## How `DraftValidation` Works
+## How `DraftValidation`{.qd-no-link} Works
 
 When you use `DraftValidation`, the process works through these steps:
 
@@ -376,7 +376,7 @@ avoiding duplicate validations.
 
 ## Best Practices and Troubleshooting
 
-### When to Use `DraftValidation`
+### When to Use `DraftValidation`{.qd-no-link}
 
 Drafting a validation is most useful when:
 
