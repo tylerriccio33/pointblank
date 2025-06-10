@@ -16,16 +16,15 @@ want to inspect a portion of it before diving into the creation of data-quality 
 pretty easily done with Polars and Pandas DataFrames, however, it's not as easy with database tables
 and each table backend displays things differently.
 
-To make this common task a little better, you can use the
-[`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function in Pointblank.
-It has been designed to work with every table that the package supports (i.e., DataFrames and
-Ibis-backend tables, the latter of which are largely database tables). Plus, what's shown in the
-output is consistent, no matter what type of data you're looking at.
+To make this common task a little better, you can use the `preview()` function in Pointblank. It has
+been designed to work with every table that the package supports (i.e., DataFrames and Ibis-backend
+tables, the latter of which are largely database tables). Plus, what's shown in the output is
+consistent, no matter what type of data you're looking at.
 
-## Viewing a Table with `preview()`
+## Viewing a Table with `preview()`{.qd-no-link}
 
-Let's look at how [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html)
-works. It requires only a table and, for this first example, let's use the `nycflights` dataset:
+Let's look at how `preview()` works. It requires only a table and, for this first example, let's use
+the `nycflights` dataset:
 
 ```{python}
 import pointblank as pb
@@ -106,16 +105,14 @@ since `hour` and `minute` are derived from `sched_dep_time` (and this lets us sp
 issues).
 
 We can also use column selectors within `columns_subset=`. Suppose we want to only see those columns
-that have `"dep_"` or `"arr_"` in the name. To do that, we use the
-[`matches()`](https://posit-dev.github.io/pointblank/reference/matches.html) column selector
+that have `"dep_"` or `"arr_"` in the name. To do that, we use the `matches()` column selector
 function:
 
 ```{python}
 pb.preview(nycflights, columns_subset=pb.matches("dep_|arr_"))
 ```
 
-Several selectors can be combined together through use of the
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) function and operators such as
+Several selectors can be combined together through use of the `col()` function and operators such as
 `&` (*and*), `|` (*or*), `-` (*difference*), and `~` (*not*). Let's look at a column selection case
 where:
 
@@ -123,8 +120,7 @@ where:
 - all columns containing `"dep_"` or `"arr_"` are selected
 - any columns beginning with `"sched"` are omitted
 
-This is how we put that together within
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html):
+This is how we put that together within `col()`:
 
 ```{python}
 pb.preview(
@@ -134,9 +130,6 @@ pb.preview(
 ```
 
 This gives us a preview with only the columns that fit the specific selection rules. Incidentally,
-using selectors with a dataset through
-[`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) is a good way to test
-out the use of selectors more generally. Since they are primarily used to select columns for
-validation, trying them beforehand with
-[`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) can help verify that
-your selection logic is sound.
+using selectors with a dataset through `preview()` is a good way to test out the use of selectors
+more generally. Since they are primarily used to select columns for validation, trying them
+beforehand with `preview()` can help verify that your selection logic is sound.
