@@ -20,7 +20,7 @@ without needing to look at the code.
 
 Briefs can be set in two ways:
 
-1. Globally: applied to all validation steps via the `brief=` parameter in `Validate()`
+1. Globally: applied to all validation steps via the `brief=` parameter in `Validate`
 2. Locally: set for individual validation steps via the `brief=` parameter in each validation method
 
 Understanding these two approaches to adding briefs gives you flexibility in how you document your
