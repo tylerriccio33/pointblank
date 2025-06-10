@@ -46,10 +46,7 @@ import pointblank as pb
 
 validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table"))
-    .col_vals_ge(
-        columns="d",
-        value=1000
-    )
+    .col_vals_ge(columns="d", value=1000)
     .interrogate()
 )
 
@@ -57,8 +54,7 @@ validation
 ```
 
 We see six failing test units in `FAIL` column of the above validation report table. There is a data
-extract (collection of failing rows) available. Let's use the
-[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
+extract (collection of failing rows) available. Let's use the `~~Validate.get_data_extracts()`
 method to have a look at it.
 
 ```{python}
@@ -67,8 +63,7 @@ validation.get_data_extracts(i=1, frame=True)
 
 This is six rows of data that had failing test units in column `d`. Indeed we can see that all
 values in that column are less than `1000` (and we asserted that values should be greater than or
-equal to `1000`). This is the 'bad' data, if you will. Using the
-[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
+equal to `1000`). This is the 'bad' data, if you will. Using the `~~Validate.get_sundered_data()`
 method, we get the 'good' part:
 
 ```{python}
@@ -78,9 +73,8 @@ validation.get_sundered_data()
 This is a Polars DataFrame of seven rows. All values in `d` were passing test units (i.e., fulfilled
 the expectation outlined in the validation step) and, in many ways, this is like a 'good extract'.
 
-You can always collect the failing rows with
-[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
-by using the `type="fail"` option. Let's try that here:
+You can always collect the failing rows with `~~Validate.get_sundered_data()` by using the
+`type="fail"` option. Let's try that here:
 
 ```{python}
 validation.get_sundered_data(type="fail")
@@ -88,8 +82,8 @@ validation.get_sundered_data(type="fail")
 
 It gives us the same rows as in the DataFrame obtained from using
 `validation.get_data_extracts(i=1, frame=True)`. Two important things to know about
-[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
-is that the table rows returned from `type=pass` (the default) and `type=fail` are:
+`~~Validate.get_sundered_data()` are that the table rows returned from `type=pass` (the default) and
+`type=fail` are:
 
 - the sum of rows across these returned tables will be equal to that of the original table
 - the rows in each split table are mutually exclusive (i.e., you won't find the same row in both)
@@ -101,9 +95,8 @@ the method is better seen in a slightly more complex example.
 ## Using `get_sundered_data()` with a More Comprehensive Validation
 
 The previous example used exactly one validation step. You're likely to use more than that in
-standard practice so let's see how
-[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)
-works in those common situations. Here's a validation with three steps:
+standard practice so let's see how `~~Validate.get_sundered_data()` works in those common
+situations. Here's a validation with three steps:
 
 ```{python}
 validation_2 = (
@@ -126,8 +119,7 @@ validation_2
 There are quite a few failures here across the three validation steps. In the `FAIL` column of the
 validation report table, there are 12 failing test units if we were to tally them up. So if the
 input table has 13 rows in total, does this mean there would be one row in the table returned by
-[`get_sundered_data()`](https://posit-dev.github.io/pointblank/reference/Validate.get_sundered_data.html)?
-Not so:
+`~~Validate.get_sundered_data()`? Not so:
 
 ```{python}
 validation_2.get_sundered_data()
@@ -153,22 +145,23 @@ impossible to judge the quality of a row when using the
 [`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html)
 validation method, for example. Luckily, we have many row-level validation methods; here's a list:
 
-- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
-- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
-- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
-- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
-- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
-- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
-- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
-- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
-- [`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
-- [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
-- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
-- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
-- [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
-- [`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)
-- [`rows_complete()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_complete.html)
-- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
+- `~~Validate.col_vals_gt()`
+- `~~Validate.col_vals_lt()`
+- `~~Validate.col_vals_ge()`
+- `~~Validate.col_vals_le()`
+- `~~Validate.col_vals_eq()`
+- `~~Validate.col_vals_ne()`
+- `~~Validate.col_vals_between()`
+- `~~Validate.col_vals_outside()`
+- `~~Validate.col_vals_in_set()`
+- `~~Validate.col_vals_not_in_set()`
+- `~~Validate.col_vals_null()`
+- `~~Validate.col_vals_not_null()`
+- `~~Validate.col_vals_regex()`
+- `~~Validate.col_vals_expr()`
+- `~~Validate.rows_distinct()`
+- `~~Validate.rows_complete()`
+- `~~Validate.conjointly()`
 
 This is the same list of validation methods that are considered when creating data extracts.
 
@@ -185,7 +178,7 @@ mutation may drastically reduce the number of rows).
 
 ## Practical Applications of Sundering
 
-*1. Creating Clean Datasets for Analysis*
+### 1. Creating Clean Datasets for Analysis
 
 One of the most common use cases for sundering is preparing validated data for downstream analysis:
 
@@ -211,7 +204,7 @@ standards, reducing the risk of misleading results or spurious conclusions due t
 records. By making validation an explicit step in your analytical workflow, you create a natural
 quality gate that prevents invalid data from influencing your findings.
 
-*2. Creating Parallel Workflows for Clean and Problematic Data*
+### 2. Creating Parallel Workflows for Clean and Problematic Data
 
 You can use sundering to create parallel processing paths:
 
@@ -234,7 +227,7 @@ automated notifications to data stewards when issues arise. By establishing clea
 handling both data streams, you create a systematic approach to data quality that balances immediate
 analytical needs with longer-term data improvement goals.
 
-*3. Data Quality Monitoring and Improvement*
+### 3. Data Quality Monitoring and Improvement
 
 Tracking the ratio of passing to failing rows over time can help monitor data quality trends:
 
@@ -257,23 +250,23 @@ rows becomes a measurable business objective aligned with broader data governanc
 
 When incorporating data sundering into your workflow, consider these best practices:
 
-1. **Be comprehensive in your validation**: the more validation steps you include (assuming they're
+1. Be comprehensive in your validation: the more validation steps you include (assuming they're
 meaningful), the more confidence you can have in your passing dataset
 
-2. **Document your validation criteria**: when sharing sundered data with others, always document
-the criteria used to determine passing rows
+2. Document your validation criteria: when sharing sundered data with others, always document the
+criteria used to determine passing rows
 
-3. **Consider traceability**: for audit purposes, it may be valuable to add a column indicating
-whether a record was originally in the passing or failing set
+3. Consider traceability: for audit purposes, it may be valuable to add a column indicating whether
+a record was originally in the passing or failing set
 
-4. **Balance strictness and practicality**: if you're too strict with validation rules, you might
-end up with very few passing rows; consider the appropriate level of strictness for your use case
+4. Balance strictness and practicality: if you're too strict with validation rules, you might end up
+with very few passing rows; consider the appropriate level of strictness for your use case
 
-5. **Use sundering as part of a pipeline**: automate the process of validation, sundering, and
+5. Use sundering as part of a pipeline: automate the process of validation, sundering, and
 subsequent handling of the two resulting datasets
 
-6. **Continually refine validation rules**: as you learn more about your data and domain, update
-your validation rules to improve the accuracy of your sundering process
+6. Continually refine validation rules: as you learn more about your data and domain, update your
+validation rules to improve the accuracy of your sundering process
 
 By following these best practices, data scientists and engineers can transform sundering from a
 simple utility into a strategic component of their data quality framework. When implemented

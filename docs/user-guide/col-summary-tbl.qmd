@@ -11,20 +11,18 @@ html-table-processing: none
 import pointblank as pb
 ```
 
-While previewing a table with [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html)
-is undoubtedly a good thing to do, sometimes you need more. This is where summarizing a table comes
-in. When you view a summary of a table, the column-by-column info can quickly increase your
-understanding of a dataset. Plus, it allows you to quickly catch anomalies in your data (e.g., the
-maximum value of a column could be far outside the realm of possibility).
+While previewing a table with `preview()` is undoubtedly a good thing to do, sometimes you need
+more. This is where summarizing a table comes in. When you view a summary of a table, the
+column-by-column info can quickly increase your understanding of a dataset. Plus, it allows you to
+quickly catch anomalies in your data (e.g., the maximum value of a column could be far outside the
+realm of possibility).
 
 Pointblank provides a function to make it extremely easy to view column-level summaries in a single
-table. That function is called
-[`col_summary_tbl()`](https://posit-dev.github.io/pointblank/reference/col_summary_tbl.html) and,
-just like [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) does, it
-supports the use of any table that Pointblank can use for validation. And no matter what the input
-data is, the resultant reporting table is consistent in its design and construction.
+table. That function is called `col_summary_tbl()` and, just like `preview()` does, it supports the
+use of any table that Pointblank can use for validation. And no matter what the input data is, the
+resultant reporting table is consistent in its design and construction.
 
-## Trying out `col_summary_tbl()`
+## Trying out `col_summary_tbl()`{.qd-no-link}
 
 The function only requires a table. Let's use the `small_table` dataset (a very simple table) to
 start us off:

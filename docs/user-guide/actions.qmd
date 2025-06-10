@@ -28,11 +28,8 @@ powerful tools to monitor, alert, and report on your data's quality.
 ## How Actions Work
 
 Let's look at an example on how this works in practice. The following validation plan contains a
-single step (using
-[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)) where
-the `thresholds=` and `actions=` parameters are set using
-[`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) and
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) calls:
+single step (using `~~Validate.col_vals_gt()`) where the `thresholds=` and `actions=` parameters are
+set using `Thresholds` and `Actions` calls:
 
 ```{python}
 import pointblank as pb
@@ -130,8 +127,8 @@ action_str = "[{LEVEL}: {TYPE}]: Step {step} has failed validation. ({time})"
 What we get here are two messages in the console, corresponding to critical failures in steps 2 and
 3. The placeholders were replaced with the correct text for the context. Note that some of the
 resulting text is capitalized (e.g., `"CRITICAL"`, `"COL_VALS_GT"`, etc.) and this is because we
-capitalized the placeholder text itself. Have a look at the documentation article of
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) for more details on this.
+capitalized the placeholder text itself. Have a look at the documentation article of `Actions` for
+more details on this.
 
 ### Using Callable Functions
 
@@ -168,9 +165,8 @@ message being printed to the console).
 This is an example where actions can be defined locally for an individual validation step. The
 global threshold setting applied to all three validation steps but the step-level action only
 applied to step 3. You are free to mix and match both threshold and action settings at the global
-level (i.e., set in the [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html)
-call) or at the step level. The key thing to be aware of is that step-level settings of thresholds
-and actions take precedence.
+level (i.e., set in the `Validate` call) or at the step level. The key thing to be aware of is that
+step-level settings of thresholds and actions take precedence.
 
 ## Accessing Context in Actions
 
@@ -179,12 +175,10 @@ callable functions offer more flexibility through access to detailed metadata. W
 as actions, you can retrieve comprehensive information about the validation context, allowing for
 complex logic and dynamic responses to validation issues.
 
-### Using `get_action_metadata()` in Callables
+### Using `get_action_metadata()`{.qd-no-link} in Callables
 
 To access information about the validation step where an action was triggered, we can call
-[`get_action_metadata()`](https://posit-dev.github.io/pointblank/reference/get_action_metadata.html)
-in the body of a function to be used within
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html). This provides useful
+`get_action_metadata()` in the body of a function to be used within `Actions`. This provides useful
 context about the validation step that triggered the action.
 
 ```{python}
@@ -223,9 +217,7 @@ you can do this as a local override, even setting `actions=None` to disable glob
 
 ### Available Metadata Fields
 
-The dictionary returned by
-[`get_action_metadata()`](https://posit-dev.github.io/pointblank/reference/get_action_metadata.html)
-contains the following fields:
+The dictionary returned by `get_action_metadata()` contains the following fields:
 
 - `step`: The step number.
 - `column`: The column name.
@@ -239,12 +231,12 @@ contains the following fields:
 
 ## Customizing Action Behavior
 
-The [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) class has two
-additional parameters that provide more control over how actions are executed:
+The `Actions` class has two additional parameters that provide more control over how actions are
+executed:
 
 ### Setting Default Actions with `default=`
 
-Instead of specifying actions separately for each threshold level, you can use the `default`
+Instead of specifying actions separately for each threshold level, you can use the `default=`
 parameter to set a common action for all levels:
 
 ```{python}
@@ -273,13 +265,10 @@ action for a specific level, it will override this default for that level only.
 When using the `default=` parameter, be aware that your action (whether a string template or
 callable function) needs to work across all validation steps where thresholds might be exceeded. Not
 all validation methods provide the same context for string templates or in the metadata dictionary
-returned by
-[`get_action_metadata()`](https://posit-dev.github.io/pointblank/reference/get_action_metadata.html).
+returned by `get_action_metadata()`.
 
-For example, some validation steps like
-[`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
-provide a `value` field that can be accessed with `{value}` in string templates, while others like
-[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) don't
+For example, some validation steps like `~~Validate.col_vals_gt()` provide a `value` field that can
+be accessed with `{value}` in string templates, while others like `~~Validate.col_exists()` don't
 have this concept. When creating default actions, either use only the universally available
 placeholders (`{step}`, `{level}`, `{type}`, and `{time}`), or include conditional logic in your
 callable functions to handle different validation types appropriately.
@@ -364,14 +353,11 @@ notifications, and logging events.
 ### Creating Final Actions
 
 When you need to execute actions after all validation steps are complete, Pointblank provides the
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) class. Unlike
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) which triggers on a
-per-step basis during the validation process,
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) executes after
-the entire validation is complete, giving you a way to respond to the overall validation results.
+`FinalActions` class. Unlike `Actions` which triggers on a per-step basis during the validation
+process, `FinalActions` executes after the entire validation is complete, giving you a way to
+respond to the overall validation results.
 
-Here's how to use
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html):
+Here's how to use `FinalActions`:
 
 ```{python}
 def send_alert():
@@ -406,8 +392,7 @@ In this example:
 Because the 'critical' threshold was exceeded in Step 2, we see the printed alert of `send_alert()`
 after the simple string message.
 
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) accepts any
-number of actions as positional arguments. Each argument can be:
+`FinalActions` accepts any number of actions as positional arguments. Each argument can be:
 
 1. **String**: A message to be displayed in the console
 2. **Callable**: A function to be called with no arguments
@@ -416,13 +401,11 @@ number of actions as positional arguments. Each argument can be:
 All actions will be executed in the order they are provided after all validation steps have
 completed.
 
-### Using `get_validation_summary()` in Final Actions
+### Using `get_validation_summary()`{.qd-no-link} in Final Actions
 
-When creating a callable function to use with
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html), you can access
-information about the overall validation results using the
-[`get_validation_summary()`](https://posit-dev.github.io/pointblank/reference/get_validation_summary.html)
-function. This gives you a dictionary with comprehensive information about the validation:
+When creating a callable function to use with `FinalActions`, you can access information about the
+overall validation results using the `get_validation_summary()` function. This gives you a
+dictionary with comprehensive information about the validation:
 
 ```python
 def comprehensive_report():
@@ -476,16 +459,13 @@ def comprehensive_report():
 )
 ```
 
-Here we used the [`send_slack_notification()`](https://posit-dev.github.io/pointblank/reference/send_slack_notification.html)
-function, which is available in Pointblank as a pre-built action. It can be used by itself in
-`final_actions=` but here it's integrated into the user's `comprehensive_report()` function to
-provide finer control with conditional logic.
+Here we used the `send_slack_notification()` function, which is available in Pointblank as a
+pre-built action. It can be used by itself in `final_actions=` but here it's integrated into the
+user's `comprehensive_report()` function to provide finer control with conditional logic.
 
 ### Combining Step-level and Final Actions
 
-You can use both [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) and
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) together for
-comprehensive validation control:
+You can use both `Actions` and `FinalActions` together for comprehensive validation control:
 
 ```{python}
 def log_step_failure():
@@ -520,10 +500,8 @@ def generate_summary():
 
 This approach allows you to:
 
-1. log individual step failures during the validation process using
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html)
-2. generate a comprehensive report after all validation steps are complete using
-[`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html)
+1. log individual step failures during the validation process using `Actions`
+2. generate a comprehensive report after all validation steps are complete using `FinalActions`
 
 Using both action types gives you fine-grained control over when and how notifications and other
 actions are triggered in your validation workflow.
@@ -540,11 +518,9 @@ workflows that:
 - generate comprehensive reports after validation is complete
 - automate responses to data quality issues
 
-The flexible design of [`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html)
-and [`FinalActions`](https://posit-dev.github.io/pointblank/reference/FinalActions.html) allows you
-to start simple with basic console messages and gradually build up to complex validation workflows
-with conditional logic, custom reporting, and integrations with other systems like Slack, email, or
-logging services.
+The flexible design of `Actions` and `FinalActions` allows you to start simple with basic console
+messages and gradually build up to complex validation workflows with conditional logic, custom
+reporting, and integrations with other systems like Slack, email, or logging services.
 
 When designing your validation strategy, consider leveraging both step-level actions for immediate
 responses and final actions for holistic reporting. This combination provides comprehensive control

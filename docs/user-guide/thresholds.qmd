@@ -17,7 +17,7 @@ validation tests. Rather than a simple pass/fail model, thresholds enable you to
 different severity levels ('warning', 'error', and 'critical'), giving you fine-grained control over
 how data quality issues are reported and handled.
 
-When used with Actions (covered in the next section), thresholds create a robust system for
+When used with actions (covered in the next section), thresholds create a robust system for
 responding to data quality issues based on their severity. This approach allows you to:
 
 - set different tolerance levels for different types of validation checks
@@ -128,7 +128,7 @@ may only execute for the highest level by default)
 ## Setting Global Thresholds
 
 You can set thresholds globally for all validation steps in a workflow using the `thresholds=`
-parameter in [`Validate`](https://posit-dev.github.io/pointblank/reference/Validate.html):
+parameter in `Validate`:
 
 ```{python}
 (
@@ -180,8 +180,7 @@ requirements.
 
 ### 1. Using the `Thresholds` Class (Recommended)
 
-The most explicit and flexible approach is using the
-[`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) class:
+The most explicit and flexible approach is using the `Thresholds` class:
 
 ```{python}
 # Set individual thresholds for different levels

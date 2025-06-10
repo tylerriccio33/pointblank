@@ -53,17 +53,15 @@ you can create clear stopping points when data doesn't meet specified criteria.
 
 Pointblank offers two types of assertions:
 
-1. **Full Passing Assertions**: using
-[`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
-to verify that every single test unit passes
-2. **Threshold-Based Assertions**: using
-[`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-to verify that failure rates stay within acceptable thresholds
+1. Full Passing Assertions: using `~~Validate.assert_passing()` to verify that every single test
+unit passes
+2. Threshold-Based Assertions: using `~~Validate.assert_below_threshold()` to verify that failure
+rates stay within acceptable thresholds
 
 ### `assert_passing()`
 
-The [`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
-method is the strictest form of assertion, requiring every single validation test unit to pass:
+The `~~Validate.assert_passing()` method is the strictest form of assertion, requiring every single
+validation test unit to pass:
 
 ```{python}
 try:
@@ -80,10 +78,9 @@ except AssertionError as e:
 
 ### `assert_below_threshold()`
 
-The
-[`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-method is more flexible as it allows some failures as long as they stay below specified threshold
-levels. Pointblank uses three severity thresholds that increase in order of seriousness:
+The `~~Validate.assert_below_threshold()` method is more flexible as it allows some failures as long
+as they stay below specified threshold levels. Pointblank uses three severity thresholds that
+increase in order of seriousness:
 
 - **'warning'** (least severe): the first threshold that gets triggered when failures exceed this
 level
@@ -116,10 +113,8 @@ The validation report above visually indicates threshold levels with colored cir
 - yellow circles in the `E` column indicate the 'error' threshold
 - red circles in the `C` column indicate the 'critical' threshold
 
-This won't pass the
-[`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-assertion for the 'error' level because step 3 exceeds this threshold (30% failure rate matches the
-error threshold):
+This won't pass the `~~Validate.assert_below_threshold()` assertion for the 'error' level because
+step 3 exceeds this threshold (30% failure rate matches the error threshold):
 
 ```{python}
 try:
@@ -136,8 +131,7 @@ validation.assert_below_threshold(level="error", i=[1, 2])
 
 This passes because the highest threshold exceeded in steps 1 and 2 is 'warning'.
 
-The [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-method takes these parameters:
+The `~~Validate.assert_below_threshold()` method takes these parameters:
 
 - `level=`: threshold level to check against (`"warning"`, `"error"`, or `"critical"`)
 - `i=`: optional specific step number(s) to check
@@ -150,11 +144,9 @@ This is particularly useful when:
 - gradually improving data quality with stepped thresholds
 
 ::: {.callout-note}
-Assertion methods like
-[`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
-and [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-will automatically call [`interrogate()`](https://posit-dev.github.io/pointblank/reference/Validate.interrogate.html)
-if needed, so you don't have to explicitly include this step when using assertions directly.
+Assertion methods like `~~Validate.assert_passing()` and `~~Validate.assert_below_threshold()`
+will automatically call `~~Validate.interrogate()` if needed, so you don't have to explicitly
+include this step when using assertions directly.
 :::
 
 ## Using Status Check Methods
@@ -164,8 +156,8 @@ that return boolean values:
 
 ### `all_passed()`
 
-The [`all_passed()`](https://posit-dev.github.io/pointblank/reference/Validate.all_passed.html)
-method will return `True` only if every single test unit in every validation step passed:
+The `~~Validate.all_passed()` method will return `True` only if every single test unit in every
+validation step passed:
 
 ```{python}
 validation = (
@@ -180,10 +172,7 @@ if not validation.all_passed():
 
 ### `warning()`, `error()`, and `critical()`
 
-The methods
-([`warning()`](https://posit-dev.github.io/pointblank/reference/Validate.warning.html),
-[`error()`](https://posit-dev.github.io/pointblank/reference/Validate.error.html), and
-[`critical()`](https://posit-dev.github.io/pointblank/reference/Validate.critical.html)) return
+The methods `~~Validate.warning()`, `~~Validate.error()`, and `~~Validate.critical()` all return
 information about whether validation steps exceeded that specific threshold level.
 
 While assertion methods raise exceptions to halt execution when thresholds are exceeded, these
@@ -200,9 +189,8 @@ validation = (
 validation
 ```
 
-The [`warning()`](https://posit-dev.github.io/pointblank/reference/Validate.warning.html) method
-returns a dictionary mapping step numbers to boolean values. A `True` value means that step exceeds
-the warning threshold:
+The `~~Validate.warning()` method returns a dictionary mapping step numbers to boolean values. A
+`True` value means that step exceeds the warning threshold:
 
 ```{python}
 # Get dictionary of warning status for each step
@@ -230,10 +218,10 @@ print(f"Critical status: {critical_status}")
 
 These methods are particularly useful for:
 
-1. **Conditional logic**: taking different actions based on threshold severity
-2. **Reporting**: generating summary reports about validation quality
-3. **Monitoring**: tracking data quality trends over time
-4. **Graceful degradation**: implementing fallback logic when quality decreases
+1. Conditional logic: taking different actions based on threshold severity
+2. Reporting: generating summary reports about validation quality
+3. Monitoring: tracking data quality trends over time
+4. Graceful degradation: implementing fallback logic when quality decreases
 
 Each method has these options:
 
@@ -285,9 +273,9 @@ your specific workflow or data pipeline stage.
 
 Actions and assertions serve complementary but distinct purposes in data validation workflows:
 
-- **Actions** trigger during validation but shouldn't raise errors (as this would halt report
+- Actions trigger during validation but shouldn't raise errors (as this would halt report
 generation)
-- **Assertions** are designed to raise errors based on specific conditions, making them ideal for
+- Assertions are designed to raise errors based on specific conditions, making them ideal for
 flow control after validation completes
 
 Here's a simplified example showing how to use them together. The print statements simulate logging
@@ -339,10 +327,8 @@ validation and (2) clear decision points after validation is complete.
 When using assertions in your data workflows, consider these best practices:
 
 1. **Choose the right assertion type**:
-   - use [`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
-   for critical validations where any failure is unacceptable
-   - use [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-   for validations where some failure rate is acceptable
+   - use `~~Validate.assert_passing()` for critical validations where any failure is unacceptable
+   - use `~~Validate.assert_below_threshold()` for validations where some failure rate is acceptable
 
 2. **Set appropriate thresholds** that match your data quality requirements:
    ```python
@@ -378,13 +364,10 @@ quality control
 
 Pointblank's assertion methods give you flexible options for enforcing data quality requirements:
 
-- [`assert_passing()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_passing.html)
-for strict validation where every test unit must pass
-- [`assert_below_threshold()`](https://posit-dev.github.io/pointblank/reference/Validate.assert_below_threshold.html)
-for more flexible validation where some failures are tolerable
-- Status methods ([`warning()`](https://posit-dev.github.io/pointblank/reference/Validate.warning.html),
-[`error()`](https://posit-dev.github.io/pointblank/reference/Validate.error.html), and
-[`critical()`](https://posit-dev.github.io/pointblank/reference/Validate.critical.html)) for
+- `~~Validate.assert_passing()` for strict validation where every test unit must pass
+- `~~Validate.assert_below_threshold()` for more flexible validation where some failures are
+tolerable
+- Status methods (`~~Validate.warning()`, `~~Validate.error()`, and `~~Validate.critical()`) for
 programmatic threshold checking
 
 By using these assertion methods appropriately, you can build robust data pipelines with different

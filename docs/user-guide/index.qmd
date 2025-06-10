@@ -78,9 +78,8 @@ Note these three key pieces in the code:
 - **steps**: the methods starting with `col_vals_` specify validation steps that run on specific columns
 - **execution**: the `~~Validate.interrogate()` method executes the validation plan on the table
 
-This common pattern is used in a validation workflow, where
-`Validate` and
-`~~.Validate.interrogate()` bookend a validation plan generated through calling validation methods.
+This common pattern is used in a validation workflow, where `Validate` and
+`~~Validate.interrogate()` bookend a validation plan generated through calling validation methods.
 
 In the next few sections we'll go a bit further by understanding how we can measure data quality and
 respond to failures.
@@ -88,9 +87,9 @@ respond to failures.
 ## Understanding Test Units
 
 Each validation step will execute a type of validation test on the target table. For example, a
-[`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
-validation step can test that each value in a column is less than a specified number. And the key
-finding that's reported in each step is the number of *test units* that pass or fail.
+`~~Validate.col_vals_lt()` validation step can test that each value in a column is less than a
+specified number. And the key finding that's reported in each step is the number of *test units*
+that pass or fail.
 
 In the validation report table, test unit metrics are displayed under the `UNITS`, `PASS`, and
 `FAIL` columns. This diagram explains what the tabulated values signify:
@@ -108,7 +107,7 @@ system. Thresholds let you define acceptable levels of data quality, triggering 
 signals ('warning', 'error', or 'critical') when certain failure conditions are met.
 
 Here's a simple example that uses a single validation step along with thresholds set using the
-[`Thresholds`](https://posit-dev.github.io/pointblank/reference/Thresholds.html) class:
+`Thresholds` class:
 
 ```{python}
 (
@@ -138,9 +137,8 @@ table as a long dash.
 ## Taking Action on Threshold Exceedances
 
 Pointblank becomes even more powerful when you combine thresholds with actions. The
-[`Actions`](https://posit-dev.github.io/pointblank/reference/Actions.html) class lets you trigger
-responses when validation failures exceed threshold levels, turning passive reporting into active
-notifications.
+`Actions` class lets you trigger responses when validation failures exceed threshold levels, turning
+passive reporting into active notifications.
 
 Here's a simple example that adds an action to the previous validation:
 
@@ -170,7 +168,7 @@ example, you can generate console messages, Slack notifications, and more.
 
 ## Navigating the User Guide
 
-As you continue exploring Pointblank's capabilities, you'll find the **User Guide* organized into
+As you continue exploring Pointblank's capabilities, you'll find the **User Guide** organized into
 sections that will help you navigate the various features.
 
 ### Getting Started

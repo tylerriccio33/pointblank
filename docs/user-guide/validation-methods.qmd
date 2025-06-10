@@ -171,9 +171,9 @@ Column `a` has no missing values and the above validation proves this.
 
 ### Checking Strings with Regexes
 
-A regular expression (regex) validation via the `~~Validate.col_vals_regex()` validation method checks
-if values in a column match a specified pattern. Here's an example with two validation steps, each
-checking text values in a column:
+A regular expression (regex) validation via the `~~Validate.col_vals_regex()` validation method
+checks if values in a column match a specified pattern. Here's an example with two validation steps,
+each checking text values in a column:
 
 ```{python}
 (
@@ -290,10 +290,10 @@ That column is present, so the single test unit of this validation step is a pas
 ### Checking the Table Schema
 
 For deeper checks of table structure, a schema validation can be performed with the
-`~~Validate.col_schema_match()` validation method, where the goal is to check whether the structure of
-a table matches an expected schema. To define an expected table schema, we need to use the `Schema`
-class. Here is a simple example that (1) prepares a schema consisting of column names, (2) uses that
-`schema` object in a `~~Validate.col_schema_match()` validation step:
+`~~Validate.col_schema_match()` validation method, where the goal is to check whether the structure
+of a table matches an expected schema. To define an expected table schema, we need to use the
+`Schema` class. Here is a simple example that (1) prepares a schema consisting of column names, (2)
+uses that `schema` object in a `~~Validate.col_schema_match()` validation step:
 
 ```{python}
 schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
@@ -305,8 +305,8 @@ schema = pb.Schema(columns=["date_time", "date", "a", "b", "c", "d", "e", "f"])
 )
 ```
 
-The `~~Validate.col_schema_match()` validation step will only have a single test unit (signifying pass
-or fail). We can see in the above validation report that the column schema validation passed.
+The `~~Validate.col_schema_match()` validation step will only have a single test unit (signifying
+pass or fail). We can see in the above validation report that the column schema validation passed.
 
 More often, a schema will be defined using column names and column types. We can do that by using a
 list of tuples in the `columns=` parameter of `Schema`. Here's an example of that approach in
@@ -336,7 +336,8 @@ schema = pb.Schema(
 The `~~Validate.col_schema_match()` validation method has several boolean parameters for making the
 checks less stringent:
 
-- `complete=`: requires exact column matching (all expected columns must exist, no extra columns allowed)
+- `complete=`: requires exact column matching (all expected columns must exist, no extra columns
+allowed)
 - `in_order=`: enforces that columns appear in the same order as defined in the schema
 - `case_sensitive_colnames=`: column names must match with exact letter case
 - `case_sensitive_dtypes=`: data type strings must match with exact letter case
@@ -349,8 +350,8 @@ necessary or practical for your use case.
 
 Row and column count validations check the number of rows and columns in a table.
 
-Using `~~Validate.row_count_match()` checks whether the number of rows in a table matches a specified
-count.
+Using `~~Validate.row_count_match()` checks whether the number of rows in a table matches a
+specified count.
 
 ```{python}
 (

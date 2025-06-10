@@ -15,9 +15,8 @@ pb.config(report_incl_header=False, report_incl_footer=False)
 Data validation often requires working with columns in flexible ways. Pointblank offers two powerful
 approaches:
 
-1. **Applying validation rules across multiple columns**: validate many columns with a single rule
-2. **Comparing values between columns**: create validations that compare values across different
-columns
+1. Applying validation rules across multiple columns: validate many columns with a single rule
+2. Comparing values between columns: create validations that compare values across different columns
 
 This guide covers both approaches in detail with practical examples.
 
@@ -90,10 +89,8 @@ based on:
 - column position
 - column data type
 
-Two common selectors,
-[`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html) and
-[`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html), resolve columns
-based on text patterns in column names.
+Two common selectors, `starts_with()` and `ends_with()`, resolve columns based on text patterns in
+column names.
 
 The `game_revenue` dataset has three columns starting with "item": `item_type`, `item_name`, and
 `item_revenue`. Let's check that these columns contain no missing values:
@@ -110,19 +107,18 @@ Three validation steps were automatically created because three columns matched 
 
 The complete list of column selectors includes:
 
-- [`starts_with()`](https://posit-dev.github.io/pointblank/reference/starts_with.html)
-- [`ends_with()`](https://posit-dev.github.io/pointblank/reference/ends_with.html)
-- [`contains()`](https://posit-dev.github.io/pointblank/reference/contains.html)
-- [`matches()`](https://posit-dev.github.io/pointblank/reference/matches.html)
-- [`everything()`](https://posit-dev.github.io/pointblank/reference/everything.html)
-- [`first_n()`](https://posit-dev.github.io/pointblank/reference/first_n.html)
-- [`last_n()`](https://posit-dev.github.io/pointblank/reference/last_n.html)
+- `starts_with()`
+- `ends_with()`
+- `contains()`
+- `matches()`
+- `everything()`
+- `first_n()`
+- `last_n()`
 
 ### Combining Column Selectors
 
-Column selectors can be combined for more powerful selection. To do this, use the
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function with logical
-operators:
+Column selectors can be combined for more powerful selection. To do this, use the `col()` helper
+function with logical operators:
 
 - `&` (*and*)
 - `|` (*or*)
@@ -200,10 +196,7 @@ columns, the validation won't fail but will show an 'explosion' in the report:
 (
     pb.Validate(data=pb.load_dataset("game_revenue"))
     .col_vals_not_null(columns=pb.starts_with("items"))
-    .col_vals_gt(
-        columns="item_revenue",
-        value=0
-    )
+    .col_vals_gt(columns="item_revenue", value=0)
     .interrogate()
 )
 ```
@@ -212,15 +205,12 @@ Notice that although there was a problem with Step 1 (that should be addressed),
 did move on to Step 2 without complication.
 
 To mitigate uncertainty, include validation steps that check for the existence of key columns with
-[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
-verify the schema with
-[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html).
+`~~Validate.col_exists()` or verify the schema with `~~Validate.col_schema_match()`.
 
 ## Part 2: Comparing Values Between Columns
 
 Sometimes you need to compare values across different columns rather than against fixed values.
-Pointblank enables this through the
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) helper function.
+Pointblank enables this through the `col()` helper function.
 
 Let's look at examples using the `small_table` dataset:
 
@@ -229,7 +219,7 @@ Let's look at examples using the `small_table` dataset:
 pb.preview(pb.load_dataset(dataset="small_table"), n_head=20, n_tail=20)
 ```
 
-### Using `col()` to Specify a Comparison Column
+### Using `col()`{.qd-no-link} to Specify a Comparison Column
 
 While we typically use validation methods to compare column values against fixed values:
 
@@ -239,8 +229,7 @@ While we typically use validation methods to compare column values against fixed
 ...
 ```
 
-We can also compare values between columns by using
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) in the `value=` parameter:
+We can also compare values between columns by using `col()` in the `value=` parameter:
 
 ```python
 ...
@@ -282,24 +271,19 @@ To handle missing values, use `na_pass=True`:
 
 Now all tests pass.
 
-The following validation methods accept a
-[`col()`](https://posit-dev.github.io/pointblank/reference/col.html) expression in their `value=`
-parameter:
+The following validation methods accept a `col()` expression in their `value=` parameter:
 
-- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
-- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
-- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
-- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
-- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
-- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
+- `~~Validate.col_vals_gt()`
+- `~~Validate.col_vals_lt()`
+- `~~Validate.col_vals_ge()`
+- `~~Validate.col_vals_le()`
+- `~~Validate.col_vals_eq()`
+- `~~Validate.col_vals_ne()`
 
 ### Using `col()` in Range Checks
 
-For range validations via
-[`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
-and
-[`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
-you can use a mix of column references and fixed values:
+For range validations via `~~Validate.col_vals_between()` and `~~Validate.col_vals_outside()` you
+can use a mix of column references and fixed values:
 
 ```{python}
 (
@@ -343,8 +327,8 @@ their corresponding values in column `a`.
 
 Pointblank provides flexible approaches to working with columns:
 
-1. **Column selection**: validate multiple columns with a single validation rule
-2. **Cross-column comparison**: compare values between columns
+1. Column selection: validate multiple columns with a single validation rule
+2. Cross-column comparison: compare values between columns
 
 These capabilities allow you to:
 
@@ -353,5 +337,5 @@ These capabilities allow you to:
 - create dynamic validations that check relationships between columns
 - build comprehensive data quality checks with minimal code
 
-By mastering these techniques, you can create more elegant and powerful validation plans while
-reducing repetition in your code.
+By getting familiar with these techniques, you can create more elegant and powerful validation plans
+while also reducing repetition in your code.
