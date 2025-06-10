@@ -30,30 +30,28 @@ This article will cover:
 The following validation methods operate on column values and will have rows extracted when there
 are failing test units in those rows:
 
-- [`col_vals_gt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_gt.html)
-- [`col_vals_lt()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_lt.html)
-- [`col_vals_ge()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ge.html)
-- [`col_vals_le()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_le.html)
-- [`col_vals_eq()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_eq.html)
-- [`col_vals_ne()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_ne.html)
-- [`col_vals_between()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_between.html)
-- [`col_vals_outside()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_outside.html)
-- [`col_vals_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_in_set.html)
-- [`col_vals_not_in_set()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_in_set.html)
-- [`col_vals_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_null.html)
-- [`col_vals_not_null()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_not_null.html)
-- [`col_vals_regex()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_regex.html)
-- [`col_vals_expr()`](https://posit-dev.github.io/pointblank/reference/Validate.col_vals_expr.html)
-- [`conjointly()`](https://posit-dev.github.io/pointblank/reference/Validate.conjointly.html)
+- `~~Validate.col_vals_gt()`
+- `~~Validate.col_vals_lt()`
+- `~~Validate.col_vals_ge()`
+- `~~Validate.col_vals_le()`
+- `~~Validate.col_vals_eq()`
+- `~~Validate.col_vals_ne()`
+- `~~Validate.col_vals_between()`
+- `~~Validate.col_vals_outside()`
+- `~~Validate.col_vals_in_set()`
+- `~~Validate.col_vals_not_in_set()`
+- `~~Validate.col_vals_null()`
+- `~~Validate.col_vals_not_null()`
+- `~~Validate.col_vals_regex()`
+- `~~Validate.col_vals_expr()`
+- `~~Validate.conjointly()`
 
 These row-based validation methods will also have rows extracted should there be failing rows:
 
-- [`rows_distinct()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_distinct.html)
-- [`rows_complete()`](https://posit-dev.github.io/pointblank/reference/Validate.rows_complete.html)
+- `~~Validate.rows_distinct()`
+- `~~Validate.rows_complete()`
 
-Note that some validation methods like
-[`col_exists()`](https://posit-dev.github.io/pointblank/reference/Validate.col_exists.html) or
-[`col_schema_match()`](https://posit-dev.github.io/pointblank/reference/Validate.col_schema_match.html)
+Note that some validation methods like `~~Validate.col_exists()` and `~~Validate.col_schema_match()`
 don't generate data extracts because they validate structural aspects of the table rather than
 checking column values.
 
@@ -62,7 +60,7 @@ checking column values.
 There are three primary ways to access data extracts in Pointblank:
 
 1. the **CSV** buttons in validation reports
-2. through the [`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html) method
+2. through the `~~Validate.get_data_extracts()` method
 3. inspecting a subset of failed rows in step reports
 
 Let's explore each approach using examples.
@@ -78,10 +76,7 @@ import pointblank as pb
 
 validation = (
     pb.Validate(data=pb.load_dataset(dataset="small_table", tbl_type="polars"))
-    .col_vals_lt(
-        columns="d",
-        value=3000
-    )
+    .col_vals_lt( columns="d", value=3000)
     .interrogate()
 )
 
@@ -109,8 +104,7 @@ valuable in mixed-language data teams where different members might be working w
 
 ### `get_data_extracts()`
 
-For programmatic access to data extracts, Pointblank provides the
-[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
+For programmatic access to data extracts, Pointblank provides the `~~Validate.get_data_extracts()`
 method. This allows you to work with extract data directly in your Python workflow:
 
 ```{python}
@@ -121,11 +115,9 @@ extract_1
 ```
 
 The extracted table is of the same type (a Polars DataFrame) as the target table. Previously we used
-[`load_dataset()`](https://posit-dev.github.io/pointblank/reference/load_dataset.html) with the
-`tbl_type="polars"` option to fetch the dataset in that form.
+`load_dataset()` with the `tbl_type="polars"` option to fetch the dataset in that form.
 
-Note these important details about using
-[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html):
+Note these important details about using `~~Validate.get_data_extracts()`:
 
 - the parameter `i=1` corresponds to the step number shown in the validation report (1-indexed, not
 0-indexed)
@@ -166,10 +158,10 @@ Step reports are particularly valuable when you want to quickly inspect the fail
 extracting it into a separate DataFrame. They provide a bridge between the high-level validation
 report and the detailed data extracts.
 
-## Viewing Data Extracts with `preview()`
+## Viewing Data Extracts with `preview()`{.qd-no-link}
 
 To get a consistent HTML representation of any data extract (regardless of the table type), we can
-use the [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function:
+use the `preview()` function:
 
 ```{python}
 pb.preview(data=extract_1)
@@ -179,9 +171,8 @@ The view is optimized for readability, with column names and data types displaye
 format. Notice that the `_row_num_` column is now part of the table stub and doesn't steal focus
 from the table's original columns.
 
-The [`preview()`](https://posit-dev.github.io/pointblank/reference/preview.html) function is
-designed to provide the head and tail (5 rows each) of the table so very large extracts won't
-overflow the display.
+The `preview()` function is designed to provide the head and tail (5 rows each) of the table so very
+large extracts won't overflow the display.
 
 ## Working with Multiple Validation Steps
 
@@ -212,7 +203,8 @@ less_than_failures = multi_validation.get_data_extracts(i=2, frame=True)
 less_than_failures
 ```
 
-Using `frame=True` means that returned value will be a DataFrame (not a dictionary that contains a single DataFrame).
+Using `frame=True` means that returned value will be a DataFrame (not a dictionary that contains a
+single DataFrame).
 
 If a step has no failing rows, an empty DataFrame will be returned:
 
@@ -310,10 +302,10 @@ These analysis techniques help you thoroughly investigate data quality issues by
 data from multiple perspectives. Rather than treating failures as isolated incidents, you can
 identify patterns that might indicate systematic problems in your data pipeline.
 
-### Detailed Analysis with `col_summary_tbl()`
+### Detailed Analysis with `col_summary_tbl()`{.qd-no-link}
 
-For a more comprehensive view of the statistical properties of your extract data, you can use the [`col_summary_tbl()`](https://posit-dev.github.io/pointblank/reference/col_summary_tbl.html)
-function:
+For a more comprehensive view of the statistical properties of your extract data, you can use the
+`col_summary_tbl()` function:
 
 ```{python}
 # Get extracts from step 2
@@ -325,15 +317,14 @@ pb.col_summary_tbl(d_value_failures)
 
 This statistical overview provides:
 
-1. Count of values (including missing values)
-2. Type information for each column
-3. Distribution metrics like min, max, mean, and quartiles for numeric columns
-4. Frequency of common values for categorical columns
-5. Missing value counts and proportions
+1. a count of values (including missing values)
+2. type information for each column
+3. distribution metrics like min, max, mean, and quartiles for numeric columns
+4. frequency of common values for categorical columns
+5. missing value counts and proportions
 
-Using [`col_summary_tbl()`](https://posit-dev.github.io/pointblank/reference/col_summary_tbl.html)
-on data extracts lets you quickly understand the characteristics of failing data without writing
-custom analysis code. This approach is particularly valuable when:
+Using `col_summary_tbl()` on data extracts lets you quickly understand the characteristics of
+failing data without writing custom analysis code. This approach is particularly valuable when:
 
 - You need to understand the statistical properties of failing records
 - You want to compare distributions of failing vs passing data
@@ -387,20 +378,20 @@ data collection or processing in that specific region.
 
 When incorporating data extracts into your data quality workflow:
 
-1. **Use extracts for investigation, not just reporting**: the real value is in the insights you
-gain from analyzing the problematic data
+1. Use extracts for investigation, not just reporting: the real value is in the insights you gain
+from analyzing the problematic data
 
-2. **Combine with other Pointblank features**: data extracts work well with step reports and can
-inform threshold settings for future validations
+2. Combine with other Pointblank features: data extracts work well with step reports and can inform
+threshold settings for future validations
 
-3. **Consider sampling for very large datasets**: if your extracts contain thousands of rows, focus
-your investigation on a representative sample
+3. Consider sampling for very large datasets: if your extracts contain thousands of rows, focus your
+investigation on a representative sample
 
-4. **Look beyond individual validation steps**: cross-reference extracts from different steps to
+4. Look beyond individual validation steps: cross-reference extracts from different steps to
 identify complex issues that span multiple validation rules
 
-5. **Document patterns in failing data**: record and share insights about common failure modes to
-build organizational knowledge about data quality issues.
+5. Document patterns in failing data: record and share insights about common failure modes to build
+organizational knowledge about data quality issues.
 
 By integrating these practices into your data validation workflow, you'll transform data extracts
 from simple error lists into powerful diagnostic tools. The most successful data quality initiatives
@@ -422,7 +413,6 @@ enables you to:
 - develop targeted strategies for data cleanup and quality improvement
 - communicate specific examples to stakeholders
 
-Whether you're accessing extracts through CSV downloads, the
-[`get_data_extracts()`](https://posit-dev.github.io/pointblank/reference/Validate.get_data_extracts.html)
+Whether you're accessing extracts through CSV downloads, the `~~Validate.get_data_extracts()`
 method, or step reports, this feature provides the detail needed to move from identifying problems
 to implementing solutions.
