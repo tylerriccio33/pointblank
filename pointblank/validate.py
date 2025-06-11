@@ -11,6 +11,7 @@ import tempfile
 import threading
 from dataclasses import dataclass
 from importlib.metadata import version
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Literal
 from zipfile import ZipFile
 
