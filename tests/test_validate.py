@@ -73,6 +73,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Any
 
+TEST_DATA_DIR = Path("tests") / "tbl_files"
 
 TBL_LIST = [
     "tbl_pd",
@@ -10733,3 +10734,119 @@ def test_validate_csv_with_interrogation():
     # Check that we can get reports
     report = result.get_tabular_report()
     assert report is not None
+
+
+def test_validate_parquet_single_file():
+    parquet_path = TEST_DATA_DIR / "taxi_sample.parquet"
+    validator = Validate(data=str(parquet_path))
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] == 1000  # Expected sample size
+    assert validator.data.shape[1] == 18  # NYC taxi data columns
+
+    # Verify it's a DataFrame-like object
+    assert hasattr(validator.data, "columns")
+
+    # Test that validation methods still work
+    result = validator.col_exists(["vendor_name", "Trip_Distance"])
+    assert isinstance(result, Validate)
+
+
+def test_validate_parquet_glob_pattern():
+    pattern = str(TEST_DATA_DIR / "taxi_part_*.parquet")
+    validator = Validate(data=pattern)
+
+    # Should have 333 + 333 + 334 = 1000 rows (all three parts combined)
+    assert validator.data.shape[0] == 1000
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_bracket_pattern():
+    pattern = str(TEST_DATA_DIR / "taxi_part_0[1-2].parquet")
+    validator = Validate(data=pattern)
+
+    # Should have 333 + 333 = 666 rows (first two parts only)
+    assert validator.data.shape[0] == 666
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_directory():
+    parquet_dir = TEST_DATA_DIR / "parquet_data"
+    validator = Validate(data=str(parquet_dir))
+
+    # Should have 333 + 333 = 666 rows (data_a.parquet + data_b.parquet)
+    assert validator.data.shape[0] == 666
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_list_of_files():
+    file_list = [
+        str(TEST_DATA_DIR / "taxi_part_01.parquet"),
+        str(TEST_DATA_DIR / "taxi_part_02.parquet"),
+    ]
+    validator = Validate(data=file_list)
+
+    # Should have 333 + 333 = 666 rows
+    assert validator.data.shape[0] == 666
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_with_interrogation():
+    parquet_path = TEST_DATA_DIR / "taxi_sample.parquet"
+    validator = Validate(data=str(parquet_path))
+
+    # Add validation steps and interrogate
+    result = (
+        validator.col_exists(["vendor_name", "Trip_Distance"])
+        .col_vals_not_null(["vendor_name"])
+        .interrogate()
+    )
+
+    # Should have completed interrogation
+    assert (
+        len(result.validation_info) == 3
+    )  # col_exists + col_vals_not_null (2 steps total, but col_exists creates 2)
+
+
+def test_validate_non_parquet_passthrough():
+    test_data = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    validator = Validate(data=test_data)
+
+    # Should be the original dict
+    assert validator.data is test_data
+    assert isinstance(validator.data, dict)
+
+
+def test_validate_parquet_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        Validate(data=str(TEST_DATA_DIR / "nonexistent.parquet"))
+
+
+def test_validate_parquet_pattern_not_found():
+    with pytest.raises(FileNotFoundError):
+        Validate(data=str(TEST_DATA_DIR / "nonexistent_*.parquet"))
+
+
+def test_validate_parquet_directory_not_found():
+    """Test proper error handling for directories with no Parquet files."""
+    import tempfile
+
+    # Create a temporary empty directory for this test
+    with tempfile.TemporaryDirectory() as temp_dir:
+        empty_dir = Path(temp_dir) / "empty_subdir"
+        empty_dir.mkdir()
+
+        with pytest.raises(FileNotFoundError):
+            Validate(data=str(empty_dir))
+
+
+def test_validate_parquet_mixed_list():
+    mixed_list = [
+        str(TEST_DATA_DIR / "taxi_part_01.parquet"),
+        "some_regular_file.txt",  # Not a parquet file
+    ]
+    validator = Validate(data=mixed_list)
+
+    # Should return the original list unchanged
+    assert validator.data == mixed_list
