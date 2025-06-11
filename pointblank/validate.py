@@ -2049,6 +2049,7 @@ class Validate:
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, or directory with `.parquet` extension)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
