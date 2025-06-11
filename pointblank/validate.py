@@ -2046,11 +2046,16 @@ class Validate:
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
 
     Thresholds
     ----------
@@ -2331,6 +2336,52 @@ class Validate:
 
     The sundered data is a DataFrame that contains the rows that passed or failed the validation.
     The default behavior is to return the rows that failed the validation, as shown above.
+
+    ### Working with CSV Files
+
+    The `Validate` class can directly accept CSV file paths, making it easy to validate data stored
+    in CSV files without manual loading:
+
+    ```python
+    # Validate a CSV file using a string path
+    validation = (
+        pb.Validate(
+            data="path/to/sales_data.csv",
+            tbl_name="Sales Data",
+            label="CSV validation example"
+        )
+        .col_exists(["date", "amount", "customer_id"])
+        .col_vals_not_null(["amount"])
+        .col_vals_gt(["amount"], value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    You can also use `pathlib.Path` objects:
+
+    ```python
+    from pathlib import Path
+
+    csv_file = Path("data/customer_data.csv")
+
+    validation = (
+        pb.Validate(data=csv_file)
+        .col_vals_regex(
+            columns="email",
+            pattern=r"[^@]+@[^@]+\.[^@]+"
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    The CSV loading is automatic, so when a string or Path with a `.csv` extension is provided,
+    Pointblank will automatically load the file using the best available DataFrame library (Polars
+    preferred, Pandas as fallback). The loaded data can then be used with all validation methods
+    just like any other supported table type.
     """
 
     data: FrameT | Any
