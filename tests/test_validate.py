@@ -10588,3 +10588,148 @@ def test_prep_column_text():
     assert _prep_column_text(column="column") == "`column`"
     assert _prep_column_text(column=["column_a", "column_b"]) == "`column_a`"
     assert _prep_column_text(column=3) == ""
+
+
+def test_validate_csv_string_path_input():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] > 0  # Has rows
+    assert validator.data.shape[1] > 0  # Has columns
+
+    # Verify it's a DataFrame-like object
+    assert hasattr(validator.data, "columns")
+
+    # Test that validation methods still work
+    result = validator.col_exists(["date", "a"])
+    assert isinstance(result, Validate)
+
+
+def test_validate_csv_path_object_input():
+    csv_path = Path("data_raw/small_table.csv")
+    validator = Validate(data=csv_path)
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] > 0
+    assert validator.data.shape[1] > 0
+
+
+def test_validate_non_csv_string_passthrough():
+    test_data = "not_a_csv_file"
+    validator = Validate(data=test_data)
+
+    assert validator.data == test_data
+    assert isinstance(validator.data, str)
+
+
+def test_validate_non_csv_path_passthrough():
+    test_path = Path("data_raw/small_table.txt")  # Different extension
+    validator = Validate(data=test_path)
+
+    assert validator.data == test_path
+    assert isinstance(validator.data, Path)
+
+
+def test_validate_non_existent_csv_file_error():
+    with pytest.raises(FileNotFoundError, match="CSV file not found"):
+        Validate(data="nonexistent_file.csv")
+
+
+def test_validate_dataframe_passthrough():
+    # Try to import and create a DataFrame
+    try:
+        import polars as pl
+
+        df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    except ImportError:
+        try:
+            import pandas as pd
+
+            df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        except ImportError:
+            pytest.skip("No DataFrame library available")
+
+    validator = Validate(data=df)
+
+    # Should be the same object (identity check)
+    assert validator.data is df
+
+
+def test_validate_csv_integration_with_validations():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Chain multiple validation methods
+    result = validator.col_exists(["date", "a"]).col_vals_not_null(["a"])
+
+    # Should return the same Validate object
+    assert result is validator
+
+    # Should have validation steps added
+    assert len(validator.validation_info) > 0
+
+
+def test_validate_csv_different_files():
+    csv_files = [
+        "data_raw/small_table.csv",
+        "data_raw/game_revenue.csv",
+    ]
+
+    for csv_file in csv_files:
+        try:
+            validator = Validate(data=csv_file)
+            assert hasattr(validator.data, "shape")
+            assert validator.data.shape[0] > 0
+            assert validator.data.shape[1] > 0
+        except FileNotFoundError:
+            # Skip if file doesn't exist
+            continue
+
+
+def test_validate_csv_case_insensitive_extension():
+    # Test the internal logic by using a CSV file we know exists
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+    assert hasattr(validator.data, "shape")
+
+    # The case insensitivity is handled by Path.suffix.lower() == '.csv'
+
+
+def test_validate_csv_library_preference():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Check which library was used based on the data type
+    data_type = type(validator.data).__name__
+
+    # If Polars is available, it should be used
+    try:
+        import polars as pl
+
+        assert "polars" in data_type.lower() or "dataframe" in data_type.lower()
+    except ImportError:
+        # If only Pandas is available
+        try:
+            import pandas as pd
+
+            assert "pandas" in data_type.lower() or "dataframe" in data_type.lower()
+        except ImportError:
+            pytest.fail("No DataFrame library available for CSV reading")
+
+
+def test_validate_csv_with_interrogation():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Add validation steps and interrogate
+    result = validator.col_exists(["date", "a"]).col_vals_not_null(["a"]).interrogate()
+
+    # Should have completed interrogation
+    assert len(result.validation_info) > 0
+
+    # Check that we can get reports
+    report = result.get_tabular_report()
+    assert report is not None

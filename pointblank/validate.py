@@ -11,6 +11,7 @@ import tempfile
 import threading
 from dataclasses import dataclass
 from importlib.metadata import version
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Literal
 from zipfile import ZipFile
 
@@ -1972,8 +1973,10 @@ class Validate:
     Parameters
     ----------
     data
-        The table to validate, which could be a DataFrame object or an Ibis table object. Read the
-        *Supported Input Table Types* section for details on the supported table types.
+        The table to validate, which could be a DataFrame object, an Ibis table object, or a CSV
+        file path. When providing a CSV file path (as a string or `pathlib.Path` object), the file
+        will be automatically loaded using an available DataFrame library (Polars or Pandas). Read
+        the *Supported Input Table Types* section for details on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -2043,11 +2046,16 @@ class Validate:
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
 
     Thresholds
     ----------
@@ -2328,6 +2336,52 @@ class Validate:
 
     The sundered data is a DataFrame that contains the rows that passed or failed the validation.
     The default behavior is to return the rows that failed the validation, as shown above.
+
+    ### Working with CSV Files
+
+    The `Validate` class can directly accept CSV file paths, making it easy to validate data stored
+    in CSV files without manual loading:
+
+    ```python
+    # Validate a CSV file using a string path
+    validation = (
+        pb.Validate(
+            data="path/to/sales_data.csv",
+            tbl_name="Sales Data",
+            label="CSV validation example"
+        )
+        .col_exists(["date", "amount", "customer_id"])
+        .col_vals_not_null(["amount"])
+        .col_vals_gt(["amount"], value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    You can also use `pathlib.Path` objects:
+
+    ```python
+    from pathlib import Path
+
+    csv_file = Path("data/customer_data.csv")
+
+    validation = (
+        pb.Validate(data=csv_file)
+        .col_vals_regex(
+            columns="email",
+            pattern=r"[^@]+@[^@]+\.[^@]+"
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    The CSV loading is automatic, so when a string or Path with a `.csv` extension is provided,
+    Pointblank will automatically load the file using the best available DataFrame library (Polars
+    preferred, Pandas as fallback). The loaded data can then be used with all validation methods
+    just like any other supported table type.
     """
 
     data: FrameT | Any
@@ -2341,6 +2395,9 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
+        # Handle CSV file input for the data parameter
+        self.data = self._process_csv_input(self.data)
+
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
 
@@ -2384,6 +2441,62 @@ class Validate:
         self.time_end = None
 
         self.validation_info = []
+
+    def _process_csv_input(self, data: FrameT | Any) -> FrameT | Any:
+        """
+        Process data parameter to handle CSV file inputs.
+
+        If data is a string or Path with .csv extension, reads the CSV file
+        using available libraries (Polars preferred, then Pandas).
+
+        Returns the original data if it's not a CSV file path.
+        """
+        # Check if data is a string or Path-like object with .csv extension
+        csv_path = None
+
+        if isinstance(data, (str, Path)):
+            path_obj = Path(data)
+            if path_obj.suffix.lower() == ".csv":
+                csv_path = path_obj
+
+        # If it's not a CSV file path, return the original data
+        if csv_path is None:
+            return data
+
+        # Check if the CSV file exists
+        if not csv_path.exists():
+            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+        # Determine which library to use for reading CSV
+        # Prefer Polars, fallback to Pandas
+        if _is_lib_present(lib_name="polars"):
+            try:
+                import polars as pl
+
+                return pl.read_csv(csv_path, try_parse_dates=True)
+            except Exception as e:
+                # If Polars fails, try Pandas if available
+                if _is_lib_present(lib_name="pandas"):
+                    import pandas as pd
+
+                    return pd.read_csv(csv_path)
+                else:
+                    raise RuntimeError(
+                        f"Failed to read CSV file with Polars: {e}. "
+                        "Pandas is not available as fallback."
+                    ) from e
+        elif _is_lib_present(lib_name="pandas"):
+            try:
+                import pandas as pd
+
+                return pd.read_csv(csv_path)
+            except Exception as e:
+                raise RuntimeError(f"Failed to read CSV file with Pandas: {e}") from e
+        else:
+            raise ImportError(
+                "Neither Polars nor Pandas is available for reading CSV files. "
+                "Please install either 'polars' or 'pandas' to use CSV file inputs."
+            )
 
     def _repr_html_(self) -> str:
         return self.get_tabular_report()._repr_html_()  # pragma: no cover
