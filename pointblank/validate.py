@@ -2385,6 +2385,62 @@ class Validate:
 
         self.validation_info = []
 
+    def _process_csv_input(self, data: FrameT | Any) -> FrameT | Any:
+        """
+        Process data parameter to handle CSV file inputs.
+
+        If data is a string or Path with .csv extension, reads the CSV file
+        using available libraries (Polars preferred, then Pandas).
+
+        Returns the original data if it's not a CSV file path.
+        """
+        # Check if data is a string or Path-like object with .csv extension
+        csv_path = None
+
+        if isinstance(data, (str, Path)):
+            path_obj = Path(data)
+            if path_obj.suffix.lower() == ".csv":
+                csv_path = path_obj
+
+        # If it's not a CSV file path, return the original data
+        if csv_path is None:
+            return data
+
+        # Check if the CSV file exists
+        if not csv_path.exists():
+            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+        # Determine which library to use for reading CSV
+        # Prefer Polars, fallback to Pandas
+        if _is_lib_present(lib_name="polars"):
+            try:
+                import polars as pl
+
+                return pl.read_csv(csv_path, try_parse_dates=True)
+            except Exception as e:
+                # If Polars fails, try Pandas if available
+                if _is_lib_present(lib_name="pandas"):
+                    import pandas as pd
+
+                    return pd.read_csv(csv_path)
+                else:
+                    raise RuntimeError(
+                        f"Failed to read CSV file with Polars: {e}. "
+                        "Pandas is not available as fallback."
+                    ) from e
+        elif _is_lib_present(lib_name="pandas"):
+            try:
+                import pandas as pd
+
+                return pd.read_csv(csv_path)
+            except Exception as e:
+                raise RuntimeError(f"Failed to read CSV file with Pandas: {e}") from e
+        else:
+            raise ImportError(
+                "Neither Polars nor Pandas is available for reading CSV files. "
+                "Please install either 'polars' or 'pandas' to use CSV file inputs."
+            )
+
     def _repr_html_(self) -> str:
         return self.get_tabular_report()._repr_html_()  # pragma: no cover
 
