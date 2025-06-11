@@ -2398,6 +2398,9 @@ class Validate:
         # Handle CSV file input for the data parameter
         self.data = self._process_csv_input(self.data)
 
+        # Handle Parquet file input for the data parameter
+        self.data = self._process_parquet_input(self.data)
+
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
 
