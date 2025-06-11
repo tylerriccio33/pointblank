@@ -2341,6 +2341,9 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
+        # Handle CSV file input for the data parameter
+        self.data = self._process_csv_input(self.data)
+
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
 
