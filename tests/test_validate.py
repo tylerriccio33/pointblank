@@ -10850,3 +10850,56 @@ def test_validate_parquet_mixed_list():
 
     # Should return the original list unchanged
     assert validator.data == mixed_list
+
+
+def test_validate_parquet_partitioned_small_table():
+    """Test reading a partitioned Parquet dataset created from small_table.csv."""
+    partitioned_path = TEST_DATA_DIR / "partitioned_small_table"
+    validator = Validate(data=str(partitioned_path))
+
+    # Should have 13 rows from all partitions and 8 columns including the partition column
+    assert validator.data.shape[0] == 13
+    assert validator.data.shape[1] == 8  # All original columns including f
+
+    # Should have the f column with partition values
+    assert "f" in validator.data.columns
+
+    # Check that we have the expected f values
+    if hasattr(validator.data, "group_by"):  # Polars
+        f_values = set(validator.data["f"].unique().to_list())
+    else:  # Pandas
+        f_values = set(validator.data["f"].unique())
+
+    expected_f_values = {"high", "low", "mid"}
+    assert f_values == expected_f_values
+
+    # Test validation functionality works
+    result = validator.col_exists(["a", "b", "f"]).interrogate()
+    assert len(result.validation_info) == 3  # `col_exists()` creates one step per column
+
+
+def test_validate_parquet_permanent_partitioned_sales():
+    """Test reading the permanent partitioned sales dataset."""
+    partitioned_path = TEST_DATA_DIR / "partitioned_sales"
+    validator = Validate(data=str(partitioned_path))
+
+    # Should have data from all partitions (100 rows total)
+    assert validator.data.shape[0] == 100
+    assert validator.data.shape[1] == 9  # All original columns including status
+
+    # Should have the status column with partition values
+    assert "status" in validator.data.columns
+
+    # Check that we have the expected status values
+    if hasattr(validator.data, "group_by"):  # Polars
+        status_counts = validator.data.group_by("status").len().sort("len", descending=True)
+        status_values = set(status_counts["status"].to_list())
+    else:  # Pandas
+        status_values = set(validator.data["status"].unique())
+
+    expected_statuses = {"pending", "shipped", "delivered", "returned", "cancelled"}
+    assert status_values == expected_statuses
+
+    # Test validation functionality works
+    result = validator.col_exists(["product_id", "status", "revenue"]).interrogate()
+    assert len(result.validation_info) == 3  # `col_exists()` creates one step per column
