@@ -2546,11 +2546,37 @@ class Validate:
 
             # Check if it's a directory
             elif path_obj.is_dir():
+                # First, try to read as a partitioned parquet dataset; This handles
+                # Spark-style partitioned datasets where parquet files are in subdirectories
+                # with partition columns encoded in paths
+                try:
+                    # Both Polars and Pandas can handle partitioned datasets natively
+                    if _is_lib_present(lib_name="polars"):
+                        import polars as pl
+
+                        # Try reading as partitioned dataset first
+                        df = pl.read_parquet(str(path_obj))
+                        return df
+                    elif _is_lib_present(lib_name="pandas"):
+                        import pandas as pd
+
+                        # Try reading as partitioned dataset first
+                        df = pd.read_parquet(str(path_obj))
+                        return df
+                except Exception:
+                    # If partitioned read fails, fall back to simple directory scan
+                    pass
+
+                # Fallback: Look for .parquet files directly in the directory
                 parquet_files = list(path_obj.glob("*.parquet"))
                 if parquet_files:
                     parquet_paths = sorted(parquet_files)
                 else:
-                    raise FileNotFoundError(f"No .parquet files found in directory: {path_obj}")
+                    raise FileNotFoundError(
+                        f"No .parquet files found in directory: {path_obj}. "
+                        f"This could be a non-partitioned directory without .parquet files, "
+                        f"or a partitioned dataset that couldn't be read."
+                    )
 
             # If it's not a parquet file, directory, or glob pattern, return original data
             else:
