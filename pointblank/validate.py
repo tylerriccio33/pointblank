@@ -501,7 +501,9 @@ def load_dataset(
         raise ValueError(
             f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
             "- `small_table`\n"
-            "- `game_revenue`"
+            "- `game_revenue`\n"
+            "- `nycflights`\n"
+            "- `global_sales`"
         )
 
     # Raise an error if the `tbl_type=` value is not of the supported types
