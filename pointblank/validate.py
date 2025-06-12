@@ -1973,10 +1973,12 @@ class Validate:
     Parameters
     ----------
     data
-        The table to validate, which could be a DataFrame object, an Ibis table object, or a CSV
-        file path. When providing a CSV file path (as a string or `pathlib.Path` object), the file
-        will be automatically loaded using an available DataFrame library (Polars or Pandas). Read
-        the *Supported Input Table Types* section for details on the supported table types.
+        The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
+        file path, or a Parquet file path. When providing a CSV or Parquet file path (as a string
+        or `pathlib.Path` object), the file will be automatically loaded using an available
+        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns,
+        directories containing .parquet files, and Spark-style partitioned datasets. Read the
+        *Supported Input Table Types* section for details on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -2047,6 +2049,7 @@ class Validate:
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet` extension, or Spark-style partitioned dataset)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
@@ -2382,6 +2385,47 @@ class Validate:
     Pointblank will automatically load the file using the best available DataFrame library (Polars
     preferred, Pandas as fallback). The loaded data can then be used with all validation methods
     just like any other supported table type.
+
+    ### Working with Parquet Files
+
+    The `Validate` class can directly accept Parquet files and datasets in various formats. The
+    following examples illustrate how to validate Parquet files:
+
+    ```python
+    # Single Parquet file
+    validation = (
+        pb.Validate(
+            data="sales_data.parquet",
+            tbl_name="Sales Data"
+        )
+        .col_vals_not_null(["amount"])
+        .interrogate()
+    )
+
+    # Multiple Parquet files with glob patterns
+    validation = pb.Validate(data="data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    validation = pb.Validate(data="parquet_data/")
+
+    # Spark-style partitioned dataset
+    validation = (
+        pb.Validate(data="sales_data/")  # Contains year=2023/quarter=Q1/region=US/sales.parquet
+        .col_exists(["transaction_id", "amount", "year", "quarter", "region"])
+        .interrogate()
+    )
+    ```
+
+    When you point to a directory that contains a partitioned Parquet dataset (with subdirectories
+    like `year=2023/quarter=Q1/region=US/`), Pointblank will automatically:
+
+    - discover all Parquet files recursively
+    - extract partition column values from directory paths
+    - add partition columns to the final DataFrame
+    - combine all partitions into a single table for validation
+
+    Both Polars and Pandas handle partitioned datasets natively, so this works seamlessly with
+    either DataFrame library. The loading preference is Polars first, then Pandas as a fallback.
     """
 
     data: FrameT | Any
@@ -2397,6 +2441,9 @@ class Validate:
     def __post_init__(self):
         # Handle CSV file input for the data parameter
         self.data = self._process_csv_input(self.data)
+
+        # Handle Parquet file input for the data parameter
+        self.data = self._process_parquet_input(self.data)
 
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
@@ -2496,6 +2543,149 @@ class Validate:
             raise ImportError(
                 "Neither Polars nor Pandas is available for reading CSV files. "
                 "Please install either 'polars' or 'pandas' to use CSV file inputs."
+            )
+
+    def _process_parquet_input(self, data: FrameT | Any) -> FrameT | Any:
+        """
+        Process data parameter to handle Parquet file inputs.
+
+        Supports:
+        - Single .parquet file (string or Path)
+        - Glob patterns for multiple .parquet files (e.g., "data/*.parquet")
+        - Directory containing .parquet files
+        - Spark-style partitioned datasets with automatic partition column inference
+        - List/sequence of .parquet file paths
+
+        Returns the original data if it's not a Parquet file input.
+        """
+        import glob
+        from pathlib import Path
+
+        parquet_paths = []
+
+        # Handle different input types
+        if isinstance(data, (str, Path)):
+            data_str = str(data)
+            path_obj = Path(data)
+
+            # Check if it's a glob pattern containing .parquet first
+            # Look for glob characters: *, ?, [, ]
+            if ".parquet" in data_str.lower() and any(
+                char in data_str for char in ["*", "?", "[", "]"]
+            ):
+                parquet_files = glob.glob(data_str)
+                if parquet_files:
+                    parquet_paths = sorted([Path(f) for f in parquet_files])
+                else:
+                    raise FileNotFoundError(f"No files found matching pattern: {data}")
+
+            # Check if it's a single .parquet file
+            elif path_obj.suffix.lower() == ".parquet":
+                if path_obj.exists():
+                    parquet_paths = [path_obj]
+                else:
+                    raise FileNotFoundError(f"Parquet file not found: {path_obj}")
+
+            # Check if it's a directory
+            elif path_obj.is_dir():
+                # First, try to read as a partitioned parquet dataset; This handles
+                # Spark-style partitioned datasets where parquet files are in subdirectories
+                # with partition columns encoded in paths
+                try:
+                    # Both Polars and Pandas can handle partitioned datasets natively
+                    if _is_lib_present(lib_name="polars"):
+                        import polars as pl
+
+                        # Try reading as partitioned dataset first
+                        df = pl.read_parquet(str(path_obj))
+                        return df
+                    elif _is_lib_present(lib_name="pandas"):
+                        import pandas as pd
+
+                        # Try reading as partitioned dataset first
+                        df = pd.read_parquet(str(path_obj))
+                        return df
+                except Exception:
+                    # If partitioned read fails, fall back to simple directory scan
+                    pass
+
+                # Fallback: Look for .parquet files directly in the directory
+                parquet_files = list(path_obj.glob("*.parquet"))
+                if parquet_files:
+                    parquet_paths = sorted(parquet_files)
+                else:
+                    raise FileNotFoundError(
+                        f"No .parquet files found in directory: {path_obj}. "
+                        f"This could be a non-partitioned directory without .parquet files, "
+                        f"or a partitioned dataset that couldn't be read."
+                    )
+
+            # If it's not a parquet file, directory, or glob pattern, return original data
+            else:
+                return data
+
+        # Handle list/sequence of paths
+        elif isinstance(data, (list, tuple)):
+            for item in data:
+                item_path = Path(item)
+                if item_path.suffix.lower() == ".parquet":
+                    if item_path.exists():
+                        parquet_paths.append(item_path)
+                    else:
+                        raise FileNotFoundError(f"Parquet file not found: {item_path}")
+                else:
+                    # If any item is not a parquet file, return original data
+                    return data
+
+        # If no parquet files found, return original data
+        if not parquet_paths:
+            return data
+
+        # Read the parquet file(s) using available libraries
+        # Prefer Polars, fallback to Pandas
+        if _is_lib_present(lib_name="polars"):
+            try:
+                import polars as pl
+
+                if len(parquet_paths) == 1:
+                    # Single file
+                    return pl.read_parquet(parquet_paths[0])
+                else:
+                    # Multiple files - concatenate them
+                    dfs = [pl.read_parquet(path) for path in parquet_paths]
+                    return pl.concat(dfs, how="vertical_relaxed")
+            except Exception as e:
+                # If Polars fails, try Pandas if available
+                if _is_lib_present(lib_name="pandas"):
+                    import pandas as pd
+
+                    if len(parquet_paths) == 1:
+                        return pd.read_parquet(parquet_paths[0])
+                    else:
+                        # Multiple files - concatenate them
+                        dfs = [pd.read_parquet(path) for path in parquet_paths]
+                        return pd.concat(dfs, ignore_index=True)
+                else:
+                    raise RuntimeError(
+                        f"Failed to read Parquet file(s) with Polars: {e}. "
+                        "Pandas is not available as fallback."
+                    ) from e
+        elif _is_lib_present(lib_name="pandas"):
+            try:
+                import pandas as pd
+
+                if len(parquet_paths) == 1:
+                    return pd.read_parquet(parquet_paths[0])
+                else:
+                    # Multiple files - concatenate them
+                    dfs = [pd.read_parquet(path) for path in parquet_paths]
+                    return pd.concat(dfs, ignore_index=True)
+            except Exception as e:
+                raise RuntimeError(f"Failed to read Parquet file(s) with Pandas: {e}") from e
+        else:
+            raise ImportError(
+                "Neither Polars nor Pandas is available for reading Parquet files. "
+                "Please install either 'polars' or 'pandas' to use Parquet file inputs."
             )
 
     def _repr_html_(self) -> str:
