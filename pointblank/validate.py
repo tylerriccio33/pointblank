@@ -106,9 +106,10 @@ __all__ = [
     "config",
     "preview",
     "missing_vals_tbl",
-    "get_column_count",
-    "get_row_count",
     "get_action_metadata",
+    "get_column_count",
+    "get_data_path",
+    "get_row_count",
     "get_validation_summary",
 ]
 
@@ -563,6 +564,172 @@ def load_dataset(
             dataset = ibis.connect(f"duckdb://{data_path}").table(dataset)
 
     return dataset
+
+
+def get_data_path(
+    dataset: Literal["small_table", "game_revenue", "nycflights", "global_sales"] = "small_table",
+    file_type: Literal["csv", "parquet", "duckdb"] = "csv",
+) -> str:
+    """
+    Get the file path to a dataset included with the Pointblank package.
+
+    This function provides direct access to the file paths of datasets included with Pointblank.
+    These paths can be used in examples and documentation to demonstrate file-based data loading
+    without requiring the actual data files. The returned paths can be used with
+    `Validate(data=path)` to demonstrate CSV and Parquet file loading capabilities.
+
+    Parameters
+    ----------
+    dataset
+        The name of the dataset to get the path for. Current options are `"small_table"`,
+        `"game_revenue"`, `"nycflights"`, and `"global_sales"`.
+    file_type
+        The file format to get the path for. Options are `"csv"`, `"parquet"`, or `"duckdb"`.
+
+    Returns
+    -------
+    str
+        The file path to the requested dataset file.
+
+    Included Datasets
+    -----------------
+    The available datasets are the same as those in [`load_dataset()`](`pointblank.load_dataset`):
+
+    - `"small_table"`: A small dataset with 13 rows and 8 columns. Ideal for testing and examples.
+    - `"game_revenue"`: A dataset with 2000 rows and 11 columns. Revenue data for a game company.
+    - `"nycflights"`: A dataset with 336,776 rows and 18 columns. Flight data from NYC airports.
+    - `"global_sales"`: A dataset with 50,000 rows and 20 columns. Global sales data across regions.
+
+    File Types
+    ----------
+    Each dataset is available in multiple formats:
+
+    - `"csv"`: Comma-separated values file (`.csv`)
+    - `"parquet"`: Parquet file (`.parquet`)
+    - `"duckdb"`: DuckDB database file (`.ddb`)
+
+    Examples
+    --------
+    Get the path to a CSV file and use it with `Validate`:
+
+    ```{python}
+    import pointblank as pb
+
+    # Get path to the small_table CSV file
+    csv_path = pb.get_data_path("small_table", "csv")
+    print(csv_path)
+
+    # Use the path directly with Validate
+    validation = (
+        pb.Validate(data=csv_path)
+        .col_exists(["a", "b", "c"])
+        .col_vals_gt(columns="d", value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Get a Parquet file path for validation examples:
+
+    ```{python}
+    # Get path to the game_revenue Parquet file
+    parquet_path = pb.get_data_path(dataset="game_revenue", file_type="parquet")
+
+    # Validate the Parquet file directly
+    validation = (
+        pb.Validate(data=parquet_path, label="Game Revenue Data Validation")
+        .col_vals_not_null(columns=["player_id", "session_id"])
+        .col_vals_gt(columns="item_revenue", value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    This is particularly useful for documentation examples where you want to demonstrate
+    file-based workflows without requiring users to have specific data files:
+
+    ```{python}
+    # Example showing CSV file validation
+    sales_csv = pb.get_data_path(dataset="global_sales", file_type="csv")
+
+    validation = (
+        pb.Validate(data=sales_csv, label="Sales Data Validation")
+        .col_exists(["customer_id", "product_id", "amount"])
+        .col_vals_regex(columns="customer_id", pattern=r"CUST_[0-9]{6}")
+        .interrogate()
+    )
+    ```
+
+    See Also
+    --------
+    [`load_dataset()`](`pointblank.load_dataset`) for loading datasets directly as table objects.
+    """
+
+    # Validate inputs
+    if dataset not in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+        raise ValueError(
+            f"The dataset name `{dataset}` is not valid. Choose one of the following:\n"
+            "- `small_table`\n"
+            "- `game_revenue`\n"
+            "- `nycflights`\n"
+            "- `global_sales`"
+        )
+
+    if file_type not in ["csv", "parquet", "duckdb"]:
+        raise ValueError(
+            f"The file type `{file_type}` is not valid. Choose one of the following:\n"
+            "- `csv`\n"
+            "- `parquet`\n"
+            "- `duckdb`"
+        )
+
+    if file_type == "csv":
+        # Return path to CSV file inside the zip
+        data_path = files("pointblank.data") / f"{dataset}.zip"
+
+        # For CSV files, we need to extract from zip to a temporary location
+        # since most libraries expect actual file paths, not zip contents
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".csv", delete=False) as tmp_file:
+            with ZipFile(data_path) as zip_file:
+                csv_content = zip_file.read(f"{dataset}.csv")
+                tmp_file.write(csv_content)
+                return tmp_file.name
+
+    elif file_type == "parquet":
+        # Create a temporary parquet file from the CSV data
+        data_path = files("pointblank.data") / f"{dataset}.zip"
+
+        # We'll need to convert CSV to Parquet temporarily
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".parquet", delete=False) as tmp_file:
+            # Load CSV data and save as Parquet
+            if _is_lib_present(lib_name="polars"):
+                import polars as pl
+
+                df = pl.read_csv(ZipFile(data_path).read(f"{dataset}.csv"), try_parse_dates=True)
+                df.write_parquet(tmp_file.name)
+            elif _is_lib_present(lib_name="pandas"):
+                import pandas as pd
+
+                df = pd.read_csv(data_path)
+                df.to_parquet(tmp_file.name, index=False)
+            else:
+                raise ImportError(
+                    "Either Polars or Pandas is required to create temporary Parquet files."
+                )
+            return tmp_file.name
+
+    elif file_type == "duckdb":
+        # Return path to DuckDB file
+        data_path = files("pointblank.data") / f"{dataset}-duckdb.zip"
+
+        # Extract DuckDB file to temporary location
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".ddb", delete=False) as tmp_file:
+            with ZipFile(data_path) as zip_file:
+                ddb_content = zip_file.read(f"{dataset}.ddb")
+                tmp_file.write(ddb_content)
+                return tmp_file.name
 
 
 def preview(
