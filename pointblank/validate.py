@@ -1976,9 +1976,9 @@ class Validate:
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
         file path, or a Parquet file path. When providing a CSV or Parquet file path (as a string
         or `pathlib.Path` object), the file will be automatically loaded using an available
-        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns and
-        directories containing .parquet files. Read the *Supported Input Table Types* section for
-        details on the supported table types.
+        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns,
+        directories containing .parquet files, and Spark-style partitioned datasets. Read the
+        *Supported Input Table Types* section for details on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -2049,7 +2049,7 @@ class Validate:
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
-    - Parquet files (string path, `pathlib.Path` object, glob pattern, or directory with `.parquet` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet` extension, or Spark-style partitioned dataset)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
@@ -2385,6 +2385,47 @@ class Validate:
     Pointblank will automatically load the file using the best available DataFrame library (Polars
     preferred, Pandas as fallback). The loaded data can then be used with all validation methods
     just like any other supported table type.
+
+    ### Working with Parquet Files
+
+    The `Validate` class can directly accept Parquet files and datasets in various formats. The
+    following examples illustrate how to validate Parquet files:
+
+    ```python
+    # Single Parquet file
+    validation = (
+        pb.Validate(
+            data="sales_data.parquet",
+            tbl_name="Sales Data"
+        )
+        .col_vals_not_null(["amount"])
+        .interrogate()
+    )
+
+    # Multiple Parquet files with glob patterns
+    validation = pb.Validate(data="data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    validation = pb.Validate(data="parquet_data/")
+
+    # Spark-style partitioned dataset
+    validation = (
+        pb.Validate(data="sales_data/")  # Contains year=2023/quarter=Q1/region=US/sales.parquet
+        .col_exists(["transaction_id", "amount", "year", "quarter", "region"])
+        .interrogate()
+    )
+    ```
+
+    When you point to a directory that contains a partitioned Parquet dataset (with subdirectories
+    like `year=2023/quarter=Q1/region=US/`), Pointblank will automatically:
+
+    - discover all Parquet files recursively
+    - extract partition column values from directory paths
+    - add partition columns to the final DataFrame
+    - combine all partitions into a single table for validation
+
+    Both Polars and Pandas handle partitioned datasets natively, so this works seamlessly with
+    either DataFrame library. The loading preference is Polars first, then Pandas as a fallback.
     """
 
     data: FrameT | Any
@@ -2512,6 +2553,7 @@ class Validate:
         - Single .parquet file (string or Path)
         - Glob patterns for multiple .parquet files (e.g., "data/*.parquet")
         - Directory containing .parquet files
+        - Spark-style partitioned datasets with automatic partition column inference
         - List/sequence of .parquet file paths
 
         Returns the original data if it's not a Parquet file input.
