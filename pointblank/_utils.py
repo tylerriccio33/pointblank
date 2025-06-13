@@ -647,6 +647,7 @@ def _get_api_text() -> str:
         "missing_vals_tbl",
         "assistant",
         "load_dataset",
+        "get_data_path",
     ]
 
     utility_exported = [
