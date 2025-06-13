@@ -2532,9 +2532,9 @@ class Validate:
     validation_3
     ```
 
-    You can also work with the game revenue dataset using a Path object:
+    You can also use a Path object to specify the CSV file. Here's an example of how to do that:
 
-    ```python
+    ```{python}
     from pathlib import Path
 
     csv_file = Path(pb.get_data_path("game_revenue", "csv"))
