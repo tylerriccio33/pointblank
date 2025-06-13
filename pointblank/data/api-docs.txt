@@ -42,7 +42,11 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     Parameters
     ----------
     data
-        The table to validate, which could be a DataFrame object or an Ibis table object. Read the
+        The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
+        file path, or a Parquet file path. When providing a CSV or Parquet file path (as a string
+        or `pathlib.Path` object), the file will be automatically loaded using an available
+        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns,
+        directories containing .parquet files, and Spark-style partitioned datasets. Read the
         *Supported Input Table Types* section for details on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
@@ -113,11 +117,17 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet` extension, or Spark-style partitioned dataset)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
     the Ibis library v9.5.0 and above to be installed. If the input table is a Polars or Pandas
     DataFrame, the Ibis library is not required.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
 
     Thresholds
     ----------
@@ -275,8 +285,8 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     ```python
     import pointblank as pb
 
-    # Load the small_table dataset
-    small_table = pb.load_dataset()
+    # Load the `small_table` dataset
+    small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
     # Preview the table
     pb.preview(small_table)
@@ -342,7 +352,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     brief). Here's an example of a global setting for briefs:
 
     ```python
-    validation = (
+    validation_2 = (
         pb.Validate(
             data=pb.load_dataset(),
             tbl_name="small_table",
@@ -359,7 +369,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
         .interrogate()
     )
 
-    validation
+    validation_2
     ```
 
     We see the text of the briefs appear in the `STEP` column of the reporting table. Furthermore,
@@ -377,7 +387,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     the data extracts for each validation step.
 
     ```python
-    validation.get_data_extracts()
+    validation_2.get_data_extracts()
     ```
 
     We can also view step reports for each validation step using the
@@ -385,7 +395,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     type of validation step and shows the relevant information for a step's validation.
 
     ```python
-    validation.get_step_report(i=2)
+    validation_2.get_step_report(i=2)
     ```
 
     The `Validate` class also has a method for getting the sundered data, which is the data that
@@ -393,11 +403,114 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) method.
 
     ```python
-    pb.preview(validation.get_sundered_data())
+    pb.preview(validation_2.get_sundered_data())
     ```
 
     The sundered data is a DataFrame that contains the rows that passed or failed the validation.
     The default behavior is to return the rows that failed the validation, as shown above.
+
+    ### Working with CSV Files
+
+    The `Validate` class can directly accept CSV file paths, making it easy to validate data stored
+    in CSV files without manual loading:
+
+    ```python
+    # Get a path to a CSV file from the package data
+    csv_path = pb.get_data_path("global_sales", "csv")
+
+    validation_3 = (
+        pb.Validate(
+            data=csv_path,
+            label="CSV validation example"
+        )
+        .col_exists(["customer_id", "product_id", "revenue"])
+        .col_vals_not_null(["customer_id", "product_id"])
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+
+    validation_3
+    ```
+
+    You can also work with the game revenue dataset using a Path object:
+
+    ```python
+    from pathlib import Path
+
+    csv_file = Path(pb.get_data_path("game_revenue", "csv"))
+
+    validation_4 = (
+        pb.Validate(data=csv_file, label="Game Revenue Validation")
+        .col_exists(["player_id", "session_id", "item_name"])
+        .col_vals_regex(
+            columns="session_id",
+            pattern=r"[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}"
+        )
+        .col_vals_gt(columns="item_revenue", value=0, na_pass=True)
+        .interrogate()
+    )
+
+    validation_4
+    ```
+
+    The CSV loading is automatic, so when a string or Path with a `.csv` extension is provided,
+    Pointblank will automatically load the file using the best available DataFrame library (Polars
+    preferred, Pandas as fallback). The loaded data can then be used with all validation methods
+    just like any other supported table type.
+
+    ### Working with Parquet Files
+
+    The `Validate` class can directly accept Parquet files and datasets in various formats. The
+    following examples illustrate how to validate Parquet files:
+
+    ```python
+    # Single Parquet file from package data
+    parquet_path = pb.get_data_path("nycflights", "parquet")
+
+    validation_5 = (
+        pb.Validate(
+            data=parquet_path,
+            tbl_name="NYC Flights Data"
+        )
+        .col_vals_not_null(["carrier", "origin", "dest"])
+        .col_vals_gt(columns="distance", value=0)
+        .interrogate()
+    )
+
+    validation_5
+    ```
+
+    You can also use glob patterns and directories. Here are some examples for how to:
+
+    1. load multiple Parquet files
+    2. load a Parquet-containing directory
+    3. load a partitioned Parquet dataset
+
+    ```python
+    # Multiple Parquet files with glob patterns
+    validation_6 = pb.Validate(data="data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    validation_7 = pb.Validate(data="parquet_data/")
+
+    # Partitioned Parquet dataset
+    validation_8 = (
+        pb.Validate(data="sales_data/")  # Contains year=2023/quarter=Q1/region=US/sales.parquet
+        .col_exists(["transaction_id", "amount", "year", "quarter", "region"])
+        .interrogate()
+    )
+    ```
+
+    When you point to a directory that contains a partitioned Parquet dataset (with subdirectories
+    like `year=2023/quarter=Q1/region=US/`), Pointblank will automatically:
+
+    - discover all Parquet files recursively
+    - extract partition column values from directory paths
+    - add partition columns to the final DataFrame
+    - combine all partitions into a single table for validation
+
+    Both Polars and Pandas handle partitioned datasets natively, so this works seamlessly with
+    either DataFrame library. The loading preference is Polars first, then Pandas as a fallback.
     
 
 Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bool | None' = None, critical: 'int | float | bool | None' = None) -> None
@@ -9170,6 +9283,104 @@ load_dataset(dataset: "Literal['small_table', 'game_revenue', 'nycflights', 'glo
     The `"global_sales"` dataset is a large dataset with 50,000 rows and 20 columns. Each record
     describes the sales of a particular product to a customer located in one of three global
     regions: North America, Europe, or Asia.
+    
+
+get_data_path(dataset: "Literal['small_table', 'game_revenue', 'nycflights', 'global_sales']" = 'small_table', file_type: "Literal['csv', 'parquet', 'duckdb']" = 'csv') -> 'str'
+
+    Get the file path to a dataset included with the Pointblank package.
+
+    This function provides direct access to the file paths of datasets included with Pointblank.
+    These paths can be used in examples and documentation to demonstrate file-based data loading
+    without requiring the actual data files. The returned paths can be used with
+    `Validate(data=path)` to demonstrate CSV and Parquet file loading capabilities.
+
+    Parameters
+    ----------
+    dataset
+        The name of the dataset to get the path for. Current options are `"small_table"`,
+        `"game_revenue"`, `"nycflights"`, and `"global_sales"`.
+    file_type
+        The file format to get the path for. Options are `"csv"`, `"parquet"`, or `"duckdb"`.
+
+    Returns
+    -------
+    str
+        The file path to the requested dataset file.
+
+    Included Datasets
+    -----------------
+    The available datasets are the same as those in [`load_dataset()`](`pointblank.load_dataset`):
+
+    - `"small_table"`: A small dataset with 13 rows and 8 columns. Ideal for testing and examples.
+    - `"game_revenue"`: A dataset with 2000 rows and 11 columns. Revenue data for a game company.
+    - `"nycflights"`: A dataset with 336,776 rows and 18 columns. Flight data from NYC airports.
+    - `"global_sales"`: A dataset with 50,000 rows and 20 columns. Global sales data across regions.
+
+    File Types
+    ----------
+    Each dataset is available in multiple formats:
+
+    - `"csv"`: Comma-separated values file (`.csv`)
+    - `"parquet"`: Parquet file (`.parquet`)
+    - `"duckdb"`: DuckDB database file (`.ddb`)
+
+    Examples
+    --------
+    Get the path to a CSV file and use it with `Validate`:
+
+    ```python
+    import pointblank as pb
+
+    # Get path to the small_table CSV file
+    csv_path = pb.get_data_path("small_table", "csv")
+    print(csv_path)
+
+    # Use the path directly with Validate
+    validation = (
+        pb.Validate(data=csv_path)
+        .col_exists(["a", "b", "c"])
+        .col_vals_gt(columns="d", value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    Get a Parquet file path for validation examples:
+
+    ```python
+    # Get path to the game_revenue Parquet file
+    parquet_path = pb.get_data_path(dataset="game_revenue", file_type="parquet")
+
+    # Validate the Parquet file directly
+    validation = (
+        pb.Validate(data=parquet_path, label="Game Revenue Data Validation")
+        .col_vals_not_null(columns=["player_id", "session_id"])
+        .col_vals_gt(columns="item_revenue", value=0)
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    This is particularly useful for documentation examples where you want to demonstrate
+    file-based workflows without requiring users to have specific data files:
+
+    ```python
+    # Example showing CSV file validation
+    sales_csv = pb.get_data_path(dataset="global_sales", file_type="csv")
+
+    validation = (
+        pb.Validate(data=sales_csv, label="Sales Data Validation")
+        .col_exists(["customer_id", "product_id", "amount"])
+        .col_vals_regex(columns="customer_id", pattern=r"CUST_[0-9]{6}")
+        .interrogate()
+    )
+    ```
+
+    See Also
+    --------
+    [`load_dataset()`](`pointblank.load_dataset`) for loading datasets directly as table objects.
     
 
 
