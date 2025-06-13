@@ -2385,8 +2385,8 @@ class Validate:
     ```{python}
     import pointblank as pb
 
-    # Load the small_table dataset
-    small_table = pb.load_dataset()
+    # Load the `small_table` dataset
+    small_table = pb.load_dataset(dataset="small_table", tbl_type="polars")
 
     # Preview the table
     pb.preview(small_table)
@@ -2452,7 +2452,7 @@ class Validate:
     brief). Here's an example of a global setting for briefs:
 
     ```{python}
-    validation = (
+    validation_2 = (
         pb.Validate(
             data=pb.load_dataset(),
             tbl_name="small_table",
@@ -2469,7 +2469,7 @@ class Validate:
         .interrogate()
     )
 
-    validation
+    validation_2
     ```
 
     We see the text of the briefs appear in the `STEP` column of the reporting table. Furthermore,
@@ -2487,7 +2487,7 @@ class Validate:
     the data extracts for each validation step.
 
     ```{python}
-    validation.get_data_extracts()
+    validation_2.get_data_extracts()
     ```
 
     We can also view step reports for each validation step using the
@@ -2495,7 +2495,7 @@ class Validate:
     type of validation step and shows the relevant information for a step's validation.
 
     ```{python}
-    validation.get_step_report(i=2)
+    validation_2.get_step_report(i=2)
     ```
 
     The `Validate` class also has a method for getting the sundered data, which is the data that
@@ -2503,7 +2503,7 @@ class Validate:
     [`get_sundered_data()`](`pointblank.Validate.get_sundered_data`) method.
 
     ```{python}
-    pb.preview(validation.get_sundered_data())
+    pb.preview(validation_2.get_sundered_data())
     ```
 
     The sundered data is a DataFrame that contains the rows that passed or failed the validation.
@@ -2514,40 +2514,43 @@ class Validate:
     The `Validate` class can directly accept CSV file paths, making it easy to validate data stored
     in CSV files without manual loading:
 
-    ```python
-    # Validate a CSV file using a string path
-    validation = (
+    ```{python}
+    # Get a path to a CSV file from the package data
+    csv_path = pb.get_data_path("global_sales", "csv")
+
+    validation_3 = (
         pb.Validate(
-            data="path/to/sales_data.csv",
-            tbl_name="Sales Data",
+            data=csv_path,
             label="CSV validation example"
         )
-        .col_exists(["date", "amount", "customer_id"])
-        .col_vals_not_null(["amount"])
-        .col_vals_gt(["amount"], value=0)
+        .col_exists(["customer_id", "product_id", "revenue"])
+        .col_vals_not_null(["customer_id", "product_id"])
+        .col_vals_gt(columns="revenue", value=0)
         .interrogate()
     )
 
-    validation
+    validation_3
     ```
 
-    You can also use `pathlib.Path` objects:
+    You can also work with the game revenue dataset using a Path object:
 
     ```python
     from pathlib import Path
 
-    csv_file = Path("data/customer_data.csv")
+    csv_file = Path(pb.get_data_path("game_revenue", "csv"))
 
-    validation = (
-        pb.Validate(data=csv_file)
+    validation_4 = (
+        pb.Validate(data=csv_file, label="Game Revenue Validation")
+        .col_exists(["player_id", "session_id", "item_name"])
         .col_vals_regex(
-            columns="email",
-            pattern=r"[^@]+@[^@]+\.[^@]+"
+            columns="session_id",
+            pattern=r"[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}"
         )
+        .col_vals_gt(columns="item_revenue", value=0, na_pass=True)
         .interrogate()
     )
 
-    validation
+    validation_4
     ```
 
     The CSV loading is automatic, so when a string or Path with a `.csv` extension is provided,
@@ -2560,25 +2563,38 @@ class Validate:
     The `Validate` class can directly accept Parquet files and datasets in various formats. The
     following examples illustrate how to validate Parquet files:
 
-    ```python
-    # Single Parquet file
-    validation = (
+    ```{python}
+    # Single Parquet file from package data
+    parquet_path = pb.get_data_path("nycflights", "parquet")
+
+    validation_5 = (
         pb.Validate(
-            data="sales_data.parquet",
-            tbl_name="Sales Data"
+            data=parquet_path,
+            tbl_name="NYC Flights Data"
         )
-        .col_vals_not_null(["amount"])
+        .col_vals_not_null(["carrier", "origin", "dest"])
+        .col_vals_gt(columns="distance", value=0)
         .interrogate()
     )
 
+    validation_5
+    ```
+
+    You can also use glob patterns and directories. Here are some examples for how to:
+
+    1. load multiple Parquet files
+    2. load a Parquet-containing directory
+    3. load a partitioned Parquet dataset
+
+    ```python
     # Multiple Parquet files with glob patterns
-    validation = pb.Validate(data="data/sales_*.parquet")
+    validation_6 = pb.Validate(data="data/sales_*.parquet")
 
     # Directory containing Parquet files
-    validation = pb.Validate(data="parquet_data/")
+    validation_7 = pb.Validate(data="parquet_data/")
 
-    # Spark-style partitioned dataset
-    validation = (
+    # Partitioned Parquet dataset
+    validation_8 = (
         pb.Validate(data="sales_data/")  # Contains year=2023/quarter=Q1/region=US/sales.parquet
         .col_exists(["transaction_id", "amount", "year", "quarter", "region"])
         .interrogate()
