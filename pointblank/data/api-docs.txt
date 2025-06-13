@@ -432,7 +432,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     validation_3
     ```
 
-    You can also work with the game revenue dataset using a Path object:
+    You can also use a Path object to specify the CSV file. Here's an example of how to do that:
 
     ```python
     from pathlib import Path
