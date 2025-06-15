@@ -118,7 +118,8 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
-    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet` extension, or Spark-style partitioned dataset)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
+    extension, or partitioned dataset)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
