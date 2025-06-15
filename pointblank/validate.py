@@ -2218,7 +2218,8 @@ class Validate:
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
-    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet` extension, or Spark-style partitioned dataset)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
+    extension, or partitioned dataset)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
@@ -2735,11 +2736,11 @@ class Validate:
         Process data parameter to handle Parquet file inputs.
 
         Supports:
-        - Single .parquet file (string or Path)
-        - Glob patterns for multiple .parquet files (e.g., "data/*.parquet")
-        - Directory containing .parquet files
-        - Spark-style partitioned datasets with automatic partition column inference
-        - List/sequence of .parquet file paths
+        - single .parquet file (string or Path)
+        - glob patterns for multiple .parquet files (e.g., "data/*.parquet")
+        - directory containing .parquet files
+        - partitioned Parquet datasets with automatic partition column inference
+        - list/sequence of .parquet file paths
 
         Returns the original data if it's not a Parquet file input.
         """
@@ -2753,8 +2754,8 @@ class Validate:
             data_str = str(data)
             path_obj = Path(data)
 
-            # Check if it's a glob pattern containing .parquet first
-            # Look for glob characters: *, ?, [, ]
+            # Check if it's a glob pattern containing .parquet first; look for glob
+            # characters: `*`, `?`, `[`, `]`
             if ".parquet" in data_str.lower() and any(
                 char in data_str for char in ["*", "?", "[", "]"]
             ):
@@ -2773,9 +2774,8 @@ class Validate:
 
             # Check if it's a directory
             elif path_obj.is_dir():
-                # First, try to read as a partitioned parquet dataset; This handles
-                # Spark-style partitioned datasets where parquet files are in subdirectories
-                # with partition columns encoded in paths
+                # First, try to read as a partitioned parquet dataset; This handles datasets where
+                # Parquet files are in subdirectories with partition columns encoded in paths
                 try:
                     # Both Polars and Pandas can handle partitioned datasets natively
                     if _is_lib_present(lib_name="polars"):
@@ -2826,8 +2826,7 @@ class Validate:
         if not parquet_paths:
             return data
 
-        # Read the parquet file(s) using available libraries
-        # Prefer Polars, fallback to Pandas
+        # Read the parquet file(s) using available libraries; prefer Polars, fallback to Pandas
         if _is_lib_present(lib_name="polars"):
             try:
                 import polars as pl
@@ -2836,7 +2835,7 @@ class Validate:
                     # Single file
                     return pl.read_parquet(parquet_paths[0])
                 else:
-                    # Multiple files - concatenate them
+                    # Multiple files: concatenate them
                     dfs = [pl.read_parquet(path) for path in parquet_paths]
                     return pl.concat(dfs, how="vertical_relaxed")
             except Exception as e:
@@ -2847,7 +2846,7 @@ class Validate:
                     if len(parquet_paths) == 1:
                         return pd.read_parquet(parquet_paths[0])
                     else:
-                        # Multiple files - concatenate them
+                        # Multiple files: concatenate them
                         dfs = [pd.read_parquet(path) for path in parquet_paths]
                         return pd.concat(dfs, ignore_index=True)
                 else:
@@ -2862,7 +2861,7 @@ class Validate:
                 if len(parquet_paths) == 1:
                     return pd.read_parquet(parquet_paths[0])
                 else:
-                    # Multiple files - concatenate them
+                    # Multiple files: concatenate them
                     dfs = [pd.read_parquet(path) for path in parquet_paths]
                     return pd.concat(dfs, ignore_index=True)
             except Exception as e:
