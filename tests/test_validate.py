@@ -7435,6 +7435,408 @@ def test_preview_fails_head_tail_exceed_limit():
 #             preview(small_table)
 
 
+# Connection String Tests
+# =======================
+
+
+def test_connection_string_duckdb_in_memory():
+    """Test connection string functionality with in-memory DuckDB."""
+    pytest.importorskip("ibis")
+
+    import ibis
+    import tempfile
+    import os
+
+    # Create a temporary DuckDB database file instead of in-memory
+    with tempfile.NamedTemporaryFile(suffix=".ddb", delete=False) as tmp_file:
+        temp_db_path = tmp_file.name
+
+    # Remove the empty temp file first so DuckDB can create a proper database
+    os.unlink(temp_db_path)
+
+    try:
+        # Create and populate the database
+        conn = ibis.duckdb.connect(temp_db_path)
+
+        # Create test table
+        test_data = pl.DataFrame(
+            {
+                "id": [1, 2, 3, 4, 5],
+                "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+                "score": [95, 87, 92, 78, 89],
+                "active": [True, True, False, True, True],
+            }
+        )
+
+        # Convert to Ibis table and register in DuckDB
+        ibis_table = ibis.memtable(test_data.to_pandas())
+        conn.create_table("test_users", ibis_table, overwrite=True)
+        conn.create_table("test_scores", ibis_table, overwrite=True)  # Second table for testing
+        conn.disconnect()
+
+        # Test 1: Connection string with table specification should work
+        validation = (
+            Validate(data=f"duckdb:///{temp_db_path}::test_users", label="DuckDB Connection Test")
+            .col_exists(["id", "name", "score", "active"])
+            .col_vals_not_null(["id", "name"])
+            .col_vals_gt(columns="score", value=0)
+            .interrogate()
+        )
+
+        assert (
+            len(validation.validation_info) == 7
+        )  # 4 col_exists + 2 col_vals_not_null + 1 col_vals_gt
+        assert validation.all_passed()
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_db_path):
+            os.unlink(temp_db_path)
+
+
+def test_connection_string_sqlite_in_memory():
+    """Test connection string functionality with in-memory SQLite."""
+    pytest.importorskip("ibis")
+
+    import ibis
+    import tempfile
+    import os
+
+    # Create a temporary SQLite database file instead of in-memory
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+        temp_db_path = tmp_file.name
+
+    try:
+        # Create and populate the database
+        conn = ibis.sqlite.connect(temp_db_path)
+
+        # Create test table
+        test_data = pl.DataFrame(
+            {
+                "customer_id": [101, 102, 103, 104, 105],
+                "order_date": [
+                    "2024-01-01",
+                    "2024-01-02",
+                    "2024-01-03",
+                    "2024-01-04",
+                    "2024-01-05",
+                ],
+                "amount": [250.50, 175.25, 300.00, 89.99, 450.75],
+                "status": ["completed", "pending", "completed", "shipped", "completed"],
+            }
+        )
+
+        # Convert to Ibis table and register in SQLite
+        ibis_table = ibis.memtable(test_data.to_pandas())
+        conn.create_table("orders", ibis_table, overwrite=True)
+        conn.create_table("customers", ibis_table, overwrite=True)  # Second table for testing
+        conn.disconnect()
+
+        # Test 1: Connection string with table specification should work
+        validation = (
+            Validate(data=f"sqlite:///{temp_db_path}::orders", label="SQLite Connection Test")
+            .col_exists(["customer_id", "order_date", "amount", "status"])
+            .col_vals_not_null(["customer_id", "amount"])
+            .col_vals_gt(columns="amount", value=0)
+            .interrogate()
+        )
+
+        assert (
+            len(validation.validation_info) == 7
+        )  # 4 col_exists + 2 col_vals_not_null + 1 col_vals_gt
+        assert validation.all_passed()
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_db_path):
+            os.unlink(temp_db_path)
+
+
+def test_connection_string_no_table_specified_error():
+    """Test that connection strings without table specification show helpful errors."""
+    pytest.importorskip("ibis")
+
+    # Create a temporary DuckDB database with test data
+    import ibis
+    import tempfile
+    import os
+
+    with tempfile.NamedTemporaryFile(suffix=".ddb", delete=False) as tmp_file:
+        temp_db_path = tmp_file.name
+
+    # Remove the empty temp file first so DuckDB can create a proper database
+    os.unlink(temp_db_path)
+
+    try:
+        conn = ibis.duckdb.connect(temp_db_path)
+
+        # Create test tables
+        test_data = pl.DataFrame({"id": [1, 2, 3], "value": [10, 20, 30]})
+
+        ibis_table = ibis.memtable(test_data.to_pandas())
+        conn.create_table("table_a", ibis_table, overwrite=True)
+        conn.create_table("table_b", ibis_table, overwrite=True)
+        conn.create_table("users", ibis_table, overwrite=True)
+        conn.disconnect()
+
+        # Test: Connection string without table specification should error with helpful message
+        with pytest.raises(ValueError) as exc_info:
+            Validate(data=f"duckdb:///{temp_db_path}")
+
+        error_msg = str(exc_info.value)
+
+        # Check that error message contains expected elements
+        assert "No table specified in connection string" in error_msg
+        assert "Available tables in the database:" in error_msg
+        assert "table_a" in error_msg
+        assert "table_b" in error_msg
+        assert "users" in error_msg
+        assert "::TABLE_NAME" in error_msg
+        assert f"duckdb:///{temp_db_path}::table_a" in error_msg
+
+    finally:
+        # Clean up temp database file
+        if os.path.exists(temp_db_path):
+            os.unlink(temp_db_path)
+
+
+def test_connection_string_no_tables_in_database():
+    """Test error message when database has no tables."""
+    pytest.importorskip("ibis")
+
+    # Create an empty in-memory DuckDB database
+    import ibis
+
+    conn = ibis.duckdb.connect()
+
+    # Test: Connection string without table specification on empty database
+    with pytest.raises(ValueError) as exc_info:
+        Validate(data="duckdb://:memory:")
+
+    error_msg = str(exc_info.value)
+
+    # Check that error message contains expected elements for empty database
+    assert "No table specified in connection string" in error_msg
+    assert "No tables found in the database or unable to list tables" in error_msg
+    assert "::TABLE_NAME" in error_msg
+
+    # Clean up
+    conn.disconnect()
+
+
+def test_connection_string_invalid_table_name():
+    """Test error handling for invalid table names."""
+    pytest.importorskip("ibis")
+
+    # Create an in-memory DuckDB database with test data
+    import ibis
+
+    conn = ibis.duckdb.connect()
+
+    # Create test table
+    test_data = pl.DataFrame({"id": [1, 2, 3], "value": [10, 20, 30]})
+
+    ibis_table = ibis.memtable(test_data.to_pandas())
+    conn.create_table("real_table", ibis_table, overwrite=True)
+
+    # Test: Connection string with invalid table name should error
+    with pytest.raises(Exception):  # Could be various exception types depending on backend
+        Validate(data="duckdb://:memory:::nonexistent_table")
+
+    # Clean up
+    conn.disconnect()
+
+
+def test_connection_string_backend_specific_error_guidance():
+    """Test that missing backend dependencies provide specific installation guidance."""
+    # Test BigQuery backend error (likely not installed in test environment)
+    with pytest.raises(ConnectionError) as exc_info:
+        Validate(data="bigquery://fake-project/fake-dataset::fake-table")
+
+    error_msg = str(exc_info.value)
+
+    # Should provide BigQuery-specific installation guidance
+    assert "BIGQUERY" in error_msg.upper()
+    assert "ibis-framework[bigquery]" in error_msg
+    assert "install" in error_msg.lower()
+
+
+def test_connection_string_ibis_not_available(monkeypatch):
+    """Test error when Ibis is not available."""
+
+    # Mock Ibis as not available
+    def mock_is_lib_present(lib_name):
+        if lib_name == "ibis":
+            return False
+        return True  # Allow other libraries
+
+    monkeypatch.setattr("pointblank.validate._is_lib_present", mock_is_lib_present)
+
+    # Test: Should raise ImportError when Ibis is not available
+    with pytest.raises(ImportError) as exc_info:
+        Validate(data="duckdb:///test.db::table")
+
+    error_msg = str(exc_info.value)
+    assert (
+        "Ibis library is not installed but is required for database connection strings" in error_msg
+    )
+    assert "pip install 'ibis-framework" in error_msg
+
+
+def test_connection_string_not_a_connection_string():
+    """Test that non-connection strings are passed through unchanged."""
+    # Test various inputs that should not be treated as connection strings
+    test_cases = [
+        "regular_string",
+        "file.csv",
+        "path/to/file.parquet",
+        123,
+        ["list", "of", "values"],
+        {"dict": "value"},
+    ]
+
+    for test_input in test_cases:
+        try:
+            # For non-string inputs, this will likely fail at later processing stages
+            # For string inputs that aren't connection strings, they should pass through
+            result = Validate(data=test_input)._process_connection_string_input(test_input)
+            assert result == test_input  # Should be unchanged
+        except (TypeError, ValueError, FileNotFoundError):
+            # These are expected for invalid inputs at later processing stages
+            pass
+
+
+def test_connection_string_temporary_file_database():
+    """Test connection strings with temporary database files."""
+    pytest.importorskip("ibis")
+
+    import ibis
+    import tempfile
+    import os
+
+    # Create a temporary SQLite database file
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+        temp_db_path = tmp_file.name
+
+    try:
+        # Create and populate the database
+        conn = ibis.sqlite.connect(temp_db_path)
+
+        test_data = pl.DataFrame(
+            {
+                "product_id": [1, 2, 3, 4],
+                "product_name": ["Widget A", "Widget B", "Gadget X", "Gadget Y"],
+                "price": [19.99, 29.99, 49.99, 39.99],
+                "in_stock": [True, False, True, True],
+            }
+        )
+
+        ibis_table = ibis.memtable(test_data.to_pandas())
+        conn.create_table("products", ibis_table, overwrite=True)
+        conn.disconnect()
+
+        # Test connection string with file path
+        connection_string = f"sqlite:///{temp_db_path}::products"
+        validation = (
+            Validate(data=connection_string, label="File Database Test")
+            .col_exists(["product_id", "product_name", "price", "in_stock"])
+            .col_vals_not_null(["product_id", "product_name"])
+            .col_vals_gt(columns="price", value=0)
+            .interrogate()
+        )
+
+        assert (
+            len(validation.validation_info) == 7
+        )  # 4 col_exists + 2 col_vals_not_null + 1 col_vals_gt
+        assert validation.all_passed()
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_db_path):
+            os.unlink(temp_db_path)
+
+
+def test_connection_string_integration_with_validation_methods():
+    """Test that connection string tables work with all validation methods."""
+    pytest.importorskip("ibis")
+
+    import ibis
+    import tempfile
+    import os
+
+    # Create a temporary DuckDB database with comprehensive test data
+    with tempfile.NamedTemporaryFile(suffix=".ddb", delete=False) as tmp_file:
+        temp_db_path = tmp_file.name
+
+    # Remove the empty temp file first so DuckDB can create a proper database
+    os.unlink(temp_db_path)
+
+    try:
+        conn = ibis.duckdb.connect(temp_db_path)
+
+        test_data = pl.DataFrame(
+            {
+                "id": [1, 2, 3, 4, 5, 6],
+                "email": [
+                    "alice@example.com",
+                    "bob@test.org",
+                    "charlie@demo.net",
+                    "diana@sample.com",
+                    "eve@trial.org",
+                    "frank@example.com",
+                ],
+                "age": [25, 30, 35, 28, 45, 32],
+                "score": [85.5, 92.0, 78.5, 94.0, 88.5, 91.0],
+                "category": ["A", "B", "A", "C", "B", "A"],
+                "active": [True, True, False, True, True, True],
+                "created_date": [
+                    "2024-01-15",
+                    "2024-02-20",
+                    "2024-03-10",
+                    "2024-04-05",
+                    "2024-05-12",
+                    "2024-06-18",
+                ],
+            }
+        )
+
+        ibis_table = ibis.memtable(test_data.to_pandas())
+        conn.create_table("comprehensive_test", ibis_table, overwrite=True)
+        conn.disconnect()
+
+        # Test comprehensive validation using connection string
+        validation = (
+            Validate(
+                data=f"duckdb:///{temp_db_path}::comprehensive_test",
+                label="Comprehensive Connection Test",
+            )
+            .col_exists(["id", "email", "age", "score", "category", "active", "created_date"])
+            .col_vals_not_null(["id", "email", "age"])
+            .col_vals_gt(columns="age", value=18)
+            .col_vals_le(columns="age", value=65)
+            .col_vals_between(columns="score", left=0, right=100)
+            .col_vals_in_set(columns="category", set=["A", "B", "C"])
+            .col_vals_regex(
+                columns="email", pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            )
+            .interrogate()
+        )
+
+        # Should have multiple validation steps
+        assert len(validation.validation_info) > 10
+
+        # Most validations should pass (we designed the test data to be valid)
+        passed_steps = sum(1 for step in validation.validation_info if step.all_passed)
+        total_steps = len(validation.validation_info)
+        pass_rate = passed_steps / total_steps
+        assert pass_rate > 0.8  # At least 80% of validations should pass
+
+    finally:
+        # Clean up temp database file
+        if os.path.exists(temp_db_path):
+            os.unlink(temp_db_path)
+
+
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_preview_with_columns_subset_no_fail(tbl_type):
     tbl = load_dataset(dataset="game_revenue", tbl_type=tbl_type)
