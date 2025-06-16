@@ -2898,6 +2898,33 @@ class Validate:
 
         self.validation_info = []
 
+    def _process_connection_string_input(self, data: FrameT | Any) -> FrameT | Any:
+        """
+        Process data parameter to handle database connection strings.
+
+        Uses the `connect_to_table()` utility function to handle RFC 3986 URI-formatted
+        connection strings with table specifications. Returns the original data if it's
+        not a connection string.
+
+        For more details on supported connection string formats, see the documentation
+        for `connect_to_table()`.
+        """
+        # Check if data is a string that looks like a connection string
+        if not isinstance(data, str):
+            return data
+
+        # Basic connection string patterns
+        connection_patterns = [
+            "://",  # General URL-like pattern
+        ]
+
+        # Check if it looks like a connection string
+        if not any(pattern in data for pattern in connection_patterns):
+            return data
+
+        # Use the utility function to connect to the table
+        return connect_to_table(data)
+
     def _process_csv_input(self, data: FrameT | Any) -> FrameT | Any:
         """
         Process data parameter to handle CSV file inputs.
