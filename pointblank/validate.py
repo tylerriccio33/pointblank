@@ -2454,6 +2454,18 @@ class Validate:
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
 
+    Connection strings follow database URL formats and must also specify a table using the
+    `::table_name` suffix. Examples include:
+
+    - `"duckdb:///path/to/database.ddb::table_name"`
+    - `"sqlite:///path/to/database.db::table_name"`
+    - `"postgresql://user:password@localhost:5432/database::table_name"`
+    - `"mysql://user:password@localhost:3306/database::table_name"`
+    - `"bigquery://project/dataset::table_name"`
+    - `"snowflake://user:password@account/database/schema::table_name"`
+
+    When using connection strings, the Ibis library with the appropriate backend driver is required.
+
     Thresholds
     ----------
     The `thresholds=` parameter is used to set the failure-condition levels for all validation
