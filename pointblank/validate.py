@@ -104,6 +104,7 @@ __all__ = [
     "Validate",
     "load_dataset",
     "config",
+    "connect_to_table",
     "preview",
     "missing_vals_tbl",
     "get_action_metadata",
