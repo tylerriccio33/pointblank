@@ -2371,7 +2371,13 @@ class Validate:
     ----------
     data
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
-        *Supported Input Table Types* section for details on the supported table types.
+        file path, a Parquet file path, or a database connection string. When providing a CSV or
+        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
+        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
+        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
+        Connection strings enable direct database access via Ibis with optional table specification
+        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
+        on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
