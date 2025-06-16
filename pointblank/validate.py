@@ -2835,6 +2835,35 @@ class Validate:
 
     Both Polars and Pandas handle partitioned datasets natively, so this works seamlessly with
     either DataFrame library. The loading preference is Polars first, then Pandas as a fallback.
+
+    ### Working with Database Connection Strings
+
+    The `Validate` class supports RFC 3986 URI-formatted database connection strings for direct
+    validation of database tables. Connection strings must specify a table using the `::table_name`
+    suffix:
+
+    ```{python}
+    # DuckDB database with table specification
+    validation_9 = (
+        pb.Validate(
+            data="duckdb:///sales_database.ddb::quarterly_sales",
+            label="DuckDB Sales Validation"
+        )
+        .col_exists(["quarter", "region", "revenue"])
+        .col_vals_gt(columns="revenue", value=0)
+        .interrogate()
+    )
+
+    validation_9
+    ```
+
+    For comprehensive documentation on supported connection string formats, error handling, and
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`) function.
+
+    Connection strings work with various database backends including DuckDB, PostgreSQL, MySQL,
+    SQLite, BigQuery, and Snowflake. The `connect_to_table()` utility function handles all the
+    connection logic and provides helpful error messages when table specifications are missing or
+    backend dependencies are not installed.
     """
 
     data: FrameT | Any
