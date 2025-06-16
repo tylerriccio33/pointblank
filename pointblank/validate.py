@@ -2858,19 +2858,20 @@ class Validate:
 
     ### Working with Database Connection Strings
 
-    The `Validate` class supports RFC 3986 URI-formatted database connection strings for direct
-    validation of database tables. Connection strings must specify a table using the `::table_name`
-    suffix:
+    The `Validate` class supports database connection strings for direct validation of database
+    tables. Connection strings must specify a table using the `::table_name` suffix:
 
     ```{python}
-    # DuckDB database with table specification
+    # Get path to a DuckDB database file from package data
+    duckdb_path = pb.get_data_path("game_revenue", "duckdb")
+
     validation_9 = (
         pb.Validate(
-            data="duckdb:///sales_database.ddb::quarterly_sales",
-            label="DuckDB Sales Validation"
+            data=f"duckdb:///{duckdb_path}::game_revenue",
+            label="DuckDB Game Revenue Validation"
         )
-        .col_exists(["quarter", "region", "revenue"])
-        .col_vals_gt(columns="revenue", value=0)
+        .col_exists(["player_id", "session_id", "item_revenue"])
+        .col_vals_gt(columns="item_revenue", value=0)
         .interrogate()
     )
 
@@ -2878,12 +2879,9 @@ class Validate:
     ```
 
     For comprehensive documentation on supported connection string formats, error handling, and
-    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`) function.
-
-    Connection strings work with various database backends including DuckDB, PostgreSQL, MySQL,
-    SQLite, BigQuery, and Snowflake. The `connect_to_table()` utility function handles all the
-    connection logic and provides helpful error messages when table specifications are missing or
-    backend dependencies are not installed.
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
+    function. This function handles all the connection logic and provides helpful error messages
+    when table specifications are missing or backend dependencies are not installed.
     """
 
     data: FrameT | Any
