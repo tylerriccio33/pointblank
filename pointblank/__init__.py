@@ -30,6 +30,7 @@ from pointblank.thresholds import Actions, FinalActions, Thresholds
 from pointblank.validate import (
     Validate,
     config,
+    connect_to_table,
     get_action_metadata,
     get_column_count,
     get_data_path,
@@ -63,6 +64,7 @@ __all__ = [
     "load_dataset",
     "get_data_path",
     "config",
+    "connect_to_table",
     "preview",
     "missing_vals_tbl",
     "get_action_metadata",
