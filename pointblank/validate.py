@@ -2891,6 +2891,9 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
+        # Handle connection string input for the data parameter
+        self.data = self._process_connection_string_input(self.data)
+
         # Handle CSV file input for the data parameter
         self.data = self._process_csv_input(self.data)
 
