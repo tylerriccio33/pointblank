@@ -2110,6 +2110,233 @@ class _ValidationInfo:
         return self.val_info
 
 
+def connect_to_table(connection_string: str) -> Any:
+    """
+    Connect to a database table using a connection string.
+
+    This utility function tests whether a connection string leads to a valid table and returns
+    the table object if successful. It provides helpful error messages when no table is specified
+    or when backend dependencies are missing.
+
+    Parameters
+    ----------
+    connection_string
+        A database connection string with a required table specification using the `::table_name`
+        suffix. Supported formats include:
+
+        - DuckDB: `"duckdb:///path/to/database.ddb::table_name"`
+        - SQLite: `"sqlite:///path/to/database.db::table_name"`
+        - PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
+        - MySQL: `"mysql://user:password@localhost:3306/database::table_name"`
+        - BigQuery: `"bigquery://project/dataset::table_name"`
+        - Snowflake: `"snowflake://user:password@account/database/schema::table_name"`
+
+    Returns
+    -------
+    Any
+        An Ibis table object for the specified database table.
+
+    Examples
+    --------
+    Connect to a DuckDB table:
+
+    ```python
+    import pointblank as pb
+
+    # Connect to a specific table
+    table = pb.connect_to_table("duckdb:///sales_data.ddb::quarterly_sales")
+
+    # Use with validation
+    validation = pb.Validate(data=table).col_exists(["quarter", "revenue"]).interrogate()
+    ```
+
+    If you omit the table specification, you'll get helpful guidance:
+
+    ```python
+    try:
+        table = pb.connect_to_table("duckdb:///sales_data.ddb")
+    except ValueError as e:
+        print(e)
+        # Output shows available tables and proper syntax
+    ```
+
+    Backend-specific connection examples:
+
+    ```python
+    # PostgreSQL
+    pg_table = pb.connect_to_table(
+        "postgresql://user:password@localhost:5432/warehouse::customer_data"
+    )
+
+    # SQLite
+    sqlite_table = pb.connect_to_table("sqlite:///local_data.db::products")
+
+    # BigQuery
+    bq_table = pb.connect_to_table("bigquery://my-project/analytics::daily_metrics")
+    ```
+
+    This function requires the Ibis library with appropriate backend drivers:
+
+    ```bash
+    pip install 'ibis-framework[duckdb,postgres,mysql,sqlite]'
+    # or for specific backends:
+    pip install 'ibis-framework[duckdb]'  # for DuckDB
+    pip install 'ibis-framework[postgres]'  # for PostgreSQL
+    ```
+    """
+    # Check if Ibis is available
+    if not _is_lib_present(lib_name="ibis"):
+        raise ImportError(
+            "The Ibis library is not installed but is required for database connection strings.\n"
+            "Install it with: pip install 'ibis-framework[duckdb]' (or other backend as needed)"
+        )
+
+    import ibis
+
+    # Check if connection string includes table specification
+    if "::" not in connection_string:
+        # Try to connect to get available tables for helpful error message
+        try:
+            # Extract the base connection string (without table name)
+            base_connection = connection_string
+
+            # Connect to the database
+            conn = ibis.connect(base_connection)
+
+            # Get list of available tables
+            try:
+                available_tables = conn.list_tables()
+            except Exception:
+                available_tables = []
+
+            conn.disconnect()
+
+            # Create helpful error message
+            if available_tables:
+                table_list = "\n".join(f"  - {table}" for table in available_tables)
+                error_msg = (
+                    f"No table specified in connection string: {connection_string}\n\n"
+                    f"Available tables in the database:\n{table_list}\n\n"
+                    f"To access a specific table, use the format:\n"
+                    f"  {connection_string}::TABLE_NAME\n\n"
+                    f"Examples:\n"
+                )
+                # Add examples with first few table names
+                for table in available_tables[:3]:
+                    error_msg += f"  {connection_string}::{table}\n"
+            else:
+                error_msg = (
+                    f"No table specified in connection string: {connection_string}\n\n"
+                    f"No tables found in the database or unable to list tables.\n\n"
+                    f"To access a specific table, use the format:\n"
+                    f"  {connection_string}::TABLE_NAME"
+                )
+
+            raise ValueError(error_msg)
+
+        except Exception as e:
+            if isinstance(e, ValueError):
+                raise  # Re-raise our custom ValueError
+
+            # Check for backend-specific errors and provide installation guidance
+            error_str = str(e).lower()
+            backend_install_map = {
+                "duckdb": "pip install 'ibis-framework[duckdb]'",
+                "postgresql": "pip install 'ibis-framework[postgres]'",
+                "postgres": "pip install 'ibis-framework[postgres]'",
+                "mysql": "pip install 'ibis-framework[mysql]'",
+                "sqlite": "pip install 'ibis-framework[sqlite]'",
+                "bigquery": "pip install 'ibis-framework[bigquery]'",
+                "snowflake": "pip install 'ibis-framework[snowflake]'",
+            }
+
+            # Check if this is a missing backend dependency
+            for backend, install_cmd in backend_install_map.items():
+                if backend in error_str and ("not found" in error_str or "no module" in error_str):
+                    raise ConnectionError(
+                        f"Missing {backend.upper()} backend for Ibis. Install it with:\n"
+                        f"  {install_cmd}\n\n"
+                        f"Original error: {e}\n\n"
+                        f"Supported connection string formats:\n"
+                        f"- DuckDB: 'duckdb:///path/to/file.ddb::table_name'\n"
+                        f"- SQLite: 'sqlite:///path/to/file.db::table_name'\n"
+                        f"- PostgreSQL: 'postgresql://user:pass@host:port/db::table_name'\n"
+                        f"- MySQL: 'mysql://user:pass@host:port/db::table_name'\n"
+                        f"- BigQuery: 'bigquery://project/dataset::table_name'\n"
+                        f"- Snowflake: 'snowflake://user:pass@account/db/schema::table_name'\n"
+                        f"\nNote: Use '::table_name' to specify the table within the database."
+                    ) from e
+
+            # Generic connection error
+            raise ConnectionError(
+                f"Failed to connect to database using connection string: {connection_string}\n"
+                f"Error: {e}\n\n"
+                f"No table specified. Use the format: {connection_string}::TABLE_NAME"
+            ) from e
+
+    # Split connection string and table name
+    try:
+        base_connection, table_name = connection_string.rsplit("::", 1)
+    except ValueError:
+        raise ValueError(f"Invalid connection string format: {connection_string}")
+
+    # Connect to database and get table
+    try:
+        conn = ibis.connect(base_connection)
+        table = conn.table(table_name)
+        return table
+
+    except Exception as e:
+        # Check for backend-specific errors and provide installation guidance
+        error_str = str(e).lower()
+        backend_install_map = {
+            "duckdb": "pip install 'ibis-framework[duckdb]'",
+            "postgresql": "pip install 'ibis-framework[postgres]'",
+            "postgres": "pip install 'ibis-framework[postgres]'",
+            "mysql": "pip install 'ibis-framework[mysql]'",
+            "sqlite": "pip install 'ibis-framework[sqlite]'",
+            "bigquery": "pip install 'ibis-framework[bigquery]'",
+            "snowflake": "pip install 'ibis-framework[snowflake]'",
+        }
+
+        # Check if this is a missing backend dependency
+        for backend, install_cmd in backend_install_map.items():
+            if backend in error_str and ("not found" in error_str or "no module" in error_str):
+                raise ConnectionError(
+                    f"Missing {backend.upper()} backend for Ibis. Install it with:\n"
+                    f"  {install_cmd}\n\n"
+                    f"Original error: {e}"
+                ) from e
+
+        # Check if table doesn't exist
+        if "table" in error_str and ("not found" in error_str or "does not exist" in error_str):
+            # Try to get available tables for helpful message
+            try:
+                available_tables = conn.list_tables()
+                if available_tables:
+                    table_list = "\n".join(f"  - {table}" for table in available_tables)
+                    raise ValueError(
+                        f"Table '{table_name}' not found in database.\n\n"
+                        f"Available tables:\n{table_list}\n\n"
+                        f"Check the table name and try again with:\n"
+                        f"  {base_connection}::CORRECT_TABLE_NAME"
+                    ) from e
+                else:
+                    raise ValueError(
+                        f"Table '{table_name}' not found and no tables available in database."
+                    ) from e
+            except Exception:
+                raise ValueError(
+                    f"Table '{table_name}' not found in database. "
+                    f"Check the table name and connection string."
+                ) from e
+
+        # Generic connection error
+        raise ConnectionError(
+            f"Failed to connect to table '{table_name}' using: {base_connection}\nError: {e}"
+        ) from e
+
+
 @dataclass
 class Validate:
     """
@@ -2143,10 +2370,6 @@ class Validate:
     ----------
     data
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
-        file path, or a Parquet file path. When providing a CSV or Parquet file path (as a string
-        or `pathlib.Path` object), the file will be automatically loaded using an available
-        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns,
-        directories containing .parquet files, and Spark-style partitioned datasets. Read the
         *Supported Input Table Types* section for details on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
