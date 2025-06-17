@@ -997,8 +997,14 @@ def preview(
     Parameters
     ----------
     data
-        The table to preview, which could be a DataFrame object or an Ibis table object. Read the
-        *Supported Input Table Types* section for details on the supported table types.
+        The table to preview, which could be a DataFrame object, an Ibis table object, a CSV
+        file path, a Parquet file path, or a database connection string. When providing a CSV or
+        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
+        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
+        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
+        Connection strings enable direct database access via Ibis with optional table specification
+        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
+        on the supported table types.
     columns_subset
         The columns to display in the table, by default `None` (all columns are shown). This can
         be a string, a list of strings, a `Column` object, or a `ColumnSelector` object. The latter
