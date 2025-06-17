@@ -2469,12 +2469,12 @@ def connect_to_table(connection_string: str) -> Any:
     for various backends:
 
     ```
-    DuckDB:     `"duckdb:///path/to/database.ddb::table_name"`
-    SQLite:     `"sqlite:///path/to/database.db::table_name"`
-    PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
-    MySQL:      `"mysql://user:password@localhost:3306/database::table_name"`
-    BigQuery:   `"bigquery://project/dataset::table_name"`
-    Snowflake:  `"snowflake://user:password@account/database/schema::table_name"`
+    DuckDB:     "duckdb:///path/to/database.ddb::table_name"
+    SQLite:     "sqlite:///path/to/database.db::table_name"
+    PostgreSQL: "postgresql://user:password@localhost:5432/database::table_name"
+    MySQL:      "mysql://user:password@localhost:3306/database::table_name"
+    BigQuery:   "bigquery://project/dataset::table_name"
+    Snowflake:  "snowflake://user:password@account/database/schema::table_name"
     ```
 
     If the connection string does not include a table name, the function will attempt to connect to
