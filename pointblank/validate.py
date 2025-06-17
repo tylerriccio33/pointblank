@@ -11,7 +11,6 @@ import tempfile
 import threading
 from dataclasses import dataclass
 from importlib.metadata import version
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Literal
 from zipfile import ZipFile
 
@@ -735,6 +734,239 @@ def get_data_path(
                 return tmp_file.name
 
 
+# =============================================================================
+# Utility functions for processing input data (shared by preview() and Validate class)
+# =============================================================================
+
+
+def _process_connection_string(data: FrameT | Any) -> FrameT | Any:
+    """
+    Process data parameter to handle database connection strings.
+
+    Uses the `connect_to_table()` utility function to handle URI-formatted connection strings with
+    table specifications. Returns the original data if it's not a connection string.
+
+    For more details on supported connection string formats, see the documentation
+    for `connect_to_table()`.
+    """
+    # Check if data is a string that looks like a connection string
+    if not isinstance(data, str):
+        return data
+
+    # Basic connection string patterns
+    connection_patterns = [
+        "://",  # General URL-like pattern
+    ]
+
+    # Check if it looks like a connection string
+    if not any(pattern in data for pattern in connection_patterns):
+        return data
+
+    # Use the utility function to connect to the table
+    return connect_to_table(data)
+
+
+def _process_csv_input(data: FrameT | Any) -> FrameT | Any:
+    """
+    Process data parameter to handle CSV file inputs.
+
+    If data is a string or Path with .csv extension, reads the CSV file
+    using available libraries (Polars preferred, then Pandas).
+
+    Returns the original data if it's not a CSV file path.
+    """
+    from pathlib import Path
+
+    # Check if data is a string or Path-like object with .csv extension
+    csv_path = None
+
+    if isinstance(data, (str, Path)):
+        path_obj = Path(data)
+        if path_obj.suffix.lower() == ".csv":
+            csv_path = path_obj
+
+    # If it's not a CSV file path, return the original data
+    if csv_path is None:
+        return data
+
+    # Check if the CSV file exists
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+    # Determine which library to use for reading CSV
+    # Prefer Polars, fallback to Pandas
+    if _is_lib_present(lib_name="polars"):
+        try:
+            import polars as pl
+
+            return pl.read_csv(csv_path, try_parse_dates=True)
+        except Exception as e:
+            # If Polars fails, try Pandas if available
+            if _is_lib_present(lib_name="pandas"):
+                import pandas as pd
+
+                return pd.read_csv(csv_path)
+            else:
+                raise RuntimeError(
+                    f"Failed to read CSV file with Polars: {e}. "
+                    "Pandas is not available as fallback."
+                ) from e
+    elif _is_lib_present(lib_name="pandas"):
+        try:
+            import pandas as pd
+
+            return pd.read_csv(csv_path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to read CSV file with Pandas: {e}") from e
+    else:
+        raise ImportError(
+            "Neither Polars nor Pandas is available for reading CSV files. "
+            "Please install either 'polars' or 'pandas' to use CSV file inputs."
+        )
+
+
+def _process_parquet_input(data: FrameT | Any) -> FrameT | Any:
+    """
+    Process data parameter to handle Parquet file inputs.
+
+    Supports:
+    - single .parquet file (string or Path)
+    - glob patterns for multiple .parquet files (e.g., "data/*.parquet")
+    - directory containing .parquet files
+    - partitioned Parquet datasets with automatic partition column inference
+    - list/sequence of .parquet file paths
+
+    Returns the original data if it's not a Parquet file input.
+    """
+    import glob
+    from pathlib import Path
+
+    parquet_paths = []
+
+    # Handle different input types
+    if isinstance(data, (str, Path)):
+        data_str = str(data)
+        path_obj = Path(data)
+
+        # Check if it's a glob pattern containing .parquet first; look for glob
+        # characters: `*`, `?`, `[`, `]`
+        if ".parquet" in data_str.lower() and any(
+            char in data_str for char in ["*", "?", "[", "]"]
+        ):
+            parquet_files = glob.glob(data_str)
+            if parquet_files:
+                parquet_paths = sorted([Path(f) for f in parquet_files])
+            else:
+                raise FileNotFoundError(f"No files found matching pattern: {data}")
+
+        # Check if it's a single .parquet file
+        elif path_obj.suffix.lower() == ".parquet":
+            if path_obj.exists():
+                parquet_paths = [path_obj]
+            else:
+                raise FileNotFoundError(f"Parquet file not found: {path_obj}")
+
+        # Check if it's a directory
+        elif path_obj.is_dir():
+            # First, try to read as a partitioned parquet dataset; This handles datasets where
+            # Parquet files are in subdirectories with partition columns encoded in paths
+            try:
+                # Both Polars and Pandas can handle partitioned datasets natively
+                if _is_lib_present(lib_name="polars"):
+                    import polars as pl
+
+                    # Try reading as partitioned dataset first
+                    df = pl.read_parquet(str(path_obj))
+                    return df
+                elif _is_lib_present(lib_name="pandas"):
+                    import pandas as pd
+
+                    # Try reading as partitioned dataset first
+                    df = pd.read_parquet(str(path_obj))
+                    return df
+            except Exception:
+                # If partitioned read fails, fall back to simple directory scan
+                pass
+
+            # Fallback: Look for .parquet files directly in the directory
+            parquet_files = list(path_obj.glob("*.parquet"))
+            if parquet_files:
+                parquet_paths = sorted(parquet_files)
+            else:
+                raise FileNotFoundError(
+                    f"No .parquet files found in directory: {path_obj}. "
+                    f"This could be a non-partitioned directory without .parquet files, "
+                    f"or a partitioned dataset that couldn't be read."
+                )
+
+            # If it's not a parquet file, directory, or glob pattern, return original data
+        else:
+            return data
+
+    # Handle list/sequence of paths
+    elif isinstance(data, (list, tuple)):
+        for item in data:
+            item_path = Path(item)
+            if item_path.suffix.lower() == ".parquet":
+                if item_path.exists():
+                    parquet_paths.append(item_path)
+                else:
+                    raise FileNotFoundError(f"Parquet file not found: {item_path}")
+            else:
+                # If any item is not a parquet file, return original data
+                return data
+
+    # If no parquet files found, return original data
+    if not parquet_paths:
+        return data
+
+    # Read the parquet file(s) using available libraries; prefer Polars, fallback to Pandas
+    if _is_lib_present(lib_name="polars"):
+        try:
+            import polars as pl
+
+            if len(parquet_paths) == 1:
+                # Single file
+                return pl.read_parquet(parquet_paths[0])
+            else:
+                # Multiple files: concatenate them
+                dfs = [pl.read_parquet(path) for path in parquet_paths]
+                return pl.concat(dfs, how="vertical_relaxed")
+        except Exception as e:
+            # If Polars fails, try Pandas if available
+            if _is_lib_present(lib_name="pandas"):
+                import pandas as pd
+
+                if len(parquet_paths) == 1:
+                    return pd.read_parquet(parquet_paths[0])
+                else:
+                    # Multiple files: concatenate them
+                    dfs = [pd.read_parquet(path) for path in parquet_paths]
+                    return pd.concat(dfs, ignore_index=True)
+            else:
+                raise RuntimeError(
+                    f"Failed to read Parquet file(s) with Polars: {e}. "
+                    "Pandas is not available as fallback."
+                ) from e
+    elif _is_lib_present(lib_name="pandas"):
+        try:
+            import pandas as pd
+
+            if len(parquet_paths) == 1:
+                return pd.read_parquet(parquet_paths[0])
+            else:
+                # Multiple files: concatenate them
+                dfs = [pd.read_parquet(path) for path in parquet_paths]
+                return pd.concat(dfs, ignore_index=True)
+        except Exception as e:
+            raise RuntimeError(f"Failed to read Parquet file(s) with Pandas: {e}") from e
+    else:
+        raise ImportError(
+            "Neither Polars nor Pandas is available for reading Parquet files. "
+            "Please install either 'polars' or 'pandas' to use Parquet file inputs."
+        )
+
+
 def preview(
     data: FrameT | Any,
     columns_subset: str | list[str] | Column | None = None,
@@ -765,8 +997,14 @@ def preview(
     Parameters
     ----------
     data
-        The table to preview, which could be a DataFrame object or an Ibis table object. Read the
-        *Supported Input Table Types* section for details on the supported table types.
+        The table to preview, which could be a DataFrame object, an Ibis table object, a CSV
+        file path, a Parquet file path, or a database connection string. When providing a CSV or
+        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
+        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
+        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
+        Connection strings enable direct database access via Ibis with optional table specification
+        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
+        on the supported table types.
     columns_subset
         The columns to display in the table, by default `None` (all columns are shown). This can
         be a string, a list of strings, a `Column` object, or a `ColumnSelector` object. The latter
@@ -817,11 +1055,33 @@ def preview(
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
+    extension, or partitioned dataset)
+    - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
     requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
     Pandas DataFrame, the availability of Ibis is not needed.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
+
+    Connection strings follow database URL formats and must also specify a table using the
+    `::table_name` suffix. Examples include:
+
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
+
+    When using connection strings, the Ibis library with the appropriate backend driver is required.
 
     Examples
     --------
@@ -889,7 +1149,79 @@ def preview(
       columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
     )
     ```
+
+    ### Working with CSV Files
+
+    The `preview()` function can directly accept CSV file paths, making it easy to preview data
+    stored in CSV files without manual loading:
+
+    ```{python}
+    # Get a path to a CSV file from the package data
+    csv_path = pb.get_data_path("global_sales", "csv")
+
+    pb.preview(csv_path)
+    ```
+
+    You can also use a Path object to specify the CSV file:
+
+    ```{python}
+    from pathlib import Path
+
+    csv_file = Path(pb.get_data_path("game_revenue", "csv"))
+
+    pb.preview(csv_file, n_head=3, n_tail=3)
+    ```
+
+    ### Working with Parquet Files
+
+    The `preview()` function can directly accept Parquet files and datasets in various formats:
+
+    ```{python}
+    # Single Parquet file from package data
+    parquet_path = pb.get_data_path("nycflights", "parquet")
+
+    pb.preview(parquet_path)
+    ```
+
+    You can also use glob patterns and directories:
+
+    ```python
+    # Multiple Parquet files with glob patterns
+    pb.preview("data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    pb.preview("parquet_data/")
+
+    # Partitioned Parquet dataset
+    pb.preview("sales_data/")  # Auto-discovers partition columns
+    ```
+
+    ### Working with Database Connection Strings
+
+    The `preview()` function supports database connection strings for direct preview of database
+    tables. Connection strings must specify a table using the `::table_name` suffix:
+
+    ```{python}
+    # Get path to a DuckDB database file from package data
+    duckdb_path = pb.get_data_path("game_revenue", "duckdb")
+
+    pb.preview(f"duckdb:///{duckdb_path}::game_revenue")
+    ```
+
+    For comprehensive documentation on supported connection string formats, error handling, and
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
+    function.
     """
+
+    # Process input data to handle different data source types
+    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
+    data = _process_connection_string(data)
+
+    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
+    data = _process_csv_input(data)
+
+    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
+    data = _process_parquet_input(data)
 
     if incl_header is None:
         incl_header = global_config.preview_incl_header
@@ -2133,14 +2465,17 @@ def connect_to_table(connection_string: str) -> Any:
     Supported Connection String Formats
     -----------------------------------
     The `connection_string` parameter must include a valid connection string with a table name
-    specified using the `::` syntax. For example:
+    specified using the `::` syntax. Here are some examples on how to format connection strings
+    for various backends:
 
-    - DuckDB: `"duckdb:///path/to/database.ddb::table_name"`
-    - SQLite: `"sqlite:///path/to/database.db::table_name"`
-    - PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
-    - MySQL: `"mysql://user:password@localhost:3306/database::table_name"`
-    - BigQuery: `"bigquery://project/dataset::table_name"`
-    - Snowflake: `"snowflake://user:password@account/database/schema::table_name"`
+    ```
+    DuckDB:     "duckdb:///path/to/database.ddb::table_name"
+    SQLite:     "sqlite:///path/to/database.db::table_name"
+    PostgreSQL: "postgresql://user:password@localhost:5432/database::table_name"
+    MySQL:      "mysql://user:password@localhost:3306/database::table_name"
+    BigQuery:   "bigquery://project/dataset::table_name"
+    Snowflake:  "snowflake://user:password@account/database/schema::table_name"
+    ```
 
     If the connection string does not include a table name, the function will attempt to connect to
     the database and list available tables, providing guidance on how to specify a table.
@@ -2453,7 +2788,7 @@ class Validate:
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
     extension, or partitioned dataset)
-    - Database connection strings (RFC 3986 URI format with optional table specification)
+    - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
@@ -2467,12 +2802,14 @@ class Validate:
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
 
-    - `"duckdb:///path/to/database.ddb::table_name"`
-    - `"sqlite:///path/to/database.db::table_name"`
-    - `"postgresql://user:password@localhost:5432/database::table_name"`
-    - `"mysql://user:password@localhost:3306/database::table_name"`
-    - `"bigquery://project/dataset::table_name"`
-    - `"snowflake://user:password@account/database/schema::table_name"`
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
 
     When using connection strings, the Ibis library with the appropriate backend driver is required.
 
@@ -2899,13 +3236,13 @@ class Validate:
 
     def __post_init__(self):
         # Handle connection string input for the data parameter
-        self.data = self._process_connection_string_input(self.data)
+        self.data = _process_connection_string(self.data)
 
         # Handle CSV file input for the data parameter
-        self.data = self._process_csv_input(self.data)
+        self.data = _process_csv_input(self.data)
 
         # Handle Parquet file input for the data parameter
-        self.data = self._process_parquet_input(self.data)
+        self.data = _process_parquet_input(self.data)
 
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
@@ -2950,230 +3287,6 @@ class Validate:
         self.time_end = None
 
         self.validation_info = []
-
-    def _process_connection_string_input(self, data: FrameT | Any) -> FrameT | Any:
-        """
-        Process data parameter to handle database connection strings.
-
-        Uses the `connect_to_table()` utility function to handle RFC 3986 URI-formatted
-        connection strings with table specifications. Returns the original data if it's
-        not a connection string.
-
-        For more details on supported connection string formats, see the documentation
-        for `connect_to_table()`.
-        """
-        # Check if data is a string that looks like a connection string
-        if not isinstance(data, str):
-            return data
-
-        # Basic connection string patterns
-        connection_patterns = [
-            "://",  # General URL-like pattern
-        ]
-
-        # Check if it looks like a connection string
-        if not any(pattern in data for pattern in connection_patterns):
-            return data
-
-        # Use the utility function to connect to the table
-        return connect_to_table(data)
-
-    def _process_csv_input(self, data: FrameT | Any) -> FrameT | Any:
-        """
-        Process data parameter to handle CSV file inputs.
-
-        If data is a string or Path with .csv extension, reads the CSV file
-        using available libraries (Polars preferred, then Pandas).
-
-        Returns the original data if it's not a CSV file path.
-        """
-        # Check if data is a string or Path-like object with .csv extension
-        csv_path = None
-
-        if isinstance(data, (str, Path)):
-            path_obj = Path(data)
-            if path_obj.suffix.lower() == ".csv":
-                csv_path = path_obj
-
-        # If it's not a CSV file path, return the original data
-        if csv_path is None:
-            return data
-
-        # Check if the CSV file exists
-        if not csv_path.exists():
-            raise FileNotFoundError(f"CSV file not found: {csv_path}")
-
-        # Determine which library to use for reading CSV
-        # Prefer Polars, fallback to Pandas
-        if _is_lib_present(lib_name="polars"):
-            try:
-                import polars as pl
-
-                return pl.read_csv(csv_path, try_parse_dates=True)
-            except Exception as e:
-                # If Polars fails, try Pandas if available
-                if _is_lib_present(lib_name="pandas"):
-                    import pandas as pd
-
-                    return pd.read_csv(csv_path)
-                else:
-                    raise RuntimeError(
-                        f"Failed to read CSV file with Polars: {e}. "
-                        "Pandas is not available as fallback."
-                    ) from e
-        elif _is_lib_present(lib_name="pandas"):
-            try:
-                import pandas as pd
-
-                return pd.read_csv(csv_path)
-            except Exception as e:
-                raise RuntimeError(f"Failed to read CSV file with Pandas: {e}") from e
-        else:
-            raise ImportError(
-                "Neither Polars nor Pandas is available for reading CSV files. "
-                "Please install either 'polars' or 'pandas' to use CSV file inputs."
-            )
-
-    def _process_parquet_input(self, data: FrameT | Any) -> FrameT | Any:
-        """
-        Process data parameter to handle Parquet file inputs.
-
-        Supports:
-        - single .parquet file (string or Path)
-        - glob patterns for multiple .parquet files (e.g., "data/*.parquet")
-        - directory containing .parquet files
-        - partitioned Parquet datasets with automatic partition column inference
-        - list/sequence of .parquet file paths
-
-        Returns the original data if it's not a Parquet file input.
-        """
-        import glob
-        from pathlib import Path
-
-        parquet_paths = []
-
-        # Handle different input types
-        if isinstance(data, (str, Path)):
-            data_str = str(data)
-            path_obj = Path(data)
-
-            # Check if it's a glob pattern containing .parquet first; look for glob
-            # characters: `*`, `?`, `[`, `]`
-            if ".parquet" in data_str.lower() and any(
-                char in data_str for char in ["*", "?", "[", "]"]
-            ):
-                parquet_files = glob.glob(data_str)
-                if parquet_files:
-                    parquet_paths = sorted([Path(f) for f in parquet_files])
-                else:
-                    raise FileNotFoundError(f"No files found matching pattern: {data}")
-
-            # Check if it's a single .parquet file
-            elif path_obj.suffix.lower() == ".parquet":
-                if path_obj.exists():
-                    parquet_paths = [path_obj]
-                else:
-                    raise FileNotFoundError(f"Parquet file not found: {path_obj}")
-
-            # Check if it's a directory
-            elif path_obj.is_dir():
-                # First, try to read as a partitioned parquet dataset; This handles datasets where
-                # Parquet files are in subdirectories with partition columns encoded in paths
-                try:
-                    # Both Polars and Pandas can handle partitioned datasets natively
-                    if _is_lib_present(lib_name="polars"):
-                        import polars as pl
-
-                        # Try reading as partitioned dataset first
-                        df = pl.read_parquet(str(path_obj))
-                        return df
-                    elif _is_lib_present(lib_name="pandas"):
-                        import pandas as pd
-
-                        # Try reading as partitioned dataset first
-                        df = pd.read_parquet(str(path_obj))
-                        return df
-                except Exception:
-                    # If partitioned read fails, fall back to simple directory scan
-                    pass
-
-                # Fallback: Look for .parquet files directly in the directory
-                parquet_files = list(path_obj.glob("*.parquet"))
-                if parquet_files:
-                    parquet_paths = sorted(parquet_files)
-                else:
-                    raise FileNotFoundError(
-                        f"No .parquet files found in directory: {path_obj}. "
-                        f"This could be a non-partitioned directory without .parquet files, "
-                        f"or a partitioned dataset that couldn't be read."
-                    )
-
-            # If it's not a parquet file, directory, or glob pattern, return original data
-            else:
-                return data
-
-        # Handle list/sequence of paths
-        elif isinstance(data, (list, tuple)):
-            for item in data:
-                item_path = Path(item)
-                if item_path.suffix.lower() == ".parquet":
-                    if item_path.exists():
-                        parquet_paths.append(item_path)
-                    else:
-                        raise FileNotFoundError(f"Parquet file not found: {item_path}")
-                else:
-                    # If any item is not a parquet file, return original data
-                    return data
-
-        # If no parquet files found, return original data
-        if not parquet_paths:
-            return data
-
-        # Read the parquet file(s) using available libraries; prefer Polars, fallback to Pandas
-        if _is_lib_present(lib_name="polars"):
-            try:
-                import polars as pl
-
-                if len(parquet_paths) == 1:
-                    # Single file
-                    return pl.read_parquet(parquet_paths[0])
-                else:
-                    # Multiple files: concatenate them
-                    dfs = [pl.read_parquet(path) for path in parquet_paths]
-                    return pl.concat(dfs, how="vertical_relaxed")
-            except Exception as e:
-                # If Polars fails, try Pandas if available
-                if _is_lib_present(lib_name="pandas"):
-                    import pandas as pd
-
-                    if len(parquet_paths) == 1:
-                        return pd.read_parquet(parquet_paths[0])
-                    else:
-                        # Multiple files: concatenate them
-                        dfs = [pd.read_parquet(path) for path in parquet_paths]
-                        return pd.concat(dfs, ignore_index=True)
-                else:
-                    raise RuntimeError(
-                        f"Failed to read Parquet file(s) with Polars: {e}. "
-                        "Pandas is not available as fallback."
-                    ) from e
-        elif _is_lib_present(lib_name="pandas"):
-            try:
-                import pandas as pd
-
-                if len(parquet_paths) == 1:
-                    return pd.read_parquet(parquet_paths[0])
-                else:
-                    # Multiple files: concatenate them
-                    dfs = [pd.read_parquet(path) for path in parquet_paths]
-                    return pd.concat(dfs, ignore_index=True)
-            except Exception as e:
-                raise RuntimeError(f"Failed to read Parquet file(s) with Pandas: {e}") from e
-        else:
-            raise ImportError(
-                "Neither Polars nor Pandas is available for reading Parquet files. "
-                "Please install either 'polars' or 'pandas' to use Parquet file inputs."
-            )
 
     def _repr_html_(self) -> str:
         return self.get_tabular_report()._repr_html_()  # pragma: no cover
