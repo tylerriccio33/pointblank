@@ -3131,13 +3131,13 @@ class Validate:
 
     def __post_init__(self):
         # Handle connection string input for the data parameter
-        self.data = self._process_connection_string_input(self.data)
+        self.data = _process_connection_string(self.data)
 
         # Handle CSV file input for the data parameter
-        self.data = self._process_csv_input(self.data)
+        self.data = _process_csv_input(self.data)
 
         # Handle Parquet file input for the data parameter
-        self.data = self._process_parquet_input(self.data)
+        self.data = _process_parquet_input(self.data)
 
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
