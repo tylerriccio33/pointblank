@@ -2465,14 +2465,17 @@ def connect_to_table(connection_string: str) -> Any:
     Supported Connection String Formats
     -----------------------------------
     The `connection_string` parameter must include a valid connection string with a table name
-    specified using the `::` syntax. For example:
+    specified using the `::` syntax. Here are some examples on how to format connection strings
+    for various backends:
 
-    - DuckDB: `"duckdb:///path/to/database.ddb::table_name"`
-    - SQLite: `"sqlite:///path/to/database.db::table_name"`
-    - PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
-    - MySQL: `"mysql://user:password@localhost:3306/database::table_name"`
-    - BigQuery: `"bigquery://project/dataset::table_name"`
-    - Snowflake: `"snowflake://user:password@account/database/schema::table_name"`
+    ```
+    DuckDB:     `"duckdb:///path/to/database.ddb::table_name"`
+    SQLite:     `"sqlite:///path/to/database.db::table_name"`
+    PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
+    MySQL:      `"mysql://user:password@localhost:3306/database::table_name"`
+    BigQuery:   `"bigquery://project/dataset::table_name"`
+    Snowflake:  `"snowflake://user:password@account/database/schema::table_name"`
+    ```
 
     If the connection string does not include a table name, the function will attempt to connect to
     the database and list available tables, providing guidance on how to specify a table.
