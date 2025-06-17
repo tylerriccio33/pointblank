@@ -1072,12 +1072,14 @@ def preview(
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
 
-    - `"duckdb:///path/to/database.ddb::table_name"`
-    - `"sqlite:///path/to/database.db::table_name"`
-    - `"postgresql://user:password@localhost:5432/database::table_name"`
-    - `"mysql://user:password@localhost:3306/database::table_name"`
-    - `"bigquery://project/dataset::table_name"`
-    - `"snowflake://user:password@account/database/schema::table_name"`
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
 
     When using connection strings, the Ibis library with the appropriate backend driver is required.
 
@@ -1150,8 +1152,8 @@ def preview(
 
     ### Working with CSV Files
 
-    The `preview()` function can directly accept CSV file paths, making it easy to preview data stored
-    in CSV files without manual loading:
+    The `preview()` function can directly accept CSV file paths, making it easy to preview data
+    stored in CSV files without manual loading:
 
     ```{python}
     # Get a path to a CSV file from the package data
@@ -1209,7 +1211,6 @@ def preview(
     For comprehensive documentation on supported connection string formats, error handling, and
     installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
     function.
-    ```
     """
 
     # Process input data to handle different data source types
@@ -2798,12 +2799,14 @@ class Validate:
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
 
-    - `"duckdb:///path/to/database.ddb::table_name"`
-    - `"sqlite:///path/to/database.db::table_name"`
-    - `"postgresql://user:password@localhost:5432/database::table_name"`
-    - `"mysql://user:password@localhost:3306/database::table_name"`
-    - `"bigquery://project/dataset::table_name"`
-    - `"snowflake://user:password@account/database/schema::table_name"`
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
 
     When using connection strings, the Ibis library with the appropriate backend driver is required.
 
