@@ -211,6 +211,7 @@ quartodoc:
         - name: assistant
         - name: load_dataset
         - name: get_data_path
+        - name: connect_to_table
     - title: Utility Functions
       desc: >
         The *Utility Functions* group contains functions that are useful accessing metadata about
