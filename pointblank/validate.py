@@ -2149,27 +2149,27 @@ def connect_to_table(connection_string: str) -> Any:
     --------
     Connect to a DuckDB table:
 
-    ```python
+    ```{python}
     import pointblank as pb
 
-    # Connect to a specific table
-    table = pb.connect_to_table("duckdb:///sales_data.ddb::quarterly_sales")
+    # Get path to a DuckDB database file from package data
+    duckdb_path = pb.get_data_path("game_revenue", "duckdb")
 
-    # Use with validation
-    validation = pb.Validate(data=table).col_exists(["quarter", "revenue"]).interrogate()
+    # Connect to the `game_revenue` table in the DuckDB database
+    game_revenue = pb.connect_to_table(f"duckdb:///{duckdb_path}::game_revenue")
+
+    # Use with the `preview()` function
+    pb.preview(game_revenue)
     ```
 
     If you omit the table specification, you'll get helpful guidance:
 
-    ```python
-    try:
-        table = pb.connect_to_table("duckdb:///sales_data.ddb")
-    except ValueError as e:
-        print(e)
-        # Output shows available tables and proper syntax
+    ```{python}
+    #| error: true
+    pb.connect_to_table(f"duckdb:///{duckdb_path}")
     ```
 
-    Backend-specific connection examples:
+    Here are some backend-specific connection examples:
 
     ```python
     # PostgreSQL
@@ -2187,9 +2187,11 @@ def connect_to_table(connection_string: str) -> Any:
     This function requires the Ibis library with appropriate backend drivers:
 
     ```bash
+    # You can install a set of common backends:
     pip install 'ibis-framework[duckdb,postgres,mysql,sqlite]'
-    # or for specific backends:
-    pip install 'ibis-framework[duckdb]'  # for DuckDB
+
+    # ...or specific backends as needed:
+    pip install 'ibis-framework[duckdb]'    # for DuckDB
     pip install 'ibis-framework[postgres]'  # for PostgreSQL
     ```
     """
