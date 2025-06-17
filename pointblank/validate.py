@@ -2123,19 +2123,27 @@ def connect_to_table(connection_string: str) -> Any:
     ----------
     connection_string
         A database connection string with a required table specification using the `::table_name`
-        suffix. Supported formats include:
-
-        - DuckDB: `"duckdb:///path/to/database.ddb::table_name"`
-        - SQLite: `"sqlite:///path/to/database.db::table_name"`
-        - PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
-        - MySQL: `"mysql://user:password@localhost:3306/database::table_name"`
-        - BigQuery: `"bigquery://project/dataset::table_name"`
-        - Snowflake: `"snowflake://user:password@account/database/schema::table_name"`
+        suffix. Supported formats are outlined in the *Supported Connection String Formats* section.
 
     Returns
     -------
     Any
         An Ibis table object for the specified database table.
+
+    Supported Connection String Formats
+    -----------------------------------
+    The `connection_string` parameter must include a valid connection string with a table name
+    specified using the `::` syntax. For example:
+
+    - DuckDB: `"duckdb:///path/to/database.ddb::table_name"`
+    - SQLite: `"sqlite:///path/to/database.db::table_name"`
+    - PostgreSQL: `"postgresql://user:password@localhost:5432/database::table_name"`
+    - MySQL: `"mysql://user:password@localhost:3306/database::table_name"`
+    - BigQuery: `"bigquery://project/dataset::table_name"`
+    - Snowflake: `"snowflake://user:password@account/database/schema::table_name"`
+
+    If the connection string does not include a table name, the function will attempt to connect to
+    the database and list available tables, providing guidance on how to specify a table.
 
     Examples
     --------
