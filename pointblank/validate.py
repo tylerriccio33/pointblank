@@ -1123,6 +1123,16 @@ def preview(
     ```
     """
 
+    # Process input data to handle different data source types
+    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
+    data = _process_connection_string(data)
+
+    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
+    data = _process_csv_input(data)
+
+    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
+    data = _process_parquet_input(data)
+
     if incl_header is None:
         incl_header = global_config.preview_incl_header
 
