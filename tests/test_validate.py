@@ -48,6 +48,7 @@ from pointblank.validate import (
     _prep_column_text,
     _process_action_str,
     _process_brief,
+    _process_connection_string,
     _process_title_text,
     _ValidationInfo,
     _is_string_date,
@@ -7699,7 +7700,7 @@ def test_connection_string_not_a_connection_string():
         try:
             # For non-string inputs, this will likely fail at later processing stages
             # For string inputs that aren't connection strings, they should pass through
-            result = Validate(data=test_input)._process_connection_string_input(test_input)
+            result = _process_connection_string(test_input)
             assert result == test_input  # Should be unchanged
         except (TypeError, ValueError, FileNotFoundError):
             # These are expected for invalid inputs at later processing stages
