@@ -1065,6 +1065,22 @@ def preview(
     requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
     Pandas DataFrame, the availability of Ibis is not needed.
 
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
+
+    Connection strings follow database URL formats and must also specify a table using the
+    `::table_name` suffix. Examples include:
+
+    - `"duckdb:///path/to/database.ddb::table_name"`
+    - `"sqlite:///path/to/database.db::table_name"`
+    - `"postgresql://user:password@localhost:5432/database::table_name"`
+    - `"mysql://user:password@localhost:3306/database::table_name"`
+    - `"bigquery://project/dataset::table_name"`
+    - `"snowflake://user:password@account/database/schema::table_name"`
+
+    When using connection strings, the Ibis library with the appropriate backend driver is required.
+
     Examples
     --------
     It's easy to preview a table using the `preview()` function. Here's an example using the
