@@ -2162,17 +2162,6 @@ def connect_to_table(connection_string: str) -> Any:
     pb.preview(game_revenue)
     ```
 
-    If you omit the table specification, you'll get helpful guidance:
-
-    ```{python}
-    #| error: true
-    #| output: asis
-    try:
-        pb.connect_to_table(f"duckdb:///{duckdb_path}")
-    except Exception as e:
-        print(f"**{type(e).__name__}:** {e}")
-    ```
-
     Here are some backend-specific connection examples:
 
     ```python
