@@ -1147,6 +1147,69 @@ def preview(
       columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
     )
     ```
+
+    ### Working with CSV Files
+
+    The `preview()` function can directly accept CSV file paths, making it easy to preview data stored
+    in CSV files without manual loading:
+
+    ```{python}
+    # Get a path to a CSV file from the package data
+    csv_path = pb.get_data_path("global_sales", "csv")
+
+    pb.preview(csv_path)
+    ```
+
+    You can also use a Path object to specify the CSV file:
+
+    ```{python}
+    from pathlib import Path
+
+    csv_file = Path(pb.get_data_path("game_revenue", "csv"))
+
+    pb.preview(csv_file, n_head=3, n_tail=3)
+    ```
+
+    ### Working with Parquet Files
+
+    The `preview()` function can directly accept Parquet files and datasets in various formats:
+
+    ```{python}
+    # Single Parquet file from package data
+    parquet_path = pb.get_data_path("nycflights", "parquet")
+
+    pb.preview(parquet_path)
+    ```
+
+    You can also use glob patterns and directories:
+
+    ```python
+    # Multiple Parquet files with glob patterns
+    pb.preview("data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    pb.preview("parquet_data/")
+
+    # Partitioned Parquet dataset
+    pb.preview("sales_data/")  # Auto-discovers partition columns
+    ```
+
+    ### Working with Database Connection Strings
+
+    The `preview()` function supports database connection strings for direct preview of database
+    tables. Connection strings must specify a table using the `::table_name` suffix:
+
+    ```{python}
+    # Get path to a DuckDB database file from package data
+    duckdb_path = pb.get_data_path("game_revenue", "duckdb")
+
+    pb.preview(f"duckdb:///{duckdb_path}::game_revenue")
+    ```
+
+    For comprehensive documentation on supported connection string formats, error handling, and
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
+    function.
+    ```
     """
 
     # Process input data to handle different data source types
