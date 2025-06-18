@@ -7930,28 +7930,700 @@ def test_preview_fails_head_tail_exceed_limit():
     preview(small_table, n_head=100, n_tail=100, limit=300)
 
 
-# TODO: Now errors with `ModuleNotFoundError: import of polars halted; None in sys.modules`
-# def test_preview_no_polars_duckdb_table():
-#     small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
+def test_gt_based_formatting_completely_avoids_vals_submodule():
+    from pointblank.validate import _format_single_number_with_gt
+    from unittest.mock import patch
 
-#     # Mock the absence of the Polars library, which is the default library for making
-#     # a table for the preview; this should not raise an error since Pandas is the
-#     # fallback library and is available
-#     with patch.dict(sys.modules, {"polars": None}):
-#         preview(small_table)
+    # Mock the vals.fmt_number to raise an error if called
+    with patch(
+        "pointblank.validate.vals.fmt_number", side_effect=ImportError("Pandas not available")
+    ):
+        # Our GT-based formatting should work without calling vals.fmt_number
+        result = _format_single_number_with_gt(15432, n_sigfig=3, compact=True, locale="en")
+        assert isinstance(result, str)
+        assert "15" in result  # Should contain the formatted number
 
-#     # Mock the absence of the Pandas library, which is a secondary library for making
-#     # a table for the preview; this should not raise an error since Polars is the default
-#     # library and is available
-#     with patch.dict(sys.modules, {"pandas": None}):
-#         preview(small_table)
 
-#     # Mock the absence of both the Polars and Pandas libraries, which are the libraries
-#     # for making a table for the preview; this should raise an error since there are no
-#     # libraries available to make a table for the preview
-#     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
-#         with pytest.raises(ImportError):
-#             preview(small_table)
+def test_polars_only_environment_simulation():
+    import polars as pl
+
+    # Create a large dataset that will trigger number formatting
+    large_data = pl.DataFrame(
+        {
+            "id": range(1, 20001),  # 20,000 rows to trigger large number formatting
+            "amount": [i * 1000 for i in range(1, 20001)],  # Large values that need formatting
+        }
+    )
+
+    # Test validation with large numbers - this uses our GT-based formatting
+    validator = Validate(data=large_data, tbl_name="polars_large_test")
+    result = validator.col_vals_gt(columns="amount", value=0).interrogate()
+
+    # Generate tabular report - should work without any pandas dependency
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+    # Verify the validation worked correctly
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].all_passed == True
+
+
+def test_gt_based_threshold_formatting():
+    import polars as pl
+
+    data = pl.DataFrame({"scores": [85, 92, 78, 88, 95, 82, 76, 90, 87, 93]})
+
+    # Use large threshold values that will trigger formatting
+    thresholds = Thresholds(warning=15000, error=25000, critical=35000)
+
+    validator = Validate(data=data, tbl_name="gt_threshold_test", thresholds=thresholds)
+    result = validator.col_vals_gt(columns="scores", value=70).interrogate()
+
+    # Generate tabular report with threshold formatting
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_gt_formatting_preserves_accuracy():
+    from pointblank.validate import _format_single_number_with_gt
+    from great_tables import vals
+
+    test_values = [1000, 12345, 999999, 1000000, 10000000]
+
+    for value in test_values:
+        # Our GT-based approach
+        gt_result = _format_single_number_with_gt(value, n_sigfig=3, compact=True, locale="en")
+
+        # Original vals approach (for comparison)
+        original_result = vals.fmt_number(value, n_sigfig=3, compact=True, locale="en")[0]
+
+        # Results should be identical
+        assert gt_result == original_result, (
+            f"Mismatch for {value}: GT={gt_result}, Original={original_result}"
+        )
+
+
+def test_polars_df_lib_parameter_uses_gt_formatting():
+    import polars as pl
+
+    # Create test data with large numbers
+    data = pl.DataFrame({"large_numbers": [15000, 25000, 35000, 45000, 55000]})
+
+    validator = Validate(data=data, tbl_name="df_lib_test")
+    result = validator.col_vals_gt(columns="large_numbers", value=10000).interrogate()
+
+    # This should use GT-based formatting internally since we're using Polars
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_comprehensive_polars_validation_scenario():
+    import polars as pl
+
+    # Create realistic business data with large monetary values
+    business_data = pl.DataFrame(
+        {
+            "transaction_id": range(1, 50001),  # 50,000 transactions
+            "amount_usd": [round(random.uniform(100, 100000), 2) for _ in range(50000)],
+            "customer_id": [f"CUST_{i:06d}" for i in range(1, 50001)],
+            "processed": [True] * 49995 + [False] * 5,  # 5 unprocessed transactions
+        }
+    )
+
+    # Complex validation with multiple steps and large numbers
+    validator = Validate(
+        data=business_data,
+        tbl_name="business_transactions",
+        thresholds=Thresholds(warning=10, error=50, critical=100),
+    )
+
+    result = (
+        validator.col_vals_gt(columns="amount_usd", value=0)  # All amounts should be positive
+        .col_vals_not_null(columns="customer_id")  # All should have customer ID
+        .col_vals_not_null(columns="processed")  # All should have processed status
+        .interrogate()
+    )
+
+    # Generate comprehensive validation report
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+    # Verify validation results
+    assert len(result.validation_info) == 3
+    assert result.validation_info[0].all_passed == True  # All amounts > 0
+    assert result.validation_info[1].all_passed == True  # All have customer_id
+    assert result.validation_info[2].all_passed == True  # All have processed status
+
+
+def test_polars_vs_pandas_formatting_consistency():
+    from pointblank.validate import _fmt_lg, _transform_test_units
+    import polars as pl
+    import pandas as pd
+
+    # Test data
+    large_number = 15432
+    test_units = [12000, 15000, 20000]
+    active = [True, True, True]
+
+    # Test with Polars context
+    fmt_result_pl = _fmt_lg(large_number, locale="en", df_lib=pl)
+    units_result_pl = _transform_test_units(test_units, True, active, "en", df_lib=pl)
+
+    # Test with Pandas context
+    fmt_result_pd = _fmt_lg(large_number, locale="en", df_lib=pd)
+    units_result_pd = _transform_test_units(test_units, True, active, "en", df_lib=pd)
+
+    # Results should be identical
+    assert fmt_result_pl == fmt_result_pd
+    assert units_result_pl == units_result_pd
+
+
+def test_polars_dataset_large_numbers_integration():
+    # Create large dataset that will trigger formatting
+    large_data = pl.DataFrame(
+        {
+            "id": range(1, 15001),  # 15,000 rows to trigger large number formatting
+            "value": [i * 1000 for i in range(1, 15001)],  # Large values
+        }
+    )
+
+    # Create validation workflow
+    validator = Validate(data=large_data, tbl_name="polars_large_integration_test")
+    result = validator.col_vals_gt(columns="value", value=0).interrogate()
+
+    # Verify that formatting functions receive correct df_lib parameter
+    # by checking that the report generates successfully
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+    # Verify the data characteristics that would trigger our formatting
+    assert result.validation_info[0].n >= 10000  # Large number of test units
+
+
+def test_polars_with_thresholds_integration():
+    # Create test data
+    data = pl.DataFrame(
+        {
+            "scores": [85, 92, 78, 88, 95, 82, 76, 90, 84, 89] * 1000  # 10k rows for large numbers
+        }
+    )
+
+    # Use thresholds that will be formatted as large numbers
+    thresholds = Thresholds(warning=5000, error=8000, critical=9500)
+
+    validator = Validate(
+        data=data, tbl_name="polars_threshold_integration_test", thresholds=thresholds
+    )
+    result = validator.col_vals_gt(columns="scores", value=70).interrogate()
+
+    # Generate tabular report with threshold formatting
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_dataframe_library_selection_integration():
+    # This test verifies that the `df_lib=` parameter is correctly passed through
+    # the entire call chain in `get_tabular_report()`
+
+    # Create a Polars dataset
+    data = pl.DataFrame(
+        {
+            "values": [10000, 20000, 30000, 40000, 50000] * 2000  # 10k rows for formatting
+        }
+    )
+
+    validator = Validate(data=data, tbl_name="df_lib_selection_test")
+    result = validator.col_vals_gt(columns="values", value=5000).interrogate()
+
+    # Mock the formatting functions to verify they receive the correct df_lib parameter
+    from unittest.mock import patch, MagicMock
+
+    original_transform_test_units = __import__(
+        "pointblank.validate", fromlist=["_transform_test_units"]
+    )._transform_test_units
+    original_create_thresholds_html = __import__(
+        "pointblank.validate", fromlist=["_create_thresholds_html"]
+    )._create_thresholds_html
+
+    with (
+        patch("pointblank.validate._transform_test_units") as mock_test_units,
+        patch("pointblank.validate._create_thresholds_html") as mock_thresholds,
+    ):
+        # Set up mocks to call original functions and capture df_lib parameter
+        mock_test_units.side_effect = original_transform_test_units
+        mock_thresholds.side_effect = original_create_thresholds_html
+
+        # Generate report
+        report = result.get_tabular_report()
+
+        # Verify that formatting functions were called with df_lib parameter
+        assert mock_test_units.called
+        # Check that df_lib was passed (should be polars module)
+        called_args = mock_test_units.call_args
+        assert "df_lib" in called_args.kwargs
+        df_lib_arg = called_args.kwargs["df_lib"]
+        assert df_lib_arg is not None
+        assert hasattr(df_lib_arg, "DataFrame")  # Should be a DataFrame library
+
+
+def test_backward_compatibility_df_lib_none():
+    from pointblank.validate import _fmt_lg, _transform_test_units, _create_thresholds_html
+    from pointblank.thresholds import Thresholds
+
+    # Test that functions work correctly when df_lib=None (backward compatibility)
+    large_number = 15432
+    result = _fmt_lg(large_number, locale="en", df_lib=None)
+    assert isinstance(result, str)
+    assert "15" in result
+
+    test_units = [12000, 15000, 20000]
+    active = [True, True, True]
+    result = _transform_test_units(test_units, True, active, "en", df_lib=None)
+    assert isinstance(result, list)
+    assert len(result) == 3
+
+    thresholds = Thresholds(warning=10000, error=15000, critical=20000)
+    result = _create_thresholds_html(thresholds, "en", df_lib=None)
+    assert isinstance(result, str)
+    assert "WARNING" in result
+
+
+def test_helper_function_edge_cases():
+    from pointblank.validate import (
+        _format_single_number_with_gt,
+        _format_single_float_with_gt,
+    )
+    import polars as pl
+    import pandas as pd
+
+    # Test with edge case values
+    result1 = _format_single_number_with_gt(0, n_sigfig=3, df_lib=pl)
+    assert result1 == "0"
+
+    result2 = _format_single_float_with_gt(0.0, decimals=2, df_lib=pd)
+    assert result2 == "0.00"
+
+    # Test with None df_lib (should default to Polars)
+    result3 = _format_single_number_with_gt(42, n_sigfig=3, df_lib=None)
+    assert isinstance(result3, str)
+
+    # Test with very large numbers
+    result4 = _format_single_number_with_gt(1000000, n_sigfig=3, df_lib=pl)
+    assert isinstance(result4, str)
+    assert result4 != "1000000"  # Should be formatted
+
+    # Test with very small numbers
+    result5 = _format_single_float_with_gt(0.000001, decimals=6, df_lib=pd)
+    assert isinstance(result5, str)
+
+
+def test_large_numbers_formatting_polars():
+    # Create a Polars DataFrame with large values that would trigger formatting
+    large_data = pl.DataFrame(
+        {
+            "id": range(1, 15001),  # 15,000 rows to trigger large number formatting
+            "value": [i * 1000 for i in range(1, 15001)],  # Large values
+        }
+    )
+
+    # Test validation with large numbers
+    validator = Validate(data=large_data, tbl_name="large_polars_data")
+    result = validator.col_vals_gt(columns="value", value=0).interrogate()
+
+    # Generate tabular report - this should not fail with Pandas dependency error
+    try:
+        report = result.get_tabular_report()
+        assert report is not None
+        assert isinstance(report, GT.GT)  # Should be a Great Tables object
+    except ImportError as e:
+        if "pandas" in str(e).lower():
+            pytest.fail("Hidden Pandas dependency detected in large number formatting")
+        else:
+            raise
+
+
+def test_large_numbers_formatting_pandas():
+    # Create a Pandas DataFrame with large values
+    large_data = pd.DataFrame(
+        {
+            "id": range(1, 15001),  # 15,000 rows to trigger large number formatting
+            "value": [i * 1000 for i in range(1, 15001)],  # Large values
+        }
+    )
+
+    # Test validation with large numbers
+    validator = Validate(data=large_data, tbl_name="large_pandas_data")
+    result = validator.col_vals_gt(columns="value", value=0).interrogate()
+
+    # Generate tabular report - should work as before
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)  # Should be a Great Tables object
+
+
+def test_thresholds_formatting_polars():
+    data = pl.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5],
+            "y": [10000, 20000, 30000, 40000, 50000],  # Large threshold values
+        }
+    )
+
+    # Use thresholds that will be formatted as large numbers
+    thresholds = Thresholds(warning=15000, error=25000, critical=35000)
+
+    validator = Validate(data=data, tbl_name="threshold_test", thresholds=thresholds)
+    result = validator.col_vals_lt(columns="y", value=45000).interrogate()
+
+    # Generate tabular report with threshold formatting
+    try:
+        report = result.get_tabular_report()
+        assert report is not None
+        assert isinstance(report, GT.GT)
+    except ImportError as e:
+        if "pandas" in str(e).lower():
+            pytest.fail("Hidden Pandas dependency detected in threshold formatting")
+        else:
+            raise
+
+
+def test_thresholds_formatting_pandas():
+    data = pd.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5],
+            "y": [10000, 20000, 30000, 40000, 50000],  # Large threshold values
+        }
+    )
+
+    # Use thresholds that will be formatted as large numbers
+    thresholds = Thresholds(warning=15000, error=25000, critical=35000)
+
+    validator = Validate(data=data, tbl_name="threshold_test", thresholds=thresholds)
+    result = validator.col_vals_lt(columns="y", value=45000).interrogate()
+
+    # Generate tabular report with threshold formatting
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_multiple_validation_steps_formatting_polars():
+    data = pl.DataFrame(
+        {
+            "count": [12000, 15000, 18000, 22000, 25000],
+            "amount": [1200.50, 1500.75, 1800.25, 2200.00, 2500.99],
+            "id": range(1, 6),
+        }
+    )
+
+    validator = Validate(data=data, tbl_name="multi_step_test")
+    result = (
+        validator.col_vals_gt(columns="count", value=10000)
+        .col_vals_between(columns="amount", left=1000, right=3000)
+        .col_vals_not_null(columns="id")
+        .interrogate()
+    )
+
+    # Generate tabular report with multiple validation steps
+    try:
+        report = result.get_tabular_report()
+        assert report is not None
+        assert isinstance(report, GT.GT)
+
+        # Should have 3 validation steps
+        assert len(result.validation_info) == 3
+    except ImportError as e:
+        if "pandas" in str(e).lower():
+            pytest.fail("Hidden Pandas dependency detected in multi-step validation formatting")
+        else:
+            raise
+
+
+def test_multiple_validation_steps_formatting_pandas():
+    data = pd.DataFrame(
+        {
+            "count": [12000, 15000, 18000, 22000, 25000],
+            "amount": [1200.50, 1500.75, 1800.25, 2200.00, 2500.99],
+            "id": range(1, 6),
+        }
+    )
+
+    validator = Validate(data=data, tbl_name="multi_step_test")
+    result = (
+        validator.col_vals_gt(columns="count", value=10000)
+        .col_vals_between(columns="amount", left=1000, right=3000)
+        .col_vals_not_null(columns="id")
+        .interrogate()
+    )
+
+    # Generate tabular report with multiple validation steps
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+    # Should have 3 validation steps
+    assert len(result.validation_info) == 3
+
+
+def test_fmt_lg_function_with_polars():
+    from pointblank.validate import _fmt_lg
+    import polars as pl
+
+    # Test with large numbers that would be formatted
+    large_number = 15432
+    result = _fmt_lg(large_number, locale="en", df_lib=pl)
+
+    # Should return a formatted string (Great Tables formatting)
+    assert isinstance(result, str)
+    assert "15" in result  # Should contain the formatted number
+
+
+def test_fmt_lg_function_with_pandas():
+    from pointblank.validate import _fmt_lg
+    import pandas as pd
+
+    # Test with large numbers that would be formatted
+    large_number = 15432
+    result = _fmt_lg(large_number, locale="en", df_lib=pd)
+
+    # Should return a formatted string (Great Tables formatting)
+    assert isinstance(result, str)
+    assert "15" in result  # Should contain the formatted number
+
+
+def test_fmt_lg_function_backward_compatibility():
+    from pointblank.validate import _fmt_lg
+
+    # Test without df_lib parameter (original behavior)
+    large_number = 15432
+    result = _fmt_lg(large_number, locale="en", df_lib=None)
+
+    # Should still work (fallback behavior)
+    assert isinstance(result, str)
+    assert "15" in result  # Should contain the formatted number
+
+
+def test_gt_based_formatting_helpers():
+    from pointblank.validate import (
+        _format_single_number_with_gt,
+        _format_single_float_with_gt,
+        _format_single_integer_with_gt,
+    )
+
+    # Test single number formatting
+    result = _format_single_number_with_gt(15432, n_sigfig=3, compact=True, locale="en")
+    assert isinstance(result, str)
+    assert "15" in result  # Should contain the formatted number
+
+    # Test single float formatting
+    result = _format_single_float_with_gt(123.456, decimals=2, locale="en")
+    assert isinstance(result, str)
+    assert "123" in result  # Should contain the formatted number
+
+    # Test single integer formatting
+    result = _format_single_integer_with_gt(12345, locale="en")
+    assert isinstance(result, str)
+    assert "12" in result  # Should contain the formatted number
+
+
+def test_edge_case_small_numbers_polars():
+    small_data = pl.DataFrame(
+        {
+            "id": range(1, 11),  # Small dataset
+            "value": [i for i in range(1, 11)],  # Small values
+        }
+    )
+
+    validator = Validate(data=small_data, tbl_name="small_polars_data")
+    result = validator.col_vals_gt(columns="value", value=0).interrogate()
+
+    # Should work without formatting issues
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_edge_case_empty_validation_results():
+    data = pl.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+    # Validation that should pass for all rows
+    validator = Validate(data=data, tbl_name="empty_failures_test")
+    result = validator.col_vals_gt(columns="x", value=0).interrogate()
+
+    # Should generate report even with no failures
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_mixed_data_types_formatting():
+    data = pl.DataFrame(
+        {
+            "integers": [10000, 20000, 30000],
+            "floats": [1000.5, 2000.75, 3000.25],
+            "strings": ["a", "b", "c"],
+        }
+    )
+
+    validator = Validate(data=data, tbl_name="mixed_types_test")
+    result = (
+        validator.col_vals_gt(columns="integers", value=5000)
+        .col_vals_gt(columns="floats", value=500.0)
+        .col_vals_not_null(columns="strings")
+        .interrogate()
+    )
+
+    # Should handle mixed types without formatting errors
+    try:
+        report = result.get_tabular_report()
+        assert report is not None
+        assert isinstance(report, GT.GT)
+    except ImportError as e:
+        if "pandas" in str(e).lower():
+            pytest.fail("Hidden Pandas dependency detected with mixed data types")
+        else:
+            raise
+
+
+def test_pandas_only_users_scenario():
+    import pandas as pd
+    from pointblank.validate import _format_single_number_with_gt, _format_single_float_with_gt
+
+    # Test GT-based helper functions work with Pandas
+    result_num = _format_single_number_with_gt(15432, df_lib=pd)
+    assert isinstance(result_num, str)
+    assert "15" in result_num
+
+    result_float = _format_single_float_with_gt(123.456, decimals=2, df_lib=pd)
+    assert isinstance(result_float, str)
+    assert "123" in result_float
+
+    # Test full validation workflow with Pandas DataFrame
+    data = pd.DataFrame(
+        {"values": [1000, 15000, 25000, 30000, 45000], "category": ["A", "B", "A", "C", "B"]}
+    )
+
+    thresholds = Thresholds(warning=1000, error=2000, critical=3000)
+    validation = (
+        Validate(data=data, tbl_name="pandas_users_test", thresholds=thresholds)
+        .col_vals_gt(columns="values", value=0)
+        .col_vals_in_set(columns="category", set=["A", "B", "C"])
+        .interrogate()
+    )
+
+    # Generate tabular report
+    report = validation.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_polars_only_users_scenario():
+    import polars as pl
+    from pointblank.validate import _format_single_number_with_gt, _format_single_float_with_gt
+
+    # Test GT-based helper functions work with Polars
+    result_num = _format_single_number_with_gt(15432, df_lib=pl)
+    assert isinstance(result_num, str)
+    assert "15" in result_num
+
+    result_float = _format_single_float_with_gt(123.456, decimals=2, df_lib=pl)
+    assert isinstance(result_float, str)
+    assert "123" in result_float
+
+    # Test full validation workflow with Polars DataFrame
+    data = pl.DataFrame(
+        {"values": [1000, 15000, 25000, 30000, 45000], "category": ["A", "B", "A", "C", "B"]}
+    )
+
+    thresholds = Thresholds(warning=1000, error=2000, critical=3000)
+    validation = (
+        Validate(data=data, tbl_name="polars_users_test", thresholds=thresholds)
+        .col_vals_gt(columns="values", value=0)
+        .col_vals_in_set(columns="category", set=["A", "B", "C"])
+        .interrogate()
+    )
+
+    # Generate tabular report
+    report = validation.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+
+def test_both_libraries_users_scenario():
+    import polars as pl
+    import pandas as pd
+    from pointblank.validate import _format_single_number_with_gt
+
+    # Test that formatting is consistent between libraries
+    test_value = 15432
+
+    pl_result = _format_single_number_with_gt(test_value, df_lib=pl)
+    pd_result = _format_single_number_with_gt(test_value, df_lib=pd)
+
+    # Results should be identical
+    assert pl_result == pd_result, (
+        f"Formatting inconsistency: Polars={pl_result}, Pandas={pd_result}"
+    )
+
+    # Test with Polars DataFrame (should use Polars formatting internally)
+    pl_data = pl.DataFrame({"values": [1000, 15000, 25000]})
+    pl_validation = Validate(pl_data).col_vals_gt(columns="values", value=0).interrogate()
+    pl_report = pl_validation.get_tabular_report()
+    assert pl_report is not None
+
+    # Test with Pandas DataFrame (should use Pandas formatting internally)
+    pd_data = pd.DataFrame({"values": [1000, 15000, 25000]})
+    pd_validation = Validate(pd_data).col_vals_gt(columns="values", value=0).interrogate()
+    pd_report = pd_validation.get_tabular_report()
+    assert pd_report is not None
+
+
+def test_dataframe_library_preference_in_gt_formatting():
+    import polars as pl
+    import pandas as pd
+
+    # When both libraries are available, the specific df_lib parameter should be respected
+    large_data = pl.DataFrame(
+        {
+            "values": [10000, 20000, 30000] * 3000  # 9000 rows to trigger formatting
+        }
+    )
+
+    validation = Validate(data=large_data, tbl_name="library_preference_test")
+    result = validation.col_vals_gt(columns="values", value=5000).interrogate()
+
+    # Should use Polars-based formatting since the input data is Polars
+    report = result.get_tabular_report()
+    assert report is not None
+    assert isinstance(report, GT.GT)
+
+    # Test that formatting functions can handle both library types
+    from pointblank.validate import _fmt_lg
+
+    pl_formatted = _fmt_lg(15432, locale="en", df_lib=pl)
+    pd_formatted = _fmt_lg(15432, locale="en", df_lib=pd)
+
+    # Should produce identical results
+    assert pl_formatted == pd_formatted
+
+
+def test_gt_helper_functions_default_behavior():
+    from pointblank.validate import _format_single_number_with_gt, _format_single_float_with_gt
+
+    # When df_lib=None, should default to Polars (if available)
+    result_num = _format_single_number_with_gt(15432, df_lib=None)
+    assert isinstance(result_num, str)
+    assert "15" in result_num
+
+    result_float = _format_single_float_with_gt(123.456, decimals=2, df_lib=None)
+    assert isinstance(result_float, str)
+    assert "123" in result_float
 
 
 def test_load_dataset_neither_polars_nor_pandas_available():
@@ -12291,3 +12963,314 @@ def test_validate_parquet_permanent_partitioned_sales():
     # Test validation functionality works
     result = validator.col_exists(["product_id", "status", "revenue"]).interrogate()
     assert len(result.validation_info) == 3  # `col_exists()` creates one step per column
+
+
+def test_pandas_only_environment_scenario():
+    from unittest.mock import patch
+
+    # Mock polars as unavailable by making _is_lib_present return False for polars
+    with patch("pointblank.validate._is_lib_present") as mock_is_lib:
+
+        def side_effect(lib_name):
+            return lib_name == "pandas"  # Only pandas is available
+
+        mock_is_lib.side_effect = side_effect
+
+        import pandas as pd
+        import pointblank as pb
+
+        # Create test data using Pandas with large numbers to trigger formatting
+        data = pd.DataFrame(
+            {
+                "transaction_amounts": [1000, 15000, 25000, 30000, 45000, 50000, 75000],
+                "customer_scores": [85.5, 92.3, 78.1, 88.7, 95.2, 82.4, 90.1],
+                "status": [
+                    "active",
+                    "pending",
+                    "active",
+                    "completed",
+                    "active",
+                    "pending",
+                    "completed",
+                ],
+            }
+        )
+
+        # Create validation with large threshold values that will trigger formatting
+        thresholds = pb.Thresholds(warning=5000, error=10000, critical=15000)
+
+        validation = (
+            pb.Validate(data=data, tbl_name="pandas_only_scenario", thresholds=thresholds)
+            .col_vals_gt(columns="transaction_amounts", value=500)  # Large numbers
+            .col_vals_between(columns="customer_scores", left=70.0, right=100.0)
+            .col_vals_in_set(columns="status", set=["active", "pending", "completed"])
+            .interrogate()
+        )
+
+        # Generate tabular report - should use Pandas-based GT formatting
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify formatting worked by checking report content using proper HTML rendering
+        report_html = report.as_raw_html()
+        assert len(report_html) > 1000  # Should have substantial content
+        assert "transaction_amounts" in report_html
+
+
+def test_polars_only_environment_scenario():
+    from unittest.mock import patch
+
+    # Mock pandas as unavailable by making `_is_lib_present()` return False for pandas
+    with patch("pointblank.validate._is_lib_present") as mock_is_lib:
+
+        def side_effect(lib_name):
+            return lib_name == "polars"  # Only polars is available
+
+        mock_is_lib.side_effect = side_effect
+
+        import polars as pl
+        import pointblank as pb
+
+        # Create test data using Polars with large numbers to trigger formatting
+        data = pl.DataFrame(
+            {
+                "transaction_amounts": [1000, 15000, 25000, 30000, 45000, 50000, 75000],
+                "customer_scores": [85.5, 92.3, 78.1, 88.7, 95.2, 82.4, 90.1],
+                "status": [
+                    "active",
+                    "pending",
+                    "active",
+                    "completed",
+                    "active",
+                    "pending",
+                    "completed",
+                ],
+            }
+        )
+
+        # Create validation with large threshold values that will trigger formatting
+        thresholds = pb.Thresholds(warning=5000, error=10000, critical=15000)
+
+        validation = (
+            pb.Validate(data=data, tbl_name="polars_only_scenario", thresholds=thresholds)
+            .col_vals_gt(columns="transaction_amounts", value=500)  # Large numbers
+            .col_vals_between(columns="customer_scores", left=70.0, right=100.0)
+            .col_vals_in_set(columns="status", set=["active", "pending", "completed"])
+            .interrogate()
+        )
+
+        # Generate tabular report - should use Polars-based GT formatting
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify formatting worked by checking report content using proper HTML rendering
+        report_html = report.as_raw_html()
+        assert len(report_html) > 1000  # Should have substantial content
+        assert "transaction_amounts" in report_html
+
+
+def test_both_libraries_environment_scenario():
+    import pandas as pd
+    import polars as pl
+    import pointblank as pb
+
+    # Test data for both DataFrame types
+    test_values = {
+        "revenue": [10000, 25000, 30000, 45000, 60000, 75000, 90000],
+        "profit_margin": [0.15, 0.22, 0.18, 0.25, 0.20, 0.28, 0.32],
+        "region": ["North", "South", "East", "West", "North", "South", "East"],
+    }
+
+    # Create test data using both Polars and Pandas
+    polars_data = pl.DataFrame(test_values)
+    pandas_data = pd.DataFrame(test_values)
+
+    # Large threshold values that will trigger formatting
+    thresholds = pb.Thresholds(warning=8000, error=12000, critical=20000)
+
+    # Test with Polars DataFrame (should use Polars-based formatting)
+    polars_validation = (
+        pb.Validate(data=polars_data, tbl_name="polars_mixed_env", thresholds=thresholds)
+        .col_vals_gt(columns="revenue", value=5000)
+        .col_vals_between(columns="profit_margin", left=0.1, right=0.4)
+        .col_vals_in_set(columns="region", set=["North", "South", "East", "West"])
+        .interrogate()
+    )
+
+    polars_report = polars_validation.get_tabular_report()
+    assert polars_report is not None
+    assert hasattr(polars_report, "_body")
+
+    # Test with Pandas DataFrame (should use Pandas-based formatting)
+    pandas_validation = (
+        pb.Validate(data=pandas_data, tbl_name="pandas_mixed_env", thresholds=thresholds)
+        .col_vals_gt(columns="revenue", value=5000)
+        .col_vals_between(columns="profit_margin", left=0.1, right=0.4)
+        .col_vals_in_set(columns="region", set=["North", "South", "East", "West"])
+        .interrogate()
+    )
+
+    pandas_report = pandas_validation.get_tabular_report()
+    assert pandas_report is not None
+    assert hasattr(pandas_report, "_body")
+
+    # Both reports should be generated successfully
+    polars_html = polars_report.as_raw_html()
+    pandas_html = pandas_report.as_raw_html()
+
+    assert len(polars_html) > 1000  # Should have substantial content
+    assert len(pandas_html) > 1000  # Should have substantial content
+    assert "revenue" in polars_html
+    assert "revenue" in pandas_html
+
+
+def test_dataframe_library_formatting_consistency_across_scenarios():
+    import pandas as pd
+    import polars as pl
+    from pointblank.validate import (
+        _format_single_number_with_gt,
+        _format_single_float_with_gt,
+        _format_single_integer_with_gt,
+    )
+
+    # Test values that would commonly trigger formatting
+    test_numbers = [1000, 12345, 999999, 1000000]
+    test_floats = [1234.56, 99999.99, 0.000123]
+    test_integers = [1500, 25000, 100000]
+
+    # Test number formatting consistency
+    for value in test_numbers:
+        polars_result = _format_single_number_with_gt(
+            value, n_sigfig=3, compact=True, locale="en", df_lib=pl
+        )
+        pandas_result = _format_single_number_with_gt(
+            value, n_sigfig=3, compact=True, locale="en", df_lib=pd
+        )
+
+        assert polars_result == pandas_result
+
+    # Test float formatting consistency
+    for value in test_floats:
+        polars_result = _format_single_float_with_gt(value, decimals=2, locale="en", df_lib=pl)
+        pandas_result = _format_single_float_with_gt(value, decimals=2, locale="en", df_lib=pd)
+
+        assert polars_result == pandas_result
+
+    # Test integer formatting consistency
+    for value in test_integers:
+        polars_result = _format_single_integer_with_gt(value, locale="en", df_lib=pl)
+        pandas_result = _format_single_integer_with_gt(value, locale="en", df_lib=pd)
+
+        assert polars_result == pandas_result
+
+
+def test_scenario_integration_with_large_datasets():
+    import polars as pl
+    import pandas as pd
+    import pointblank as pb
+
+    # Create large dataset that will trigger number formatting in various functions
+    large_size = 2000  # Reduced size for faster testing
+
+    # Polars version
+    polars_large_data = pl.DataFrame(
+        {
+            "transaction_id": range(1, large_size + 1),
+            "amount": [i * 1000 for i in range(1, large_size + 1)],  # Large monetary values
+            "customer_tier": ["premium" if i % 3 == 0 else "standard" for i in range(large_size)],
+            "processing_fee": [round(i * 0.025, 2) for i in range(1, large_size + 1)],
+        }
+    )
+
+    # Pandas version
+    pandas_large_data = pd.DataFrame(
+        {
+            "transaction_id": range(1, large_size + 1),
+            "amount": [i * 1000 for i in range(1, large_size + 1)],  # Large monetary values
+            "customer_tier": ["premium" if i % 3 == 0 else "standard" for i in range(large_size)],
+            "processing_fee": [round(i * 0.025, 2) for i in range(1, large_size + 1)],
+        }
+    )
+
+    # High threshold values that will trigger threshold formatting
+    thresholds = pb.Thresholds(warning=1000, error=2500, critical=4000)
+
+    datasets = [
+        ("Polars Large Dataset", polars_large_data),
+        ("Pandas Large Dataset", pandas_large_data),
+    ]
+
+    for dataset_name, data in datasets:
+        # Complex validation with multiple steps
+        validation = (
+            pb.Validate(data=data, tbl_name=f"large_{dataset_name.lower()}", thresholds=thresholds)
+            .col_vals_gt(columns="amount", value=500)  # Large numbers formatting
+            .col_vals_between(columns="processing_fee", left=0.0, right=200.0)  # Float formatting
+            .col_vals_in_set(columns="customer_tier", set=["premium", "standard"])
+            .col_vals_not_null(columns="transaction_id")  # Integer formatting
+            .interrogate()
+        )
+
+        # Generate report - should handle large numbers correctly
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify report quality
+        report_html = str(report)
+        assert len(report_html) > 2000  # Should have substantial formatted content
+
+        # Check that validation worked correctly
+        assert len(validation.validation_info) == 4  # Four validation steps
+        assert all(step.all_passed for step in validation.validation_info)  # All should pass
+
+
+def test_scenario_edge_cases_and_error_handling():
+    import polars as pl
+    import pandas as pd
+    import pointblank as pb
+    from pointblank.validate import _format_single_number_with_gt
+
+    # Test with some edge case values
+    edge_cases = [
+        0,  # Zero
+        1,  # Small positive
+        -1000,  # Negative number
+        999999999,  # Very large number
+    ]
+
+    # Test that edge cases work with both libraries
+    for value in edge_cases:
+        try:
+            polars_result = _format_single_number_with_gt(value, n_sigfig=3, df_lib=pl)
+            pandas_result = _format_single_number_with_gt(value, n_sigfig=3, df_lib=pd)
+
+            # Both should return strings and be identical
+            assert isinstance(polars_result, str)
+            assert isinstance(pandas_result, str)
+            assert polars_result == pandas_result
+
+        except Exception as e:
+            pytest.fail(f"Edge case {value} failed: {e}")
+
+    # Test with None df_lib (backward compatibility)
+    try:
+        none_result = _format_single_number_with_gt(12345, n_sigfig=3, df_lib=None)
+        assert isinstance(none_result, str)
+    except Exception as e:
+        pytest.fail(f"df_lib=None case failed: {e}")
+
+    # Test empty datasets don't cause formatting issues
+    empty_polars = pl.DataFrame({"values": pl.Series([], dtype=pl.Int64)})
+    empty_pandas = pd.DataFrame({"values": pd.Series([], dtype="int64")})
+
+    for name, empty_data in [("Polars", empty_polars), ("Pandas", empty_pandas)]:
+        validation = pb.Validate(data=empty_data, tbl_name=f"empty_{name.lower()}")
+        # Should be able to create validation object even with empty data
+        assert validation is not None
+
+        # Adding validation steps to empty data should work
+        validation = validation.col_vals_gt(columns="values", value=0)
+        assert len(validation.validation_info) == 1
