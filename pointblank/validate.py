@@ -13820,6 +13820,35 @@ def _format_numbers_with_gt(
     return formatted_values
 
 
+def _format_single_number_with_gt(
+    value: int, n_sigfig: int = 3, compact: bool = True, locale: str = "en", df_lib=None
+) -> str:
+    """Format a single number using Great Tables GT object to avoid pandas dependency."""
+    if df_lib is None:
+        # Use library detection to select appropriate DataFrame library
+        if _is_lib_present("polars"):
+            import polars as pl
+
+            df_lib = pl
+        elif _is_lib_present("pandas"):
+            import pandas as pd
+
+            df_lib = pd
+        else:
+            raise ImportError("Neither Polars nor Pandas is available for formatting")
+
+    # Create a single-row, single-column DataFrame using the specified library
+    df = df_lib.DataFrame({"value": [value]})
+
+    # Create GT object and format the column
+    gt_obj = GT(df).fmt_number(columns="value", n_sigfig=n_sigfig, compact=compact, locale=locale)
+
+    # Extract the formatted value using _get_column_of_values
+    formatted_values = _get_column_of_values(gt_obj, column_name="value", context="html")
+
+    return formatted_values[0]  # Return the single formatted value
+
+
 def _transform_test_units(
     test_units: list[int], interrogation_performed: bool, active: list[bool], locale: str
 ) -> list[str]:
