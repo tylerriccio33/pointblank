@@ -273,3 +273,133 @@ def missing(data_source: str, output_html: str | None):
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("data_source", type=str)
+@click.argument("validation_script", type=click.Path(exists=True))
+@click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
+@click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
+@click.option("--fail-on-error", is_flag=True, help="Exit with non-zero code if validation fails")
+def validate(
+    data_source: str,
+    validation_script: str,
+    output_html: str | None,
+    output_json: str | None,
+    fail_on_error: bool,
+):
+    """
+    Run validation using a Python validation script.
+
+    DATA_SOURCE can be:
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+
+    VALIDATION_SCRIPT should be a Python file that defines validation rules.
+    See 'pointblank validate-example' for a sample script.
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Execute the validation script
+        with console.status("[bold green]Running validation..."):
+            # Read and execute the validation script
+            script_content = Path(validation_script).read_text()
+
+            # Create a namespace with pointblank and the data
+            namespace = {
+                "pb": pb,
+                "pointblank": pb,
+                "data": data,
+                "__name__": "__main__",
+            }
+
+            # Execute the script
+            try:
+                exec(script_content, namespace)
+            except Exception as e:
+                console.print(f"[red]Error executing validation script:[/red] {e}")
+                sys.exit(1)
+
+            # Look for a validation object in the namespace
+            validation = None
+
+            # Try to find the 'validation' variable specifically first
+            if "validation" in namespace:
+                validation = namespace["validation"]
+            else:
+                # Look for any validation object in the namespace
+                for key, value in namespace.items():
+                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
+                        validation = value
+                        break
+                    # Also check if it's a Validate object that has been interrogated
+                    elif str(type(value)).find("Validate") != -1:
+                        validation = value
+                        break
+
+            if validation is None:
+                raise ValueError(
+                    "No validation object found in script. "
+                    "Script should create a Validate object and assign it to a variable named 'validation'."
+                )
+
+        console.print("[green]✓[/green] Validation completed")
+
+        # Display summary
+        _display_validation_summary(validation)
+
+        # Save outputs
+        if output_html:
+            try:
+                # Get HTML representation
+                html_content = validation._repr_html_()
+                Path(output_html).write_text(html_content, encoding="utf-8")
+                console.print(f"[green]✓[/green] HTML report saved to: {output_html}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
+
+        if output_json:
+            try:
+                # Get JSON report
+                json_report = validation.get_json_report()
+                Path(output_json).write_text(json_report, encoding="utf-8")
+                console.print(f"[green]✓[/green] JSON summary saved to: {output_json}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save JSON report: {e}[/yellow]")
+
+        # Check if we should fail on error
+        if fail_on_error:
+            try:
+                if (
+                    hasattr(validation, "validation_info")
+                    and validation.validation_info is not None
+                ):
+                    info = validation.validation_info
+                    n_critical = sum(1 for step in info if step.critical)
+                    n_error = sum(1 for step in info if step.error)
+
+                    if n_critical > 0 or n_error > 0:
+                        severity = "critical" if n_critical > 0 else "error"
+                        console.print(
+                            f"[red]Exiting with error due to {severity} validation failures[/red]"
+                        )
+                        sys.exit(1)
+            except Exception as e:
+                console.print(
+                    f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
+                )
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
