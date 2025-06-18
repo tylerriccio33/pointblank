@@ -143,3 +143,91 @@ def _display_validation_summary(validation: Any) -> None:
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
 
+@click.group()
+@click.version_option(version=pb.__version__, prog_name="pointblank")
+def cli():
+    """
+    Pointblank CLI - Data validation and quality tools for data engineers.
+
+    Use this CLI to validate data, preview tables, and generate reports
+    directly from the command line.
+    """
+    pass
+
+
+@cli.command()
+@click.argument("data_source", type=str)
+@click.option("--columns", "-c", help="Comma-separated list of columns to display")
+@click.option("--head", "-h", default=5, help="Number of rows from the top (default: 5)")
+@click.option("--tail", "-t", default=5, help="Number of rows from the bottom (default: 5)")
+@click.option("--limit", "-l", default=50, help="Maximum total rows to display (default: 50)")
+@click.option("--no-row-numbers", is_flag=True, help="Hide row numbers")
+@click.option("--max-col-width", default=250, help="Maximum column width in pixels (default: 250)")
+@click.option("--min-table-width", default=500, help="Minimum table width in pixels (default: 500)")
+@click.option("--no-header", is_flag=True, help="Hide table header")
+@click.option("--output-html", type=click.Path(), help="Save HTML output to file")
+def preview(
+    data_source: str,
+    columns: str | None,
+    head: int,
+    tail: int,
+    limit: int,
+    no_row_numbers: bool,
+    max_col_width: int,
+    min_table_width: int,
+    no_header: bool,
+    output_html: str | None,
+):
+    """
+    Preview a data table showing head and tail rows.
+
+    DATA_SOURCE can be:
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Parse columns if provided
+        columns_list = None
+        if columns:
+            columns_list = [col.strip() for col in columns.split(",")]
+
+        # Generate preview
+        with console.status("[bold green]Generating preview..."):
+            gt_table = pb.preview(
+                data=data,
+                columns_subset=columns_list,
+                n_head=head,
+                n_tail=tail,
+                limit=limit,
+                show_row_numbers=not no_row_numbers,
+                max_col_width=max_col_width,
+                min_tbl_width=min_table_width,
+                incl_header=not no_header,
+            )
+
+        if output_html:
+            # Save HTML to file
+            html_content = gt_table.as_raw_html()
+            Path(output_html).write_text(html_content, encoding="utf-8")
+            console.print(f"[green]✓[/green] HTML saved to: {output_html}")
+        else:
+            # Display in terminal
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
