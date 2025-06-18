@@ -9161,37 +9161,47 @@ class Validate:
 
             # Determine whether any preprocessing functions are to be applied to the table
             if validation.pre is not None:
-                # Read the text of the preprocessing function
-                pre_text = _pre_processing_funcs_to_str(validation.pre)
+                try:
+                    # Read the text of the preprocessing function
+                    pre_text = _pre_processing_funcs_to_str(validation.pre)
 
-                # Determine if the preprocessing function is a lambda function; return a boolean
-                is_lambda = re.match(r"^lambda", pre_text) is not None
+                    # Determine if the preprocessing function is a lambda function; return a boolean
+                    is_lambda = re.match(r"^lambda", pre_text) is not None
 
-                # If the preprocessing function is a lambda function, then check if there is
-                # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
-                # to use a Narwhalified version of the table
-                if is_lambda:
-                    # Get the signature of the lambda function
-                    sig = inspect.signature(validation.pre)
+                    # If the preprocessing function is a lambda function, then check if there is
+                    # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
+                    # to use a Narwhalified version of the table
+                    if is_lambda:
+                        # Get the signature of the lambda function
+                        sig = inspect.signature(validation.pre)
 
-                    # Check if the lambda function has a keyword argument called `dfn`
-                    if "dfn" in sig.parameters:
-                        # Convert the table to a Narwhals DataFrame
-                        data_tbl_step = nw.from_native(data_tbl_step)
+                        # Check if the lambda function has a keyword argument called `dfn`
+                        if "dfn" in sig.parameters:
+                            # Convert the table to a Narwhals DataFrame
+                            data_tbl_step = nw.from_native(data_tbl_step)
 
-                        # Apply the preprocessing function to the table
-                        data_tbl_step = validation.pre(dfn=data_tbl_step)
+                            # Apply the preprocessing function to the table
+                            data_tbl_step = validation.pre(dfn=data_tbl_step)
 
-                        # Convert the table back to its original format
-                        data_tbl_step = nw.to_native(data_tbl_step)
+                            # Convert the table back to its original format
+                            data_tbl_step = nw.to_native(data_tbl_step)
 
-                    else:
-                        # Apply the preprocessing function to the table
+                        else:
+                            # Apply the preprocessing function to the table
+                            data_tbl_step = validation.pre(data_tbl_step)
+
+                    # If the preprocessing function is a function, apply it to the table
+                    elif isinstance(validation.pre, Callable):
                         data_tbl_step = validation.pre(data_tbl_step)
 
-                # If the preprocessing function is a function, apply it to the table
-                elif isinstance(validation.pre, Callable):
-                    data_tbl_step = validation.pre(data_tbl_step)
+                except Exception:
+                    # If preprocessing fails, mark the validation as having an eval_error
+                    validation.eval_error = True
+                    end_time = datetime.datetime.now(datetime.timezone.utc)
+                    validation.proc_duration_s = (end_time - start_time).total_seconds()
+                    validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                    validation.active = False
+                    continue
 
             # ------------------------------------------------
             # Segmentation stage
