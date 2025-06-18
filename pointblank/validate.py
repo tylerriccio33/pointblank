@@ -13881,8 +13881,17 @@ def _transform_test_units(
     ]
 
 
-def _fmt_lg(value: int, locale: str) -> str:
-    return vals.fmt_number(value, n_sigfig=3, compact=True, locale=locale)[0]
+def _fmt_lg(value: int, locale: str, df_lib=None) -> str:
+    if df_lib is not None:
+        # Use GT-based formatting if a DataFrame library is provided
+        return _format_single_number_with_gt(
+            value, n_sigfig=3, compact=True, locale=locale, df_lib=df_lib
+        )
+    else:
+        # Fallback to the original behavior
+        return vals.fmt_number(value, n_sigfig=3, compact=True, locale=locale)[0]
+
+
 def _format_single_float_with_gt(
     value: float, decimals: int = 2, locale: str = "en", df_lib=None
 ) -> str:
