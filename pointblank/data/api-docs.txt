@@ -43,11 +43,13 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     ----------
     data
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
-        file path, or a Parquet file path. When providing a CSV or Parquet file path (as a string
-        or `pathlib.Path` object), the file will be automatically loaded using an available
-        DataFrame library (Polars or Pandas). Parquet input also supports glob patterns,
-        directories containing .parquet files, and Spark-style partitioned datasets. Read the
-        *Supported Input Table Types* section for details on the supported table types.
+        file path, a Parquet file path, or a database connection string. When providing a CSV or
+        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
+        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
+        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
+        Connection strings enable direct database access via Ibis with optional table specification
+        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
+        on the supported table types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -120,6 +122,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
     extension, or partitioned dataset)
+    - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, the use of `Validate` with such tables requires
@@ -129,6 +132,20 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
+
+    Connection strings follow database URL formats and must also specify a table using the
+    `::table_name` suffix. Examples include:
+
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
+
+    When using connection strings, the Ibis library with the appropriate backend driver is required.
 
     Thresholds
     ----------
@@ -512,6 +529,33 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
 
     Both Polars and Pandas handle partitioned datasets natively, so this works seamlessly with
     either DataFrame library. The loading preference is Polars first, then Pandas as a fallback.
+
+    ### Working with Database Connection Strings
+
+    The `Validate` class supports database connection strings for direct validation of database
+    tables. Connection strings must specify a table using the `::table_name` suffix:
+
+    ```python
+    # Get path to a DuckDB database file from package data
+    duckdb_path = pb.get_data_path("game_revenue", "duckdb")
+
+    validation_9 = (
+        pb.Validate(
+            data=f"duckdb:///{duckdb_path}::game_revenue",
+            label="DuckDB Game Revenue Validation"
+        )
+        .col_exists(["player_id", "session_id", "item_revenue"])
+        .col_vals_gt(columns="item_revenue", value=0)
+        .interrogate()
+    )
+
+    validation_9
+    ```
+
+    For comprehensive documentation on supported connection string formats, error handling, and
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
+    function. This function handles all the connection logic and provides helpful error messages
+    when table specifications are missing or backend dependencies are not installed.
     
 
 Thresholds(warning: 'int | float | bool | None' = None, error: 'int | float | bool | None' = None, critical: 'int | float | bool | None' = None) -> None
@@ -8802,8 +8846,14 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
     Parameters
     ----------
     data
-        The table to preview, which could be a DataFrame object or an Ibis table object. Read the
-        *Supported Input Table Types* section for details on the supported table types.
+        The table to preview, which could be a DataFrame object, an Ibis table object, a CSV
+        file path, a Parquet file path, or a database connection string. When providing a CSV or
+        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
+        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
+        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
+        Connection strings enable direct database access via Ibis with optional table specification
+        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
+        on the supported table types.
     columns_subset
         The columns to display in the table, by default `None` (all columns are shown). This can
         be a string, a list of strings, a `Column` object, or a `ColumnSelector` object. The latter
@@ -8854,11 +8904,33 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
+    extension, or partitioned dataset)
+    - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, using `preview()` with these types of tables
     requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
     Pandas DataFrame, the availability of Ibis is not needed.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
+
+    Connection strings follow database URL formats and must also specify a table using the
+    `::table_name` suffix. Examples include:
+
+    ```
+    "duckdb:///path/to/database.ddb::table_name"
+    "sqlite:///path/to/database.db::table_name"
+    "postgresql://user:password@localhost:5432/database::table_name"
+    "mysql://user:password@localhost:3306/database::table_name"
+    "bigquery://project/dataset::table_name"
+    "snowflake://user:password@account/database/schema::table_name"
+    ```
+
+    When using connection strings, the Ibis library with the appropriate backend driver is required.
 
     Examples
     --------
@@ -8918,6 +8990,39 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
       columns_subset=pb.col(pb.starts_with("item") | pb.matches("player"))
     )
     ```
+
+    ### Working with CSV Files
+
+    The `preview()` function can directly accept CSV file paths, making it easy to preview data
+    stored in CSV files without manual loading:
+
+    You can also use a Path object to specify the CSV file:
+
+    ### Working with Parquet Files
+
+    The `preview()` function can directly accept Parquet files and datasets in various formats:
+
+    You can also use glob patterns and directories:
+
+    ```python
+    # Multiple Parquet files with glob patterns
+    pb.preview("data/sales_*.parquet")
+
+    # Directory containing Parquet files
+    pb.preview("parquet_data/")
+
+    # Partitioned Parquet dataset
+    pb.preview("sales_data/")  # Auto-discovers partition columns
+    ```
+
+    ### Working with Database Connection Strings
+
+    The `preview()` function supports database connection strings for direct preview of database
+    tables. Connection strings must specify a table using the `::table_name` suffix:
+
+    For comprehensive documentation on supported connection string formats, error handling, and
+    installation requirements, see the [`connect_to_table()`](`pointblank.connect_to_table`)
+    function.
     
 
 col_summary_tbl(data: 'FrameT | Any', tbl_name: 'str | None' = None) -> 'GT'
