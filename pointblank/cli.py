@@ -403,3 +403,144 @@ def validate(
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("output_file", type=click.Path())
+def validate_example(output_file: str):
+    """
+    Generate an example validation script.
+
+    Creates a sample Python script showing how to use Pointblank for validation.
+    """
+    example_script = '''"""
+Example Pointblank validation script.
+
+This script demonstrates how to create validation rules for your data.
+Modify the validation rules below to match your data requirements.
+"""
+
+import pointblank as pb
+
+# Create a validation object
+# The 'data' variable is automatically provided by the CLI
+validation = (
+    pb.Validate(
+        data=data,
+        tbl_name="Example Data",
+        label="CLI Validation Example",
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+    )
+    # Add your validation rules here
+    # Example rules (modify these based on your data structure):
+
+    # Check that specific columns exist
+    # .col_exists(["column1", "column2"])
+
+    # Check for null values
+    # .col_vals_not_null(columns="important_column")
+
+    # Check value ranges
+    # .col_vals_gt(columns="amount", value=0)
+    # .col_vals_between(columns="score", left=0, right=100)
+
+    # Check string patterns
+    # .col_vals_regex(columns="email", pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$")
+
+    # Check unique values
+    # .col_vals_unique(columns="id")
+
+    # Finalize the validation
+    .interrogate()
+)
+
+# The validation object will be automatically used by the CLI
+'''
+
+    Path(output_file).write_text(example_script)
+    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
+    console.print("\nEdit the script to add your validation rules, then run:")
+    console.print(f"[cyan]pointblank validate your_data.csv {output_file}[/cyan]")
+
+
+@cli.command()
+@click.argument("data_source", type=str)
+def info(data_source: str):
+    """
+    Display information about a data source.
+
+    Shows table type, dimensions, column names, and data types.
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                source_type = f"Pointblank dataset: {data_source}"
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                source_type = f"External source: {data_source}"
+
+                # Process the data to get actual table object for inspection
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                data = _process_connection_string(data)
+                data = _process_csv_input(data)
+                data = _process_parquet_input(data)
+
+        # Get table information
+        tbl_type = _get_tbl_type(data)
+        row_count = pb.get_row_count(data)
+        col_count = pb.get_column_count(data)
+
+        # Create info table
+        info_table = Table(
+            title="Data Source Information", show_header=True, header_style="bold magenta"
+        )
+        info_table.add_column("Property", style="cyan", no_wrap=True)
+        info_table.add_column("Value", style="green")
+
+        info_table.add_row("Source", source_type)
+        info_table.add_row("Table Type", tbl_type)
+        info_table.add_row("Rows", f"{row_count:,}")
+        info_table.add_row("Columns", f"{col_count:,}")
+
+        console.print(info_table)
+
+        # Show column information
+        try:
+            # Get column names
+            if hasattr(data, "columns"):
+                columns = list(data.columns)
+            elif hasattr(data, "schema"):
+                columns = list(data.schema.names)
+            else:
+                columns = ["Unable to determine columns"]
+
+            if len(columns) <= 50:  # Only show if reasonable number of columns
+                columns_table = Table(title="Columns", show_header=True, header_style="bold cyan")
+                columns_table.add_column("Index", style="dim")
+                columns_table.add_column("Column Name", style="green")
+
+                for idx, col in enumerate(columns):
+                    columns_table.add_row(str(idx), col)
+
+                console.print(columns_table)
+            else:
+                console.print(
+                    f"\n[yellow]Table has {len(columns)} columns (too many to display)[/yellow]"
+                )
+                console.print(f"First 10 columns: {', '.join(columns[:10])}")
+                console.print(f"Last 10 columns: {', '.join(columns[-10:])}")
+
+        except Exception as e:
+            console.print(f"[yellow]Could not retrieve column information: {e}[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
