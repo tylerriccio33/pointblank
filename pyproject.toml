@@ -104,7 +104,7 @@ dev = [
 homepage = "https://github.com/posit-dev/pointblank"
 
 [project.scripts]
-pointblank = "pointblank.cli:cli"
+pb = "pointblank.cli:cli"
 
 [tool.pytest.ini_options]
 minversion = "6.0"

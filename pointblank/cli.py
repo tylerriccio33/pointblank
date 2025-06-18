@@ -144,7 +144,7 @@ def _display_validation_summary(validation: Any) -> None:
 
 
 @click.group()
-@click.version_option(version=pb.__version__, prog_name="pointblank")
+@click.version_option(version=pb.__version__, prog_name="pb")
 def cli():
     """
     Pointblank CLI - Data validation and quality tools for data engineers.
@@ -153,6 +153,63 @@ def cli():
     directly from the command line.
     """
     pass
+
+
+@cli.command()
+def datasets():
+    """
+    List available built-in datasets.
+    """
+    datasets_info = [
+        ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
+        ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
+        ("nycflights", "336,776 rows × 18 columns", "NYC airport flights data from 2013"),
+        ("global_sales", "50,000 rows × 20 columns", "Global sales data across regions"),
+    ]
+
+    table = Table(
+        title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
+    )
+    table.add_column("Dataset Name", style="cyan", no_wrap=True)
+    table.add_column("Dimensions", style="green")
+    table.add_column("Description", style="white")
+
+    for name, dims, desc in datasets_info:
+        table.add_row(name, dims, desc)
+
+    console.print(table)
+    console.print("\n[dim]Use these dataset names directly with any pb CLI command.[/dim]")
+    console.print("[dim]Example: pb preview small_table[/dim]")
+
+
+@cli.command()
+def requirements():
+    """
+    Check installed dependencies and their availability.
+    """
+    dependencies = [
+        ("polars", "Polars DataFrame support"),
+        ("pandas", "Pandas DataFrame support"),
+        ("ibis", "Ibis backend support (DuckDB, etc.)"),
+        ("duckdb", "DuckDB database support"),
+        ("pyarrow", "Parquet file support"),
+    ]
+
+    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
+    table.add_column("Package", style="cyan", no_wrap=True)
+    table.add_column("Status", style="white")
+    table.add_column("Description", style="dim")
+
+    for package, description in dependencies:
+        if _is_lib_present(package):
+            status = "[green]✓ Installed[/green]"
+        else:
+            status = "[red]✗ Not installed[/red]"
+
+        table.add_row(package, status, description)
+
+    console.print(table)
+    console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
 
 
 @cli.command()
@@ -233,6 +290,184 @@ def preview(
 
 @cli.command()
 @click.argument("data_source", type=str)
+def info(data_source: str):
+    """
+    Display information about a data source.
+
+    Shows table type, dimensions, column names, and data types.
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                source_type = f"Pointblank dataset: {data_source}"
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                source_type = f"External source: {data_source}"
+
+                # Process the data to get actual table object for inspection
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                data = _process_connection_string(data)
+                data = _process_csv_input(data)
+                data = _process_parquet_input(data)
+
+        # Get table information
+        tbl_type = _get_tbl_type(data)
+        row_count = pb.get_row_count(data)
+        col_count = pb.get_column_count(data)
+
+        # Create info table
+        info_table = Table(
+            title="Data Source Information", show_header=True, header_style="bold magenta"
+        )
+        info_table.add_column("Property", style="cyan", no_wrap=True)
+        info_table.add_column("Value", style="green")
+
+        info_table.add_row("Source", source_type)
+        info_table.add_row("Table Type", tbl_type)
+        info_table.add_row("Rows", f"{row_count:,}")
+        info_table.add_row("Columns", f"{col_count:,}")
+
+        console.print(info_table)
+
+        # Show column information
+        try:
+            # Get column names
+            if hasattr(data, "columns"):
+                columns = list(data.columns)
+            elif hasattr(data, "schema"):
+                columns = list(data.schema.names)
+            else:
+                columns = ["Unable to determine columns"]
+
+            if len(columns) <= 50:  # Only show if reasonable number of columns
+                columns_table = Table(title="Columns", show_header=True, header_style="bold cyan")
+                columns_table.add_column("Index", style="dim")
+                columns_table.add_column("Column Name", style="green")
+
+                for idx, col in enumerate(columns):
+                    columns_table.add_row(str(idx), col)
+
+                console.print(columns_table)
+            else:
+                console.print(
+                    f"\n[yellow]Table has {len(columns)} columns (too many to display)[/yellow]"
+                )
+                console.print(f"First 10 columns: {', '.join(columns[:10])}")
+                console.print(f"Last 10 columns: {', '.join(columns[-10:])}")
+
+        except Exception as e:
+            console.print(f"[yellow]Could not retrieve column information: {e}[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("data_source", type=str)
+@click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
+@click.option("--columns", "-c", help="Comma-separated list of columns to scan")
+@click.option("--sample-size", default=10000, help="Sample size for scanning (default: 10000)")
+def scan(
+    data_source: str,
+    output_html: str | None,
+    columns: str | None,
+    sample_size: int,
+):
+    """
+    Generate a data scan profile report.
+
+    Produces a comprehensive data profile including:
+    - Column types and distributions
+    - Missing value patterns
+    - Basic statistics
+    - Data quality indicators
+
+    DATA_SOURCE can be:
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Parse columns if provided
+        columns_list = None
+        if columns:
+            columns_list = [col.strip() for col in columns.split(",")]
+
+        # Generate data scan
+        with console.status("[bold green]Generating data scan..."):
+            # Use col_summary_tbl for comprehensive column scanning
+            scan_result = pb.col_summary_tbl(data=data)
+
+        if output_html:
+            # Save HTML to file
+            try:
+                html_content = scan_result.as_raw_html()
+                Path(output_html).write_text(html_content, encoding="utf-8")
+                console.print(f"[green]✓[/green] Data scan report saved to: {output_html}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
+        else:
+            # Display basic information in terminal
+            console.print("[green]✓[/green] Data scan completed")
+            console.print("Use --output-html to save the full interactive scan report.")
+
+            # Show basic scan summary
+            try:
+                # Get basic info about the scan
+                if hasattr(data, "shape"):
+                    rows, cols = data.shape
+                elif hasattr(data, "__len__") and hasattr(data, "columns"):
+                    rows = len(data)
+                    cols = len(data.columns)
+                else:
+                    rows = pb.get_row_count(data)
+                    cols = pb.get_column_count(data)
+
+                summary_table = Table(
+                    title="Data Scan Summary", show_header=True, header_style="bold cyan"
+                )
+                summary_table.add_column("Metric", style="cyan")
+                summary_table.add_column("Value", style="green")
+
+                summary_table.add_row("Rows Scanned", f"{min(sample_size, rows):,}")
+                summary_table.add_row("Total Rows", f"{rows:,}")
+                summary_table.add_row(
+                    "Columns Scanned", f"{len(columns_list) if columns_list else cols}"
+                )
+                summary_table.add_row("Sample Size", f"{sample_size:,}")
+
+                console.print(summary_table)
+
+            except Exception as e:
+                console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("data_source", type=str)
 @click.option("--output-html", type=click.Path(), help="Save HTML output to file")
 def missing(data_source: str, output_html: str | None):
     """
@@ -274,6 +509,64 @@ def missing(data_source: str, output_html: str | None):
 
 
 @cli.command()
+@click.argument("output_file", type=click.Path())
+def validate_example(output_file: str):
+    """
+    Generate an example validation script.
+
+    Creates a sample Python script showing how to use Pointblank for validation.
+    """
+    example_script = '''"""
+Example Pointblank validation script.
+
+This script demonstrates how to create validation rules for your data.
+Modify the validation rules below to match your data requirements.
+"""
+
+import pointblank as pb
+
+# Create a validation object
+# The 'data' variable is automatically provided by the CLI
+validation = (
+    pb.Validate(
+        data=data,
+        tbl_name="Example Data",
+        label="CLI Validation Example",
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+    )
+    # Add your validation rules here
+    # Example rules (modify these based on your data structure):
+
+    # Check that specific columns exist
+    # .col_exists(["column1", "column2"])
+
+    # Check for null values
+    # .col_vals_not_null(columns="important_column")
+
+    # Check value ranges
+    # .col_vals_gt(columns="amount", value=0)
+    # .col_vals_between(columns="score", left=0, right=100)
+
+    # Check string patterns
+    # .col_vals_regex(columns="email", pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$")
+
+    # Check unique values
+    # .col_vals_unique(columns="id")
+
+    # Finalize the validation
+    .interrogate()
+)
+
+# The validation object will be automatically used by the CLI
+'''
+
+    Path(output_file).write_text(example_script)
+    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
+    console.print("\nEdit the script to add your validation rules, then run:")
+    console.print(f"[cyan]pb validate your_data.csv {output_file}[/cyan]")
+
+
+@cli.command()
 @click.argument("data_source", type=str)
 @click.argument("validation_script", type=click.Path(exists=True))
 @click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
@@ -296,7 +589,7 @@ def validate(
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
     VALIDATION_SCRIPT should be a Python file that defines validation rules.
-    See 'pointblank validate-example' for a sample script.
+    See 'pb validate-example' for a sample script.
     """
     try:
         with console.status("[bold green]Loading data..."):
@@ -397,299 +690,6 @@ def validate(
                 console.print(
                     f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
                 )
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-@cli.command()
-@click.argument("output_file", type=click.Path())
-def validate_example(output_file: str):
-    """
-    Generate an example validation script.
-
-    Creates a sample Python script showing how to use Pointblank for validation.
-    """
-    example_script = '''"""
-Example Pointblank validation script.
-
-This script demonstrates how to create validation rules for your data.
-Modify the validation rules below to match your data requirements.
-"""
-
-import pointblank as pb
-
-# Create a validation object
-# The 'data' variable is automatically provided by the CLI
-validation = (
-    pb.Validate(
-        data=data,
-        tbl_name="Example Data",
-        label="CLI Validation Example",
-        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
-    )
-    # Add your validation rules here
-    # Example rules (modify these based on your data structure):
-
-    # Check that specific columns exist
-    # .col_exists(["column1", "column2"])
-
-    # Check for null values
-    # .col_vals_not_null(columns="important_column")
-
-    # Check value ranges
-    # .col_vals_gt(columns="amount", value=0)
-    # .col_vals_between(columns="score", left=0, right=100)
-
-    # Check string patterns
-    # .col_vals_regex(columns="email", pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$")
-
-    # Check unique values
-    # .col_vals_unique(columns="id")
-
-    # Finalize the validation
-    .interrogate()
-)
-
-# The validation object will be automatically used by the CLI
-'''
-
-    Path(output_file).write_text(example_script)
-    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
-    console.print("\nEdit the script to add your validation rules, then run:")
-    console.print(f"[cyan]pointblank validate your_data.csv {output_file}[/cyan]")
-
-
-@cli.command()
-@click.argument("data_source", type=str)
-def info(data_source: str):
-    """
-    Display information about a data source.
-
-    Shows table type, dimensions, column names, and data types.
-    """
-    try:
-        with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                source_type = f"Pointblank dataset: {data_source}"
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                source_type = f"External source: {data_source}"
-
-                # Process the data to get actual table object for inspection
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
-
-                data = _process_connection_string(data)
-                data = _process_csv_input(data)
-                data = _process_parquet_input(data)
-
-        # Get table information
-        tbl_type = _get_tbl_type(data)
-        row_count = pb.get_row_count(data)
-        col_count = pb.get_column_count(data)
-
-        # Create info table
-        info_table = Table(
-            title="Data Source Information", show_header=True, header_style="bold magenta"
-        )
-        info_table.add_column("Property", style="cyan", no_wrap=True)
-        info_table.add_column("Value", style="green")
-
-        info_table.add_row("Source", source_type)
-        info_table.add_row("Table Type", tbl_type)
-        info_table.add_row("Rows", f"{row_count:,}")
-        info_table.add_row("Columns", f"{col_count:,}")
-
-        console.print(info_table)
-
-        # Show column information
-        try:
-            # Get column names
-            if hasattr(data, "columns"):
-                columns = list(data.columns)
-            elif hasattr(data, "schema"):
-                columns = list(data.schema.names)
-            else:
-                columns = ["Unable to determine columns"]
-
-            if len(columns) <= 50:  # Only show if reasonable number of columns
-                columns_table = Table(title="Columns", show_header=True, header_style="bold cyan")
-                columns_table.add_column("Index", style="dim")
-                columns_table.add_column("Column Name", style="green")
-
-                for idx, col in enumerate(columns):
-                    columns_table.add_row(str(idx), col)
-
-                console.print(columns_table)
-            else:
-                console.print(
-                    f"\n[yellow]Table has {len(columns)} columns (too many to display)[/yellow]"
-                )
-                console.print(f"First 10 columns: {', '.join(columns[:10])}")
-                console.print(f"Last 10 columns: {', '.join(columns[-10:])}")
-
-        except Exception as e:
-            console.print(f"[yellow]Could not retrieve column information: {e}[/yellow]")
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-@cli.command()
-def datasets():
-    """
-    List available built-in datasets.
-    """
-    datasets_info = [
-        ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
-        ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
-        ("nycflights", "336,776 rows × 18 columns", "NYC airport flights data from 2013"),
-        ("global_sales", "50,000 rows × 20 columns", "Global sales data across regions"),
-    ]
-
-    table = Table(
-        title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
-    )
-    table.add_column("Dataset Name", style="cyan", no_wrap=True)
-    table.add_column("Dimensions", style="green")
-    table.add_column("Description", style="white")
-
-    for name, dims, desc in datasets_info:
-        table.add_row(name, dims, desc)
-
-    console.print(table)
-    console.print("\n[dim]Use these dataset names directly with any pointblank CLI command.[/dim]")
-    console.print("[dim]Example: pointblank preview small_table[/dim]")
-
-
-@cli.command()
-def requirements():
-    """
-    Check installed dependencies and their availability.
-    """
-    dependencies = [
-        ("polars", "Polars DataFrame support"),
-        ("pandas", "Pandas DataFrame support"),
-        ("ibis", "Ibis backend support (DuckDB, etc.)"),
-        ("duckdb", "DuckDB database support"),
-        ("pyarrow", "Parquet file support"),
-    ]
-
-    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
-    table.add_column("Package", style="cyan", no_wrap=True)
-    table.add_column("Status", style="white")
-    table.add_column("Description", style="dim")
-
-    for package, description in dependencies:
-        if _is_lib_present(package):
-            status = "[green]✓ Installed[/green]"
-        else:
-            status = "[red]✗ Not installed[/red]"
-
-        table.add_row(package, status, description)
-
-    console.print(table)
-    console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
-
-
-@cli.command()
-@click.argument("data_source", type=str)
-@click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
-@click.option("--columns", "-c", help="Comma-separated list of columns to scan")
-@click.option("--sample-size", default=10000, help="Sample size for scanning (default: 10000)")
-def scan(
-    data_source: str,
-    output_html: str | None,
-    columns: str | None,
-    sample_size: int,
-):
-    """
-    Generate a data scan profile report.
-
-    Produces a comprehensive data profile including:
-    - Column types and distributions
-    - Missing value patterns
-    - Basic statistics
-    - Data quality indicators
-
-    DATA_SOURCE can be:
-    - CSV file path (e.g., data.csv)
-    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
-    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
-    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
-    """
-    try:
-        with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
-
-        # Parse columns if provided
-        columns_list = None
-        if columns:
-            columns_list = [col.strip() for col in columns.split(",")]
-
-        # Generate data scan
-        with console.status("[bold green]Generating data scan..."):
-            # Use col_summary_tbl for comprehensive column scanning
-            scan_result = pb.col_summary_tbl(data=data)
-
-        if output_html:
-            # Save HTML to file
-            try:
-                html_content = scan_result.as_raw_html()
-                Path(output_html).write_text(html_content, encoding="utf-8")
-                console.print(f"[green]✓[/green] Data scan report saved to: {output_html}")
-            except Exception as e:
-                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
-        else:
-            # Display basic information in terminal
-            console.print("[green]✓[/green] Data scan completed")
-            console.print("Use --output-html to save the full interactive scan report.")
-
-            # Show basic scan summary
-            try:
-                # Get basic info about the scan
-                if hasattr(data, "shape"):
-                    rows, cols = data.shape
-                elif hasattr(data, "__len__") and hasattr(data, "columns"):
-                    rows = len(data)
-                    cols = len(data.columns)
-                else:
-                    rows = pb.get_row_count(data)
-                    cols = pb.get_column_count(data)
-
-                summary_table = Table(
-                    title="Data Scan Summary", show_header=True, header_style="bold cyan"
-                )
-                summary_table.add_column("Metric", style="cyan")
-                summary_table.add_column("Value", style="green")
-
-                summary_table.add_row("Rows Scanned", f"{min(sample_size, rows):,}")
-                summary_table.add_row("Total Rows", f"{rows:,}")
-                summary_table.add_row(
-                    "Columns Scanned", f"{len(columns_list) if columns_list else cols}"
-                )
-                summary_table.add_row("Sample Size", f"{sample_size:,}")
-
-                console.print(summary_table)
-
-            except Exception as e:
-                console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
