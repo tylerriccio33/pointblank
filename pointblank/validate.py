@@ -3427,12 +3427,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -3715,12 +3719,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4002,12 +4010,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4288,12 +4300,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4572,12 +4588,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -4860,12 +4880,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5162,12 +5186,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5478,12 +5506,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -5750,12 +5782,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6003,12 +6039,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6247,12 +6287,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6486,12 +6530,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6733,12 +6781,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -6976,12 +7028,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -7367,12 +7423,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
@@ -7604,12 +7664,16 @@ class Validate:
         (i.e., no validation steps will be created for them).
 
         A list with a combination of column names and tuples can be provided as well. This allows
-        for more complex segmentation scenarios. The following inputs are all valid:
+        for more complex segmentation scenarios. The following inputs are both valid:
 
-        - `segments=["region", ("date", ["2023-01-01", "2023-01-02"])]`: segments on unique values
-        in the `"region"` column and specific dates in the `"date"` column
-        - `segments=["region", "date"]`: segments on unique values in the `"region"` and `"date"`
-        columns
+        ```
+        # Segments from all unique values in the `region` column
+        # and specific dates in the `date` column
+        segments=["region", ("date", ["2023-01-01", "2023-01-02"])]
+
+        # Segments from all unique values in the `region` and `date` columns
+        segments=["region", "date"]
+        ```
 
         The segmentation is performed during interrogation, and the resulting validation steps will
         be numbered sequentially. Each segment will have its own validation step, and the results
