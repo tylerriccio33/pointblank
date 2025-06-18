@@ -13883,6 +13883,32 @@ def _transform_test_units(
 
 def _fmt_lg(value: int, locale: str) -> str:
     return vals.fmt_number(value, n_sigfig=3, compact=True, locale=locale)[0]
+def _format_single_float_with_gt(
+    value: float, decimals: int = 2, locale: str = "en", df_lib=None
+) -> str:
+    if df_lib is None:
+        # Use library detection to select appropriate DataFrame library
+        if _is_lib_present("polars"):
+            import polars as pl
+
+            df_lib = pl
+        elif _is_lib_present("pandas"):
+            import pandas as pd
+
+            df_lib = pd
+        else:
+            raise ImportError("Neither Polars nor Pandas is available for formatting")
+
+    # Create a single-row, single-column DataFrame using the specified library
+    df = df_lib.DataFrame({"value": [value]})
+
+    # Create GT object and format the column
+    gt_obj = GT(df).fmt_number(columns="value", decimals=decimals, locale=locale)
+
+    # Extract the formatted value using _get_column_of_values
+    formatted_values = _get_column_of_values(gt_obj, column_name="value", context="html")
+
+    return formatted_values[0]  # Return the single formatted value
 
 
 def _transform_passed_failed(
