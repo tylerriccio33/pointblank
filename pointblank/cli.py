@@ -696,3 +696,173 @@ def scan(
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("data_source", type=str)
+@click.argument("validation_script", type=click.Path(exists=True))
+@click.argument("step_number", type=int)
+@click.option(
+    "--limit", "-l", default=100, help="Maximum number of failing rows to show (default: 100)"
+)
+@click.option("--output-csv", type=click.Path(), help="Save failing rows to CSV file")
+@click.option("--output-html", type=click.Path(), help="Save failing rows table to HTML file")
+def extract(
+    data_source: str,
+    validation_script: str,
+    step_number: int,
+    limit: int,
+    output_csv: str | None,
+    output_html: str | None,
+):
+    """
+    Extract failing rows from a specific validation step.
+
+    This command runs a validation and extracts the rows that failed
+    a specific validation step, which is useful for debugging data quality issues.
+
+    DATA_SOURCE: Same as validate command
+    VALIDATION_SCRIPT: Path to validation script
+    STEP_NUMBER: The step number to extract failing rows from (1-based)
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Execute the validation script
+        with console.status("[bold green]Running validation..."):
+            # Read and execute the validation script
+            script_content = Path(validation_script).read_text()
+
+            # Create a namespace with pointblank and the data
+            namespace = {
+                "pb": pb,
+                "pointblank": pb,
+                "data": data,
+                "__name__": "__main__",
+            }
+
+            # Execute the script
+            try:
+                exec(script_content, namespace)
+            except Exception as e:
+                console.print(f"[red]Error executing validation script:[/red] {e}")
+                sys.exit(1)
+
+            # Look for a validation object in the namespace
+            validation = None
+            if "validation" in namespace:
+                validation = namespace["validation"]
+            else:
+                # Look for any validation object in the namespace
+                for key, value in namespace.items():
+                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
+                        validation = value
+                        break
+                    elif str(type(value)).find("Validate") != -1:
+                        validation = value
+                        break
+
+            if validation is None:
+                raise ValueError(
+                    "No validation object found in script. "
+                    "Script should create a Validate object and assign it to a variable named 'validation'."
+                )
+
+        console.print("[green]✓[/green] Validation completed")
+
+        # Extract failing rows from the specified step
+        with console.status(f"[bold green]Extracting failing rows from step {step_number}..."):
+            try:
+                # Get the data extracts for the specific step
+                step_extract = validation.get_data_extracts(i=step_number, frame=True)
+
+                if step_extract is None or len(step_extract) == 0:
+                    console.print(f"[yellow]No failing rows found for step {step_number}[/yellow]")
+                    return
+
+                # Limit the results
+                if len(step_extract) > limit:
+                    step_extract = step_extract.head(limit)
+                    console.print(f"[yellow]Limited to first {limit} failing rows[/yellow]")
+
+                console.print(f"[green]✓[/green] Extracted {len(step_extract)} failing rows")
+
+                # Save outputs
+                if output_csv:
+                    if hasattr(step_extract, "write_csv"):
+                        step_extract.write_csv(output_csv)
+                    else:
+                        step_extract.to_csv(output_csv, index=False)
+                    console.print(f"[green]✓[/green] Failing rows saved to CSV: {output_csv}")
+
+                if output_html:
+                    # Create a preview of the failing rows
+                    preview_table = pb.preview(
+                        step_extract, n_head=min(10, len(step_extract)), n_tail=0
+                    )
+                    html_content = preview_table._repr_html_()
+                    Path(output_html).write_text(html_content, encoding="utf-8")
+                    console.print(
+                        f"[green]✓[/green] Failing rows table saved to HTML: {output_html}"
+                    )
+
+                if not output_csv and not output_html:
+                    # Display basic info about the failing rows
+                    info_table = Table(
+                        title=f"Failing Rows - Step {step_number}",
+                        show_header=True,
+                        header_style="bold red",
+                    )
+                    info_table.add_column("Property", style="cyan")
+                    info_table.add_column("Value", style="white")
+
+                    info_table.add_row("Total Failing Rows", f"{len(step_extract):,}")
+                    info_table.add_row(
+                        "Columns",
+                        f"{len(step_extract.columns) if hasattr(step_extract, 'columns') else 'N/A'}",
+                    )
+
+                    console.print(info_table)
+                    console.print(
+                        "\n[dim]Use --output-csv or --output-html to save the failing rows.[/dim]"
+                    )
+
+            except Exception as e:
+                console.print(f"[red]Error extracting failing rows:[/red] {e}")
+                # Try to provide helpful information
+                if hasattr(validation, "validation_info") and validation.validation_info:
+                    max_step = len(validation.validation_info)
+                    console.print(f"[yellow]Available steps: 1 to {max_step}[/yellow]")
+
+                    # Show step information
+                    steps_table = Table(title="Available Validation Steps", show_header=True)
+                    steps_table.add_column("Step", style="cyan")
+                    steps_table.add_column("Type", style="white")
+                    steps_table.add_column("Column", style="green")
+                    steps_table.add_column("Has Failures", style="yellow")
+
+                    for i, step in enumerate(validation.validation_info, 1):
+                        has_failures = "Yes" if not step.all_passed else "No"
+                        steps_table.add_row(
+                            str(i),
+                            step.assertion_type,
+                            str(step.column) if step.column else "—",
+                            has_failures,
+                        )
+
+                    console.print(steps_table)
+                sys.exit(1)
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    cli()
