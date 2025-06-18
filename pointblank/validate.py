@@ -13850,19 +13850,30 @@ def _format_single_number_with_gt(
 
 
 def _transform_test_units(
-    test_units: list[int], interrogation_performed: bool, active: list[bool], locale: str
+    test_units: list[int],
+    interrogation_performed: bool,
+    active: list[bool],
+    locale: str,
+    df_lib=None,
 ) -> list[str]:
     # If no interrogation was performed, return a list of empty strings
     if not interrogation_performed:
         return ["" for _ in range(len(test_units))]
 
+    # Define the helper function that'll format numbers safely with Great Tables
+    def _format_number_safe(value: int) -> str:
+        if df_lib is not None:
+            # Use GT-based formatting to avoid Pandas dependency completely
+            return _format_single_number_with_gt(
+                value, n_sigfig=3, compact=True, locale=locale, df_lib=df_lib
+            )
+        else:
+            # Fallback to the original behavior
+            return str(vals.fmt_number(value, n_sigfig=3, compact=True, locale=locale)[0])
+
     return [
         (
-            (
-                str(test_units[i])
-                if test_units[i] < 10000
-                else str(vals.fmt_number(test_units[i], n_sigfig=3, compact=True, locale=locale)[0])
-            )
+            (str(test_units[i]) if test_units[i] < 10000 else _format_number_safe(test_units[i]))
             if active[i]
             else "&mdash;"
         )
