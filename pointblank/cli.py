@@ -231,3 +231,45 @@ def preview(
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("data_source", type=str)
+@click.option("--output-html", type=click.Path(), help="Save HTML output to file")
+def missing(data_source: str, output_html: str | None):
+    """
+    Generate a missing values report for a data table.
+
+    DATA_SOURCE can be:
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Generate missing values table
+        with console.status("[bold green]Analyzing missing values..."):
+            gt_table = pb.missing_vals_tbl(data)
+
+        if output_html:
+            # Save HTML to file
+            html_content = gt_table.as_raw_html()
+            Path(output_html).write_text(html_content, encoding="utf-8")
+            console.print(f"[green]✓[/green] Missing values report saved to: {output_html}")
+        else:
+            # Display in terminal
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
