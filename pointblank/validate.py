@@ -17,6 +17,7 @@ from zipfile import ZipFile
 import commonmark
 import narwhals as nw
 from great_tables import GT, from_column, google_font, html, loc, md, style, vals
+from great_tables.gt import _get_column_of_values
 from great_tables.vals import fmt_integer, fmt_number
 from importlib_resources import files
 from narwhals.typing import FrameT
@@ -11483,7 +11484,9 @@ class Validate:
             # Create the label, table type, and thresholds HTML fragments
             label_html = _create_label_html(label=self.label, start_time="")
             table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
-            thresholds_html = _create_thresholds_html(thresholds=thresholds, locale=locale)
+            thresholds_html = _create_thresholds_html(
+                thresholds=thresholds, locale=locale, df_lib=df_lib
+            )
 
             # Compose the subtitle HTML fragment
             combined_subtitle = (
@@ -11796,6 +11799,7 @@ class Validate:
             interrogation_performed=interrogation_performed,
             active=active,
             locale=locale,
+            df_lib=df_lib,
         )
 
         # ------------------------------------------------
@@ -11812,6 +11816,7 @@ class Validate:
             interrogation_performed=interrogation_performed,
             active=active,
             locale=locale,
+            df_lib=df_lib,
         )
 
         validation_info_dict["fail"] = _transform_passed_failed(
@@ -11820,6 +11825,7 @@ class Validate:
             interrogation_performed=interrogation_performed,
             active=active,
             locale=locale,
+            df_lib=df_lib,
         )
 
         # ------------------------------------------------
@@ -11999,7 +12005,9 @@ class Validate:
         # Create the label, table type, and thresholds HTML fragments
         label_html = _create_label_html(label=self.label, start_time=self.time_start)
         table_type_html = _create_table_type_html(tbl_type=tbl_info, tbl_name=self.tbl_name)
-        thresholds_html = _create_thresholds_html(thresholds=thresholds, locale=locale)
+        thresholds_html = _create_thresholds_html(
+            thresholds=thresholds, locale=locale, df_lib=df_lib
+        )
 
         # Compose the subtitle HTML fragment
         combined_subtitle = (
@@ -14154,41 +14162,122 @@ def _create_label_html(label: str | None, start_time: str) -> str:
     )
 
 
-def _create_thresholds_html(thresholds: Thresholds, locale: str) -> str:
+def _format_single_integer_with_gt(value: int, locale: str = "en", df_lib=None) -> str:
+    """Format a single integer using Great Tables GT object to avoid pandas dependency."""
+    if df_lib is None:
+        # Use library detection to select appropriate DataFrame library
+        if _is_lib_present("polars"):
+            import polars as pl
+
+            df_lib = pl
+        elif _is_lib_present("pandas"):
+            import pandas as pd
+
+            df_lib = pd
+        else:
+            raise ImportError("Neither Polars nor Pandas is available for formatting")
+
+    # Create a single-row, single-column DataFrame using the specified library
+    df = df_lib.DataFrame({"value": [value]})
+
+    # Create GT object and format the column
+    gt_obj = GT(df).fmt_integer(columns="value", locale=locale)
+
+    # Extract the formatted value using _get_column_of_values
+    formatted_values = _get_column_of_values(gt_obj, column_name="value", context="html")
+
+    return formatted_values[0]  # Return the single formatted value
+
+
+def _format_single_float_with_gt_custom(
+    value: float,
+    decimals: int = 2,
+    drop_trailing_zeros: bool = False,
+    locale: str = "en",
+    df_lib=None,
+) -> str:
+    """Format a single float with custom options using Great Tables GT object to avoid pandas dependency."""
+    if df_lib is None:
+        # Use library detection to select appropriate DataFrame library
+        if _is_lib_present("polars"):
+            import polars as pl
+
+            df_lib = pl
+        elif _is_lib_present("pandas"):
+            import pandas as pd
+
+            df_lib = pd
+        else:
+            raise ImportError("Neither Polars nor Pandas is available for formatting")
+
+    # Create a single-row, single-column DataFrame using the specified library
+    df = df_lib.DataFrame({"value": [value]})
+
+    # Create GT object and format the column
+    gt_obj = GT(df).fmt_number(
+        columns="value", decimals=decimals, drop_trailing_zeros=drop_trailing_zeros, locale=locale
+    )
+
+    # Extract the formatted value using _get_column_of_values
+    formatted_values = _get_column_of_values(gt_obj, column_name="value", context="html")
+
+    return formatted_values[0]  # Return the single formatted value
+
+
+def _create_thresholds_html(thresholds: Thresholds, locale: str, df_lib=None) -> str:
     if thresholds == Thresholds():
         return ""
 
+    # Helper functions to format numbers safely
+    def _format_number_safe(value: float, decimals: int, drop_trailing_zeros: bool = False) -> str:
+        if df_lib is not None and value is not None:
+            # Use GT-based formatting to avoid Pandas dependency completely
+            return _format_single_float_with_gt_custom(
+                value,
+                decimals=decimals,
+                drop_trailing_zeros=drop_trailing_zeros,
+                locale=locale,
+                df_lib=df_lib,
+            )
+        else:
+            # Fallback to the original behavior
+            return fmt_number(
+                value, decimals=decimals, drop_trailing_zeros=drop_trailing_zeros, locale=locale
+            )[0]
+
+    def _format_integer_safe(value: int) -> str:
+        if df_lib is not None and value is not None:
+            # Use GT-based formatting to avoid Pandas dependency completely
+            return _format_single_integer_with_gt(value, locale=locale, df_lib=df_lib)
+        else:
+            # Fallback to the original behavior
+            return fmt_integer(value, locale=locale)[0]
+
     warning = (
-        fmt_number(
-            thresholds.warning_fraction, decimals=3, drop_trailing_zeros=True, locale=locale
-        )[0]
+        _format_number_safe(thresholds.warning_fraction, decimals=3, drop_trailing_zeros=True)
         if thresholds.warning_fraction is not None
         else (
-            fmt_integer(thresholds.warning_count, locale=locale)[0]
+            _format_integer_safe(thresholds.warning_count)
             if thresholds.warning_count is not None
             else "&mdash;"
         )
     )
 
     error = (
-        fmt_number(thresholds.error_fraction, decimals=3, drop_trailing_zeros=True, locale=locale)[
-            0
-        ]
+        _format_number_safe(thresholds.error_fraction, decimals=3, drop_trailing_zeros=True)
         if thresholds.error_fraction is not None
         else (
-            fmt_integer(thresholds.error_count, locale=locale)[0]
+            _format_integer_safe(thresholds.error_count)
             if thresholds.error_count is not None
             else "&mdash;"
         )
     )
 
     critical = (
-        fmt_number(
-            thresholds.critical_fraction, decimals=3, drop_trailing_zeros=True, locale=locale
-        )[0]
+        _format_number_safe(thresholds.critical_fraction, decimals=3, drop_trailing_zeros=True)
         if thresholds.critical_fraction is not None
         else (
-            fmt_integer(thresholds.critical_count, locale=locale)[0]
+            _format_integer_safe(thresholds.critical_count)
             if thresholds.critical_count is not None
             else "&mdash;"
         )
