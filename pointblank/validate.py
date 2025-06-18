@@ -13926,14 +13926,24 @@ def _transform_passed_failed(
     interrogation_performed: bool,
     active: list[bool],
     locale: str,
+    df_lib=None,
 ) -> list[str]:
     if not interrogation_performed:
         return ["" for _ in range(len(n_passed_failed))]
 
+    # Helper function to format numbers safely
+    def _format_float_safe(value: float) -> str:
+        if df_lib is not None:
+            # Use GT-based formatting to avoid Pandas dependency completely
+            return _format_single_float_with_gt(value, decimals=2, locale=locale, df_lib=df_lib)
+        else:
+            # Fallback to the original behavior
+            return vals.fmt_number(value, decimals=2, locale=locale)[0]
+
     passed_failed = [
         (
-            f"{n_passed_failed[i] if n_passed_failed[i] < 10000 else _fmt_lg(n_passed_failed[i], locale=locale)}"
-            f"<br />{vals.fmt_number(f_passed_failed[i], decimals=2, locale=locale)[0]}"
+            f"{n_passed_failed[i] if n_passed_failed[i] < 10000 else _fmt_lg(n_passed_failed[i], locale=locale, df_lib=df_lib)}"
+            f"<br />{_format_float_safe(f_passed_failed[i])}"
             if active[i]
             else "&mdash;"
         )
