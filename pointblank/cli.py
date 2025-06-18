@@ -17,7 +17,7 @@ console = Console()
 
 def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
-    
+
     Args:
         gt_table: The GT table object to display
         preview_info: Optional dict with preview context info:
@@ -163,25 +163,33 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
 
             # Show summary info
             total_rows = len(rows)
-            
+
             # Use preview info if available, otherwise fall back to old logic
             if preview_info:
-                total_dataset_rows = preview_info.get('total_rows', total_rows)
-                head_rows = preview_info.get('head_rows', 0)
-                tail_rows = preview_info.get('tail_rows', 0)
-                is_complete = preview_info.get('is_complete', False)
-                
+                total_dataset_rows = preview_info.get("total_rows", total_rows)
+                head_rows = preview_info.get("head_rows", 0)
+                tail_rows = preview_info.get("tail_rows", 0)
+                is_complete = preview_info.get("is_complete", False)
+
                 if is_complete:
                     console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
                 elif head_rows > 0 and tail_rows > 0:
-                    console.print(f"\n[dim]Showing first {head_rows} and last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                    console.print(
+                        f"\n[dim]Showing first {head_rows} and last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                    )
                 elif head_rows > 0:
-                    console.print(f"\n[dim]Showing first {head_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                    console.print(
+                        f"\n[dim]Showing first {head_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                    )
                 elif tail_rows > 0:
-                    console.print(f"\n[dim]Showing last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                    console.print(
+                        f"\n[dim]Showing last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                    )
                 else:
                     # Fallback for other cases
-                    console.print(f"\n[dim]Showing {total_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                    console.print(
+                        f"\n[dim]Showing {total_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                    )
             else:
                 # Original logic as fallback
                 max_rows = 50  # This should match the limit used above
@@ -519,12 +527,12 @@ def preview(
                     processed_data = _process_connection_string(data)
                     processed_data = _process_csv_input(processed_data)
                     processed_data = _process_parquet_input(processed_data)
-                
+
                 total_dataset_rows = pb.get_row_count(processed_data)
             except Exception:
                 # If we can't get row count, set to None
                 total_dataset_rows = None
-            
+
             gt_table = pb.preview(
                 data=data,
                 columns_subset=columns_list,
@@ -549,14 +557,14 @@ def preview(
                 # Determine if we're showing the complete dataset
                 expected_rows = min(head + tail, limit, total_dataset_rows)
                 is_complete = total_dataset_rows <= expected_rows
-                
+
                 preview_info = {
-                    'total_rows': total_dataset_rows,
-                    'head_rows': head,
-                    'tail_rows': tail,
-                    'is_complete': is_complete
+                    "total_rows": total_dataset_rows,
+                    "head_rows": head,
+                    "tail_rows": tail,
+                    "is_complete": is_complete,
                 }
-            
+
             _rich_print_gt_table(gt_table, preview_info)
 
     except Exception as e:
@@ -701,8 +709,9 @@ def scan(
     """
     try:
         import time
+
         start_time = time.time()
-        
+
         with console.status("[bold green]Loading data..."):
             # Try to load as a pointblank dataset first
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
@@ -722,7 +731,7 @@ def scan(
         with console.status("[bold green]Generating data scan..."):
             # Use col_summary_tbl for comprehensive column scanning
             scan_result = pb.col_summary_tbl(data=data)
-        
+
         scan_time = time.time() - start_time
 
         if output_html:
