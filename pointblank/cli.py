@@ -544,3 +544,155 @@ def info(data_source: str):
         sys.exit(1)
 
 
+@cli.command()
+def datasets():
+    """
+    List available built-in datasets.
+    """
+    datasets_info = [
+        ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
+        ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
+        ("nycflights", "336,776 rows × 18 columns", "NYC airport flights data from 2013"),
+        ("global_sales", "50,000 rows × 20 columns", "Global sales data across regions"),
+    ]
+
+    table = Table(
+        title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
+    )
+    table.add_column("Dataset Name", style="cyan", no_wrap=True)
+    table.add_column("Dimensions", style="green")
+    table.add_column("Description", style="white")
+
+    for name, dims, desc in datasets_info:
+        table.add_row(name, dims, desc)
+
+    console.print(table)
+    console.print("\n[dim]Use these dataset names directly with any pointblank CLI command.[/dim]")
+    console.print("[dim]Example: pointblank preview small_table[/dim]")
+
+
+@cli.command()
+def requirements():
+    """
+    Check installed dependencies and their availability.
+    """
+    dependencies = [
+        ("polars", "Polars DataFrame support"),
+        ("pandas", "Pandas DataFrame support"),
+        ("ibis", "Ibis backend support (DuckDB, etc.)"),
+        ("duckdb", "DuckDB database support"),
+        ("pyarrow", "Parquet file support"),
+    ]
+
+    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
+    table.add_column("Package", style="cyan", no_wrap=True)
+    table.add_column("Status", style="white")
+    table.add_column("Description", style="dim")
+
+    for package, description in dependencies:
+        if _is_lib_present(package):
+            status = "[green]✓ Installed[/green]"
+        else:
+            status = "[red]✗ Not installed[/red]"
+
+        table.add_row(package, status, description)
+
+    console.print(table)
+    console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
+
+
+@cli.command()
+@click.argument("data_source", type=str)
+@click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
+@click.option("--columns", "-c", help="Comma-separated list of columns to scan")
+@click.option("--sample-size", default=10000, help="Sample size for scanning (default: 10000)")
+def scan(
+    data_source: str,
+    output_html: str | None,
+    columns: str | None,
+    sample_size: int,
+):
+    """
+    Generate a data scan profile report.
+
+    Produces a comprehensive data profile including:
+    - Column types and distributions
+    - Missing value patterns
+    - Basic statistics
+    - Data quality indicators
+
+    DATA_SOURCE can be:
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Parse columns if provided
+        columns_list = None
+        if columns:
+            columns_list = [col.strip() for col in columns.split(",")]
+
+        # Generate data scan
+        with console.status("[bold green]Generating data scan..."):
+            # Use col_summary_tbl for comprehensive column scanning
+            scan_result = pb.col_summary_tbl(data=data)
+
+        if output_html:
+            # Save HTML to file
+            try:
+                html_content = scan_result.as_raw_html()
+                Path(output_html).write_text(html_content, encoding="utf-8")
+                console.print(f"[green]✓[/green] Data scan report saved to: {output_html}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
+        else:
+            # Display basic information in terminal
+            console.print("[green]✓[/green] Data scan completed")
+            console.print("Use --output-html to save the full interactive scan report.")
+
+            # Show basic scan summary
+            try:
+                # Get basic info about the scan
+                if hasattr(data, "shape"):
+                    rows, cols = data.shape
+                elif hasattr(data, "__len__") and hasattr(data, "columns"):
+                    rows = len(data)
+                    cols = len(data.columns)
+                else:
+                    rows = pb.get_row_count(data)
+                    cols = pb.get_column_count(data)
+
+                summary_table = Table(
+                    title="Data Scan Summary", show_header=True, header_style="bold cyan"
+                )
+                summary_table.add_column("Metric", style="cyan")
+                summary_table.add_column("Value", style="green")
+
+                summary_table.add_row("Rows Scanned", f"{min(sample_size, rows):,}")
+                summary_table.add_row("Total Rows", f"{rows:,}")
+                summary_table.add_row(
+                    "Columns Scanned", f"{len(columns_list) if columns_list else cols}"
+                )
+                summary_table.add_row("Sample Size", f"{sample_size:,}")
+
+                console.print(summary_table)
+
+            except Exception as e:
+                console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
