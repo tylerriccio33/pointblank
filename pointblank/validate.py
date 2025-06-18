@@ -1444,7 +1444,10 @@ def _generate_display_table(
         column_values = gt.gt._get_column_of_values(built_gt, column_name=column, context="html")
 
         # Get the maximum number of characters in the column
-        max_length_col_vals.append(max([len(str(val)) for val in column_values]))
+        if column_values:  # Check if column_values is not empty
+            max_length_col_vals.append(max([len(str(val)) for val in column_values]))
+        else:
+            max_length_col_vals.append(0)  # Use 0 for empty columns
 
     length_col_names = [len(column) for column in col_dtype_dict.keys()]
     length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
@@ -1515,8 +1518,12 @@ def _generate_display_table(
 
         # Get the highest number in the `row_number_list` and calculate a width that will
         # safely fit a number of that magnitude
-        max_row_num = max(row_number_list)
-        max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+        if row_number_list:  # Check if list is not empty
+            max_row_num = max(row_number_list)
+            max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+        else:
+            # If row_number_list is empty, use a default width
+            max_row_num_width = 7.8 * 2 + 10  # Width for 2-digit numbers
 
         # Update the col_width_dict to include the row number column
         col_width_dict = {"_row_num_": f"{max_row_num_width}px"} | col_width_dict
@@ -9154,37 +9161,47 @@ class Validate:
 
             # Determine whether any preprocessing functions are to be applied to the table
             if validation.pre is not None:
-                # Read the text of the preprocessing function
-                pre_text = _pre_processing_funcs_to_str(validation.pre)
+                try:
+                    # Read the text of the preprocessing function
+                    pre_text = _pre_processing_funcs_to_str(validation.pre)
 
-                # Determine if the preprocessing function is a lambda function; return a boolean
-                is_lambda = re.match(r"^lambda", pre_text) is not None
+                    # Determine if the preprocessing function is a lambda function; return a boolean
+                    is_lambda = re.match(r"^lambda", pre_text) is not None
 
-                # If the preprocessing function is a lambda function, then check if there is
-                # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
-                # to use a Narwhalified version of the table
-                if is_lambda:
-                    # Get the signature of the lambda function
-                    sig = inspect.signature(validation.pre)
+                    # If the preprocessing function is a lambda function, then check if there is
+                    # a keyword argument called `dfn` in the lamda signature; if so, that's a cue
+                    # to use a Narwhalified version of the table
+                    if is_lambda:
+                        # Get the signature of the lambda function
+                        sig = inspect.signature(validation.pre)
 
-                    # Check if the lambda function has a keyword argument called `dfn`
-                    if "dfn" in sig.parameters:
-                        # Convert the table to a Narwhals DataFrame
-                        data_tbl_step = nw.from_native(data_tbl_step)
+                        # Check if the lambda function has a keyword argument called `dfn`
+                        if "dfn" in sig.parameters:
+                            # Convert the table to a Narwhals DataFrame
+                            data_tbl_step = nw.from_native(data_tbl_step)
 
-                        # Apply the preprocessing function to the table
-                        data_tbl_step = validation.pre(dfn=data_tbl_step)
+                            # Apply the preprocessing function to the table
+                            data_tbl_step = validation.pre(dfn=data_tbl_step)
 
-                        # Convert the table back to its original format
-                        data_tbl_step = nw.to_native(data_tbl_step)
+                            # Convert the table back to its original format
+                            data_tbl_step = nw.to_native(data_tbl_step)
 
-                    else:
-                        # Apply the preprocessing function to the table
+                        else:
+                            # Apply the preprocessing function to the table
+                            data_tbl_step = validation.pre(data_tbl_step)
+
+                    # If the preprocessing function is a function, apply it to the table
+                    elif isinstance(validation.pre, Callable):
                         data_tbl_step = validation.pre(data_tbl_step)
 
-                # If the preprocessing function is a function, apply it to the table
-                elif isinstance(validation.pre, Callable):
-                    data_tbl_step = validation.pre(data_tbl_step)
+                except Exception:
+                    # If preprocessing fails, mark the validation as having an eval_error
+                    validation.eval_error = True
+                    end_time = datetime.datetime.now(datetime.timezone.utc)
+                    validation.proc_duration_s = (end_time - start_time).total_seconds()
+                    validation.time_processed = end_time.isoformat(timespec="milliseconds")
+                    validation.active = False
+                    continue
 
             # ------------------------------------------------
             # Segmentation stage
