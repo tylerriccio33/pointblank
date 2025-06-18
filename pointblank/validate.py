@@ -1444,7 +1444,10 @@ def _generate_display_table(
         column_values = gt.gt._get_column_of_values(built_gt, column_name=column, context="html")
 
         # Get the maximum number of characters in the column
-        max_length_col_vals.append(max([len(str(val)) for val in column_values]))
+        if column_values:  # Check if column_values is not empty
+            max_length_col_vals.append(max([len(str(val)) for val in column_values]))
+        else:
+            max_length_col_vals.append(0)  # Use 0 for empty columns
 
     length_col_names = [len(column) for column in col_dtype_dict.keys()]
     length_data_types = [len(dtype) for dtype in col_dtype_dict_short.values()]
@@ -1515,8 +1518,12 @@ def _generate_display_table(
 
         # Get the highest number in the `row_number_list` and calculate a width that will
         # safely fit a number of that magnitude
-        max_row_num = max(row_number_list)
-        max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+        if row_number_list:  # Check if list is not empty
+            max_row_num = max(row_number_list)
+            max_row_num_width = len(str(max_row_num)) * 7.8 + 10
+        else:
+            # If row_number_list is empty, use a default width
+            max_row_num_width = 7.8 * 2 + 10  # Width for 2-digit numbers
 
         # Update the col_width_dict to include the row number column
         col_width_dict = {"_row_num_": f"{max_row_num_width}px"} | col_width_dict
