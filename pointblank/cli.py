@@ -62,8 +62,36 @@ def _rich_print_gt_table(gt_table: Any) -> None:
                     columns = [f"Column {i + 1}" for i in range(10)]  # Default fallback
 
             # Add columns to Rich table
-            for col in columns:
-                rich_table.add_column(str(col), style="cyan", no_wrap=False, overflow="ellipsis")
+            # Handle wide tables by limiting columns displayed
+            max_terminal_cols = 15  # Reasonable limit for terminal display
+
+            if len(columns) > max_terminal_cols:
+                # For wide tables, show first few, middle indicator, and last few columns
+                first_cols = 7
+                last_cols = 7
+
+                display_columns = columns[:first_cols] + ["...more..."] + columns[-last_cols:]
+
+                console.print(
+                    f"\n[yellow]⚠ Table has {len(columns)} columns. Showing first {first_cols} and last {last_cols} columns.[/yellow]"
+                )
+                console.print("[dim]Use --columns to specify which columns to display.[/dim]")
+                console.print(
+                    f"[dim]Full column list: {', '.join(columns[:5])}...{', '.join(columns[-5:])}[/dim]\n"
+                )
+            else:
+                display_columns = columns
+
+            for i, col in enumerate(display_columns):
+                if col == "...more...":
+                    # Add a special indicator column
+                    rich_table.add_column("···", style="dim", width=3, no_wrap=True)
+                else:
+                    # Shorten the row number column name for better terminal display
+                    display_col = "_i_" if col == "_row_num_" else str(col)
+                    rich_table.add_column(
+                        display_col, style="cyan", no_wrap=False, overflow="ellipsis"
+                    )
 
             # Convert data to list of rows
             rows = []
@@ -71,11 +99,35 @@ def _rich_print_gt_table(gt_table: Any) -> None:
                 if hasattr(df, "to_dicts"):
                     # Polars interface
                     data_dict = df.to_dicts()
-                    rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                    if len(columns) > max_terminal_cols:
+                        # For wide tables, extract only the displayed columns
+                        display_data_columns = (
+                            columns[:7] + columns[-7:]
+                        )  # Skip the "...more..." placeholder
+                        rows = [
+                            [str(row.get(col, "")) for col in display_data_columns]
+                            for row in data_dict
+                        ]
+                        # Add the "..." column in the middle
+                        for i, row in enumerate(rows):
+                            rows[i] = row[:7] + ["···"] + row[7:]
+                    else:
+                        rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
                 elif hasattr(df, "to_dict"):
                     # Pandas-like interface
                     data_dict = df.to_dict("records")
-                    rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                    if len(columns) > max_terminal_cols:
+                        # For wide tables, extract only the displayed columns
+                        display_data_columns = columns[:7] + columns[-7:]
+                        rows = [
+                            [str(row.get(col, "")) for col in display_data_columns]
+                            for row in data_dict
+                        ]
+                        # Add the "..." column in the middle
+                        for i, row in enumerate(rows):
+                            rows[i] = row[:7] + ["···"] + row[7:]
+                    else:
+                        rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
                 elif hasattr(df, "iter_rows"):
                     # Polars lazy frame
                     rows = [[str(val) for val in row] for row in df.iter_rows()]
@@ -316,6 +368,9 @@ def requirements():
 @cli.command()
 @click.argument("data_source", type=str)
 @click.option("--columns", "-c", help="Comma-separated list of columns to display")
+@click.option("--col-range", help="Column range like '1:10' or '5:' or ':15' (1-based indexing)")
+@click.option("--col-first", type=int, help="Show first N columns")
+@click.option("--col-last", type=int, help="Show last N columns")
 @click.option("--head", "-h", default=5, help="Number of rows from the top (default: 5)")
 @click.option("--tail", "-t", default=5, help="Number of rows from the bottom (default: 5)")
 @click.option("--limit", "-l", default=50, help="Maximum total rows to display (default: 50)")
@@ -327,6 +382,9 @@ def requirements():
 def preview(
     data_source: str,
     columns: str | None,
+    col_range: str | None,
+    col_first: int | None,
+    col_last: int | None,
     head: int,
     tail: int,
     limit: int,
@@ -344,6 +402,16 @@ def preview(
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+
+    COLUMN SELECTION OPTIONS:
+    For tables with many columns, use these options to control which columns are displayed:
+
+    --columns: Specify exact columns (e.g., --columns "name,age,email")
+    --col-range: Select column range (e.g., --col-range "1:10", --col-range "5:", --col-range ":15")
+    --col-first: Show first N columns (e.g., --col-first 5)
+    --col-last: Show last N columns (e.g., --col-last 3)
+
+    Tables with >15 columns automatically show first 7 and last 7 columns with indicators.
     """
     try:
         with console.status("[bold green]Loading data..."):
@@ -360,6 +428,49 @@ def preview(
         columns_list = None
         if columns:
             columns_list = [col.strip() for col in columns.split(",")]
+        elif col_range or col_first or col_last:
+            # Need to get column names to apply range/first/last selection
+            # Load the data to get column names
+            from pointblank.validate import (
+                _process_connection_string,
+                _process_csv_input,
+                _process_parquet_input,
+            )
+
+            # Process the data source to get actual data object
+            processed_data = data
+            if isinstance(data, str):
+                processed_data = _process_connection_string(data)
+                processed_data = _process_csv_input(processed_data)
+                processed_data = _process_parquet_input(processed_data)
+
+            # Get column names from the processed data
+            all_columns = []
+            if hasattr(processed_data, "columns"):
+                all_columns = list(processed_data.columns)
+            elif hasattr(processed_data, "schema"):
+                all_columns = list(processed_data.schema.names)
+            else:
+                console.print(
+                    "[yellow]Warning: Could not determine column names for range selection[/yellow]"
+                )
+
+            if all_columns:
+                if col_range:
+                    # Parse range like "1:10", "5:", ":15"
+                    if ":" in col_range:
+                        parts = col_range.split(":")
+                        start_idx = int(parts[0]) - 1 if parts[0] else 0  # Convert to 0-based
+                        end_idx = int(parts[1]) if parts[1] else len(all_columns)
+                        columns_list = all_columns[start_idx:end_idx]
+                    else:
+                        console.print(
+                            "[yellow]Warning: Invalid range format. Use 'start:end' format[/yellow]"
+                        )
+                elif col_first:
+                    columns_list = all_columns[:col_first]
+                elif col_last:
+                    columns_list = all_columns[-col_last:]
 
         # Generate preview
         with console.status("[bold green]Generating preview..."):
