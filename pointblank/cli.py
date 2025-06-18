@@ -15,8 +15,17 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
-def _rich_print_gt_table(gt_table: Any) -> None:
-    """Convert a GT table to Rich table and display it in the terminal."""
+def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
+    """Convert a GT table to Rich table and display it in the terminal.
+    
+    Args:
+        gt_table: The GT table object to display
+        preview_info: Optional dict with preview context info:
+            - total_rows: Total rows in the dataset
+            - head_rows: Number of head rows shown
+            - tail_rows: Number of tail rows shown
+            - is_complete: Whether the entire dataset is shown
+    """
     try:
         # Try to extract the underlying data from the GT table
         df = None
@@ -154,12 +163,34 @@ def _rich_print_gt_table(gt_table: Any) -> None:
 
             # Show summary info
             total_rows = len(rows)
-            if total_rows > max_rows:
-                console.print(
-                    f"\n[dim]Showing first {max_rows} of {total_rows} rows. Use --output-html to see all data.[/dim]"
-                )
+            
+            # Use preview info if available, otherwise fall back to old logic
+            if preview_info:
+                total_dataset_rows = preview_info.get('total_rows', total_rows)
+                head_rows = preview_info.get('head_rows', 0)
+                tail_rows = preview_info.get('tail_rows', 0)
+                is_complete = preview_info.get('is_complete', False)
+                
+                if is_complete:
+                    console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
+                elif head_rows > 0 and tail_rows > 0:
+                    console.print(f"\n[dim]Showing first {head_rows} and last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                elif head_rows > 0:
+                    console.print(f"\n[dim]Showing first {head_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                elif tail_rows > 0:
+                    console.print(f"\n[dim]Showing last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
+                else:
+                    # Fallback for other cases
+                    console.print(f"\n[dim]Showing {total_rows} rows from {total_dataset_rows:,} total rows.[/dim]")
             else:
-                console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
+                # Original logic as fallback
+                max_rows = 50  # This should match the limit used above
+                if total_rows > max_rows:
+                    console.print(
+                        f"\n[dim]Showing first {max_rows} of {total_rows} rows. Use --output-html to see all data.[/dim]"
+                    )
+                else:
+                    console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
 
         else:
             # If we can't extract data, show the success message
@@ -474,6 +505,26 @@ def preview(
 
         # Generate preview
         with console.status("[bold green]Generating preview..."):
+            # Get total dataset size before preview
+            try:
+                # Process the data to get the actual data object for row count
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                processed_data = data
+                if isinstance(data, str):
+                    processed_data = _process_connection_string(data)
+                    processed_data = _process_csv_input(processed_data)
+                    processed_data = _process_parquet_input(processed_data)
+                
+                total_dataset_rows = pb.get_row_count(processed_data)
+            except Exception:
+                # If we can't get row count, set to None
+                total_dataset_rows = None
+            
             gt_table = pb.preview(
                 data=data,
                 columns_subset=columns_list,
@@ -492,8 +543,21 @@ def preview(
             Path(output_html).write_text(html_content, encoding="utf-8")
             console.print(f"[green]✓[/green] HTML saved to: {output_html}")
         else:
-            # Display in terminal
-            _rich_print_gt_table(gt_table)
+            # Display in terminal with preview context info
+            preview_info = None
+            if total_dataset_rows is not None:
+                # Determine if we're showing the complete dataset
+                expected_rows = min(head + tail, limit, total_dataset_rows)
+                is_complete = total_dataset_rows <= expected_rows
+                
+                preview_info = {
+                    'total_rows': total_dataset_rows,
+                    'head_rows': head,
+                    'tail_rows': tail,
+                    'is_complete': is_complete
+                }
+            
+            _rich_print_gt_table(gt_table, preview_info)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -563,9 +627,35 @@ def info(data_source: str):
                 columns_table = Table(title="Columns", show_header=True, header_style="bold cyan")
                 columns_table.add_column("Index", style="dim")
                 columns_table.add_column("Column Name", style="green")
+                columns_table.add_column("Data Type", style="yellow")
 
-                for idx, col in enumerate(columns):
-                    columns_table.add_row(str(idx), col)
+                # Try to get data types
+                dtypes = []
+                try:
+                    if hasattr(data, "dtypes"):
+                        # Polars/Pandas style
+                        if hasattr(data.dtypes, "to_dict"):
+                            dtypes_dict = data.dtypes.to_dict()
+                            dtypes = [str(dtypes_dict.get(col, "Unknown")) for col in columns]
+                        else:
+                            dtypes = [str(dtype) for dtype in data.dtypes]
+                    elif hasattr(data, "schema"):
+                        # Other schema-based systems
+                        schema = data.schema
+                        if hasattr(schema, "to_dict"):
+                            schema_dict = schema.to_dict()
+                            dtypes = [str(schema_dict.get(col, "Unknown")) for col in columns]
+                        else:
+                            dtypes = [str(getattr(schema, col, "Unknown")) for col in columns]
+                    else:
+                        dtypes = ["Unknown"] * len(columns)
+                except Exception:
+                    dtypes = ["Unknown"] * len(columns)
+
+                for idx, (col, dtype) in enumerate(zip(columns, dtypes)):
+                    # Clean up dtype names for better display
+                    dtype_clean = dtype.replace("polars.", "").replace("Utf8", "String")
+                    columns_table.add_row(str(idx), col, dtype_clean)
 
                 console.print(columns_table)
             else:
@@ -610,6 +700,9 @@ def scan(
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
     try:
+        import time
+        start_time = time.time()
+        
         with console.status("[bold green]Loading data..."):
             # Try to load as a pointblank dataset first
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
@@ -629,6 +722,8 @@ def scan(
         with console.status("[bold green]Generating data scan..."):
             # Use col_summary_tbl for comprehensive column scanning
             scan_result = pb.col_summary_tbl(data=data)
+        
+        scan_time = time.time() - start_time
 
         if output_html:
             # Save HTML to file
@@ -640,7 +735,7 @@ def scan(
                 console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
         else:
             # Display basic information in terminal
-            console.print("[green]✓[/green] Data scan completed")
+            console.print(f"[green]✓[/green] Data scan completed in {scan_time:.2f}s")
             console.print("Use --output-html to save the full interactive scan report.")
 
             # Show basic scan summary
