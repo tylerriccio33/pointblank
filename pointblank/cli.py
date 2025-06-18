@@ -16,13 +16,117 @@ console = Console()
 
 
 def _rich_print_gt_table(gt_table: Any) -> None:
-    """Convert a GT table to HTML and display it in the terminal."""
+    """Convert a GT table to Rich table and display it in the terminal."""
     try:
-        # Get the HTML representation of the GT table
-        html_content = gt_table.as_raw_html()
+        # Try to extract the underlying data from the GT table
+        df = None
 
-        # For now, we'll extract basic information and display as a Rich table
-        # This is a simplified approach - in the future we could use a proper HTML renderer
+        # Great Tables stores the original data in different places depending on how it was created
+        # Let's try multiple approaches to get the data
+        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
+            df = gt_table._tbl_data
+        elif (
+            hasattr(gt_table, "_body")
+            and hasattr(gt_table._body, "body")
+            and gt_table._body.body is not None
+        ):
+            df = gt_table._body.body
+        elif hasattr(gt_table, "_data") and gt_table._data is not None:
+            df = gt_table._data
+        elif hasattr(gt_table, "data") and gt_table.data is not None:
+            df = gt_table.data
+
+        if df is not None:
+            # Create a Rich table
+            rich_table = Table(show_header=True, header_style="bold magenta", box=None)
+
+            # Get column names
+            columns = []
+            if hasattr(df, "columns"):
+                columns = list(df.columns)
+            elif hasattr(df, "schema"):
+                columns = list(df.schema.names)
+            elif hasattr(df, "column_names"):
+                columns = list(df.column_names)
+
+            if not columns:
+                # Fallback: try to determine columns from first row
+                try:
+                    if hasattr(df, "to_dicts") and len(df) > 0:
+                        first_dict = df.to_dicts()[0]
+                        columns = list(first_dict.keys())
+                    elif hasattr(df, "to_dict") and len(df) > 0:
+                        first_dict = df.to_dict("records")[0]
+                        columns = list(first_dict.keys())
+                except Exception:
+                    columns = [f"Column {i + 1}" for i in range(10)]  # Default fallback
+
+            # Add columns to Rich table
+            for col in columns:
+                rich_table.add_column(str(col), style="cyan", no_wrap=False, overflow="ellipsis")
+
+            # Convert data to list of rows
+            rows = []
+            try:
+                if hasattr(df, "to_dicts"):
+                    # Polars interface
+                    data_dict = df.to_dicts()
+                    rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                elif hasattr(df, "to_dict"):
+                    # Pandas-like interface
+                    data_dict = df.to_dict("records")
+                    rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                elif hasattr(df, "iter_rows"):
+                    # Polars lazy frame
+                    rows = [[str(val) for val in row] for row in df.iter_rows()]
+                elif hasattr(df, "__iter__"):
+                    # Try to iterate directly
+                    rows = [[str(val) for val in row] for row in df]
+                else:
+                    rows = [["Could not extract data from this format"]]
+            except Exception as e:
+                rows = [[f"Error extracting data: {e}"]]
+
+            # Add rows to Rich table (limit to prevent overwhelming output)
+            max_rows = 50  # Reasonable limit for terminal display
+            for i, row in enumerate(rows[:max_rows]):
+                try:
+                    rich_table.add_row(*row)
+                except Exception as e:
+                    # If there's an issue with row data, show error
+                    rich_table.add_row(*[f"Error: {e}" for _ in columns])
+                    break
+
+            # Show the table
+            console.print(rich_table)
+
+            # Show summary info
+            total_rows = len(rows)
+            if total_rows > max_rows:
+                console.print(
+                    f"\n[dim]Showing first {max_rows} of {total_rows} rows. Use --output-html to see all data.[/dim]"
+                )
+            else:
+                console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
+
+        else:
+            # If we can't extract data, show the success message
+            console.print(
+                Panel(
+                    "[green]✓[/green] Table rendered successfully. "
+                    "Use --output-html to save the full interactive report.",
+                    title="Table Preview",
+                    border_style="green",
+                )
+            )
+
+    except Exception as e:
+        console.print(f"[red]Error rendering table:[/red] {e}")
+        console.print(
+            f"[dim]GT table type: {type(gt_table) if 'gt_table' in locals() else 'undefined'}[/dim]"
+        )
+
+        # Fallback: show the success message
         console.print(
             Panel(
                 "[green]✓[/green] Table rendered successfully. "
@@ -31,9 +135,6 @@ def _rich_print_gt_table(gt_table: Any) -> None:
                 border_style="green",
             )
         )
-
-    except Exception as e:
-        console.print(f"[red]Error rendering table:[/red] {e}")
 
 
 def _display_validation_summary(validation: Any) -> None:
