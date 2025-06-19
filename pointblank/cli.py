@@ -1968,6 +1968,7 @@ def _rich_print_scan_table(
                     return f"{num_val / 1000000:.1f}M"
                 elif abs(num_val) >= 1000000:
                     # Large numbers - use scientific notation or M/k notation
+
                     if abs(num_val) >= 1000000000:
                         return f"{num_val:.1e}"
                     else:
@@ -2069,5 +2070,193 @@ def _rich_print_scan_table(
         console.print(f"[red]Error displaying table: {str(e)}[/red]")
 
 
-if __name__ == "__main__":
-    cli()
+@cli.command(name="validate-simple")
+@click.argument("data_source", type=str)
+@click.option(
+    "--check",
+    type=click.Choice(["rows-distinct"]),
+    default="rows-distinct",
+    help="Type of validation check to perform",
+)
+@click.option(
+    "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
+)
+@click.option(
+    "--limit", "-l", default=10, help="Maximum number of failing rows to show (default: 10)"
+)
+@click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
+def validate_simple(
+    data_source: str,
+    check: str,
+    show_extract: bool,
+    limit: int,
+    exit_code: bool,
+):
+    """
+    Perform simple, single-step validations directly from the command line.
+
+    This command provides a quick way to perform common data validation checks
+    without needing to write a validation script.
+
+    DATA_SOURCE can be:
+
+    \b
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+
+    AVAILABLE CHECKS:
+
+    \b
+    - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
+
+    Examples:
+
+    \b
+    pb validate-simple data.csv --check rows-distinct
+    pb validate-simple small_table --check rows-distinct --show-extract
+    pb validate-simple data.csv --check rows-distinct --exit-code
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Try to load as a pointblank dataset first
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                data = pb.load_dataset(data_source)
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
+            else:
+                # Assume it's a file path or connection string
+                data = data_source
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Perform the validation based on the check type
+        with console.status(f"[bold green]Running {check} validation..."):
+            if check == "rows-distinct":
+                # Create validation for duplicate rows
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check}",
+                    )
+                    .rows_distinct()
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            else:
+                # This shouldn't happen due to click.Choice, but just in case
+                console.print(f"[red]Error:[/red] Unknown check type: {check}")
+                sys.exit(1)
+
+        # Display results
+        from rich.box import SIMPLE_HEAD
+
+        result_table = Table(
+            title=f"Validation Result: {check.replace('-', ' ').title()}",
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
+        )
+        result_table.add_column("Property", style="cyan", no_wrap=True)
+        result_table.add_column("Value", style="white")
+
+        # Add basic info
+        result_table.add_row("Data Source", data_source)
+        result_table.add_row("Check Type", check.replace("-", " ").title())
+
+        # Get validation details
+        if hasattr(validation, "validation_info") and validation.validation_info:
+            step_info = validation.validation_info[0]  # Should only be one step
+            result_table.add_row("Total Rows Tested", f"{step_info.n:,}")
+            result_table.add_row("Passing Rows", f"{step_info.n_passed:,}")
+            result_table.add_row("Failing Rows", f"{step_info.n_failed:,}")
+
+            # Overall result with color coding
+            if all_passed:
+                result_table.add_row("Result", "[green]✓ PASSED[/green]")
+                result_table.add_row("Duplicate Rows", "[green]None found[/green]")
+            else:
+                result_table.add_row("Result", "[red]✗ FAILED[/red]")
+                result_table.add_row("Duplicate Rows", f"[red]{step_info.n_failed:,} found[/red]")
+
+        console.print()
+        console.print(result_table)
+
+        # Show extract if requested and validation failed
+        if show_extract and not all_passed:
+            console.print()
+            console.print("[yellow]Preview of failing rows (duplicates):[/yellow]")
+
+            try:
+                # Get failing rows extract
+                failing_rows = validation.get_data_extracts(i=1, frame=True)
+
+                if failing_rows is not None and len(failing_rows) > 0:
+                    # Limit the number of rows shown
+                    if len(failing_rows) > limit:
+                        display_rows = failing_rows.head(limit)
+                        console.print(
+                            f"[dim]Showing first {limit} of {len(failing_rows)} duplicate rows[/dim]"
+                        )
+                    else:
+                        display_rows = failing_rows
+                        console.print(f"[dim]Showing all {len(failing_rows)} duplicate rows[/dim]")
+
+                    # Create a preview table using pointblank's preview function
+                    preview_table = pb.preview(
+                        data=display_rows,
+                        n_head=min(limit, len(display_rows)),
+                        n_tail=0,
+                        limit=limit,
+                        show_row_numbers=True,
+                    )
+
+                    # Display using our Rich table function
+                    _rich_print_gt_table(preview_table)
+                else:
+                    console.print("[yellow]No failing rows could be extracted[/yellow]")
+            except Exception as e:
+                console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+
+        # Summary message
+        console.print()
+        if all_passed:
+            console.print(
+                Panel(
+                    f"[green]✓ Validation PASSED: No duplicate rows found in {data_source}[/green]",
+                    border_style="green",
+                )
+            )
+        else:
+            if hasattr(validation, "validation_info") and validation.validation_info:
+                step_info = validation.validation_info[0]
+                console.print(
+                    Panel(
+                        f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]",
+                        border_style="red",
+                    )
+                )
+            else:
+                console.print(
+                    Panel(
+                        f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]",
+                        border_style="red",
+                    )
+                )
+
+        # Exit with appropriate code if requested
+        if exit_code and not all_passed:
+            console.print("[dim]Exiting with non-zero code due to validation failure[/dim]")
+            sys.exit(1)
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
