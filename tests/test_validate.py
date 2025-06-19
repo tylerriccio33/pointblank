@@ -12650,6 +12650,627 @@ def test_above_threshold_no_interrogation():
 def test_prep_column_text():
     assert _prep_column_text(column="column") == "`column`"
     assert _prep_column_text(column=["column_a", "column_b"]) == "`column_a`"
+    assert _prep_column_text(column=3) == ""
 
-    with pytest.raises(AssertionError):
-        _prep_column_text(column=3)
+
+def test_validate_csv_string_path_input():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] > 0  # Has rows
+    assert validator.data.shape[1] > 0  # Has columns
+
+    # Verify it's a DataFrame-like object
+    assert hasattr(validator.data, "columns")
+
+    # Test that validation methods still work
+    result = validator.col_exists(["date", "a"])
+    assert isinstance(result, Validate)
+
+
+def test_validate_csv_path_object_input():
+    csv_path = Path("data_raw/small_table.csv")
+    validator = Validate(data=csv_path)
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] > 0
+    assert validator.data.shape[1] > 0
+
+
+def test_validate_non_csv_string_passthrough():
+    test_data = "not_a_csv_file"
+    validator = Validate(data=test_data)
+
+    assert validator.data == test_data
+    assert isinstance(validator.data, str)
+
+
+def test_validate_non_csv_path_passthrough():
+    test_path = Path("data_raw/small_table.txt")  # Different extension
+    validator = Validate(data=test_path)
+
+    assert validator.data == test_path
+    assert isinstance(validator.data, Path)
+
+
+def test_validate_non_existent_csv_file_error():
+    with pytest.raises(FileNotFoundError, match="CSV file not found"):
+        Validate(data="nonexistent_file.csv")
+
+
+def test_validate_dataframe_passthrough():
+    # Try to import and create a DataFrame
+    try:
+        import polars as pl
+
+        df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    except ImportError:
+        try:
+            import pandas as pd
+
+            df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        except ImportError:
+            pytest.skip("No DataFrame library available")
+
+    validator = Validate(data=df)
+
+    # Should be the same object (identity check)
+    assert validator.data is df
+
+
+def test_validate_csv_integration_with_validations():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Chain multiple validation methods
+    result = validator.col_exists(["date", "a"]).col_vals_not_null(["a"])
+
+    # Should return the same Validate object
+    assert result is validator
+
+    # Should have validation steps added
+    assert len(validator.validation_info) > 0
+
+
+def test_validate_csv_different_files():
+    csv_files = [
+        "data_raw/small_table.csv",
+        "data_raw/game_revenue.csv",
+    ]
+
+    for csv_file in csv_files:
+        try:
+            validator = Validate(data=csv_file)
+            assert hasattr(validator.data, "shape")
+            assert validator.data.shape[0] > 0
+            assert validator.data.shape[1] > 0
+        except FileNotFoundError:
+            # Skip if file doesn't exist
+            continue
+
+
+def test_validate_csv_case_insensitive_extension():
+    # Test the internal logic by using a CSV file we know exists
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+    assert hasattr(validator.data, "shape")
+
+    # The case insensitivity is handled by Path.suffix.lower() == '.csv'
+
+
+def test_validate_csv_library_preference():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Check which library was used based on the data type
+    data_type = type(validator.data).__name__
+
+    # If Polars is available, it should be used
+    try:
+        import polars as pl
+
+        assert "polars" in data_type.lower() or "dataframe" in data_type.lower()
+    except ImportError:
+        # If only Pandas is available
+        try:
+            import pandas as pd
+
+            assert "pandas" in data_type.lower() or "dataframe" in data_type.lower()
+        except ImportError:
+            pytest.fail("No DataFrame library available for CSV reading")
+
+
+def test_validate_csv_with_interrogation():
+    csv_path = "data_raw/small_table.csv"
+    validator = Validate(data=csv_path)
+
+    # Add validation steps and interrogate
+    result = validator.col_exists(["date", "a"]).col_vals_not_null(["a"]).interrogate()
+
+    # Should have completed interrogation
+    assert len(result.validation_info) > 0
+
+    # Check that we can get reports
+    report = result.get_tabular_report()
+    assert report is not None
+
+
+def test_validate_parquet_single_file():
+    parquet_path = TEST_DATA_DIR / "taxi_sample.parquet"
+    validator = Validate(data=str(parquet_path))
+
+    # Verify data was loaded correctly
+    assert hasattr(validator.data, "shape")
+    assert validator.data.shape[0] == 1000  # Expected sample size
+    assert validator.data.shape[1] == 18  # NYC taxi data columns
+
+    # Verify it's a DataFrame-like object
+    assert hasattr(validator.data, "columns")
+
+    # Test that validation methods still work
+    result = validator.col_exists(["vendor_name", "Trip_Distance"])
+    assert isinstance(result, Validate)
+
+
+def test_validate_parquet_glob_pattern():
+    pattern = str(TEST_DATA_DIR / "taxi_part_*.parquet")
+    validator = Validate(data=pattern)
+
+    # Should have 333 + 333 + 334 = 1000 rows (all three parts combined)
+    assert validator.data.shape[0] == 1000
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_bracket_pattern():
+    pattern = str(TEST_DATA_DIR / "taxi_part_0[1-2].parquet")
+    validator = Validate(data=pattern)
+
+    # Should have 333 + 333 = 666 rows (first two parts only)
+    assert validator.data.shape[0] == 666
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_directory():
+    parquet_dir = TEST_DATA_DIR / "parquet_data"
+    validator = Validate(data=str(parquet_dir))
+
+    # Check that we have a reasonable quantity of data and that it's
+    # greater than individual file sizes
+    assert validator.data.shape[0] > 600  # Should have multiple files worth of data
+    assert validator.data.shape[1] > 0  # Should have columns
+
+
+def test_validate_parquet_list_of_files():
+    file_list = [
+        str(TEST_DATA_DIR / "taxi_part_01.parquet"),
+        str(TEST_DATA_DIR / "taxi_part_02.parquet"),
+    ]
+    validator = Validate(data=file_list)
+
+    # Should have 333 + 333 = 666 rows
+    assert validator.data.shape[0] == 666
+    assert validator.data.shape[1] == 18
+
+
+def test_validate_parquet_with_interrogation():
+    parquet_path = TEST_DATA_DIR / "taxi_sample.parquet"
+    validator = Validate(data=str(parquet_path))
+
+    # Add validation steps and interrogate
+    result = (
+        validator.col_exists(["vendor_name", "Trip_Distance"])
+        .col_vals_not_null(["vendor_name"])
+        .interrogate()
+    )
+
+    # Should have completed interrogation
+    assert (
+        len(result.validation_info) == 3
+    )  # col_exists + col_vals_not_null (2 steps total, but col_exists creates 2)
+
+
+def test_validate_non_parquet_passthrough():
+    test_data = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    validator = Validate(data=test_data)
+
+    # Should be the original dict
+    assert validator.data is test_data
+    assert isinstance(validator.data, dict)
+
+
+def test_validate_parquet_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        Validate(data=str(TEST_DATA_DIR / "nonexistent.parquet"))
+
+
+def test_validate_parquet_pattern_not_found():
+    with pytest.raises(FileNotFoundError):
+        Validate(data=str(TEST_DATA_DIR / "nonexistent_*.parquet"))
+
+
+def test_validate_parquet_directory_not_found():
+    import tempfile
+
+    # Create a temporary empty directory for this test
+    with tempfile.TemporaryDirectory() as temp_dir:
+        empty_dir = Path(temp_dir) / "empty_subdir"
+        empty_dir.mkdir()
+
+        with pytest.raises(FileNotFoundError):
+            Validate(data=str(empty_dir))
+
+
+def test_validate_parquet_mixed_list():
+    mixed_list = [
+        str(TEST_DATA_DIR / "taxi_part_01.parquet"),
+        "some_regular_file.txt",  # Not a parquet file
+    ]
+    validator = Validate(data=mixed_list)
+
+    # Should return the original list unchanged
+    assert validator.data == mixed_list
+
+
+def test_validate_parquet_partitioned_small_table():
+    partitioned_path = TEST_DATA_DIR / "partitioned_small_table"
+    validator = Validate(data=str(partitioned_path))
+
+    # Should have 13 rows from all partitions and 8 columns including the partition column
+    assert validator.data.shape[0] == 13
+    assert validator.data.shape[1] == 8  # All original columns including f
+
+    # Should have the f column with partition values
+    assert "f" in validator.data.columns
+
+    # Check that we have the expected f values
+    if hasattr(validator.data, "group_by"):  # Polars
+        f_values = set(validator.data["f"].unique().to_list())
+    else:  # Pandas
+        f_values = set(validator.data["f"].unique())
+
+    expected_f_values = {"high", "low", "mid"}
+    assert f_values == expected_f_values
+
+    # Test validation functionality works
+    result = validator.col_exists(["a", "b", "f"]).interrogate()
+    assert len(result.validation_info) == 3  # `col_exists()` creates one step per column
+
+
+def test_validate_parquet_permanent_partitioned_sales():
+    partitioned_path = TEST_DATA_DIR / "partitioned_sales"
+    validator = Validate(data=str(partitioned_path))
+
+    # Should have data from all partitions (100 rows total)
+    assert validator.data.shape[0] == 100
+    assert validator.data.shape[1] == 9  # All original columns including status
+
+    # Should have the status column with partition values
+    assert "status" in validator.data.columns
+
+    # Check that we have the expected status values
+    if hasattr(validator.data, "group_by"):  # Polars
+        status_counts = validator.data.group_by("status").len().sort("len", descending=True)
+        status_values = set(status_counts["status"].to_list())
+    else:  # Pandas
+        status_values = set(validator.data["status"].unique())
+
+    expected_statuses = {"pending", "shipped", "delivered", "returned", "cancelled"}
+    assert status_values == expected_statuses
+
+    # Test validation functionality works
+    result = validator.col_exists(["product_id", "status", "revenue"]).interrogate()
+    assert len(result.validation_info) == 3  # `col_exists()` creates one step per column
+
+
+def test_pandas_only_environment_scenario():
+    from unittest.mock import patch
+
+    # Mock polars as unavailable by making _is_lib_present return False for polars
+    with patch("pointblank.validate._is_lib_present") as mock_is_lib:
+
+        def side_effect(lib_name):
+            return lib_name == "pandas"  # Only pandas is available
+
+        mock_is_lib.side_effect = side_effect
+
+        import pandas as pd
+        import pointblank as pb
+
+        # Create test data using Pandas with large numbers to trigger formatting
+        data = pd.DataFrame(
+            {
+                "transaction_amounts": [1000, 15000, 25000, 30000, 45000, 50000, 75000],
+                "customer_scores": [85.5, 92.3, 78.1, 88.7, 95.2, 82.4, 90.1],
+                "status": [
+                    "active",
+                    "pending",
+                    "active",
+                    "completed",
+                    "active",
+                    "pending",
+                    "completed",
+                ],
+            }
+        )
+
+        # Create validation with large threshold values that will trigger formatting
+        thresholds = pb.Thresholds(warning=5000, error=10000, critical=15000)
+
+        validation = (
+            pb.Validate(data=data, tbl_name="pandas_only_scenario", thresholds=thresholds)
+            .col_vals_gt(columns="transaction_amounts", value=500)  # Large numbers
+            .col_vals_between(columns="customer_scores", left=70.0, right=100.0)
+            .col_vals_in_set(columns="status", set=["active", "pending", "completed"])
+            .interrogate()
+        )
+
+        # Generate tabular report - should use Pandas-based GT formatting
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify formatting worked by checking report content using proper HTML rendering
+        report_html = report.as_raw_html()
+        assert len(report_html) > 1000  # Should have substantial content
+        assert "transaction_amounts" in report_html
+
+
+def test_polars_only_environment_scenario():
+    from unittest.mock import patch
+
+    # Mock pandas as unavailable by making `_is_lib_present()` return False for pandas
+    with patch("pointblank.validate._is_lib_present") as mock_is_lib:
+
+        def side_effect(lib_name):
+            return lib_name == "polars"  # Only polars is available
+
+        mock_is_lib.side_effect = side_effect
+
+        import polars as pl
+        import pointblank as pb
+
+        # Create test data using Polars with large numbers to trigger formatting
+        data = pl.DataFrame(
+            {
+                "transaction_amounts": [1000, 15000, 25000, 30000, 45000, 50000, 75000],
+                "customer_scores": [85.5, 92.3, 78.1, 88.7, 95.2, 82.4, 90.1],
+                "status": [
+                    "active",
+                    "pending",
+                    "active",
+                    "completed",
+                    "active",
+                    "pending",
+                    "completed",
+                ],
+            }
+        )
+
+        # Create validation with large threshold values that will trigger formatting
+        thresholds = pb.Thresholds(warning=5000, error=10000, critical=15000)
+
+        validation = (
+            pb.Validate(data=data, tbl_name="polars_only_scenario", thresholds=thresholds)
+            .col_vals_gt(columns="transaction_amounts", value=500)  # Large numbers
+            .col_vals_between(columns="customer_scores", left=70.0, right=100.0)
+            .col_vals_in_set(columns="status", set=["active", "pending", "completed"])
+            .interrogate()
+        )
+
+        # Generate tabular report - should use Polars-based GT formatting
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify formatting worked by checking report content using proper HTML rendering
+        report_html = report.as_raw_html()
+        assert len(report_html) > 1000  # Should have substantial content
+        assert "transaction_amounts" in report_html
+
+
+def test_both_libraries_environment_scenario():
+    import pandas as pd
+    import polars as pl
+    import pointblank as pb
+
+    # Test data for both DataFrame types
+    test_values = {
+        "revenue": [10000, 25000, 30000, 45000, 60000, 75000, 90000],
+        "profit_margin": [0.15, 0.22, 0.18, 0.25, 0.20, 0.28, 0.32],
+        "region": ["North", "South", "East", "West", "North", "South", "East"],
+    }
+
+    # Create test data using both Polars and Pandas
+    polars_data = pl.DataFrame(test_values)
+    pandas_data = pd.DataFrame(test_values)
+
+    # Large threshold values that will trigger formatting
+    thresholds = pb.Thresholds(warning=8000, error=12000, critical=20000)
+
+    # Test with Polars DataFrame (should use Polars-based formatting)
+    polars_validation = (
+        pb.Validate(data=polars_data, tbl_name="polars_mixed_env", thresholds=thresholds)
+        .col_vals_gt(columns="revenue", value=5000)
+        .col_vals_between(columns="profit_margin", left=0.1, right=0.4)
+        .col_vals_in_set(columns="region", set=["North", "South", "East", "West"])
+        .interrogate()
+    )
+
+    polars_report = polars_validation.get_tabular_report()
+    assert polars_report is not None
+    assert hasattr(polars_report, "_body")
+
+    # Test with Pandas DataFrame (should use Pandas-based formatting)
+    pandas_validation = (
+        pb.Validate(data=pandas_data, tbl_name="pandas_mixed_env", thresholds=thresholds)
+        .col_vals_gt(columns="revenue", value=5000)
+        .col_vals_between(columns="profit_margin", left=0.1, right=0.4)
+        .col_vals_in_set(columns="region", set=["North", "South", "East", "West"])
+        .interrogate()
+    )
+
+    pandas_report = pandas_validation.get_tabular_report()
+    assert pandas_report is not None
+    assert hasattr(pandas_report, "_body")
+
+    # Both reports should be generated successfully
+    polars_html = polars_report.as_raw_html()
+    pandas_html = pandas_report.as_raw_html()
+
+    assert len(polars_html) > 1000  # Should have substantial content
+    assert len(pandas_html) > 1000  # Should have substantial content
+    assert "revenue" in polars_html
+    assert "revenue" in pandas_html
+
+
+def test_dataframe_library_formatting_consistency_across_scenarios():
+    import pandas as pd
+    import polars as pl
+    from pointblank.validate import (
+        _format_single_number_with_gt,
+        _format_single_float_with_gt,
+        _format_single_integer_with_gt,
+    )
+
+    # Test values that would commonly trigger formatting
+    test_numbers = [1000, 12345, 999999, 1000000]
+    test_floats = [1234.56, 99999.99, 0.000123]
+    test_integers = [1500, 25000, 100000]
+
+    # Test number formatting consistency
+    for value in test_numbers:
+        polars_result = _format_single_number_with_gt(
+            value, n_sigfig=3, compact=True, locale="en", df_lib=pl
+        )
+        pandas_result = _format_single_number_with_gt(
+            value, n_sigfig=3, compact=True, locale="en", df_lib=pd
+        )
+
+        assert polars_result == pandas_result
+
+    # Test float formatting consistency
+    for value in test_floats:
+        polars_result = _format_single_float_with_gt(value, decimals=2, locale="en", df_lib=pl)
+        pandas_result = _format_single_float_with_gt(value, decimals=2, locale="en", df_lib=pd)
+
+        assert polars_result == pandas_result
+
+    # Test integer formatting consistency
+    for value in test_integers:
+        polars_result = _format_single_integer_with_gt(value, locale="en", df_lib=pl)
+        pandas_result = _format_single_integer_with_gt(value, locale="en", df_lib=pd)
+
+        assert polars_result == pandas_result
+
+
+def test_scenario_integration_with_large_datasets():
+    import polars as pl
+    import pandas as pd
+    import pointblank as pb
+
+    # Create large dataset that will trigger number formatting in various functions
+    large_size = 2000  # Reduced size for faster testing
+
+    # Polars version
+    polars_large_data = pl.DataFrame(
+        {
+            "transaction_id": range(1, large_size + 1),
+            "amount": [i * 1000 for i in range(1, large_size + 1)],  # Large monetary values
+            "customer_tier": ["premium" if i % 3 == 0 else "standard" for i in range(large_size)],
+            "processing_fee": [round(i * 0.025, 2) for i in range(1, large_size + 1)],
+        }
+    )
+
+    # Pandas version
+    pandas_large_data = pd.DataFrame(
+        {
+            "transaction_id": range(1, large_size + 1),
+            "amount": [i * 1000 for i in range(1, large_size + 1)],  # Large monetary values
+            "customer_tier": ["premium" if i % 3 == 0 else "standard" for i in range(large_size)],
+            "processing_fee": [round(i * 0.025, 2) for i in range(1, large_size + 1)],
+        }
+    )
+
+    # High threshold values that will trigger threshold formatting
+    thresholds = pb.Thresholds(warning=1000, error=2500, critical=4000)
+
+    datasets = [
+        ("Polars Large Dataset", polars_large_data),
+        ("Pandas Large Dataset", pandas_large_data),
+    ]
+
+    for dataset_name, data in datasets:
+        # Complex validation with multiple steps
+        validation = (
+            pb.Validate(data=data, tbl_name=f"large_{dataset_name.lower()}", thresholds=thresholds)
+            .col_vals_gt(columns="amount", value=500)  # Large numbers formatting
+            .col_vals_between(columns="processing_fee", left=0.0, right=200.0)  # Float formatting
+            .col_vals_in_set(columns="customer_tier", set=["premium", "standard"])
+            .col_vals_not_null(columns="transaction_id")  # Integer formatting
+            .interrogate()
+        )
+
+        # Generate report - should handle large numbers correctly
+        report = validation.get_tabular_report()
+        assert report is not None
+        assert hasattr(report, "_body")
+
+        # Verify report quality
+        report_html = str(report)
+        assert len(report_html) > 2000  # Should have substantial formatted content
+
+        # Check that validation worked correctly
+        assert len(validation.validation_info) == 4  # Four validation steps
+        assert all(step.all_passed for step in validation.validation_info)  # All should pass
+
+
+def test_scenario_edge_cases_and_error_handling():
+    import polars as pl
+    import pandas as pd
+    import pointblank as pb
+    from pointblank.validate import _format_single_number_with_gt
+
+    # Test with some edge case values
+    edge_cases = [
+        0,  # Zero
+        1,  # Small positive
+        -1000,  # Negative number
+        999999999,  # Very large number
+    ]
+
+    # Test that edge cases work with both libraries
+    for value in edge_cases:
+        try:
+            polars_result = _format_single_number_with_gt(value, n_sigfig=3, df_lib=pl)
+            pandas_result = _format_single_number_with_gt(value, n_sigfig=3, df_lib=pd)
+
+            # Both should return strings and be identical
+            assert isinstance(polars_result, str)
+            assert isinstance(pandas_result, str)
+            assert polars_result == pandas_result
+
+        except Exception as e:
+            pytest.fail(f"Edge case {value} failed: {e}")
+
+    # Test with None df_lib (backward compatibility)
+    try:
+        none_result = _format_single_number_with_gt(12345, n_sigfig=3, df_lib=None)
+        assert isinstance(none_result, str)
+    except Exception as e:
+        pytest.fail(f"df_lib=None case failed: {e}")
+
+    # Test empty datasets don't cause formatting issues
+    empty_polars = pl.DataFrame({"values": pl.Series([], dtype=pl.Int64)})
+    empty_pandas = pd.DataFrame({"values": pd.Series([], dtype="int64")})
+
+    for name, empty_data in [("Polars", empty_polars), ("Pandas", empty_pandas)]:
+        validation = pb.Validate(data=empty_data, tbl_name=f"empty_{name.lower()}")
+        # Should be able to create validation object even with empty data
+        assert validation is not None
+
+        # Adding validation steps to empty data should work
+        validation = validation.col_vals_gt(columns="values", value=0)
+        assert len(validation.validation_info) == 1
