@@ -1142,7 +1142,21 @@ def scan(
         # Generate data scan
         with console.status("[bold green]Generating data scan..."):
             # Use col_summary_tbl for comprehensive column scanning
-            scan_result = pb.col_summary_tbl(data=data)
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                # For pointblank datasets, data is already the loaded dataframe
+                scan_result = pb.col_summary_tbl(data=data)
+            else:
+                # For file paths and connection strings, load the data first
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                processed_data = _process_connection_string(data)
+                processed_data = _process_csv_input(processed_data)
+                processed_data = _process_parquet_input(processed_data)
+                scan_result = pb.col_summary_tbl(data=processed_data)
 
         scan_time = time.time() - start_time
 
@@ -1819,7 +1833,7 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
 
         # Add columns with specific styling and appropriate widths
         scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
-        scan_table.add_column("Type", style="yellow", no_wrap=True, width=12)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
         scan_table.add_column(
             "NA", style="red", width=6, justify="right"
         )  # Adjusted for better formatting
@@ -1856,15 +1870,11 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
             type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
             if type_match:
                 data_type = type_match.group(1)
-                # Clean up the type name
-                data_type = data_type.replace(
-                    "Datetime(time_unit='us', time_zone=None)", "datetime"
-                )
-                data_type = data_type.replace("Utf8", "string")
-                if len(data_type) > 12:
-                    data_type = data_type[:9] + "..."
+                # Convert to compact format using the existing function
+                compact_type = _format_dtype_compact(data_type)
+                data_type = compact_type
             else:
-                data_type = "Unknown"
+                data_type = "unknown"
 
             return column_name, data_type
 
