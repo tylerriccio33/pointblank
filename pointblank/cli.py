@@ -57,6 +57,124 @@ def _format_cell_value(value: Any) -> str:
     return str(value)
 
 
+def _get_column_dtypes(df: Any, columns: list[str]) -> dict[str, str]:
+    """Extract data types for columns and format them in a compact way.
+
+    Args:
+        df: The dataframe object
+        columns: List of column names
+
+    Returns:
+        Dictionary mapping column names to formatted data type strings
+    """
+    dtypes_dict = {}
+
+    try:
+        if hasattr(df, "dtypes"):
+            # Polars/Pandas style
+            if hasattr(df.dtypes, "to_dict"):
+                # Polars DataFrame dtypes
+                raw_dtypes = df.dtypes.to_dict() if hasattr(df.dtypes, "to_dict") else {}
+                for col in columns:
+                    if col in raw_dtypes:
+                        dtype_str = str(raw_dtypes[col])
+                        # Convert to compact format similar to Polars glimpse()
+                        dtypes_dict[col] = _format_dtype_compact(dtype_str)
+                    else:
+                        dtypes_dict[col] = "?"
+            else:
+                # Pandas DataFrame dtypes (Series-like)
+                for i, col in enumerate(columns):
+                    if i < len(df.dtypes):
+                        dtype_str = str(
+                            df.dtypes.iloc[i] if hasattr(df.dtypes, "iloc") else df.dtypes[i]
+                        )
+                        dtypes_dict[col] = _format_dtype_compact(dtype_str)
+                    else:
+                        dtypes_dict[col] = "?"
+        elif hasattr(df, "schema"):
+            # Other schema-based systems (e.g., Ibis)
+            schema = df.schema
+            if hasattr(schema, "to_dict"):
+                raw_dtypes = schema.to_dict()
+                for col in columns:
+                    if col in raw_dtypes:
+                        dtypes_dict[col] = _format_dtype_compact(str(raw_dtypes[col]))
+                    else:
+                        dtypes_dict[col] = "?"
+            else:
+                for col in columns:
+                    try:
+                        dtype_str = str(getattr(schema, col, "Unknown"))
+                        dtypes_dict[col] = _format_dtype_compact(dtype_str)
+                    except Exception:
+                        dtypes_dict[col] = "?"
+        else:
+            # Fallback: no type information available
+            for col in columns:
+                dtypes_dict[col] = "?"
+
+    except Exception:
+        # If any error occurs, fall back to unknown types
+        for col in columns:
+            dtypes_dict[col] = "?"
+
+    return dtypes_dict
+
+
+def _format_dtype_compact(dtype_str: str) -> str:
+    """Format a data type string to a compact representation.
+
+    Args:
+        dtype_str: The raw data type string
+
+    Returns:
+        Compact formatted data type string
+    """
+    # Remove common prefixes and make compact
+    dtype_str = dtype_str.lower()
+
+    # Polars types
+    if "utf8" in dtype_str or "string" in dtype_str:
+        return "str"
+    elif "int64" in dtype_str:
+        return "i64"
+    elif "int32" in dtype_str:
+        return "i32"
+    elif "float64" in dtype_str:
+        return "f64"
+    elif "float32" in dtype_str:
+        return "f32"
+    elif "boolean" in dtype_str or "bool" in dtype_str:
+        return "bool"
+    elif "datetime" in dtype_str:
+        return "datetime"
+    elif "date" in dtype_str and "datetime" not in dtype_str:
+        return "date"
+    elif "time" in dtype_str:
+        return "time"
+
+    # Pandas types
+    elif "object" in dtype_str:
+        return "obj"
+    elif "category" in dtype_str:
+        return "cat"
+
+    # Generic fallbacks
+    elif "int" in dtype_str:
+        return "int"
+    elif "float" in dtype_str:
+        return "float"
+    elif "str" in dtype_str:
+        return "str"
+
+    # Unknown or complex types - truncate if too long
+    elif len(dtype_str) > 8:
+        return dtype_str[:8] + "…"
+    else:
+        return dtype_str
+
+
 def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
 
@@ -133,6 +251,9 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             else:
                 display_columns = columns
 
+            # Get data types for columns
+            dtypes_dict = _get_column_dtypes(df, columns)
+
             for i, col in enumerate(display_columns):
                 if col == "...more...":
                     # Add a special indicator column
@@ -140,8 +261,17 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                 else:
                     # Shorten the row number column name for better terminal display
                     display_col = "_i_" if col == "_row_num_" else str(col)
+
+                    # Get data type for this column (if available)
+                    if col in dtypes_dict and col != "_row_num_":
+                        dtype_display = f"<{dtypes_dict[col]}>"
+                        # Create header with column name and data type
+                        header_text = f"{display_col}\n[dim yellow]{dtype_display}[/dim yellow]"
+                    else:
+                        header_text = display_col
+
                     rich_table.add_column(
-                        display_col, style="cyan", no_wrap=False, overflow="ellipsis"
+                        header_text, style="cyan", no_wrap=False, overflow="ellipsis"
                     )
 
             # Convert data to list of rows
