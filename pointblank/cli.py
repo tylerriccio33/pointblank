@@ -1210,14 +1210,31 @@ def missing(data_source: str, output_html: str | None):
         with console.status("[bold green]Analyzing missing values..."):
             gt_table = pb.missing_vals_tbl(data)
 
+            # Get original data for column types
+            original_data = data
+            if isinstance(data, str):
+                # Process the data to get the actual data object
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                try:
+                    original_data = _process_connection_string(data)
+                    original_data = _process_csv_input(original_data)
+                    original_data = _process_parquet_input(original_data)
+                except Exception:
+                    pass  # Use the string data as fallback
+
         if output_html:
             # Save HTML to file
             html_content = gt_table.as_raw_html()
             Path(output_html).write_text(html_content, encoding="utf-8")
             console.print(f"[green]✓[/green] Missing values report saved to: {output_html}")
         else:
-            # Display in terminal
-            _rich_print_gt_table(gt_table)
+            # Display in terminal with special missing values formatting
+            _rich_print_missing_table(gt_table, original_data)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -1578,6 +1595,139 @@ def extract(
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
+
+
+def _format_missing_percentage(value: float) -> str:
+    """Format missing value percentages for display.
+
+    Args:
+        value: The percentage value (0-100)
+
+    Returns:
+        Formatted string with proper percentage display
+    """
+    if value == 0.0:
+        return "✓"  # Check mark for no missing values
+    elif value < 1.0 and value > 0:
+        return "<1%"  # Less than 1%
+    elif value > 99.0 and value < 100.0:
+        return ">99%"  # More than 99%
+    else:
+        return f"{int(round(value))}%"  # Round to nearest integer with % sign
+
+
+def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
+    """Convert a missing values GT table to Rich table with special formatting.
+
+    Args:
+        gt_table: The GT table object for missing values
+        original_data: The original data source to extract column types
+    """
+    try:
+        # Extract the underlying data from the GT table
+        df = None
+
+        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
+            df = gt_table._tbl_data
+        elif hasattr(gt_table, "_data") and gt_table._data is not None:
+            df = gt_table._data
+        elif hasattr(gt_table, "data") and gt_table.data is not None:
+            df = gt_table.data
+
+        if df is not None:
+            # Create a Rich table with horizontal lines
+            from rich.box import SIMPLE_HEAD
+
+            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
+
+            # Get column names
+            columns = []
+            if hasattr(df, "columns"):
+                columns = list(df.columns)
+            elif hasattr(df, "schema"):
+                columns = list(df.schema.names)
+
+            if not columns:
+                columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
+
+            # Get original data to extract column types
+            column_types = {}
+            if original_data is not None:
+                try:
+                    # Get column types from original data
+                    if hasattr(original_data, "columns"):
+                        original_columns = list(original_data.columns)
+                        column_types = _get_column_dtypes(original_data, original_columns)
+                except Exception:
+                    pass  # Use empty dict as fallback
+
+            # Add columns to Rich table with special formatting for missing values table
+            sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
+
+            # First column: Column names with types (wider to accommodate types)
+            rich_table.add_column("Column", style="cyan", no_wrap=False, width=35)
+
+            # Sector columns: All same width, no headers with types
+            for sector in sector_columns:
+                rich_table.add_column(
+                    sector,
+                    style="cyan",
+                    justify="center",
+                    no_wrap=True,
+                    width=8,  # Fixed width for all sectors
+                )
+
+            # Convert data to rows with special formatting
+            rows = []
+            try:
+                if hasattr(df, "to_dicts"):
+                    data_dict = df.to_dicts()
+                elif hasattr(df, "to_dict"):
+                    data_dict = df.to_dict("records")
+                else:
+                    data_dict = []
+
+                for row in data_dict:
+                    formatted_row = []
+                    for col in columns:
+                        if col == "columns":
+                            # Column name with data type
+                            column_name = str(row.get(col, ""))
+                            if column_name in column_types:
+                                formatted_row.append(f"{column_name} <{column_types[column_name]}>")
+                            else:
+                                formatted_row.append(column_name)
+                        elif col.isdigit():
+                            # Sector percentage - apply special formatting
+                            value = row.get(col, 0.0)
+                            if isinstance(value, (int, float)):
+                                formatted_row.append(_format_missing_percentage(float(value)))
+                            else:
+                                formatted_row.append(str(value))
+                    rows.append(formatted_row)
+
+            except Exception as e:
+                rows = [["Error extracting data", *["" for _ in sector_columns]]]
+
+            # Add rows to Rich table
+            for row in rows:
+                try:
+                    rich_table.add_row(*row)
+                except Exception as e:
+                    console.print(f"[red]Error adding row:[/red] {e}")
+                    break
+
+            # Show the table
+            console.print(rich_table)
+
+        else:
+            # Fallback to regular table display
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error rendering missing values table:[/red] {e}")
+        # Fallback to regular table display
+        _rich_print_gt_table(gt_table)
 
 
 if __name__ == "__main__":
