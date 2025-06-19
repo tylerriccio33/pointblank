@@ -1668,14 +1668,14 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
             rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
             rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
 
-            # Sector columns: All same width, no headers with types
+            # Sector columns: All same width, optimized for "100%" (4 chars + padding)
             for sector in sector_columns:
                 rich_table.add_column(
                     sector,
                     style="cyan",
                     justify="center",
                     no_wrap=True,
-                    width=8,  # Fixed width for all sectors
+                    width=5,  # Fixed width optimized for percentage values
                 )
 
             # Convert data to rows with special formatting
