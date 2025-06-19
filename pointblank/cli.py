@@ -15,12 +15,16 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
-def _format_cell_value(value: Any, is_row_number: bool = False) -> str:
+def _format_cell_value(
+    value: Any, is_row_number: bool = False, max_width: int = 50, num_columns: int = 10
+) -> str:
     """Format a cell value for Rich table display, highlighting None/NA values in red.
 
     Args:
         value: The raw cell value from the dataframe
         is_row_number: Whether this is a row number column value
+        max_width: Maximum character width for text truncation
+        num_columns: Number of columns in the table (affects truncation aggressiveness)
 
     Returns:
         Formatted string with Rich markup for None/NA values or row numbers
@@ -58,8 +62,30 @@ def _format_cell_value(value: Any, is_row_number: bool = False) -> str:
     if isinstance(value, str) and value == "":
         return "[red][/red]"  # Empty string shown as red empty space
 
-    # Return normal value as string
-    return str(value)
+    # Convert to string and apply intelligent truncation
+    str_value = str(value)
+
+    # Adjust max_width based on number of columns to prevent overly wide tables
+    if num_columns > 15:
+        adjusted_max_width = min(max_width, 30)  # Be more aggressive with many columns
+    elif num_columns > 10:
+        adjusted_max_width = min(max_width, 40)
+    else:
+        adjusted_max_width = max_width
+
+    # Apply truncation if the string is too long
+    if len(str_value) > adjusted_max_width:
+        # For very long text, truncate more aggressively
+        if len(str_value) > adjusted_max_width * 2:
+            # For extremely long text, use a shorter truncation
+            truncated = str_value[: adjusted_max_width // 2] + "…"
+        else:
+            # For moderately long text, use a more generous truncation
+            truncated = str_value[: adjusted_max_width - 1] + "…"
+
+        return truncated
+
+    return str_value
 
 
 def _get_column_dtypes(df: Any, columns: list[str]) -> dict[str, str]:
@@ -239,6 +265,20 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             # Handle wide tables by limiting columns displayed
             max_terminal_cols = 15  # Reasonable limit for terminal display
 
+            # Get terminal width to adjust column behavior
+            try:
+                terminal_width = console.size.width
+                # Estimate max column width based on terminal size and number of columns
+                if len(columns) <= 5:
+                    max_col_width = min(60, terminal_width // 4)
+                elif len(columns) <= 10:
+                    max_col_width = min(40, terminal_width // 6)
+                else:
+                    max_col_width = min(30, terminal_width // 8)
+            except Exception:
+                # Fallback if we can't get terminal width
+                max_col_width = 40 if len(columns) <= 10 else 25
+
             if len(columns) > max_terminal_cols:
                 # For wide tables, show first few, middle indicator, and last few columns
                 first_cols = 7
@@ -282,7 +322,11 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                             header_text = display_col
 
                         rich_table.add_column(
-                            header_text, style="cyan", no_wrap=False, overflow="ellipsis"
+                            header_text,
+                            style="cyan",
+                            no_wrap=False,
+                            overflow="ellipsis",
+                            max_width=max_col_width,
                         )
 
             # Convert data to list of rows
@@ -299,7 +343,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         rows = [
                             [
                                 _format_cell_value(
-                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                    row.get(col, ""),
+                                    is_row_number=(col == "_row_num_"),
+                                    max_width=max_col_width,
+                                    num_columns=len(columns),
                                 )
                                 for col in display_data_columns
                             ]
@@ -312,7 +359,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         rows = [
                             [
                                 _format_cell_value(
-                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                    row.get(col, ""),
+                                    is_row_number=(col == "_row_num_"),
+                                    max_width=max_col_width,
+                                    num_columns=len(columns),
                                 )
                                 for col in columns
                             ]
@@ -327,7 +377,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         rows = [
                             [
                                 _format_cell_value(
-                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                    row.get(col, ""),
+                                    is_row_number=(col == "_row_num_"),
+                                    max_width=max_col_width,
+                                    num_columns=len(columns),
                                 )
                                 for col in display_data_columns
                             ]
@@ -340,7 +393,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         rows = [
                             [
                                 _format_cell_value(
-                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                    row.get(col, ""),
+                                    is_row_number=(col == "_row_num_"),
+                                    max_width=max_col_width,
+                                    num_columns=len(columns),
                                 )
                                 for col in columns
                             ]
@@ -351,7 +407,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     rows = [
                         [
                             _format_cell_value(
-                                val, is_row_number=(i == 0 and columns[0] == "_row_num_")
+                                val,
+                                is_row_number=(i == 0 and columns[0] == "_row_num_"),
+                                max_width=max_col_width,
+                                num_columns=len(columns),
                             )
                             for i, val in enumerate(row)
                         ]
@@ -362,7 +421,10 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     rows = [
                         [
                             _format_cell_value(
-                                val, is_row_number=(i == 0 and columns[0] == "_row_num_")
+                                val,
+                                is_row_number=(i == 0 and columns[0] == "_row_num_"),
+                                max_width=max_col_width,
+                                num_columns=len(columns),
                             )
                             for i, val in enumerate(row)
                         ]
