@@ -1145,6 +1145,11 @@ def scan(
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
                 # For pointblank datasets, data is already the loaded dataframe
                 scan_result = pb.col_summary_tbl(data=data)
+                # Get row count for footer
+                try:
+                    total_rows = pb.get_row_count(data)
+                except Exception:
+                    total_rows = None
             else:
                 # For file paths and connection strings, load the data first
                 from pointblank.validate import (
@@ -1157,6 +1162,11 @@ def scan(
                 processed_data = _process_csv_input(processed_data)
                 processed_data = _process_parquet_input(processed_data)
                 scan_result = pb.col_summary_tbl(data=processed_data)
+                # Get row count for footer
+                try:
+                    total_rows = pb.get_row_count(processed_data)
+                except Exception:
+                    total_rows = None
 
         scan_time = time.time() - start_time
 
@@ -1175,7 +1185,7 @@ def scan(
 
             # Display detailed column summary using rich formatting
             try:
-                _rich_print_scan_table(scan_result, data_source)
+                _rich_print_scan_table(scan_result, data_source, total_rows, sample_size)
 
             except Exception as e:
                 console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
@@ -1798,13 +1808,20 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
         _rich_print_gt_table(gt_table)
 
 
-def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
+def _rich_print_scan_table(
+    scan_result: Any,
+    data_source: str,
+    total_rows: int | None = None,
+    sample_size: int | None = None,
+) -> None:
     """
     Display scan results as a Rich table in the terminal with statistical measures.
 
     Args:
         scan_result: The GT object from col_summary_tbl()
         data_source: Name of the data source being scanned
+        total_rows: Total number of rows in the dataset
+        sample_size: Sample size used for scanning (if applicable)
     """
     try:
         import re
@@ -2037,6 +2054,31 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
         # Display the results
         console.print()
         console.print(scan_table)
+
+        # Add informational footer about the scan scope
+        try:
+            if total_rows is not None:
+                if sample_size is not None:
+                    # Sample was used
+                    footer_text = f"[dim]Scan from sample of {sample_size:,} rows (from table of {total_rows:,} rows).[/dim]"
+                else:
+                    # Full table scan
+                    footer_text = f"[dim]Scan from all {total_rows:,} rows in the table.[/dim]"
+
+                # Create a simple footer
+                footer_table = Table(
+                    show_header=False,
+                    show_lines=False,
+                    box=None,
+                    padding=(0, 0),
+                )
+                footer_table.add_column("", style="dim", width=80)
+                footer_table.add_row(footer_text)
+                console.print(footer_table)
+
+        except Exception:
+            # If we can't determine the scan scope, don't show a footer
+            pass
 
     except Exception as e:
         # Fallback to simple message if table creation fails
