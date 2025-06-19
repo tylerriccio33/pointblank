@@ -15,15 +15,20 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
-def _format_cell_value(value: Any) -> str:
+def _format_cell_value(value: Any, is_row_number: bool = False) -> str:
     """Format a cell value for Rich table display, highlighting None/NA values in red.
 
     Args:
         value: The raw cell value from the dataframe
+        is_row_number: Whether this is a row number column value
 
     Returns:
-        Formatted string with Rich markup for None/NA values
+        Formatted string with Rich markup for None/NA values or row numbers
     """
+    # Special formatting for row numbers
+    if is_row_number:
+        return f"[dim]{value}[/dim]"
+
     # Check for actual None/null values (not string representations)
     if value is None:
         return "[red]None[/red]"
@@ -259,20 +264,26 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     # Add a special indicator column
                     rich_table.add_column("···", style="dim", width=3, no_wrap=True)
                 else:
-                    # Shorten the row number column name for better terminal display
-                    display_col = "_i_" if col == "_row_num_" else str(col)
-
-                    # Get data type for this column (if available)
-                    if col in dtypes_dict and col != "_row_num_":
-                        dtype_display = f"<{dtypes_dict[col]}>"
-                        # Create header with column name and data type
-                        header_text = f"{display_col}\n[dim yellow]{dtype_display}[/dim yellow]"
+                    # Handle row number column specially
+                    if col == "_row_num_":
+                        # Row numbers get no header, right alignment, and dim gray style
+                        rich_table.add_column(
+                            "", style="dim", justify="right", no_wrap=True, width=6
+                        )
                     else:
-                        header_text = display_col
+                        display_col = str(col)
 
-                    rich_table.add_column(
-                        header_text, style="cyan", no_wrap=False, overflow="ellipsis"
-                    )
+                        # Get data type for this column (if available)
+                        if col in dtypes_dict:
+                            dtype_display = f"<{dtypes_dict[col]}>"
+                            # Create header with column name and data type
+                            header_text = f"{display_col}\n[dim yellow]{dtype_display}[/dim yellow]"
+                        else:
+                            header_text = display_col
+
+                        rich_table.add_column(
+                            header_text, style="cyan", no_wrap=False, overflow="ellipsis"
+                        )
 
             # Convert data to list of rows
             rows = []
@@ -286,7 +297,12 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                             columns[:7] + columns[-7:]
                         )  # Skip the "...more..." placeholder
                         rows = [
-                            [_format_cell_value(row.get(col, "")) for col in display_data_columns]
+                            [
+                                _format_cell_value(
+                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                )
+                                for col in display_data_columns
+                            ]
                             for row in data_dict
                         ]
                         # Add the "..." column in the middle
@@ -294,7 +310,12 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                             rows[i] = row[:7] + ["···"] + row[7:]
                     else:
                         rows = [
-                            [_format_cell_value(row.get(col, "")) for col in columns]
+                            [
+                                _format_cell_value(
+                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                )
+                                for col in columns
+                            ]
                             for row in data_dict
                         ]
                 elif hasattr(df, "to_dict"):
@@ -304,7 +325,12 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         # For wide tables, extract only the displayed columns
                         display_data_columns = columns[:7] + columns[-7:]
                         rows = [
-                            [_format_cell_value(row.get(col, "")) for col in display_data_columns]
+                            [
+                                _format_cell_value(
+                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                )
+                                for col in display_data_columns
+                            ]
                             for row in data_dict
                         ]
                         # Add the "..." column in the middle
@@ -312,15 +338,36 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                             rows[i] = row[:7] + ["···"] + row[7:]
                     else:
                         rows = [
-                            [_format_cell_value(row.get(col, "")) for col in columns]
+                            [
+                                _format_cell_value(
+                                    row.get(col, ""), is_row_number=(col == "_row_num_")
+                                )
+                                for col in columns
+                            ]
                             for row in data_dict
                         ]
                 elif hasattr(df, "iter_rows"):
                     # Polars lazy frame
-                    rows = [[_format_cell_value(val) for val in row] for row in df.iter_rows()]
+                    rows = [
+                        [
+                            _format_cell_value(
+                                val, is_row_number=(i == 0 and columns[0] == "_row_num_")
+                            )
+                            for i, val in enumerate(row)
+                        ]
+                        for row in df.iter_rows()
+                    ]
                 elif hasattr(df, "__iter__"):
                     # Try to iterate directly
-                    rows = [[_format_cell_value(val) for val in row] for row in df]
+                    rows = [
+                        [
+                            _format_cell_value(
+                                val, is_row_number=(i == 0 and columns[0] == "_row_num_")
+                            )
+                            for i, val in enumerate(row)
+                        ]
+                        for row in df
+                    ]
                 else:
                     rows = [["Could not extract data from this format"]]
             except Exception as e:
@@ -645,6 +692,35 @@ def preview(
         columns_list = None
         if columns:
             columns_list = [col.strip() for col in columns.split(",")]
+
+            # If data has _row_num_ and it's not explicitly included, add it at the beginning
+            try:
+                from pointblank.validate import (
+                    _process_connection_string,
+                    _process_csv_input,
+                    _process_parquet_input,
+                )
+
+                # Process the data source to get actual data object to check for _row_num_
+                processed_data = data
+                if isinstance(data, str):
+                    processed_data = _process_connection_string(data)
+                    processed_data = _process_csv_input(processed_data)
+                    processed_data = _process_parquet_input(processed_data)
+
+                # Get column names from the processed data
+                all_columns = []
+                if hasattr(processed_data, "columns"):
+                    all_columns = list(processed_data.columns)
+                elif hasattr(processed_data, "schema"):
+                    all_columns = list(processed_data.schema.names)
+
+                # If _row_num_ exists in data but not in user selection, add it at beginning
+                if all_columns and "_row_num_" in all_columns and "_row_num_" not in columns_list:
+                    columns_list = ["_row_num_"] + columns_list
+            except Exception:
+                # If we can't process the data, just use the user's column list as-is
+                pass
         elif col_range or col_first or col_last:
             # Need to get column names to apply range/first/last selection
             # Load the data to get column names
@@ -673,21 +749,49 @@ def preview(
                 )
 
             if all_columns:
+                # Check if _row_num_ exists and preserve it
+                has_row_num = "_row_num_" in all_columns
+
                 if col_range:
                     # Parse range like "1:10", "5:", ":15"
                     if ":" in col_range:
                         parts = col_range.split(":")
                         start_idx = int(parts[0]) - 1 if parts[0] else 0  # Convert to 0-based
                         end_idx = int(parts[1]) if parts[1] else len(all_columns)
-                        columns_list = all_columns[start_idx:end_idx]
+
+                        # Filter out _row_num_ from the range selection, we'll add it back later
+                        columns_for_range = [col for col in all_columns if col != "_row_num_"]
+                        selected_columns = columns_for_range[start_idx:end_idx]
+
+                        # Always include _row_num_ at the beginning if it exists
+                        if has_row_num:
+                            columns_list = ["_row_num_"] + selected_columns
+                        else:
+                            columns_list = selected_columns
                     else:
                         console.print(
                             "[yellow]Warning: Invalid range format. Use 'start:end' format[/yellow]"
                         )
                 elif col_first:
-                    columns_list = all_columns[:col_first]
+                    # Filter out _row_num_ from the first N selection, we'll add it back later
+                    columns_for_first = [col for col in all_columns if col != "_row_num_"]
+                    selected_columns = columns_for_first[:col_first]
+
+                    # Always include _row_num_ at the beginning if it exists
+                    if has_row_num:
+                        columns_list = ["_row_num_"] + selected_columns
+                    else:
+                        columns_list = selected_columns
                 elif col_last:
-                    columns_list = all_columns[-col_last:]
+                    # Filter out _row_num_ from the last N selection, we'll add it back later
+                    columns_for_last = [col for col in all_columns if col != "_row_num_"]
+                    selected_columns = columns_for_last[-col_last:]
+
+                    # Always include _row_num_ at the beginning if it exists
+                    if has_row_num:
+                        columns_list = ["_row_num_"] + selected_columns
+                    else:
+                        columns_list = selected_columns
 
         # Generate preview
         with console.status("[bold green]Generating preview..."):
