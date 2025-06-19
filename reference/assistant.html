@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.7.32">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,10 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b3a3f0431126c7e8c477b326e3ee3944.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-163b3d65f110c20398c9be181c3bc6fb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -176,7 +176,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+    <h3 id="toc-title">On this page</h3>
    
   <ul>
   <li><a href="#pointblank.assistant" id="toc-pointblank.assistant" class="nav-link active" data-scroll-target="#pointblank.assistant">assistant</a>
@@ -198,10 +198,13 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 
 
 <section id="pointblank.assistant" class="level1">
-<h1>assistant</h1>
+<h1 style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.25rem;">assistant</h1>
+
+<p style="font-size: 1rem; font-style: italic; margin-top: -10px; line-height: 1;">Chat with the PbA (Pointblank Assistant) about your data validation needs.</p>
+
+<p style="font-size: 12px; color: rgb(170, 170, 170); margin-bottom: -14px;">USAGE</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>assistant(model, data<span class="op">=</span><span class="va">None</span>, tbl_name<span class="op">=</span><span class="va">None</span>, api_key<span class="op">=</span><span class="va">None</span>, display<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Chat with the PbA (Pointblank Assistant) about your data validation needs.</p>
-<p>The <code>assistant()</code> function provides an interactive chat session with the PbA (Pointblank Assistant) to help you with your data validation needs. The PbA can help you with constructing validation plans, suggesting validation methods, and providing code snippets for using the Pointblank Python package. Feel free to ask the PbA about any aspect of the Pointblank package and it will do its best to assist you.</p>
+<p>The <a href="../reference/assistant.html#pointblank.assistant" title="0"><code>assistant()</code></a> function provides an interactive chat session with the PbA (Pointblank Assistant) to help you with your data validation needs. The PbA can help you with constructing validation plans, suggesting validation methods, and providing code snippets for using the Pointblank Python package. Feel free to ask the PbA about any aspect of the Pointblank package and it will do its best to assist you.</p>
 <p>The PbA can also help you with constructing validation plans for your data tables. If you provide a data table to the PbA, it will internally generate a JSON summary of the table and use that information to suggest validation methods that can be used with the Pointblank package. If using a Polars table as the data source, the PbA will be knowledgeable about the Polars API and can smartly suggest validation steps that use aggregate measures with up-to-date Polars methods.</p>
 <p>The PbA can be used with models from the following providers:</p>
 <ul>
@@ -221,12 +224,12 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <code>assistant()</code> function is still experimental. Please report any issues you encounter in the <a href="https://github.com/posit-dev/pointblank/issues">Pointblank issue tracker</a>.</p>
+<p>The <a href="../reference/assistant.html#pointblank.assistant" title="0"><code>assistant()</code></a> function is still experimental. Please report any issues you encounter in the <a href="https://github.com/posit-dev/pointblank/issues">Pointblank issue tracker</a>.</p>
 </div>
 </div>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<dl>
+<h3 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem; padding-bottom: 0.25rem;">
 <dt><code><span class="parameter-name"><strong>model</strong></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"><code>str</code></span></code></dt>
 <dd>
 <p>The model to be used. This should be in the form of <code>provider:model</code> (e.g., <code>"anthropic:claude-3-5-sonnet-latest"</code>). Supported providers are <code>"anthropic"</code>, <code>"openai"</code>, <code>"ollama"</code>, and <code>"bedrock"</code>.</p>
@@ -250,16 +253,16 @@ Warning
 </dl>
 </section>
 <section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<dl>
-<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation">None</span></code></dt>
+<h3 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem; padding-bottom: 0.25rem;">
+<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span> <span class="parameter-annotation">None</span></code></dt>
 <dd>
 <p>Nothing is returned. Rather, you get an an interactive chat session with the PbA, which is displayed in a browser or in the terminal.</p>
 </dd>
 </dl>
 </section>
 <section id="constructing-the-model-argument" class="level2 doc-section doc-section-constructing-the-model-argument">
-<h2 class="doc-section doc-section-constructing-the-model-argument anchored" data-anchor-id="constructing-the-model-argument">Constructing the <code>model</code> Argument</h2>
+<h3 class="doc-section doc-section-constructing-the-model-argument anchored" data-anchor-id="constructing-the-model-argument">Constructing the <code>model</code> Argument</h3>
 <p>The <code>model=</code> argument should be constructed using the provider and model name separated by a colon (<code>provider:model</code>). The provider text can any of:</p>
 <ul>
 <li><code>"anthropic"</code> (Anthropic)</li>
@@ -270,7 +273,7 @@ Warning
 <p>The model name should be the specific model to be used from the provider. Model names are subject to change so consult the provider’s documentation for the most up-to-date model names.</p>
 </section>
 <section id="notes-on-authentication" class="level2 doc-section doc-section-notes-on-authentication">
-<h2 class="doc-section doc-section-notes-on-authentication anchored" data-anchor-id="notes-on-authentication">Notes on Authentication</h2>
+<h3 class="doc-section doc-section-notes-on-authentication anchored" data-anchor-id="notes-on-authentication">Notes on Authentication</h3>
 <p>Providing a valid API key as a string in the <code>api_key</code> argument is adequate for getting started but you should consider using a more secure method for handling API keys.</p>
 <p>One way to do this is to load the API key from an environent variable and retrieve it using the <code>os</code> module (specifically the <code>os.getenv()</code> function). Places to store the API key might include <code>.bashrc</code>, <code>.bash_profile</code>, <code>.zshrc</code>, or <code>.zsh_profile</code>.</p>
 <p>Another solution is to store one or more model provider API keys in an <code>.env</code> file (in the root of your project). If the API keys have correct names (e.g., <code>ANTHROPIC_API_KEY</code> or <code>OPENAI_API_KEY</code>) then DraftValidation will automatically load the API key from the <code>.env</code> file and there’s no need to provide the <code>api_key</code> argument. An <code>.env</code> file might look like this:</p>
@@ -279,8 +282,8 @@ OPENAI_API_KEY="your_openai_api_key_here"</code></pre>
 <p>There’s no need to have the <code>python-dotenv</code> package installed when using <code>.env</code> files in this way.</p>
 </section>
 <section id="notes-on-data-sent-to-the-model-provider" class="level2 doc-section doc-section-notes-on-data-sent-to-the-model-provider">
-<h2 class="doc-section doc-section-notes-on-data-sent-to-the-model-provider anchored" data-anchor-id="notes-on-data-sent-to-the-model-provider">Notes on Data Sent to the Model Provider</h2>
-<p>If <code>data=</code> is provided then that data is sent to the model provider is a JSON summary of the table. This data summary is generated internally by use of the <code>DataScan</code> class. The summary includes the following information:</p>
+<h3 class="doc-section doc-section-notes-on-data-sent-to-the-model-provider anchored" data-anchor-id="notes-on-data-sent-to-the-model-provider">Notes on Data Sent to the Model Provider</h3>
+<p>If <code>data=</code> is provided then that data is sent to the model provider is a JSON summary of the table. This data summary is generated internally by use of the <a href="../reference/DataScan.html#pointblank.DataScan" title="0"><code>DataScan</code></a> class. The summary includes the following information:</p>
 <ul>
 <li>the number of rows and columns in the table</li>
 <li>the type of dataset (e.g., Polars, DuckDB, Pandas, etc.)</li>
@@ -292,7 +295,7 @@ OPENAI_API_KEY="your_openai_api_key_here"</code></pre>
 <p>The Amazon Bedrock provider is a special case since it is a self-hosted model and security controls are in place to ensure that data is kept within the user’s AWS environment. If using an Ollama model all data is handled locally.</p>
 </section>
 <section id="supported-input-table-types" class="level2 doc-section doc-section-supported-input-table-types">
-<h2 class="doc-section doc-section-supported-input-table-types anchored" data-anchor-id="supported-input-table-types">Supported Input Table Types</h2>
+<h3 class="doc-section doc-section-supported-input-table-types anchored" data-anchor-id="supported-input-table-types">Supported Input Table Types</h3>
 <p>The <code>data=</code> parameter can be given any of the following table types:</p>
 <ul>
 <li>Polars DataFrame (<code>"polars"</code>)</li>
@@ -303,13 +306,15 @@ OPENAI_API_KEY="your_openai_api_key_here"</code></pre>
 <li>SQLite table (<code>"sqlite"</code>)*</li>
 <li>Parquet table (<code>"parquet"</code>)*</li>
 </ul>
-<p>The table types marked with an asterisk need to be prepared as Ibis tables (with type of <code>ibis.expr.types.relations.Table</code>). Furthermore, using <code>preview()</code> with these types of tables requires the Ibis library (<code>v9.5.0</code> or above) to be installed. If the input table is a Polars or Pandas DataFrame, the availability of Ibis is not needed.</p>
+<p>The table types marked with an asterisk need to be prepared as Ibis tables (with type of <code>ibis.expr.types.relations.Table</code>). Furthermore, using <a href="../reference/preview.html#pointblank.preview" title="0"><code>preview()</code></a> with these types of tables requires the Ibis library (<code>v9.5.0</code> or above) to be installed. If the input table is a Polars or Pandas DataFrame, the availability of Ibis is not needed.</p>
 
 
 </section>
 </section>
 
-</main> <!-- /main -->
+</main>
+<hr style="padding: 0; margin: 0;">
+<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -710,6 +715,19 @@ OPENAI_API_KEY="your_openai_api_key_here"</code></pre>
   });
   </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Proudly supported by <a href="https://www.posit.co/" class="no-icon"><img src="../assets/posit-logo-black.svg" alt="Posit" width="80" style="padding-left: 3px;vertical-align:text-top;"></a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>© 2024–2025 Posit Software, PBC.</p>
+</div>
+  </div>
+</footer>
 
 
 

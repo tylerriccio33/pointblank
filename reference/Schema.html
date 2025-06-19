@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.7.32">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,10 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b3a3f0431126c7e8c477b326e3ee3944.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-163b3d65f110c20398c9be181c3bc6fb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -179,7 +179,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+    <h3 id="toc-title">On this page</h3>
    
   <ul>
   <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
@@ -196,7 +196,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Schema</h1>
+<h1 class="title" style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.25rem;">Schema<span style="font-size: 0.75rem; border-style: solid; border-width: 1px; border-color: darkgreen; background-color: #E3FEE3; margin-left: 12px; vertical-align: 3.5px;"><code style="background-color: transparent; color: darkgreen;">class</code></span></h1>
 </div>
 
 
@@ -212,11 +212,14 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 
 </header>
 
+<p style="font-size: 1rem; font-style: italic; margin-top: -10px; line-height: 1;">Definition of a schema object.</p>
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Schema(<span class="va">self</span>, columns<span class="op">=</span><span class="va">None</span>, tbl<span class="op">=</span><span class="va">None</span>, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Definition of a schema object.</p>
-<p>The schema object defines the structure of a table. Once it is defined, the object can be used in a validation workflow, using <code>Validate</code> and its methods, to ensure that the structure of a table matches the expected schema. The validation method that works with the schema object is called <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a>.</p>
-<p>A schema for a table can be constructed with the <code>Schema</code> class in a number of ways:</p>
+
+
+<p style="font-size: 12px; color: rgb(170, 170, 170); margin-bottom: -14px;">USAGE</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Schema(columns<span class="op">=</span><span class="va">None</span>, tbl<span class="op">=</span><span class="va">None</span>, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The schema object defines the structure of a table. Once it is defined, the object can be used in a validation workflow, using <a href="../reference/Validate.html#pointblank.Validate" title="0"><code>Validate</code></a> and its methods, to ensure that the structure of a table matches the expected schema. The validation method that works with the schema object is called <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a>.</p>
+<p>A schema for a table can be constructed with the <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> class in a number of ways:</p>
 <ol type="1">
 <li>providing a list of column names to <code>columns=</code> (to check only the column names)</li>
 <li>using a list of one- or two-element tuples in <code>columns=</code> (to check both column names and optionally dtypes, should be in the form of <code>[(column_name, dtype), ...]</code>)</li>
@@ -225,8 +228,8 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 </ol>
 <p>The schema object can also be constructed by providing a DataFrame or Ibis table object (using the <code>tbl=</code> parameter) and the schema will be collected from either type of object. The schema object can be printed to display the column names and dtypes. Note that if <code>tbl=</code> is provided then there shouldn’t be any other inputs provided through either <code>columns=</code> or <code>**kwargs</code>.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<dl>
+<h3 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem; padding-bottom: 0.25rem;">
 <dt><code><span class="parameter-name"><strong>columns</strong></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"><code>str</code> | <code>list</code>[<code>str</code>] | <code>list</code>[<code>tuple</code>[<code>str</code>, <code>str</code>]] | <code>list</code>[<code>tuple</code>[<code>str</code>]] | <code>dict</code>[<code>str</code>, <code>str</code>] | None</span> <span class="parameter-default-sep">=</span> <span class="parameter-default">None</span></code></dt>
 <dd>
 <p>A list of strings (representing column names), a list of tuples (for column names and column dtypes), or a dictionary containing column and dtype information. If any of these inputs are provided here, it will take precedence over any column arguments provided via <code>**kwargs</code>.</p>
@@ -235,23 +238,23 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <dd>
 <p>A DataFrame (Polars or Pandas) or an Ibis table object from which the schema will be collected. Read the <em>Supported Input Table Types</em> section for details on the supported table types.</p>
 </dd>
-<dt><code><span class="parameter-name">****kwargs**</span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"></span> <span class="parameter-default-sep">=</span> <span class="parameter-default">{}</span></code></dt>
+<dt><code><span class="parameter-name">**<strong>kwargs</strong></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"></span> <span class="parameter-default-sep">=</span> <span class="parameter-default">{}</span></code></dt>
 <dd>
 <p>Individual column arguments that are in the form of <code>column=dtype</code> or <code>column=[dtype1, dtype2, ...]</code>. These will be ignored if the <code>columns=</code> parameter is not <code>None</code>.</p>
 </dd>
 </dl>
 </section>
 <section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<dl>
-<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"><a href="../reference/Schema.html#pointblank.Schema">Schema</a></span></code></dt>
+<h3 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem; padding-bottom: 0.25rem;">
+<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span> <span class="parameter-annotation"><a href="../reference/Schema.html#pointblank.Schema">Schema</a></span></code></dt>
 <dd>
 <p>A schema object.</p>
 </dd>
 </dl>
 </section>
 <section id="supported-input-table-types" class="level2 doc-section doc-section-supported-input-table-types">
-<h2 class="doc-section doc-section-supported-input-table-types anchored" data-anchor-id="supported-input-table-types">Supported Input Table Types</h2>
+<h3 class="doc-section doc-section-supported-input-table-types anchored" data-anchor-id="supported-input-table-types">Supported Input Table Types</h3>
 <p>The <code>tbl=</code> parameter, if used, can be given any of the following table types:</p>
 <ul>
 <li>Polars DataFrame (<code>"polars"</code>)</li>
@@ -265,7 +268,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <p>The table types marked with an asterisk need to be prepared as Ibis tables (with type of <code>ibis.expr.types.relations.Table</code>). Furthermore, using <code>Schema(tbl=)</code> with these types of tables requires the Ibis library (<code>v9.5.0</code> or above) to be installed. If the input table is a Polars or Pandas DataFrame, the availability of Ibis is not needed.</p>
 </section>
 <section id="additional-notes-on-schema-construction" class="level2 doc-section doc-section-additional-notes-on-schema-construction">
-<h2 class="doc-section doc-section-additional-notes-on-schema-construction anchored" data-anchor-id="additional-notes-on-schema-construction">Additional Notes on Schema Construction</h2>
+<h3 class="doc-section doc-section-additional-notes-on-schema-construction anchored" data-anchor-id="additional-notes-on-schema-construction">Additional Notes on Schema Construction</h3>
 <p>While there is flexibility in how a schema can be constructed, there is the potential for some confusion. So let’s go through each of the methods of constructing a schema in more detail and single out some important points.</p>
 <p>When providing a list of column names to <code>columns=</code>, a <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> validation step will only check the column names. Any arguments pertaining to dtypes will be ignored.</p>
 <p>When using a list of tuples in <code>columns=</code>, the tuples could contain the column name and dtype or just the column name. This construction allows for more flexibility in constructing the schema as some columns will be checked for dtypes and others will not. This method is the only way to have mixed checks of column names and dtypes in <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a>.</p>
@@ -283,9 +286,27 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <p>All of the above examples will construct the same schema object.</p>
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<p>A schema can be constructed via the <code>Schema</code> class in multiple ways. Let’s use the following Polars DataFrame as a basis for constructing a schema:</p>
-<div id="af862336" class="cell" data-execution_count="2">
+<h3 class="doc-section doc-section-examples anchored" data-anchor-id="examples"><span style="
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
+        background-size: 400% 400%;
+        animation: examplesGradient 8s ease-in-out infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+        font-size: 1.2em;
+    ">Examples</span></h3>
+    <hr style="
+        background: linear-gradient(-45deg, #D63031, #00B894, #0984E3, #6C5CE7, #FDCB6E, #A29BFE, #E84393, #2D3436);
+        background-size: 400% 400%;
+        animation: examplesGradient 16s ease-in-out infinite;
+        height: 3px;
+        border: none;
+        margin: 10px 0;
+        border-radius: 2px;
+    ">
+<p>A schema can be constructed via the <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> class in multiple ways. Let’s use the following Polars DataFrame as a basis for constructing a schema:</p>
+<div id="65a5b1f5" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pointblank <span class="im">as</span> pb</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -296,21 +317,21 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>You could provide <code>Schema(columns=)</code> a list of tuples containing column names and data types:</p>
-<div id="586be518" class="cell" data-execution_count="3">
+<div id="11538b31" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(columns<span class="op">=</span>[(<span class="st">"name"</span>, <span class="st">"String"</span>), (<span class="st">"age"</span>, <span class="st">"Int64"</span>), (<span class="st">"height"</span>, <span class="st">"Float64"</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Alternatively, a dictionary containing column names and dtypes also works:</p>
-<div id="d6a43607" class="cell" data-execution_count="4">
+<div id="52d718c6" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(columns<span class="op">=</span>{<span class="st">"name"</span>: <span class="st">"String"</span>, <span class="st">"age"</span>: <span class="st">"Int64"</span>, <span class="st">"height"</span>: <span class="st">"Float64"</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Another input method involves using individual column arguments in the form of keyword arguments:</p>
-<div id="e25db71e" class="cell" data-execution_count="5">
+<div id="10d75153" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(name<span class="op">=</span><span class="st">"String"</span>, age<span class="op">=</span><span class="st">"Int64"</span>, height<span class="op">=</span><span class="st">"Float64"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Finally, could also provide a DataFrame (Polars and Pandas) or an Ibis table object to <code>tbl=</code> and the schema will be collected:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(tbl<span class="op">=</span>df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Whichever method you choose, you can verify the schema inputs by printing the <code>schema</code> object:</p>
-<div id="edd455e6" class="cell" data-execution_count="6">
+<div id="d4d44187" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(schema)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Pointblank Schema
@@ -319,8 +340,8 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
   height: Float64</code></pre>
 </div>
 </div>
-<p>The <code>Schema</code> object can be used to validate the structure of a table against the schema. The relevant <code>Validate</code> method for this is <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a>. In a validation workflow, you’ll have a target table (defined at the beginning of the workflow) and you might want to ensure that your expectations of the table structure are met. The <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> method works with a <code>Schema</code> object to validate the structure of the table. Here’s an example of how you could use <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> in a validation workflow:</p>
-<div id="eab228b1" class="cell" data-execution_count="7">
+<p>The <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> object can be used to validate the structure of a table against the schema. The relevant <a href="../reference/Validate.html#pointblank.Validate" title="0"><code>Validate</code></a> method for this is <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a>. In a validation workflow, you’ll have a target table (defined at the beginning of the workflow) and you might want to ensure that your expectations of the table structure are met. The <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> method works with a <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> object to validate the structure of the table. Here’s an example of how you could use <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> in a validation workflow:</p>
+<div id="0736b024" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the schema</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(name<span class="op">=</span><span class="st">"String"</span>, age<span class="op">=</span><span class="st">"Int64"</span>, height<span class="op">=</span><span class="st">"Float64"</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -478,8 +499,8 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 </div>
 </div>
 <p>The <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> validation method will validate the structure of the table against the schema during interrogation. If the structure of the table does not match the schema, the single test unit will fail. In this case, the defined schema matched the structure of the table, so the validation passed.</p>
-<p>We can also choose to check only the column names of the target table. This can be done by providing a simplified <code>Schema</code> object, which is given a list of column names:</p>
-<div id="71e0d0d3" class="cell" data-execution_count="8">
+<p>We can also choose to check only the column names of the target table. This can be done by providing a simplified <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> object, which is given a list of column names:</p>
+<div id="b7c6bae4" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(columns<span class="op">=</span>[<span class="st">"name"</span>, <span class="st">"age"</span>, <span class="st">"height"</span>])</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>validation <span class="op">=</span> (</span>
@@ -635,7 +656,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 </div>
 <p>In this case, the schema only checks the column names of the table against the schema during interrogation. If the column names of the table do not match the schema, the single test unit will fail. In this case, the defined schema matched the column names of the table, so the validation passed.</p>
 <p>If you wanted to check column names and dtypes only for a subset of columns (and just the column names for the rest), you could use a list of mixed one- or two-item tuples in <code>columns=</code>:</p>
-<div id="91f1ee9b" class="cell" data-execution_count="9">
+<div id="78b1856e" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(columns<span class="op">=</span>[(<span class="st">"name"</span>, <span class="st">"String"</span>), (<span class="st">"age"</span>, ), (<span class="st">"height"</span>, )])</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>validation <span class="op">=</span> (</span>
@@ -791,7 +812,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 </div>
 <p>Not specifying a dtype for a column (as is the case for the <code>age</code> and <code>height</code> columns in the above example) will only check the column name.</p>
 <p>There may also be the case where you want to check the column names and specify multiple dtypes for a column to have several attempts at matching the dtype. This can be done by providing a list of dtypes where there would normally be a single dtype:</p>
-<div id="50dd25c9" class="cell" data-execution_count="10">
+<div id="1faa6dcf" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>schema <span class="op">=</span> pb.Schema(</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  columns<span class="op">=</span>[(<span class="st">"name"</span>, <span class="st">"String"</span>), (<span class="st">"age"</span>, [<span class="st">"Float64"</span>, <span class="st">"Int64"</span>]), (<span class="st">"height"</span>, <span class="st">"Float64"</span>)]</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -950,13 +971,15 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <p>For the <code>age</code> column, the schema will check for both <code>Float64</code> and <code>Int64</code> dtypes. If either of these dtypes is found in the column, the portion of the schema check will succeed.</p>
 </section>
 <section id="see-also" class="level2 doc-section doc-section-see-also">
-<h2 class="doc-section doc-section-see-also anchored" data-anchor-id="see-also">See Also</h2>
-<p>The <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> validation method, where a <code>Schema</code> object is used in a validation workflow.</p>
+<h3 class="doc-section doc-section-see-also anchored" data-anchor-id="see-also">See Also</h3>
+<p>The <a href="../reference/Validate.col_schema_match.html#pointblank.Validate.col_schema_match"><code>col_schema_match()</code></a> validation method, where a <a href="../reference/Schema.html#pointblank.Schema" title="0"><code>Schema</code></a> object is used in a validation workflow.</p>
 
 
 </section>
 
-</main> <!-- /main -->
+</main>
+<hr style="padding: 0; margin: 0;">
+<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -1357,6 +1380,19 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
   });
   </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Proudly supported by <a href="https://www.posit.co/" class="no-icon"><img src="../assets/posit-logo-black.svg" alt="Posit" width="80" style="padding-left: 3px;vertical-align:text-top;"></a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>© 2024–2025 Posit Software, PBC.</p>
+</div>
+  </div>
+</footer>
 
 
 

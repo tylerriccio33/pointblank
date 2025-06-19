@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.7.32">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,10 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b3a3f0431126c7e8c477b326e3ee3944.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-163b3d65f110c20398c9be181c3bc6fb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -176,7 +176,7 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+    <h3 id="toc-title">On this page</h3>
    
   <ul>
   <li><a href="#pointblank.DataScan" id="toc-pointblank.DataScan" class="nav-link active" data-scroll-target="#pointblank.DataScan">DataScan</a>
@@ -198,10 +198,13 @@ gtag('config', 'G-XSFKYZM9GW', { 'anonymize_ip': true});
 
 
 <section id="pointblank.DataScan" class="level1">
-<h1>DataScan</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>DataScan(<span class="va">self</span>, data, tbl_name<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Get a summary of a dataset.</p>
-<p>The <code>DataScan</code> class provides a way to get a summary of a dataset. The summary includes the following information:</p>
+<h1 style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 1.25rem;">DataScan</h1>
+
+<p style="font-size: 1rem; font-style: italic; margin-top: -10px; line-height: 1;">Get a summary of a dataset.</p>
+
+<p style="font-size: 12px; color: rgb(170, 170, 170); margin-bottom: -14px;">USAGE</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>DataScan(data, tbl_name<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <a href="../reference/DataScan.html#pointblank.DataScan" title="0"><code>DataScan</code></a> class provides a way to get a summary of a dataset. The summary includes the following information:</p>
 <ul>
 <li>the name of the table (if provided)</li>
 <li>the type of the table (e.g., <code>"polars"</code>, <code>"pandas"</code>, etc.)</li>
@@ -227,12 +230,12 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <code>DataScan()</code> class is still experimental. Please report any issues you encounter in the <a href="https://github.com/posit-dev/pointblank/issues">Pointblank issue tracker</a>.</p>
+<p>The <a href="../reference/DataScan.html#pointblank.DataScan" title="0"><code>DataScan()</code></a> class is still experimental. Please report any issues you encounter in the <a href="https://github.com/posit-dev/pointblank/issues">Pointblank issue tracker</a>.</p>
 </div>
 </div>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<dl>
+<h3 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #00AC1480; padding: 1rem; padding-bottom: 0.25rem;">
 <dt><code><span class="parameter-name"><strong>data</strong></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"><code>IntoFrameT</code></span></code></dt>
 <dd>
 <p>The data to scan and summarize.</p>
@@ -244,7 +247,7 @@ Warning
 </dl>
 </section>
 <section id="measures-of-missingness-and-distinctness" class="level2 doc-section doc-section-measures-of-missingness-and-distinctness">
-<h2 class="doc-section doc-section-measures-of-missingness-and-distinctness anchored" data-anchor-id="measures-of-missingness-and-distinctness">Measures of Missingness and Distinctness</h2>
+<h3 class="doc-section doc-section-measures-of-missingness-and-distinctness anchored" data-anchor-id="measures-of-missingness-and-distinctness">Measures of Missingness and Distinctness</h3>
 <p>For each column, the following measures are provided:</p>
 <ul>
 <li><code>n_missing_values</code>: the number of missing values in the column</li>
@@ -255,7 +258,7 @@ Warning
 <p>The fractions are calculated as the ratio of the measure to the total number of rows in the dataset.</p>
 </section>
 <section id="counts-and-fractions-of-negative-zero-and-positive-values" class="level2 doc-section doc-section-counts-and-fractions-of-negative-zero-and-positive-values">
-<h2 class="doc-section doc-section-counts-and-fractions-of-negative-zero-and-positive-values anchored" data-anchor-id="counts-and-fractions-of-negative-zero-and-positive-values">Counts and Fractions of Negative, Zero, and Positive Values</h2>
+<h3 class="doc-section doc-section-counts-and-fractions-of-negative-zero-and-positive-values anchored" data-anchor-id="counts-and-fractions-of-negative-zero-and-positive-values">Counts and Fractions of Negative, Zero, and Positive Values</h3>
 <p>For numerical columns, the following measures are provided:</p>
 <ul>
 <li><code>n_negative_values</code>: the number of negative values in the column</li>
@@ -268,7 +271,7 @@ Warning
 <p>The fractions are calculated as the ratio of the measure to the total number of rows in the dataset.</p>
 </section>
 <section id="statistics-for-numerical-and-string-columns" class="level2 doc-section doc-section-statistics-for-numerical-and-string-columns">
-<h2 class="doc-section doc-section-statistics-for-numerical-and-string-columns anchored" data-anchor-id="statistics-for-numerical-and-string-columns">Statistics for Numerical and String Columns</h2>
+<h3 class="doc-section doc-section-statistics-for-numerical-and-string-columns anchored" data-anchor-id="statistics-for-numerical-and-string-columns">Statistics for Numerical and String Columns</h3>
 <p>For numerical and string columns, several statistical measures are provided. Please note that for string columms, the statistics are based on the lengths of the strings in the column.</p>
 <p>The following descriptive statistics are provided:</p>
 <ul>
@@ -288,7 +291,7 @@ Warning
 </ul>
 </section>
 <section id="statistics-for-date-and-datetime-columns" class="level2 doc-section doc-section-statistics-for-date-and-datetime-columns">
-<h2 class="doc-section doc-section-statistics-for-date-and-datetime-columns anchored" data-anchor-id="statistics-for-date-and-datetime-columns">Statistics for Date and Datetime Columns</h2>
+<h3 class="doc-section doc-section-statistics-for-date-and-datetime-columns anchored" data-anchor-id="statistics-for-date-and-datetime-columns">Statistics for Date and Datetime Columns</h3>
 <p>For date/datetime columns, the following statistics are provided:</p>
 <ul>
 <li><code>min</code>: the minimum date/datetime in the column</li>
@@ -296,9 +299,9 @@ Warning
 </ul>
 </section>
 <section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<dl>
-<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep">:</span> <span class="parameter-annotation"><a href="../reference/DataScan.html#pointblank.DataScan">DataScan</a></span></code></dt>
+<h3 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h3>
+<dl style="border-style: solid; border-width: 2px; border-color: #0059AC80; padding: 1rem; padding-bottom: 0.25rem;">
+<dt><code><span class="parameter-name"></span> <span class="parameter-annotation-sep" style="margin-left: -8px;"></span> <span class="parameter-annotation"><a href="../reference/DataScan.html#pointblank.DataScan">DataScan</a></span></code></dt>
 <dd>
 <p>A DataScan object.</p>
 </dd>
@@ -308,7 +311,9 @@ Warning
 </section>
 </section>
 
-</main> <!-- /main -->
+</main>
+<hr style="padding: 0; margin: 0;">
+<div style="text-align: center; padding: 0; margin-top: -60px; color: #B3B3B3;">⦾</div> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -709,6 +714,19 @@ Warning
   });
   </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Proudly supported by <a href="https://www.posit.co/" class="no-icon"><img src="../assets/posit-logo-black.svg" alt="Posit" width="80" style="padding-left: 3px;vertical-align:text-top;"></a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>© 2024–2025 Posit Software, PBC.</p>
+</div>
+  </div>
+</footer>
 
 
 
