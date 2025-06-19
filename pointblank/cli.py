@@ -1817,28 +1817,32 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
             title_style="bold cyan",
         )
 
-        # Add columns with specific styling
+        # Add columns with specific styling and appropriate widths
         scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
         scan_table.add_column("Type", style="yellow", no_wrap=True, width=12)
-        scan_table.add_column("NA", style="red", width=8, justify="right")
-        scan_table.add_column("UQ", style="green", width=8, justify="right")
+        scan_table.add_column(
+            "NA", style="red", width=6, justify="right"
+        )  # Adjusted for better formatting
+        scan_table.add_column(
+            "UQ", style="green", width=8, justify="right"
+        )  # Adjusted for boolean values
 
-        # Add statistical columns if they exist
+        # Add statistical columns if they exist with appropriate widths
         stat_columns = []
         column_mapping = {
-            "mean": ("Mean", "blue"),
-            "std": ("SD", "blue"),
-            "min": ("Min", "yellow"),
-            "median": ("Med", "yellow"),
-            "max": ("Max", "yellow"),
-            "q_1": ("Q₁", "magenta"),
-            "q_3": ("Q₃", "magenta"),
-            "iqr": ("IQR", "magenta"),
+            "mean": ("Mean", "blue", 9),
+            "std": ("SD", "blue", 9),
+            "min": ("Min", "yellow", 9),
+            "median": ("Med", "yellow", 9),
+            "max": ("Max", "yellow", 9),
+            "q_1": ("Q₁", "magenta", 8),
+            "q_3": ("Q₃", "magenta", 9),
+            "iqr": ("IQR", "magenta", 8),
         }
 
-        for col_key, (display_name, color) in column_mapping.items():
+        for col_key, (display_name, color, width) in column_mapping.items():
             if col_key in data_dict:
-                scan_table.add_column(display_name, style=color, width=8, justify="right")
+                scan_table.add_column(display_name, style=color, width=width, justify="right")
                 stat_columns.append(col_key)
 
         # Helper function to extract column name and type from HTML
@@ -1864,30 +1868,116 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
 
             return column_name, data_type
 
-        # Helper function to format values
-        def format_value(value: Any, is_missing: bool = False) -> str:
+        # Helper function to format values with improved number formatting
+        def format_value(value: Any, is_missing: bool = False, max_width: int = 8) -> str:
+            """Format values for display with smart number formatting and HTML cleanup."""
             if value is None or (isinstance(value, str) and value.strip() == ""):
                 return "[dim]—[/dim]"
+
+            # Handle missing values indicator
             if is_missing and str(value) == "0":
                 return "[green]●[/green]"  # No missing values
 
             # Clean up HTML formatting from the raw data
             str_val = str(value)
 
-            # Handle HTML content (especially from boolean unique values)
+            # Handle HTML content (especially from boolean unique values and multi-line values)
             if "<" in str_val and ">" in str_val:
                 # Remove HTML tags completely for cleaner display
                 str_val = re.sub(r"<[^>]+>", "", str_val).strip()
                 # Clean up extra whitespace
                 str_val = re.sub(r"\s+", " ", str_val).strip()
 
+            # Handle multi-line values with <br> tags - take the first line (absolute number)
             if "<br>" in str_val:
-                # For values like "0<br> 0.00", take the first part
                 str_val = str_val.split("<br>")[0].strip()
 
-            # If still too long after cleanup, truncate
-            if len(str_val) > 8:
-                str_val = str_val[:6] + "…"
+            # Handle values like "2<.01" - extract the first number
+            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
+                # Extract number before the < symbol
+                before_lt = str_val.split("<")[0].strip()
+                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
+                    str_val = before_lt
+
+            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
+                # Extract T and F values
+                t_match = re.search(r"T(\d+\.\d+)", str_val)
+                f_match = re.search(r"F(\d+\.\d+)", str_val)
+                if t_match and f_match:
+                    t_val = float(t_match.group(1))
+                    f_val = float(f_match.group(1))
+                    # Show as "T0.62F0.38" but truncated if needed
+                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
+                    if len(formatted) > max_width:
+                        # Truncate to fit, showing dominant value
+                        if t_val > f_val:
+                            return f"T{t_val:.1f}"
+                        else:
+                            return f"F{f_val:.1f}"
+                    return formatted
+
+            # Try to parse as a number for better formatting
+            try:
+                # Try to convert to float first
+                num_val = float(str_val)
+
+                # Handle special cases
+                if num_val == 0:
+                    return "0"
+                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
+                    # Simple integers under 10000
+                    return str(int(num_val))
+                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
+                    # Likely dates in YYYYMMDD format - format as date-like
+                    int_val = int(num_val)
+                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
+                        str_date = str(int_val)
+                        if len(str_date) == 8:
+                            return (
+                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
+                                + "…"
+                            )
+                    # Otherwise treat as large number
+                    return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 1000000:
+                    # Large numbers - use scientific notation or M/k notation
+                    if abs(num_val) >= 1000000000:
+                        return f"{num_val:.1e}"
+                    else:
+                        return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 10000:
+                    # Numbers >= 10k - use compact notation
+                    return f"{num_val / 1000:.1f}k"
+                elif abs(num_val) >= 100:
+                    # Numbers 100-9999 - show with minimal decimals
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 10:
+                    # Numbers 10-99 - show with one decimal
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 1:
+                    # Numbers 1-9 - show with two decimals
+                    return f"{num_val:.2f}"
+                elif abs(num_val) >= 0.01:
+                    # Small numbers - show with appropriate precision
+                    return f"{num_val:.2f}"
+                else:
+                    # Very small numbers - use scientific notation
+                    return f"{num_val:.1e}"
+
+            except (ValueError, TypeError):
+                # Not a number, handle as string
+                pass
+
+            # Handle date/datetime strings - show abbreviated format
+            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
+                # Likely a date/datetime, show abbreviated
+                if len(str_val) > max_width:
+                    return str_val[: max_width - 1] + "…"
+
+            # General string truncation with ellipsis
+            if len(str_val) > max_width:
+                return str_val[: max_width - 1] + "…"
 
             return str_val
 
@@ -1904,16 +1994,23 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
 
             # Missing values (NA)
             missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
-            row_data.append(format_value(missing_val, is_missing=True))
+            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
 
             # Unique values (UQ)
             unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
-            row_data.append(format_value(unique_val))
+            row_data.append(format_value(unique_val, max_width=8))
 
             # Statistical columns
             for stat_col in stat_columns:
                 stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
-                row_data.append(format_value(stat_val))
+                # Use appropriate width based on column type
+                if stat_col in ["q_1", "iqr"]:
+                    width = 8
+                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
+                    width = 9
+                else:
+                    width = 8
+                row_data.append(format_value(stat_val, max_width=width))
 
             scan_table.add_row(*row_data)
 
