@@ -1644,10 +1644,14 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 
             # Get column names
             columns = []
-            if hasattr(df, "columns"):
-                columns = list(df.columns)
-            elif hasattr(df, "schema"):
-                columns = list(df.schema.names)
+            try:
+                if hasattr(df, "columns"):
+                    columns = list(df.columns)
+                elif hasattr(df, "schema"):
+                    columns = list(df.schema.names)
+            except Exception as e:
+                console.print(f"[red]Error getting columns:[/red] {e}")
+                columns = []
 
             if not columns:
                 columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
@@ -1660,7 +1664,8 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                     if hasattr(original_data, "columns"):
                         original_columns = list(original_data.columns)
                         column_types = _get_column_dtypes(original_data, original_columns)
-                except Exception:
+                except Exception as e:
+                    console.print(f"[red]Error getting column types:[/red] {e}")
                     pass  # Use empty dict as fallback
 
             # Add columns to Rich table with special formatting for missing values table
@@ -1690,40 +1695,46 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                 else:
                     data_dict = []
 
-                for row in data_dict:
-                    formatted_row = []
-                    for col in columns:
-                        if col == "columns":
-                            # Split into column name and data type
-                            column_name = str(row.get(col, ""))
+                for i, row in enumerate(data_dict):
+                    try:
+                        # Each row should have: [column_name, data_type, sector1, sector2, ...]
+                        column_name = str(row.get("columns", ""))
 
-                            # Truncate column name to 20 characters with ellipsis if needed
-                            if len(column_name) > 20:
-                                truncated_name = column_name[:17] + "…"
-                            else:
-                                truncated_name = column_name
-                            formatted_row.append(truncated_name)
+                        # Truncate column name to 20 characters with ellipsis if needed
+                        if len(column_name) > 20:
+                            truncated_name = column_name[:17] + "…"
+                        else:
+                            truncated_name = column_name
 
-                            # Add data type column (truncate to 8 characters if needed)
-                            if column_name in column_types:
-                                dtype = column_types[column_name]
-                                if len(dtype) > 8:
-                                    truncated_dtype = dtype[:7] + "…"
-                                else:
-                                    truncated_dtype = dtype
-                                formatted_row.append(truncated_dtype)
+                        # Get data type for this column
+                        if column_name in column_types:
+                            dtype = column_types[column_name]
+                            if len(dtype) > 10:
+                                truncated_dtype = dtype[:9] + "…"
                             else:
-                                formatted_row.append("?")
-                        elif col.isdigit():
-                            # Sector percentage - apply special formatting
-                            value = row.get(col, 0.0)
+                                truncated_dtype = dtype
+                        else:
+                            truncated_dtype = "?"
+
+                        # Start building the row with column name and type
+                        formatted_row = [truncated_name, truncated_dtype]
+
+                        # Add sector values (formatted percentages)
+                        for sector in sector_columns:
+                            value = row.get(sector, 0.0)
                             if isinstance(value, (int, float)):
                                 formatted_row.append(_format_missing_percentage(float(value)))
                             else:
                                 formatted_row.append(str(value))
-                    rows.append(formatted_row)
+
+                        rows.append(formatted_row)
+
+                    except Exception as e:
+                        console.print(f"[red]Error processing row {i}:[/red] {e}")
+                        continue
 
             except Exception as e:
+                console.print(f"[red]Error extracting data:[/red] {e}")
                 rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
 
             # Add rows to Rich table
@@ -1734,10 +1745,34 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                     console.print(f"[red]Error adding row:[/red] {e}")
                     break
 
-            # Show the table
-            console.print(rich_table)
+            # Show the table with custom spanner header if we have sector columns
+            if sector_columns:
+                # Create a custom header line that shows the spanner
+                header_parts = []
+                header_parts.append(" " * 20)  # Space for Column header
+                header_parts.append(" " * 10)  # Space for Type header
 
-            # Add footer with symbol explanations
+                # Left-align "Row Sectors" with the first numbered column
+                row_sectors_text = "Row Sectors"
+                header_parts.append(row_sectors_text)
+
+                # Print the custom spanner header
+                console.print("[dim]" + "  ".join(header_parts) + "[/dim]")
+
+                # Add a horizontal rule below the spanner
+                rule_parts = []
+                rule_parts.append(" " * 20)  # Space for Column header
+                rule_parts.append(" " * 10)  # Space for Type header
+
+                # Use a fixed width horizontal rule for "Row Sectors"
+                horizontal_rule = "─" * 20
+                rule_parts.append(horizontal_rule)
+
+                # Print the horizontal rule
+                console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
+
+            # Print the Rich table (will handle terminal width automatically)
+            console.print(rich_table)
             footer_text = (
                 "[dim]Symbols: [green]●[/green] = no missing values, "
                 "[red]●[/red] = completely missing, "
