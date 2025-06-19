@@ -1607,7 +1607,9 @@ def _format_missing_percentage(value: float) -> str:
         Formatted string with proper percentage display
     """
     if value == 0.0:
-        return "✓"  # Check mark for no missing values
+        return "[green]●[/green]"  # Large green circle for no missing values
+    elif value == 100.0:
+        return "[red]●[/red]"  # Large red circle for completely missing values
     elif value < 1.0 and value > 0:
         return "<1%"  # Less than 1%
     elif value > 99.0 and value < 100.0:
@@ -1734,6 +1736,15 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 
             # Show the table
             console.print(rich_table)
+
+            # Add footer with symbol explanations
+            footer_text = (
+                "[dim]Symbols: [green]●[/green] = no missing values, "
+                "[red]●[/red] = completely missing, "
+                "<1% = less than 1% missing, "
+                ">99% = more than 99% missing[/dim]"
+            )
+            console.print(footer_text)
 
         else:
             # Fallback to regular table display
