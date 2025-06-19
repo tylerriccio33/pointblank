@@ -1664,8 +1664,9 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
             # Add columns to Rich table with special formatting for missing values table
             sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
 
-            # First column: Column names with types (wider to accommodate types)
-            rich_table.add_column("Column", style="cyan", no_wrap=False, width=35)
+            # Two separate columns: Column name (20 chars) and Data type (10 chars)
+            rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+            rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
 
             # Sector columns: All same width, no headers with types
             for sector in sector_columns:
@@ -1691,12 +1692,26 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                     formatted_row = []
                     for col in columns:
                         if col == "columns":
-                            # Column name with data type
+                            # Split into column name and data type
                             column_name = str(row.get(col, ""))
-                            if column_name in column_types:
-                                formatted_row.append(f"{column_name} <{column_types[column_name]}>")
+
+                            # Truncate column name to 20 characters with ellipsis if needed
+                            if len(column_name) > 20:
+                                truncated_name = column_name[:17] + "…"
                             else:
-                                formatted_row.append(column_name)
+                                truncated_name = column_name
+                            formatted_row.append(truncated_name)
+
+                            # Add data type column (truncate to 8 characters if needed)
+                            if column_name in column_types:
+                                dtype = column_types[column_name]
+                                if len(dtype) > 8:
+                                    truncated_dtype = dtype[:7] + "…"
+                                else:
+                                    truncated_dtype = dtype
+                                formatted_row.append(truncated_dtype)
+                            else:
+                                formatted_row.append("?")
                         elif col.isdigit():
                             # Sector percentage - apply special formatting
                             value = row.get(col, 0.0)
@@ -1707,7 +1722,7 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                     rows.append(formatted_row)
 
             except Exception as e:
-                rows = [["Error extracting data", *["" for _ in sector_columns]]]
+                rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
 
             # Add rows to Rich table
             for row in rows:
