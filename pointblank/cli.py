@@ -516,6 +516,7 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     break
 
             # Show the table
+            console.print()
             console.print(rich_table)
 
             # Show summary info
@@ -1057,6 +1058,7 @@ def info(data_source: str):
         info_table.add_row("Rows", f"{row_count:,}")
         info_table.add_row("Columns", f"{col_count:,}")
 
+        console.print()
         console.print(info_table)
 
     except Exception as e:
