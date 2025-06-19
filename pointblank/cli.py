@@ -1025,61 +1025,6 @@ def info(data_source: str):
 
         console.print(info_table)
 
-        # Show column information
-        try:
-            # Get column names
-            if hasattr(data, "columns"):
-                columns = list(data.columns)
-            elif hasattr(data, "schema"):
-                columns = list(data.schema.names)
-            else:
-                columns = ["Unable to determine columns"]
-
-            if len(columns) <= 50:  # Only show if reasonable number of columns
-                columns_table = Table(title="Columns", show_header=True, header_style="bold cyan")
-                columns_table.add_column("Index", style="dim")
-                columns_table.add_column("Column Name", style="green")
-                columns_table.add_column("Data Type", style="yellow")
-
-                # Try to get data types
-                dtypes = []
-                try:
-                    if hasattr(data, "dtypes"):
-                        # Polars/Pandas style
-                        if hasattr(data.dtypes, "to_dict"):
-                            dtypes_dict = data.dtypes.to_dict()
-                            dtypes = [str(dtypes_dict.get(col, "Unknown")) for col in columns]
-                        else:
-                            dtypes = [str(dtype) for dtype in data.dtypes]
-                    elif hasattr(data, "schema"):
-                        # Other schema-based systems
-                        schema = data.schema
-                        if hasattr(schema, "to_dict"):
-                            schema_dict = schema.to_dict()
-                            dtypes = [str(schema_dict.get(col, "Unknown")) for col in columns]
-                        else:
-                            dtypes = [str(getattr(schema, col, "Unknown")) for col in columns]
-                    else:
-                        dtypes = ["Unknown"] * len(columns)
-                except Exception:
-                    dtypes = ["Unknown"] * len(columns)
-
-                for idx, (col, dtype) in enumerate(zip(columns, dtypes)):
-                    # Clean up dtype names for better display
-                    dtype_clean = dtype.replace("polars.", "").replace("Utf8", "String")
-                    columns_table.add_row(str(idx), col, dtype_clean)
-
-                console.print(columns_table)
-            else:
-                console.print(
-                    f"\n[yellow]Table has {len(columns)} columns (too many to display)[/yellow]"
-                )
-                console.print(f"First 10 columns: {', '.join(columns[:10])}")
-                console.print(f"Last 10 columns: {', '.join(columns[-10:])}")
-
-        except Exception as e:
-            console.print(f"[yellow]Could not retrieve column information: {e}[/yellow]")
-
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
@@ -1139,6 +1084,8 @@ def scan(
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
                 # For pointblank datasets, data is already the loaded dataframe
                 scan_result = pb.col_summary_tbl(data=data)
+                source_type = f"Pointblank dataset: {data_source}"
+                table_type = _get_tbl_type(data)
                 # Get row count for footer
                 try:
                     total_rows = pb.get_row_count(data)
@@ -1156,6 +1103,8 @@ def scan(
                 processed_data = _process_csv_input(processed_data)
                 processed_data = _process_parquet_input(processed_data)
                 scan_result = pb.col_summary_tbl(data=processed_data)
+                source_type = f"External source: {data_source}"
+                table_type = _get_tbl_type(processed_data)
                 # Get row count for footer
                 try:
                     total_rows = pb.get_row_count(processed_data)
@@ -1179,7 +1128,9 @@ def scan(
 
             # Display detailed column summary using rich formatting
             try:
-                _rich_print_scan_table(scan_result, data_source, total_rows)
+                _rich_print_scan_table(
+                    scan_result, data_source, source_type, table_type, total_rows
+                )
 
             except Exception as e:
                 console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
@@ -1805,6 +1756,8 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 def _rich_print_scan_table(
     scan_result: Any,
     data_source: str,
+    source_type: str,
+    table_type: str,
     total_rows: int | None = None,
 ) -> None:
     """
@@ -1813,6 +1766,8 @@ def _rich_print_scan_table(
     Args:
         scan_result: The GT object from col_summary_tbl()
         data_source: Name of the data source being scanned
+        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
+        table_type: Type of table (e.g., "polars.LazyFrame")
         total_rows: Total number of rows in the dataset
     """
     try:
@@ -1832,12 +1787,16 @@ def _rich_print_scan_table(
         data_dict = nw_data.to_dict(as_series=False)
 
         # Create main scan table with missing data table styling
+        # Create a comprehensive title with data source, source type, and table type
+        title_text = f"Column Summary / {source_type} / {table_type}"
+
         scan_table = Table(
-            title=f"Column Summary - {data_source}",
+            title=title_text,
             show_header=True,
             header_style="bold magenta",
             box=SIMPLE_HEAD,
             title_style="bold cyan",
+            title_justify="left",
         )
 
         # Add columns with specific styling and appropriate widths
