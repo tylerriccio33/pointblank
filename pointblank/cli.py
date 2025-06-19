@@ -240,7 +240,21 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             # Create a Rich table with horizontal lines
             from rich.box import SIMPLE_HEAD
 
-            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
+            # Create enhanced title if preview_info contains metadata
+            table_title = None
+            if preview_info and "source_type" in preview_info and "table_type" in preview_info:
+                source_type = preview_info["source_type"]
+                table_type = preview_info["table_type"]
+                table_title = f"Data Preview / {source_type} / {table_type}"
+
+            rich_table = Table(
+                title=table_title,
+                show_header=True,
+                header_style="bold magenta",
+                box=SIMPLE_HEAD,
+                title_style="bold cyan",
+                title_justify="left",
+            )
 
             # Get column names
             columns = []
@@ -917,9 +931,9 @@ def preview(
 
         # Generate preview
         with console.status("[bold green]Generating preview..."):
-            # Get total dataset size before preview
+            # Get total dataset size before preview and gather metadata
             try:
-                # Process the data to get the actual data object for row count
+                # Process the data to get the actual data object for row count and metadata
                 from pointblank.validate import (
                     _process_connection_string,
                     _process_csv_input,
@@ -933,9 +947,19 @@ def preview(
                     processed_data = _process_parquet_input(processed_data)
 
                 total_dataset_rows = pb.get_row_count(processed_data)
+
+                # Determine source type and table type for enhanced preview title
+                if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                    source_type = f"Pointblank dataset: {data_source}"
+                else:
+                    source_type = f"External source: {data_source}"
+
+                table_type = _get_tbl_type(processed_data)
             except Exception:
-                # If we can't get row count, set to None
+                # If we can't get metadata, set defaults
                 total_dataset_rows = None
+                source_type = f"Data source: {data_source}"
+                table_type = "unknown"
 
             gt_table = pb.preview(
                 data=data,
@@ -967,6 +991,8 @@ def preview(
                     "head_rows": head,
                     "tail_rows": tail,
                     "is_complete": is_complete,
+                    "source_type": source_type,
+                    "table_type": table_type,
                 }
 
             _rich_print_gt_table(gt_table, preview_info)
