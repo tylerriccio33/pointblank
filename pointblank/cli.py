@@ -2074,10 +2074,11 @@ def _rich_print_scan_table(
 @click.argument("data_source", type=str)
 @click.option(
     "--check",
-    type=click.Choice(["rows-distinct"]),
+    type=click.Choice(["rows-distinct", "col-not-null"]),
     default="rows-distinct",
     help="Type of validation check to perform",
 )
+@click.option("--column", help="Column name to validate (required for col-not-null check)")
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
 )
@@ -2088,6 +2089,7 @@ def _rich_print_scan_table(
 def validate_simple(
     data_source: str,
     check: str,
+    column: str | None,
     show_extract: bool,
     limit: int,
     exit_code: bool,
@@ -2110,15 +2112,24 @@ def validate_simple(
 
     \b
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
+    - col-not-null: Check if all values in a column are not null/missing (requires --column)
 
     Examples:
 
     \b
     pb validate-simple data.csv --check rows-distinct
     pb validate-simple small_table --check rows-distinct --show-extract
+    pb validate-simple data.csv --check col-not-null --column age
+    pb validate-simple data.csv --check col-not-null --column email --show-extract
     pb validate-simple data.csv --check rows-distinct --exit-code
     """
     try:
+        # Validate required parameters for different check types
+        if check == "col-not-null" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print("Example: pb validate-simple data.csv --check col-not-null --column age")
+            sys.exit(1)
+
         with console.status("[bold green]Loading data..."):
             # Try to load as a pointblank dataset first
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
@@ -2140,6 +2151,24 @@ def validate_simple(
                         label=f"CLI Simple Validation: {check}",
                     )
                     .rows_distinct()
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-not-null":
+                # Create validation for null values in specified column
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} on column '{column}'",
+                    )
+                    .col_vals_not_null(columns=column)
                     .interrogate()
                 )
 
@@ -2172,6 +2201,10 @@ def validate_simple(
         result_table.add_row("Data Source", data_source)
         result_table.add_row("Check Type", check.replace("-", " ").title())
 
+        # Add column info for column-specific checks
+        if check == "col-not-null":
+            result_table.add_row("Column", column)
+
         # Get validation details
         if hasattr(validation, "validation_info") and validation.validation_info:
             step_info = validation.validation_info[0]  # Should only be one step
@@ -2182,10 +2215,18 @@ def validate_simple(
             # Overall result with color coding
             if all_passed:
                 result_table.add_row("Result", "[green]✓ PASSED[/green]")
-                result_table.add_row("Duplicate Rows", "[green]None found[/green]")
+                if check == "rows-distinct":
+                    result_table.add_row("Duplicate Rows", "[green]None found[/green]")
+                elif check == "col-not-null":
+                    result_table.add_row("Null Values", "[green]None found[/green]")
             else:
                 result_table.add_row("Result", "[red]✗ FAILED[/red]")
-                result_table.add_row("Duplicate Rows", f"[red]{step_info.n_failed:,} found[/red]")
+                if check == "rows-distinct":
+                    result_table.add_row(
+                        "Duplicate Rows", f"[red]{step_info.n_failed:,} found[/red]"
+                    )
+                elif check == "col-not-null":
+                    result_table.add_row("Null Values", f"[red]{step_info.n_failed:,} found[/red]")
 
         console.print()
         console.print(result_table)
@@ -2193,7 +2234,21 @@ def validate_simple(
         # Show extract if requested and validation failed
         if show_extract and not all_passed:
             console.print()
-            console.print("[yellow]Preview of failing rows (duplicates):[/yellow]")
+
+            # Dynamic message based on check type
+            if check == "rows-distinct":
+                extract_message = "[yellow]Preview of failing rows (duplicates):[/yellow]"
+                row_type = "duplicate rows"
+            elif check == "col-not-null":
+                extract_message = (
+                    f"[yellow]Preview of failing rows (null values in '{column}'):[/yellow]"
+                )
+                row_type = "rows with null values"
+            else:
+                extract_message = "[yellow]Preview of failing rows:[/yellow]"
+                row_type = "failing rows"
+
+            console.print(extract_message)
 
             try:
                 # Get failing rows extract
@@ -2204,11 +2259,11 @@ def validate_simple(
                     if len(failing_rows) > limit:
                         display_rows = failing_rows.head(limit)
                         console.print(
-                            f"[dim]Showing first {limit} of {len(failing_rows)} duplicate rows[/dim]"
+                            f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
                         )
                     else:
                         display_rows = failing_rows
-                        console.print(f"[dim]Showing all {len(failing_rows)} duplicate rows[/dim]")
+                        console.print(f"[dim]Showing all {len(failing_rows)} {row_type}[/dim]")
 
                     # Create a preview table using pointblank's preview function
                     preview_table = pb.preview(
@@ -2229,16 +2284,33 @@ def validate_simple(
         # Summary message
         console.print()
         if all_passed:
+            if check == "rows-distinct":
+                success_message = (
+                    f"[green]✓ Validation PASSED: No duplicate rows found in {data_source}[/green]"
+                )
+            elif check == "col-not-null":
+                success_message = f"[green]✓ Validation PASSED: No null values found in column '{column}' in {data_source}[/green]"
+            else:
+                success_message = (
+                    f"[green]✓ Validation PASSED: {check} check passed for {data_source}[/green]"
+                )
+
             console.print(
                 Panel(
-                    f"[green]✓ Validation PASSED: No duplicate rows found in {data_source}[/green]",
+                    success_message,
                     border_style="green",
                 )
             )
         else:
             if hasattr(validation, "validation_info") and validation.validation_info:
                 step_info = validation.validation_info[0]
-                failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]"
+
+                if check == "rows-distinct":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]"
+                elif check == "col-not-null":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} null values found in column '{column}' in {data_source}[/red]"
+                else:
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} failing rows found in {data_source}[/red]"
 
                 # Add hint about --show-extract if not already used
                 if not show_extract:
@@ -2253,9 +2325,16 @@ def validate_simple(
                     )
                 )
             else:
-                failure_message = (
-                    f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]"
-                )
+                if check == "rows-distinct":
+                    failure_message = (
+                        f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]"
+                    )
+                elif check == "col-not-null":
+                    failure_message = f"[red]✗ Validation FAILED: Null values found in column '{column}' in {data_source}[/red]"
+                else:
+                    failure_message = (
+                        f"[red]✗ Validation FAILED: {check} check failed for {data_source}[/red]"
+                    )
 
                 # Add hint about --show-extract if not already used
                 if not show_extract:
