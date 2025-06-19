@@ -1089,16 +1089,10 @@ def info(data_source: str):
 @click.argument("data_source", type=str)
 @click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
 @click.option("--columns", "-c", help="Comma-separated list of columns to scan")
-@click.option(
-    "--sample-size",
-    type=int,
-    help="Sample size for scanning (optional, scans entire dataset by default)",
-)
 def scan(
     data_source: str,
     output_html: str | None,
     columns: str | None,
-    sample_size: int | None,
 ):
     """
     Generate a data scan profile report.
@@ -1185,7 +1179,7 @@ def scan(
 
             # Display detailed column summary using rich formatting
             try:
-                _rich_print_scan_table(scan_result, data_source, total_rows, sample_size)
+                _rich_print_scan_table(scan_result, data_source, total_rows)
 
             except Exception as e:
                 console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
@@ -1812,7 +1806,6 @@ def _rich_print_scan_table(
     scan_result: Any,
     data_source: str,
     total_rows: int | None = None,
-    sample_size: int | None = None,
 ) -> None:
     """
     Display scan results as a Rich table in the terminal with statistical measures.
@@ -1821,7 +1814,6 @@ def _rich_print_scan_table(
         scan_result: The GT object from col_summary_tbl()
         data_source: Name of the data source being scanned
         total_rows: Total number of rows in the dataset
-        sample_size: Sample size used for scanning (if applicable)
     """
     try:
         import re
@@ -2053,17 +2045,11 @@ def _rich_print_scan_table(
 
         # Display the results
         console.print()
-        console.print(scan_table)
-
-        # Add informational footer about the scan scope
+        console.print(scan_table)  # Add informational footer about the scan scope
         try:
             if total_rows is not None:
-                if sample_size is not None:
-                    # Sample was used
-                    footer_text = f"[dim]Scan from sample of {sample_size:,} rows (from table of {total_rows:,} rows).[/dim]"
-                else:
-                    # Full table scan
-                    footer_text = f"[dim]Scan from all {total_rows:,} rows in the table.[/dim]"
+                # Full table scan
+                footer_text = f"[dim]Scan from all {total_rows:,} rows in the table.[/dim]"
 
                 # Create a simple footer
                 footer_table = Table(
