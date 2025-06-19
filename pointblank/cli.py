@@ -1085,7 +1085,11 @@ def info(data_source: str):
 @click.argument("data_source", type=str)
 @click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
 @click.option("--columns", "-c", help="Comma-separated list of columns to scan")
-@click.option("--sample-size", type=int, help="Sample size for scanning (optional, scans entire dataset by default)")
+@click.option(
+    "--sample-size",
+    type=int,
+    help="Sample size for scanning (optional, scans entire dataset by default)",
+)
 def scan(
     data_source: str,
     output_html: str | None,
