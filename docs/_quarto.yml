@@ -61,6 +61,7 @@ website:
           contents:
             - user-guide/index.qmd
             - user-guide/installation.qmd
+            - user-guide/cli.qmd
         - section: "Validation Plan"
           contents:
             - user-guide/validation-overview.qmd
