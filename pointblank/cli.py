@@ -2074,11 +2074,30 @@ def _rich_print_scan_table(
 @click.argument("data_source", type=str)
 @click.option(
     "--check",
-    type=click.Choice(["rows-distinct", "col-not-null"]),
+    type=click.Choice(
+        [
+            "rows-distinct",
+            "col-not-null",
+            "rows-complete",
+            "col-exists",
+            "col-vals-in-set",
+            "col-vals-gt",
+            "col-vals-ge",
+        ]
+    ),
     default="rows-distinct",
     help="Type of validation check to perform",
 )
-@click.option("--column", help="Column name to validate (required for col-not-null check)")
+@click.option(
+    "--column",
+    help="Column name to validate (required for col-not-null, col-exists, col-vals-in-set, col-vals-gt, and col-vals-ge checks)",
+)
+@click.option("--set", help="Comma-separated allowed values (required for col-vals-in-set check)")
+@click.option(
+    "--value",
+    type=float,
+    help="Numeric value for comparison (required for col-vals-gt and col-vals-ge checks)",
+)
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
 )
@@ -2090,6 +2109,8 @@ def validate_simple(
     data_source: str,
     check: str,
     column: str | None,
+    set: str | None,
+    value: float | None,
     show_extract: bool,
     limit: int,
     exit_code: bool,
@@ -2113,6 +2134,11 @@ def validate_simple(
     \b
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
     - col-not-null: Check if all values in a column are not null/missing (requires --column)
+    - rows-complete: Check if all rows are complete (no missing values in any column)
+    - col-exists: Check if a specific column exists in the dataset (requires --column)
+    - col-vals-in-set: Check if all values in a column are in an allowed set (requires --column and --set)
+    - col-vals-gt: Check if all values in a column are greater than a threshold (requires --column and --value)
+    - col-vals-ge: Check if all values in a column are greater than or equal to a threshold (requires --column and --value)
 
     Examples:
 
@@ -2121,6 +2147,12 @@ def validate_simple(
     pb validate-simple small_table --check rows-distinct --show-extract
     pb validate-simple data.csv --check col-not-null --column age
     pb validate-simple data.csv --check col-not-null --column email --show-extract
+    pb validate-simple data.csv --check rows-complete
+    pb validate-simple data.csv --check rows-complete --show-extract
+    pb validate-simple data.csv --check col-exists --column price
+    pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
+    pb validate-simple data.csv --check col-vals-gt --column score --value 50
+    pb validate-simple data.csv --check col-vals-ge --column age --value 18
     pb validate-simple data.csv --check rows-distinct --exit-code
     """
     try:
@@ -2128,6 +2160,53 @@ def validate_simple(
         if check == "col-not-null" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print("Example: pb validate-simple data.csv --check col-not-null --column age")
+            sys.exit(1)
+
+        if check == "col-exists" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print("Example: pb validate-simple data.csv --check col-exists --column price")
+            sys.exit(1)
+
+        if check == "col-vals-in-set" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive'"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-in-set" and not set:
+            console.print(f"[red]Error:[/red] --set is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive,pending'"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-gt" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-gt" and value is None:
+            console.print(f"[red]Error:[/red] --value is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-ge" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-ge" and value is None:
+            console.print(f"[red]Error:[/red] --value is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+            )
             sys.exit(1)
 
         with console.status("[bold green]Loading data..."):
@@ -2178,6 +2257,99 @@ def validate_simple(
                 console.print(
                     f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
                 )
+            elif check == "rows-complete":
+                # Create validation for complete rows (no missing values in any column)
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check}",
+                    )
+                    .rows_complete()
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-exists":
+                # Create validation for column existence
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}'",
+                    )
+                    .col_exists(columns=column)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-vals-in-set":
+                # Parse the comma-separated set values
+                allowed_values = [value.strip() for value in set.split(",")]
+
+                # Create validation for values in set
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}'",
+                    )
+                    .col_vals_in_set(columns=column, set=allowed_values)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-vals-gt":
+                # Create validation for values greater than threshold
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}' > {value}",
+                    )
+                    .col_vals_gt(columns=column, value=value)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-vals-ge":
+                # Create validation for values greater than or equal to threshold
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}' >= {value}",
+                    )
+                    .col_vals_ge(columns=column, value=value)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
             else:
                 # This shouldn't happen due to click.Choice, but just in case
                 console.print(f"[red]Error:[/red] Unknown check type: {check}")
@@ -2191,6 +2363,16 @@ def validate_simple(
             table_title = "Validation Result: Rows Distinct"
         elif check == "col-not-null":
             table_title = "Validation Result: Column Not Null"
+        elif check == "rows-complete":
+            table_title = "Validation Result: Rows Complete"
+        elif check == "col-exists":
+            table_title = "Validation Result: Column Exists"
+        elif check == "col-vals-in-set":
+            table_title = "Validation Result: Column Values In Set"
+        elif check == "col-vals-gt":
+            table_title = "Validation Result: Column Values Greater Than"
+        elif check == "col-vals-ge":
+            table_title = "Validation Result: Column Values Greater Than Or Equal"
         else:
             table_title = f"Validation Result: {check.replace('-', ' ').title()}"
 
@@ -2210,8 +2392,18 @@ def validate_simple(
         result_table.add_row("Check Type", check)
 
         # Add column info for column-specific checks
-        if check == "col-not-null":
+        if check in ["col-not-null", "col-exists", "col-vals-in-set", "col-vals-gt", "col-vals-ge"]:
             result_table.add_row("Column", column)
+
+        # Add set info for col-vals-in-set check
+        if check == "col-vals-in-set":
+            allowed_values = [value.strip() for value in set.split(",")]
+            result_table.add_row("Allowed Values", ", ".join(allowed_values))
+
+        # Add value info for range checks
+        if check in ["col-vals-gt", "col-vals-ge"]:
+            operator = ">" if check == "col-vals-gt" else ">="
+            result_table.add_row("Threshold", f"{operator} {value}")
 
         # Get validation details
         if hasattr(validation, "validation_info") and validation.validation_info:
@@ -2227,6 +2419,18 @@ def validate_simple(
                     result_table.add_row("Duplicate Rows", "[green]None found[/green]")
                 elif check == "col-not-null":
                     result_table.add_row("Null Values", "[green]None found[/green]")
+                elif check == "rows-complete":
+                    result_table.add_row("Incomplete Rows", "[green]None found[/green]")
+                elif check == "col-exists":
+                    result_table.add_row("Column Status", "[green]Column exists[/green]")
+                elif check == "col-vals-in-set":
+                    result_table.add_row(
+                        "Values Status", "[green]All values in allowed set[/green]"
+                    )
+                elif check == "col-vals-gt":
+                    result_table.add_row("Values Status", f"[green]All values > {value}[/green]")
+                elif check == "col-vals-ge":
+                    result_table.add_row("Values Status", f"[green]All values >= {value}[/green]")
             else:
                 result_table.add_row("Result", "[red]✗ FAILED[/red]")
                 if check == "rows-distinct":
@@ -2235,6 +2439,24 @@ def validate_simple(
                     )
                 elif check == "col-not-null":
                     result_table.add_row("Null Values", f"[red]{step_info.n_failed:,} found[/red]")
+                elif check == "rows-complete":
+                    result_table.add_row(
+                        "Incomplete Rows", f"[red]{step_info.n_failed:,} found[/red]"
+                    )
+                elif check == "col-exists":
+                    result_table.add_row("Column Status", "[red]Column does not exist[/red]")
+                elif check == "col-vals-in-set":
+                    result_table.add_row(
+                        "Invalid Values", f"[red]{step_info.n_failed:,} found[/red]"
+                    )
+                elif check == "col-vals-gt":
+                    result_table.add_row(
+                        "Invalid Values", f"[red]{step_info.n_failed:,} values <= {value}[/red]"
+                    )
+                elif check == "col-vals-ge":
+                    result_table.add_row(
+                        "Invalid Values", f"[red]{step_info.n_failed:,} values < {value}[/red]"
+                    )
 
         console.print()
         console.print(result_table)
@@ -2252,42 +2474,72 @@ def validate_simple(
                     f"[yellow]Preview of failing rows (null values in '{column}'):[/yellow]"
                 )
                 row_type = "rows with null values"
+            elif check == "rows-complete":
+                extract_message = "[yellow]Preview of failing rows (incomplete rows):[/yellow]"
+                row_type = "incomplete rows"
+            elif check == "col-exists":
+                extract_message = (
+                    f"[yellow]Column '{column}' does not exist in the dataset[/yellow]"
+                )
+                row_type = "missing column"
+            elif check == "col-vals-in-set":
+                extract_message = (
+                    f"[yellow]Preview of failing rows (invalid values in '{column}'):[/yellow]"
+                )
+                row_type = "rows with invalid values"
+            elif check == "col-vals-gt":
+                extract_message = (
+                    f"[yellow]Preview of failing rows (values in '{column}' <= {value}):[/yellow]"
+                )
+                row_type = f"rows with values <= {value}"
+            elif check == "col-vals-ge":
+                extract_message = (
+                    f"[yellow]Preview of failing rows (values in '{column}' < {value}):[/yellow]"
+                )
+                row_type = f"rows with values < {value}"
             else:
                 extract_message = "[yellow]Preview of failing rows:[/yellow]"
                 row_type = "failing rows"
 
             console.print(extract_message)
 
-            try:
-                # Get failing rows extract
-                failing_rows = validation.get_data_extracts(i=1, frame=True)
+            # Special handling for col-exists check - no rows to show when column doesn't exist
+            if check == "col-exists" and not all_passed:
+                console.print(f"[dim]The column '{column}' was not found in the dataset.[/dim]")
+                console.print(
+                    "[dim]Use --show-extract with other check types to see failing data rows.[/dim]"
+                )
+            else:
+                try:
+                    # Get failing rows extract
+                    failing_rows = validation.get_data_extracts(i=1, frame=True)
 
-                if failing_rows is not None and len(failing_rows) > 0:
-                    # Limit the number of rows shown
-                    if len(failing_rows) > limit:
-                        display_rows = failing_rows.head(limit)
-                        console.print(
-                            f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                    if failing_rows is not None and len(failing_rows) > 0:
+                        # Limit the number of rows shown
+                        if len(failing_rows) > limit:
+                            display_rows = failing_rows.head(limit)
+                            console.print(
+                                f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                            )
+                        else:
+                            display_rows = failing_rows
+                            console.print(f"[dim]Showing all {len(failing_rows)} {row_type}[/dim]")
+
+                        # Create a preview table using pointblank's preview function
+                        preview_table = pb.preview(
+                            data=display_rows,
+                            n_head=min(limit, len(display_rows)),
+                            n_tail=0,
+                            limit=limit,
+                            show_row_numbers=True,
                         )
+
+                        # Display using our Rich table function
+                        _rich_print_gt_table(preview_table)
                     else:
-                        display_rows = failing_rows
-                        console.print(f"[dim]Showing all {len(failing_rows)} {row_type}[/dim]")
-
-                    # Create a preview table using pointblank's preview function
-                    preview_table = pb.preview(
-                        data=display_rows,
-                        n_head=min(limit, len(display_rows)),
-                        n_tail=0,
-                        limit=limit,
-                        show_row_numbers=True,
-                    )
-
-                    # Display using our Rich table function
-                    _rich_print_gt_table(preview_table)
-                else:
-                    console.print("[yellow]No failing rows could be extracted[/yellow]")
-            except Exception as e:
-                console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+                        console.print("[yellow]No failing rows could be extracted[/yellow]")
+                except Exception as e:
+                    console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
 
         # Summary message
         console.print()
@@ -2298,6 +2550,18 @@ def validate_simple(
                 )
             elif check == "col-not-null":
                 success_message = f"[green]✓ Validation PASSED: No null values found in column '{column}' in {data_source}[/green]"
+            elif check == "rows-complete":
+                success_message = f"[green]✓ Validation PASSED: All rows are complete (no missing values) in {data_source}[/green]"
+            elif check == "col-exists":
+                success_message = (
+                    f"[green]✓ Validation PASSED: Column '{column}' exists in {data_source}[/green]"
+                )
+            elif check == "col-vals-in-set":
+                success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are in the allowed set in {data_source}[/green]"
+            elif check == "col-vals-gt":
+                success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are > {value} in {data_source}[/green]"
+            elif check == "col-vals-ge":
+                success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are >= {value} in {data_source}[/green]"
             else:
                 success_message = (
                     f"[green]✓ Validation PASSED: {check} check passed for {data_source}[/green]"
@@ -2317,11 +2581,21 @@ def validate_simple(
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]"
                 elif check == "col-not-null":
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} null values found in column '{column}' in {data_source}[/red]"
+                elif check == "rows-complete":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} incomplete rows found in {data_source}[/red]"
+                elif check == "col-exists":
+                    failure_message = f"[red]✗ Validation FAILED: Column '{column}' does not exist in {data_source}[/red]"
+                elif check == "col-vals-in-set":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} invalid values found in column '{column}' in {data_source}[/red]"
+                elif check == "col-vals-gt":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values <= {value} found in column '{column}' in {data_source}[/red]"
+                elif check == "col-vals-ge":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values < {value} found in column '{column}' in {data_source}[/red]"
                 else:
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} failing rows found in {data_source}[/red]"
 
-                # Add hint about --show-extract if not already used
-                if not show_extract:
+                # Add hint about --show-extract if not already used (except for col-exists which has no rows to show)
+                if not show_extract and check != "col-exists":
                     failure_message += (
                         "\n[dim]💡 Tip: Use --show-extract to see the failing rows[/dim]"
                     )
@@ -2339,6 +2613,10 @@ def validate_simple(
                     )
                 elif check == "col-not-null":
                     failure_message = f"[red]✗ Validation FAILED: Null values found in column '{column}' in {data_source}[/red]"
+                elif check == "rows-complete":
+                    failure_message = (
+                        f"[red]✗ Validation FAILED: Incomplete rows found in {data_source}[/red]"
+                    )
                 else:
                     failure_message = (
                         f"[red]✗ Validation FAILED: {check} check failed for {data_source}[/red]"
