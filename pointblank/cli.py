@@ -237,8 +237,9 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             df = gt_table.data
 
         if df is not None:
-            # Create a Rich table
-            rich_table = Table(show_header=True, header_style="bold magenta", box=None)
+            # Create a Rich table with horizontal lines
+            from rich.box import SIMPLE_HEAD
+            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
 
             # Get column names
             columns = []
@@ -457,10 +458,35 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             except Exception as e:
                 rows = [[f"Error extracting data: {e}"]]
 
-            # Add rows to Rich table (limit to prevent overwhelming output)
+            # Add rows to Rich table with separator between head and tail
             max_rows = 50  # Reasonable limit for terminal display
+            
+            # Get preview info to determine head/tail separation
+            head_rows_count = 0
+            tail_rows_count = 0
+            total_dataset_rows = 0
+            
+            if preview_info:
+                head_rows_count = preview_info.get("head_rows", 0)
+                tail_rows_count = preview_info.get("tail_rows", 0)
+                total_dataset_rows = preview_info.get("total_rows", len(rows))
+                is_complete = preview_info.get("is_complete", False)
+            else:
+                # Fallback: assume all rows are shown
+                is_complete = True
+            
+            # Add rows with optional separator
             for i, row in enumerate(rows[:max_rows]):
                 try:
+                    # Add separator between head and tail rows
+                    if (not is_complete and head_rows_count > 0 and tail_rows_count > 0 
+                        and i == head_rows_count):
+                        # Add a visual separator row with dashes
+                        separator_row = ["─" * 3 if col != "_row_num_" else "⋮" for col in (
+                            display_columns if 'display_columns' in locals() else columns
+                        )]
+                        rich_table.add_row(*separator_row, style="dim")
+                    
                     rich_table.add_row(*row)
                 except Exception as e:
                     # If there's an issue with row data, show error
