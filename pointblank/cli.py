@@ -1011,9 +1011,17 @@ def info(data_source: str):
         row_count = pb.get_row_count(data)
         col_count = pb.get_column_count(data)
 
-        # Create info table
+        # Import the box style for consistent styling with scan table
+        from rich.box import SIMPLE_HEAD
+
+        # Create info table with same styling as scan table
         info_table = Table(
-            title="Data Source Information", show_header=True, header_style="bold magenta"
+            title="Data Source Information",
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
         )
         info_table.add_column("Property", style="cyan", no_wrap=True)
         info_table.add_column("Value", style="green")
