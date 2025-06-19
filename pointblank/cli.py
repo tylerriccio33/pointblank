@@ -2238,16 +2238,28 @@ def validate_simple(
         else:
             if hasattr(validation, "validation_info") and validation.validation_info:
                 step_info = validation.validation_info[0]
+                failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]"
+                
+                # Add hint about --show-extract if not already used
+                if not show_extract:
+                    failure_message += "\n[dim]💡 Tip: Use --show-extract to see the failing rows[/dim]"
+                
                 console.print(
                     Panel(
-                        f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]",
+                        failure_message,
                         border_style="red",
                     )
                 )
             else:
+                failure_message = f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]"
+                
+                # Add hint about --show-extract if not already used
+                if not show_extract:
+                    failure_message += "\n[dim]💡 Tip: Use --show-extract to see the failing rows[/dim]"
+                
                 console.print(
                     Panel(
-                        f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]",
+                        failure_message,
                         border_style="red",
                     )
                 )
