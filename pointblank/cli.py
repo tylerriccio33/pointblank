@@ -1143,36 +1143,13 @@ def scan(
             except Exception as e:
                 console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
         else:
-            # Display basic information in terminal
+            # Display rich scan table in terminal
             console.print(f"[green]✓[/green] Data scan completed in {scan_time:.2f}s")
             console.print("Use --output-html to save the full interactive scan report.")
 
-            # Show basic scan summary
+            # Display detailed column summary using rich formatting
             try:
-                # Get basic info about the scan
-                if hasattr(data, "shape"):
-                    rows, cols = data.shape
-                elif hasattr(data, "__len__") and hasattr(data, "columns"):
-                    rows = len(data)
-                    cols = len(data.columns)
-                else:
-                    rows = pb.get_row_count(data)
-                    cols = pb.get_column_count(data)
-
-                summary_table = Table(
-                    title="Data Scan Summary", show_header=True, header_style="bold cyan"
-                )
-                summary_table.add_column("Metric", style="cyan")
-                summary_table.add_column("Value", style="green")
-
-                summary_table.add_row("Rows Scanned", f"{min(sample_size, rows):,}")
-                summary_table.add_row("Total Rows", f"{rows:,}")
-                summary_table.add_row(
-                    "Columns Scanned", f"{len(columns_list) if columns_list else cols}"
-                )
-                summary_table.add_row("Sample Size", f"{sample_size:,}")
-
-                console.print(summary_table)
+                _rich_print_scan_table(scan_result, data_source)
 
             except Exception as e:
                 console.print(f"[yellow]Could not display scan summary: {e}[/yellow]")
@@ -1789,6 +1766,164 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
         console.print(f"[red]Error rendering missing values table:[/red] {e}")
         # Fallback to regular table display
         _rich_print_gt_table(gt_table)
+
+
+def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
+    """
+    Display scan results as a Rich table in the terminal with statistical measures.
+
+    Args:
+        scan_result: The GT object from col_summary_tbl()
+        data_source: Name of the data source being scanned
+    """
+    try:
+        import re
+
+        import narwhals as nw
+        from rich.box import SIMPLE_HEAD
+
+        # Extract the underlying DataFrame from the GT object
+        # The GT object has a _tbl_data attribute that contains the DataFrame
+        gt_data = scan_result._tbl_data
+
+        # Convert to Narwhals DataFrame for consistent handling
+        nw_data = nw.from_native(gt_data)
+
+        # Convert to dictionary for easier access
+        data_dict = nw_data.to_dict(as_series=False)
+
+        # Create main scan table with missing data table styling
+        scan_table = Table(
+            title=f"Column Summary - {data_source}",
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+        )
+
+        # Add columns with specific styling
+        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=12)
+        scan_table.add_column("NA", style="red", width=8, justify="right")
+        scan_table.add_column("UQ", style="green", width=8, justify="right")
+
+        # Add statistical columns if they exist
+        stat_columns = []
+        column_mapping = {
+            "mean": ("Mean", "blue"),
+            "std": ("SD", "blue"),
+            "min": ("Min", "yellow"),
+            "median": ("Med", "yellow"),
+            "max": ("Max", "yellow"),
+            "q_1": ("Q₁", "magenta"),
+            "q_3": ("Q₃", "magenta"),
+            "iqr": ("IQR", "magenta"),
+        }
+
+        for col_key, (display_name, color) in column_mapping.items():
+            if col_key in data_dict:
+                scan_table.add_column(display_name, style=color, width=8, justify="right")
+                stat_columns.append(col_key)
+
+        # Helper function to extract column name and type from HTML
+        def extract_column_info(html_content: str) -> tuple[str, str]:
+            """Extract column name and type from HTML formatted content."""
+            # Extract column name from first div
+            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
+            column_name = name_match.group(1) if name_match else "Unknown"
+
+            # Extract data type from second div (with gray color)
+            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
+            if type_match:
+                data_type = type_match.group(1)
+                # Clean up the type name
+                data_type = data_type.replace(
+                    "Datetime(time_unit='us', time_zone=None)", "datetime"
+                )
+                data_type = data_type.replace("Utf8", "string")
+                if len(data_type) > 12:
+                    data_type = data_type[:9] + "..."
+            else:
+                data_type = "Unknown"
+
+            return column_name, data_type
+
+        # Helper function to format values
+        def format_value(value: Any, is_missing: bool = False) -> str:
+            if value is None or (isinstance(value, str) and value.strip() == ""):
+                return "[dim]—[/dim]"
+            if is_missing and str(value) == "0":
+                return "[green]●[/green]"  # No missing values
+
+            # Clean up HTML formatting from the raw data
+            str_val = str(value)
+
+            # Handle HTML content (especially from boolean unique values)
+            if "<" in str_val and ">" in str_val:
+                # Remove HTML tags completely for cleaner display
+                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
+                # Clean up extra whitespace
+                str_val = re.sub(r"\s+", " ", str_val).strip()
+
+            if "<br>" in str_val:
+                # For values like "0<br> 0.00", take the first part
+                str_val = str_val.split("<br>")[0].strip()
+
+            # If still too long after cleanup, truncate
+            if len(str_val) > 8:
+                str_val = str_val[:6] + "…"
+
+            return str_val
+
+        # Populate table rows
+        num_rows = len(data_dict["colname"])
+        for i in range(num_rows):
+            row_data = []
+
+            # Column name and type from HTML content
+            colname_html = data_dict["colname"][i]
+            column_name, data_type = extract_column_info(colname_html)
+            row_data.append(column_name)
+            row_data.append(data_type)
+
+            # Missing values (NA)
+            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
+            row_data.append(format_value(missing_val, is_missing=True))
+
+            # Unique values (UQ)
+            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
+            row_data.append(format_value(unique_val))
+
+            # Statistical columns
+            for stat_col in stat_columns:
+                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
+                row_data.append(format_value(stat_val))
+
+            scan_table.add_row(*row_data)
+
+        # Display the results
+        console.print()
+        console.print(scan_table)
+
+        # Create legend
+        legend_table = Table(
+            show_header=False,
+            show_lines=False,
+            box=None,
+            padding=(0, 1),
+        )
+        legend_table.add_column("", style="dim", width=80)
+
+        legend_table.add_row(
+            "[dim]Legend: NA = Missing Values, UQ = Unique Values, — = Not applicable[/dim]"
+        )
+
+        console.print(legend_table)
+
+    except Exception as e:
+        # Fallback to simple message if table creation fails
+        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
+        console.print(f"[red]Error displaying table: {str(e)}[/red]")
 
 
 if __name__ == "__main__":
