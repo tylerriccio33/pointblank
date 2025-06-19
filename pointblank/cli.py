@@ -2038,21 +2038,6 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
         console.print()
         console.print(scan_table)
 
-        # Create legend
-        legend_table = Table(
-            show_header=False,
-            show_lines=False,
-            box=None,
-            padding=(0, 1),
-        )
-        legend_table.add_column("", style="dim", width=80)
-
-        legend_table.add_row(
-            "[dim]Legend: NA = Missing Values, UQ = Unique Values, — = Not applicable[/dim]"
-        )
-
-        console.print(legend_table)
-
     except Exception as e:
         # Fallback to simple message if table creation fails
         console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
