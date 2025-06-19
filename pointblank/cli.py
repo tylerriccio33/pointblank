@@ -29,7 +29,7 @@ def _format_cell_value(
     Returns:
         Formatted string with Rich markup for None/NA values or row numbers
     """
-    # Special formatting for row numbers
+    # Special formatting for row numbers: never truncate them
     if is_row_number:
         return f"[dim]{value}[/dim]"
 
@@ -299,6 +299,27 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             # Get data types for columns
             dtypes_dict = _get_column_dtypes(df, columns)
 
+            # Calculate row number column width if needed
+            row_num_width = 6  # Default width
+            if "_row_num_" in columns:
+                try:
+                    # Get the maximum row number to calculate appropriate width
+                    if hasattr(df, "to_dicts"):
+                        data_dict = df.to_dicts()
+                        if data_dict:
+                            row_nums = [row.get("_row_num_", 0) for row in data_dict]
+                            max_row_num = max(row_nums) if row_nums else 0
+                            row_num_width = max(len(str(max_row_num)) + 1, 6)  # +1 for padding
+                    elif hasattr(df, "to_dict"):
+                        data_dict = df.to_dict("records")
+                        if data_dict:
+                            row_nums = [row.get("_row_num_", 0) for row in data_dict]
+                            max_row_num = max(row_nums) if row_nums else 0
+                            row_num_width = max(len(str(max_row_num)) + 1, 6)  # +1 for padding
+                except Exception:
+                    # If we can't determine max row number, use default
+                    row_num_width = 8  # Slightly larger default for safety
+
             for i, col in enumerate(display_columns):
                 if col == "...more...":
                     # Add a special indicator column
@@ -307,8 +328,9 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     # Handle row number column specially
                     if col == "_row_num_":
                         # Row numbers get no header, right alignment, and dim gray style
+                        # Use dynamic width to prevent truncation
                         rich_table.add_column(
-                            "", style="dim", justify="right", no_wrap=True, width=6
+                            "", style="dim", justify="right", no_wrap=True, width=row_num_width
                         )
                     else:
                         display_col = str(col)
