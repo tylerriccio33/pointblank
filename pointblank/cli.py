@@ -2133,12 +2133,12 @@ def validate_simple(
 
     \b
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
-    - col-not-null: Check if all values in a column are not null/missing (requires --column)
     - rows-complete: Check if all rows are complete (no missing values in any column)
     - col-exists: Check if a specific column exists in the dataset (requires --column)
-    - col-vals-in-set: Check if all values in a column are in an allowed set (requires --column and --set)
+    - col-not-null: Check if all values in a column are not null/missing (requires --column)
     - col-vals-gt: Check if all values in a column are greater than a threshold (requires --column and --value)
     - col-vals-ge: Check if all values in a column are greater than or equal to a threshold (requires --column and --value)
+    - col-vals-in-set: Check if all values in a column are in an allowed set (requires --column and --set)
 
     Examples:
 
