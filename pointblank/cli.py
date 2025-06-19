@@ -1869,7 +1869,9 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
             return column_name, data_type
 
         # Helper function to format values with improved number formatting
-        def format_value(value: Any, is_missing: bool = False, max_width: int = 8) -> str:
+        def format_value(
+            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
+        ) -> str:
             """Format values for display with smart number formatting and HTML cleanup."""
             if value is None or (isinstance(value, str) and value.strip() == ""):
                 return "[dim]—[/dim]"
@@ -1881,16 +1883,24 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
             # Clean up HTML formatting from the raw data
             str_val = str(value)
 
-            # Handle HTML content (especially from boolean unique values and multi-line values)
+            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            if "<br>" in str_val:
+                str_val = str_val.split("<br>")[0].strip()
+                # For unique values, we want just the integer part
+                if is_unique:
+                    try:
+                        # Try to extract just the integer part for unique counts
+                        num_val = float(str_val)
+                        return str(int(num_val))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Now handle HTML content (especially from boolean unique values)
             if "<" in str_val and ">" in str_val:
                 # Remove HTML tags completely for cleaner display
                 str_val = re.sub(r"<[^>]+>", "", str_val).strip()
                 # Clean up extra whitespace
                 str_val = re.sub(r"\s+", " ", str_val).strip()
-
-            # Handle multi-line values with <br> tags - take the first line (absolute number)
-            if "<br>" in str_val:
-                str_val = str_val.split("<br>")[0].strip()
 
             # Handle values like "2<.01" - extract the first number
             if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
@@ -1998,7 +2008,7 @@ def _rich_print_scan_table(scan_result: Any, data_source: str) -> None:
 
             # Unique values (UQ)
             unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
-            row_data.append(format_value(unique_val, max_width=8))
+            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
 
             # Statistical columns
             for stat_col in stat_columns:
