@@ -2186,8 +2186,16 @@ def validate_simple(
         # Display results
         from rich.box import SIMPLE_HEAD
 
+        # Create friendly title for table
+        if check == "rows-distinct":
+            table_title = "Validation Result: Rows Distinct"
+        elif check == "col-not-null":
+            table_title = "Validation Result: Column Not Null"
+        else:
+            table_title = f"Validation Result: {check.replace('-', ' ').title()}"
+
         result_table = Table(
-            title=f"Validation Result: {check.replace('-', ' ').title()}",
+            title=table_title,
             show_header=True,
             header_style="bold magenta",
             box=SIMPLE_HEAD,
@@ -2199,7 +2207,7 @@ def validate_simple(
 
         # Add basic info
         result_table.add_row("Data Source", data_source)
-        result_table.add_row("Check Type", check.replace("-", " ").title())
+        result_table.add_row("Check Type", check)
 
         # Add column info for column-specific checks
         if check == "col-not-null":
