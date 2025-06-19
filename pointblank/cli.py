@@ -2083,6 +2083,8 @@ def _rich_print_scan_table(
             "col-vals-in-set",
             "col-vals-gt",
             "col-vals-ge",
+            "col-vals-lt",
+            "col-vals-le",
         ]
     ),
     default="rows-distinct",
@@ -2090,13 +2092,13 @@ def _rich_print_scan_table(
 )
 @click.option(
     "--column",
-    help="Column name to validate (required for col-not-null, col-exists, col-vals-in-set, col-vals-gt, and col-vals-ge checks)",
+    help="Column name to validate (required for col-not-null, col-exists, col-vals-in-set, col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
 )
 @click.option("--set", help="Comma-separated allowed values (required for col-vals-in-set check)")
 @click.option(
     "--value",
     type=float,
-    help="Numeric value for comparison (required for col-vals-gt and col-vals-ge checks)",
+    help="Numeric value for comparison (required for col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
 )
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
@@ -2138,6 +2140,8 @@ def validate_simple(
     - col-not-null: Check if all values in a column are not null/missing (requires --column)
     - col-vals-gt: Check if all values in a column are greater than a threshold (requires --column and --value)
     - col-vals-ge: Check if all values in a column are greater than or equal to a threshold (requires --column and --value)
+    - col-vals-lt: Check if all values in a column are less than a threshold (requires --column and --value)
+    - col-vals-le: Check if all values in a column are less than or equal to a threshold (requires --column and --value)
     - col-vals-in-set: Check if all values in a column are in an allowed set (requires --column and --set)
 
     Examples:
@@ -2206,6 +2210,34 @@ def validate_simple(
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
                 "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-lt" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-lt" and value is None:
+            console.print(f"[red]Error:[/red] --value is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-le" and not column:
+            console.print(f"[red]Error:[/red] --column is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
+            )
+            sys.exit(1)
+
+        if check == "col-vals-le" and value is None:
+            console.print(f"[red]Error:[/red] --value is required for {check} check")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
             )
             sys.exit(1)
 
@@ -2350,6 +2382,42 @@ def validate_simple(
                 console.print(
                     f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
                 )
+            elif check == "col-vals-lt":
+                # Create validation for values less than threshold
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}' < {value}",
+                    )
+                    .col_vals_lt(columns=column, value=value)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
+            elif check == "col-vals-le":
+                # Create validation for values less than or equal to threshold
+                validation = (
+                    pb.Validate(
+                        data=data,
+                        tbl_name=f"Data from {data_source}",
+                        label=f"CLI Simple Validation: {check} for column '{column}' <= {value}",
+                    )
+                    .col_vals_le(columns=column, value=value)
+                    .interrogate()
+                )
+
+                # Get the result
+                all_passed = validation.all_passed()
+
+                console.print(
+                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
+                )
             else:
                 # This shouldn't happen due to click.Choice, but just in case
                 console.print(f"[red]Error:[/red] Unknown check type: {check}")
@@ -2373,6 +2441,10 @@ def validate_simple(
             table_title = "Validation Result: Column Values Greater Than"
         elif check == "col-vals-ge":
             table_title = "Validation Result: Column Values Greater Than Or Equal"
+        elif check == "col-vals-lt":
+            table_title = "Validation Result: Column Values Less Than"
+        elif check == "col-vals-le":
+            table_title = "Validation Result: Column Values Less Than Or Equal"
         else:
             table_title = f"Validation Result: {check.replace('-', ' ').title()}"
 
@@ -2392,7 +2464,15 @@ def validate_simple(
         result_table.add_row("Check Type", check)
 
         # Add column info for column-specific checks
-        if check in ["col-not-null", "col-exists", "col-vals-in-set", "col-vals-gt", "col-vals-ge"]:
+        if check in [
+            "col-not-null",
+            "col-exists",
+            "col-vals-in-set",
+            "col-vals-gt",
+            "col-vals-ge",
+            "col-vals-lt",
+            "col-vals-le",
+        ]:
             result_table.add_row("Column", column)
 
         # Add set info for col-vals-in-set check
@@ -2401,8 +2481,15 @@ def validate_simple(
             result_table.add_row("Allowed Values", ", ".join(allowed_values))
 
         # Add value info for range checks
-        if check in ["col-vals-gt", "col-vals-ge"]:
-            operator = ">" if check == "col-vals-gt" else ">="
+        if check in ["col-vals-gt", "col-vals-ge", "col-vals-lt", "col-vals-le"]:
+            if check == "col-vals-gt":
+                operator = ">"
+            elif check == "col-vals-ge":
+                operator = ">="
+            elif check == "col-vals-lt":
+                operator = "<"
+            elif check == "col-vals-le":
+                operator = "<="
             result_table.add_row("Threshold", f"{operator} {value}")
 
         # Get validation details
@@ -2562,6 +2649,10 @@ def validate_simple(
                 success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are > {value} in {data_source}[/green]"
             elif check == "col-vals-ge":
                 success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are >= {value} in {data_source}[/green]"
+            elif check == "col-vals-lt":
+                success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are < {value} in {data_source}[/green]"
+            elif check == "col-vals-le":
+                success_message = f"[green]✓ Validation PASSED: All values in column '{column}' are <= {value} in {data_source}[/green]"
             else:
                 success_message = (
                     f"[green]✓ Validation PASSED: {check} check passed for {data_source}[/green]"
@@ -2591,6 +2682,10 @@ def validate_simple(
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values <= {value} found in column '{column}' in {data_source}[/red]"
                 elif check == "col-vals-ge":
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values < {value} found in column '{column}' in {data_source}[/red]"
+                elif check == "col-vals-lt":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values >= {value} found in column '{column}' in {data_source}[/red]"
+                elif check == "col-vals-le":
+                    failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} values > {value} found in column '{column}' in {data_source}[/red]"
                 else:
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} failing rows found in {data_source}[/red]"
 
