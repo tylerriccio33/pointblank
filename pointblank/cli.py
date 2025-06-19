@@ -780,18 +780,22 @@ def preview(
     Preview a data table showing head and tail rows.
 
     DATA_SOURCE can be:
+
+    \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
     COLUMN SELECTION OPTIONS:
+
     For tables with many columns, use these options to control which columns are displayed:
 
-    --columns: Specify exact columns (e.g., --columns "name,age,email")
-    --col-range: Select column range (e.g., --col-range "1:10", --col-range "5:", --col-range ":15")
-    --col-first: Show first N columns (e.g., --col-first 5)
-    --col-last: Show last N columns (e.g., --col-last 3)
+    \b
+    - --columns: Specify exact columns (e.g., --columns "name,age,email")
+    - --col-range: Select column range (e.g., --col-range "1:10", --col-range "5:", --col-range ":15")
+    - --col-first: Show first N columns (e.g., --col-first 5)
+    - --col-last: Show last N columns (e.g., --col-last 3)
 
     Tables with >15 columns automatically show first 7 and last 7 columns with indicators.
     """
@@ -1100,12 +1104,16 @@ def scan(
     Generate a data scan profile report.
 
     Produces a comprehensive data profile including:
+
+    \b
     - Column types and distributions
     - Missing value patterns
     - Basic statistics
     - Data quality indicators
 
     DATA_SOURCE can be:
+
+    \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
@@ -1171,6 +1179,8 @@ def missing(data_source: str, output_html: str | None):
     Generate a missing values report for a data table.
 
     DATA_SOURCE can be:
+
+    \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
@@ -1297,6 +1307,8 @@ def validate(
     Run validation using a Python validation script.
 
     DATA_SOURCE can be:
+
+    \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
