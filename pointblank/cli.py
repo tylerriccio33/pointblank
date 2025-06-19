@@ -2077,7 +2077,7 @@ def _rich_print_scan_table(
     type=click.Choice(
         [
             "rows-distinct",
-            "col-not-null",
+            "col-vals-not-null",
             "rows-complete",
             "col-exists",
             "col-vals-in-set",
@@ -2092,7 +2092,7 @@ def _rich_print_scan_table(
 )
 @click.option(
     "--column",
-    help="Column name to validate (required for col-not-null, col-exists, col-vals-in-set, col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
+    help="Column name to validate (required for col-vals-not-null, col-exists, col-vals-in-set, col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
 )
 @click.option("--set", help="Comma-separated allowed values (required for col-vals-in-set check)")
 @click.option(
@@ -2137,7 +2137,7 @@ def validate_simple(
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
     - rows-complete: Check if all rows are complete (no missing values in any column)
     - col-exists: Check if a specific column exists in the dataset (requires --column)
-    - col-not-null: Check if all values in a column are not null/missing (requires --column)
+    - col-vals-not-null: Check if all values in a column are not null/missing (requires --column)
     - col-vals-gt: Check if all values in a column are greater than a threshold (requires --column and --value)
     - col-vals-ge: Check if all values in a column are greater than or equal to a threshold (requires --column and --value)
     - col-vals-lt: Check if all values in a column are less than a threshold (requires --column and --value)
@@ -2149,8 +2149,8 @@ def validate_simple(
     \b
     pb validate-simple data.csv --check rows-distinct
     pb validate-simple small_table --check rows-distinct --show-extract
-    pb validate-simple data.csv --check col-not-null --column age
-    pb validate-simple data.csv --check col-not-null --column email --show-extract
+    pb validate-simple data.csv --check col-vals-not-null --column email
+    pb validate-simple data.csv --check col-vals-not-null --column email --show-extract
     pb validate-simple data.csv --check rows-complete
     pb validate-simple data.csv --check rows-complete --show-extract
     pb validate-simple data.csv --check col-exists --column price
@@ -2161,9 +2161,12 @@ def validate_simple(
     """
     try:
         # Validate required parameters for different check types
-        if check == "col-not-null" and not column:
+        if check == "col-vals-not-null" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
-            console.print("Example: pb validate-simple data.csv --check col-not-null --column age")
+            console.print(
+                "Example: pb validate-simple data.csv --check col-vals-not-null --column email"
+            )
+            sys.exit(1)
             sys.exit(1)
 
         if check == "col-exists" and not column:
@@ -2271,8 +2274,8 @@ def validate_simple(
                 console.print(
                     f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
                 )
-            elif check == "col-not-null":
-                # Create validation for null values in specified column
+            elif check == "col-vals-not-null":
+                # Create validation for not null values in specified column
                 validation = (
                     pb.Validate(
                         data=data,
@@ -2429,8 +2432,8 @@ def validate_simple(
         # Create friendly title for table
         if check == "rows-distinct":
             table_title = "Validation Result: Rows Distinct"
-        elif check == "col-not-null":
-            table_title = "Validation Result: Column Not Null"
+        elif check == "col-vals-not-null":
+            table_title = "Validation Result: Column Values Not Null"
         elif check == "rows-complete":
             table_title = "Validation Result: Rows Complete"
         elif check == "col-exists":
@@ -2465,7 +2468,7 @@ def validate_simple(
 
         # Add column info for column-specific checks
         if check in [
-            "col-not-null",
+            "col-vals-not-null",
             "col-exists",
             "col-vals-in-set",
             "col-vals-gt",
@@ -2504,7 +2507,7 @@ def validate_simple(
                 result_table.add_row("Result", "[green]✓ PASSED[/green]")
                 if check == "rows-distinct":
                     result_table.add_row("Duplicate Rows", "[green]None found[/green]")
-                elif check == "col-not-null":
+                elif check == "col-vals-not-null":
                     result_table.add_row("Null Values", "[green]None found[/green]")
                 elif check == "rows-complete":
                     result_table.add_row("Incomplete Rows", "[green]None found[/green]")
@@ -2524,7 +2527,7 @@ def validate_simple(
                     result_table.add_row(
                         "Duplicate Rows", f"[red]{step_info.n_failed:,} found[/red]"
                     )
-                elif check == "col-not-null":
+                elif check == "col-vals-not-null":
                     result_table.add_row("Null Values", f"[red]{step_info.n_failed:,} found[/red]")
                 elif check == "rows-complete":
                     result_table.add_row(
@@ -2556,11 +2559,6 @@ def validate_simple(
             if check == "rows-distinct":
                 extract_message = "[yellow]Preview of failing rows (duplicates):[/yellow]"
                 row_type = "duplicate rows"
-            elif check == "col-not-null":
-                extract_message = (
-                    f"[yellow]Preview of failing rows (null values in '{column}'):[/yellow]"
-                )
-                row_type = "rows with null values"
             elif check == "rows-complete":
                 extract_message = "[yellow]Preview of failing rows (incomplete rows):[/yellow]"
                 row_type = "incomplete rows"
@@ -2635,7 +2633,7 @@ def validate_simple(
                 success_message = (
                     f"[green]✓ Validation PASSED: No duplicate rows found in {data_source}[/green]"
                 )
-            elif check == "col-not-null":
+            elif check == "col-vals-not-null":
                 success_message = f"[green]✓ Validation PASSED: No null values found in column '{column}' in {data_source}[/green]"
             elif check == "rows-complete":
                 success_message = f"[green]✓ Validation PASSED: All rows are complete (no missing values) in {data_source}[/green]"
@@ -2670,7 +2668,7 @@ def validate_simple(
 
                 if check == "rows-distinct":
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} duplicate rows found in {data_source}[/red]"
-                elif check == "col-not-null":
+                elif check == "col-vals-not-null":
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} null values found in column '{column}' in {data_source}[/red]"
                 elif check == "rows-complete":
                     failure_message = f"[red]✗ Validation FAILED: {step_info.n_failed:,} incomplete rows found in {data_source}[/red]"
@@ -2706,8 +2704,6 @@ def validate_simple(
                     failure_message = (
                         f"[red]✗ Validation FAILED: Duplicate rows found in {data_source}[/red]"
                     )
-                elif check == "col-not-null":
-                    failure_message = f"[red]✗ Validation FAILED: Null values found in column '{column}' in {data_source}[/red]"
                 elif check == "rows-complete":
                     failure_message = (
                         f"[red]✗ Validation FAILED: Incomplete rows found in {data_source}[/red]"
