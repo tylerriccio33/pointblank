@@ -15,6 +15,48 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
+def _format_cell_value(value: Any) -> str:
+    """Format a cell value for Rich table display, highlighting None/NA values in red.
+
+    Args:
+        value: The raw cell value from the dataframe
+
+    Returns:
+        Formatted string with Rich markup for None/NA values
+    """
+    # Check for actual None/null values (not string representations)
+    if value is None:
+        return "[red]None[/red]"
+
+    # Check for pandas/numpy specific NA values
+    try:
+        import numpy as np
+        import pandas as pd
+
+        # Check for pandas NA
+        if pd.isna(value):
+            # If it's specifically numpy.nan, show as NaN
+            if isinstance(value, float) and np.isnan(value):
+                return "[red]NaN[/red]"
+            # If it's pandas NA, show as NA
+            elif str(type(value)).find("pandas") != -1:
+                return "[red]NA[/red]"
+            # Generic NA for other pandas missing values
+            else:
+                return "[red]NA[/red]"
+
+    except (ImportError, TypeError):
+        # If pandas/numpy not available or value not compatible, continue
+        pass
+
+    # Check for empty strings (but only actual empty strings, not whitespace)
+    if isinstance(value, str) and value == "":
+        return "[red][/red]"  # Empty string shown as red empty space
+
+    # Return normal value as string
+    return str(value)
+
+
 def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
 
@@ -114,14 +156,17 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                             columns[:7] + columns[-7:]
                         )  # Skip the "...more..." placeholder
                         rows = [
-                            [str(row.get(col, "")) for col in display_data_columns]
+                            [_format_cell_value(row.get(col, "")) for col in display_data_columns]
                             for row in data_dict
                         ]
                         # Add the "..." column in the middle
                         for i, row in enumerate(rows):
                             rows[i] = row[:7] + ["···"] + row[7:]
                     else:
-                        rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                        rows = [
+                            [_format_cell_value(row.get(col, "")) for col in columns]
+                            for row in data_dict
+                        ]
                 elif hasattr(df, "to_dict"):
                     # Pandas-like interface
                     data_dict = df.to_dict("records")
@@ -129,20 +174,23 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         # For wide tables, extract only the displayed columns
                         display_data_columns = columns[:7] + columns[-7:]
                         rows = [
-                            [str(row.get(col, "")) for col in display_data_columns]
+                            [_format_cell_value(row.get(col, "")) for col in display_data_columns]
                             for row in data_dict
                         ]
                         # Add the "..." column in the middle
                         for i, row in enumerate(rows):
                             rows[i] = row[:7] + ["···"] + row[7:]
                     else:
-                        rows = [[str(row.get(col, "")) for col in columns] for row in data_dict]
+                        rows = [
+                            [_format_cell_value(row.get(col, "")) for col in columns]
+                            for row in data_dict
+                        ]
                 elif hasattr(df, "iter_rows"):
                     # Polars lazy frame
-                    rows = [[str(val) for val in row] for row in df.iter_rows()]
+                    rows = [[_format_cell_value(val) for val in row] for row in df.iter_rows()]
                 elif hasattr(df, "__iter__"):
                     # Try to iterate directly
-                    rows = [[str(val) for val in row] for row in df]
+                    rows = [[_format_cell_value(val) for val in row] for row in df]
                 else:
                     rows = [["Could not extract data from this format"]]
             except Exception as e:
