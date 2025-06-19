@@ -1017,6 +1017,7 @@ def info(data_source: str):
             if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
                 data = pb.load_dataset(data_source)
                 source_type = f"Pointblank dataset: {data_source}"
+                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
             else:
                 # Assume it's a file path or connection string
                 data = data_source
@@ -1032,6 +1033,7 @@ def info(data_source: str):
                 data = _process_connection_string(data)
                 data = _process_csv_input(data)
                 data = _process_parquet_input(data)
+                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Get table information
         tbl_type = _get_tbl_type(data)
