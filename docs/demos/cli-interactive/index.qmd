@@ -94,12 +94,14 @@ Follow an end-to-end data quality pipeline combining exploration, validation, an
 Ready to implement data quality workflows? Here's how to get started:
 
 ### 1. Install and Verify
+
 ```bash
 pip install pointblank
 pb --help
 ```
 
 ### 2. Explore Your Data
+
 ```bash
 # Get a quick preview of your data
 pb preview small_table
@@ -112,6 +114,7 @@ pb scan small_table
 ```
 
 ### 3. Run Essential Validations
+
 ```bash
 # Check for duplicate rows
 pb validate-simple small_table --check rows-distinct
@@ -124,6 +127,7 @@ pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-e
 ```
 
 ### 4. Integrate with CI/CD
+
 ```bash
 # Use exit codes for automation (0 = pass, 1 = fail)
 pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks passed"
@@ -131,11 +135,7 @@ pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks
 
 ::: {.callout-tip}
 ## Next Steps
-- **📚 Complete Documentation**: Visit the [CLI User Guide](../../user-guide/cli.qmd) for detailed documentation
-- **⚡ Quick Reference**: Use `pb validate-simple --help` for command options
-- **🎯 Production Ready**: Combine exploration, validation, and profiling for robust data quality pipelines
-:::
-
-::: {.callout-note appearance="simple"}
-All demonstrations show actual CLI execution with live data. Recordings generated using VHS to showcase real terminal sessions with practical, high-impact data quality workflows.
+- visit the [CLI User Guide](../../user-guide/cli.qmd) for detailed documentation
+- use `pb validate-simple --help` for validation command options
+- Combine exploration, validation, and profiling for robust data quality pipelines
 :::
