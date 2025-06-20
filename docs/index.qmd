@@ -122,7 +122,7 @@ Pointblank includes a powerful CLI utility called `pb` that lets you run data va
 
 <div style="text-align: center;">
 
-![](/assets/vhs/complete-workflow.gif){width=100%}
+![](/assets/vhs/cli-complete-workflow.gif){width=100%}
 
 </div>
 
