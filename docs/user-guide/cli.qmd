@@ -1,6 +1,6 @@
 ---
-title: "Command Line Interface"
 jupyter: python3
+toc-expand: 2
 ---
 
 # Command Line Interface
