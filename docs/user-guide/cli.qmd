@@ -20,17 +20,10 @@ The CLI is automatically available when you install Pointblank:
 pip install pointblank
 ```
 
-## Quick Demo
-
-Here's a quick demonstration of the new validation features in action:
-
-::: {style="text-align: center; margin: 20px 0;"}
-![CLI Features Demo](../assets/vhs/cli-features.gif)
-:::
-
 ## Terminal Demos
 
-For more detailed examples, check out our [CLI terminal demos](../demos/cli-interactive/index.qmd) to see the CLI in action with comprehensive command examples and real output.
+Check out our [CLI terminal demos](../demos/cli-interactive/index.qmd) to see the CLI in action with
+comprehensive command examples and real output.
 
 ## Basic Usage
 
@@ -44,22 +37,25 @@ pb validate-simple [DATA_SOURCE] --check [CHECK_TYPE] [OPTIONS]
 
 You can validate various types of data sources:
 
-- **CSV files**: `pb validate-simple data.csv --check rows-distinct`
-- **Parquet files**: `pb validate-simple data.parquet --check col-vals-not-null --column age`
-- **Database tables**: `pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete`
-- **Built-in datasets**: `pb validate-simple small_table --check col-exists --column a`
+- CSV files: `pb validate-simple data.csv --check rows-distinct`
+- Parquet files: `pb validate-simple data.parquet --check col-vals-not-null --column age`
+- database tables: `pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete`
+- built-in datasets: `pb validate-simple small_table --check col-exists --column a`
 
 ## Available Validation Checks
 
 ### Data Completeness
+
 - `rows-distinct`: Check if all rows are unique (no duplicates)
 - `rows-complete`: Check if all rows are complete (no missing values)
 - `col-vals-not-null`: Check if a column has no null/missing values
 
 ### Column Existence
+
 - `col-exists`: Verify that a specific column exists in the dataset
 
 ### Value Range Checks
+
 - `col-vals-gt`: Values greater than a threshold
 - `col-vals-ge`: Values greater than or equal to a threshold
 - `col-vals-lt`: Values less than a threshold
