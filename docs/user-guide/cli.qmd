@@ -5,12 +5,13 @@ toc-expand: 2
 
 # Command Line Interface
 
-Pointblank provides a powerful command-line interface (CLI) that allows you to perform data validation directly from the terminal without writing Python code. This is especially useful for:
+Pointblank provides a powerful command-line interface (CLI) that allows you to perform data
+validation directly from the terminal without writing Python code. This is especially useful for:
 
-- Quick data quality checks in CI/CD pipelines
-- Exploratory data analysis
-- Integration with shell scripts and automation workflows
-- Non-Python users who want to leverage Pointblank's validation capabilities
+- quick data quality checks in CI/CD pipelines
+- exploratory data analysis
+- integration with shell scripts and automation workflows
+- non-Python users who want to leverage Pointblank's validation capabilities
 
 ## Installation
 
@@ -37,10 +38,29 @@ pb validate-simple [DATA_SOURCE] --check [CHECK_TYPE] [OPTIONS]
 
 You can validate various types of data sources:
 
-- CSV files: `pb validate-simple data.csv --check rows-distinct`
-- Parquet files: `pb validate-simple data.parquet --check col-vals-not-null --column age`
-- database tables: `pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete`
-- built-in datasets: `pb validate-simple small_table --check col-exists --column a`
+*CSV files*
+
+```bash
+pb validate-simple data.csv --check rows-distinct
+```
+
+*Parquet files*
+
+```bash
+pb validate-simple data.parquet --check col-vals-not-null --column age
+```
+
+*Database tables*
+
+```bash
+pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete
+```
+
+*built-in datasets*
+
+```bash
+pb validate-simple small_table --check col-exists --column a
+```
 
 ## Available Validation Checks
 
@@ -48,25 +68,26 @@ You can validate various types of data sources:
 
 - `rows-distinct`: Check if all rows are unique (no duplicates)
 - `rows-complete`: Check if all rows are complete (no missing values)
-- `col-vals-not-null`: Check if a column has no null/missing values
+- `col-vals-not-null`: Check if a column has no Null/None/NA values
 
 ### Column Existence
 
 - `col-exists`: Verify that a specific column exists in the dataset
 
-### Value Range Checks
+### Numeric Value Checks Within Columns
 
-- `col-vals-gt`: Values greater than a threshold
-- `col-vals-ge`: Values greater than or equal to a threshold
-- `col-vals-lt`: Values less than a threshold
-- `col-vals-le`: Values less than or equal to a threshold
+- `col-vals-gt`: column values greater than a fixed value
+- `col-vals-ge`: column values greater than or equal to a fixed value
+- `col-vals-lt`: column values less than a fixed value
+- `col-vals-le`: column values less than or equal to a fixed value
 
-### Value Set Checks
-- `col-vals-in-set`: Values must be in an allowed set
+### Value Set Checks Within Columns
+
+- `col-vals-in-set`: column values must be in an defined set
 
 ## Examples
 
-### Basic Validation
+#### Basic Validation
 
 ```bash
 # Check for duplicate rows
@@ -79,7 +100,7 @@ pb validate-simple data.csv --check col-vals-not-null --column age
 pb validate-simple data.csv --check col-vals-gt --column score --value 50
 ```
 
-### Range Validations
+#### Range Validations
 
 ```bash
 # Check if all ages are less than 100
@@ -93,14 +114,14 @@ pb validate-simple data.csv --check col-vals-ge --column rating --value 1
 pb validate-simple data.csv --check col-vals-le --column rating --value 5
 ```
 
-### Set Membership
+#### Set Membership
 
 ```bash
 # Check if status values are in allowed set
 pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
 ```
 
-### Debugging Failed Validations
+#### Debugging Failed Validations
 
 Use `--show-extract` to see which rows are causing validation failures:
 
@@ -112,7 +133,7 @@ pb validate-simple data.csv --check col-vals-lt --column age --value 65 --show-e
 pb validate-simple data.csv --check col-vals-not-null --column email --show-extract --limit 5
 ```
 
-### Exit Codes for Automation
+#### Exit Codes for Automation
 
 Use `--exit-code` to make the command exit with a non-zero code when validation fails:
 
@@ -123,7 +144,7 @@ pb validate-simple data.csv --check rows-distinct --exit-code
 
 ## Output Examples
 
-### Successful Validation
+#### Successful Validation
 
 ```
 ✓ Loaded data source: data.csv
@@ -148,7 +169,7 @@ Validation Result: Column Values Less Than
 ╰─────────────────────────────────────────────────╯
 ```
 
-### Failed Validation
+#### Failed Validation
 
 ```
 ✓ Loaded data source: data.csv
@@ -177,7 +198,7 @@ Validation Result: Column Values Less Than
 
 ## Integration with CI/CD
 
-The CLI is perfect for integrating data validation into your CI/CD pipelines:
+The CLI is useful when integrating data validation into your CI/CD pipelines:
 
 ```yaml
 # Example GitHub Actions workflow
