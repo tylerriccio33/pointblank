@@ -158,7 +158,7 @@ validation.get_step_report(i=3).show("browser")  # 获取步骤 3 的失败记�
 Pointblank 包含一个强大的 CLI 工具称为 `pb`，让您可以直接从命令行运行数据验证工作流。非常适合 CI/CD 管道、定时数据质量检查或快速验证任务。
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **探索您的数据**

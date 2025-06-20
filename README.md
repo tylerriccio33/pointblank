@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # Get failing records from step
 Pointblank includes a powerful CLI utility called `pb` that lets you run data validation workflows directly from the command line. Perfect for CI/CD pipelines, scheduled data quality checks, or quick validation tasks.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **Explore Your Data**

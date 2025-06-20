@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # Fehlgeschlagene Datensätze a
 Pointblank enthält ein leistungsstarkes CLI-Dienstprogramm namens `pb`, mit dem Sie Datenvalidierungsworkflows direkt von der Kommandozeile aus ausführen können. Perfekt für CI/CD-Pipelines, geplante Datenqualitätsprüfungen oder schnelle Validierungsaufgaben.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **Erkunden Sie Ihre Daten**

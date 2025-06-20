@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # Obtenha os registros com falh
 O Pointblank inclui uma poderosa ferramenta CLI chamada `pb` que permite executar fluxos de trabalho de validação de dados diretamente da linha de comando. Perfeita para pipelines CI/CD, verificações programadas de qualidade de dados ou tarefas de validação rápidas.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **Explore seus dados**

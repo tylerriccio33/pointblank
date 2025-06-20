@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # ステップ3の失敗レコ�
 Pointblank には、`pb` という強力な CLI ユーティリティが含まれており、コマンドラインから直接データ検証ワークフローを実行できます。CI/CD パイプライン、スケジュールされたデータ品質チェック、または迅速な検証タスクに最適です。
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **データを探索する**

@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # Krijg falende records van sta
 Pointblank bevat een krachtig CLI-hulpprogramma genaamd `pb` waarmee je datavalidatieworkflows direct vanaf de commandoregel kunt uitvoeren. Perfect voor CI/CD-pipelines, geplande datakwaliteitscontroles of snelle validatietaken.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **Verken je data**

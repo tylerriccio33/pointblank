@@ -154,7 +154,7 @@ validation.get_step_report(i=3).show("browser")  # 단계 3의 실패 레코드 
 Pointblank은 `pb`라는 강력한 CLI 유틸리티를 포함하여 명령줄에서 직접 데이터 검증 워크플로우를 실행할 수 있습니다. CI/CD 파이프라인, 예약된 데이터 품질 검사 또는 빠른 검증 작업에 완벽합니다.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **데이터 탐색**

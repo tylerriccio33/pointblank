@@ -162,7 +162,7 @@ validation.get_step_report(i=3).show("browser")  # الحصول على السج�
 يتضمن Pointblank أداة CLI قوية تسمى `pb` تتيح لك تشغيل سير عمل التحقق من البيانات مباشرة من سطر الأوامر. مثالية لخطوط أنابيب CI/CD، وفحوصات جودة البيانات المجدولة، أو مهام التحقق السريعة.
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
 </div>
 
 **استكشف بياناتك**
