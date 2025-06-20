@@ -20,6 +20,18 @@ The CLI is automatically available when you install Pointblank:
 pip install pointblank
 ```
 
+## Quick Demo
+
+Here's a quick demonstration of the new validation features in action:
+
+::: {style="text-align: center; margin: 20px 0;"}
+![CLI Features Demo](../assets/vhs/cli-features.gif)
+:::
+
+## Terminal Demos
+
+For more detailed examples, check out our [CLI terminal demos](../demos/cli-interactive/index.qmd) to see the CLI in action with comprehensive command examples and real output.
+
 ## Basic Usage
 
 The main CLI command is `pb validate-simple`, which performs single-step validations:
@@ -33,7 +45,7 @@ pb validate-simple [DATA_SOURCE] --check [CHECK_TYPE] [OPTIONS]
 You can validate various types of data sources:
 
 - **CSV files**: `pb validate-simple data.csv --check rows-distinct`
-- **Parquet files**: `pb validate-simple data.parquet --check col-not-null --column age`
+- **Parquet files**: `pb validate-simple data.parquet --check col-vals-not-null --column age`
 - **Database tables**: `pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete`
 - **Built-in datasets**: `pb validate-simple small_table --check col-exists --column a`
 
@@ -42,7 +54,7 @@ You can validate various types of data sources:
 ### Data Completeness
 - `rows-distinct`: Check if all rows are unique (no duplicates)
 - `rows-complete`: Check if all rows are complete (no missing values)
-- `col-not-null`: Check if a column has no null/missing values
+- `col-vals-not-null`: Check if a column has no null/missing values
 
 ### Column Existence
 - `col-exists`: Verify that a specific column exists in the dataset
@@ -65,7 +77,7 @@ You can validate various types of data sources:
 pb validate-simple data.csv --check rows-distinct
 
 # Check if all values in 'age' column are not null
-pb validate-simple data.csv --check col-not-null --column age
+pb validate-simple data.csv --check col-vals-not-null --column age
 
 # Check if all values in 'score' are greater than 50
 pb validate-simple data.csv --check col-vals-gt --column score --value 50
@@ -101,7 +113,7 @@ Use `--show-extract` to see which rows are causing validation failures:
 pb validate-simple data.csv --check col-vals-lt --column age --value 65 --show-extract
 
 # Limit the number of failing rows shown
-pb validate-simple data.csv --check col-not-null --column email --show-extract --limit 5
+pb validate-simple data.csv --check col-vals-not-null --column email --show-extract --limit 5
 ```
 
 ### Exit Codes for Automation
@@ -190,7 +202,7 @@ jobs:
       - name: Validate data quality
         run: |
           pb validate-simple data/sales.csv --check rows-distinct --exit-code
-          pb validate-simple data/sales.csv --check col-not-null --column customer_id --exit-code
+          pb validate-simple data/sales.csv --check col-vals-not-null --column customer_id --exit-code
           pb validate-simple data/sales.csv --check col-vals-gt --column amount --value 0 --exit-code
 ```
 
@@ -201,6 +213,12 @@ Use the `--help` flag to see all available options:
 ```bash
 pb validate-simple --help
 ```
+
+## Terminal Demonstrations
+
+For a hands-on experience with the CLI, check out our
+[detailed terminal examples](../demos/cli-interactive/index.qmd) that show real command execution
+with actual output and step-by-step workflows.
 
 ## Next Steps
 
