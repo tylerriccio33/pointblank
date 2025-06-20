@@ -2731,3 +2731,7 @@ def validate_simple(
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    cli()
