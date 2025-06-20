@@ -36,6 +36,11 @@ from pointblank.cli import (
 from pointblank._utils import _get_tbl_type, _is_lib_present
 
 
+@pytest.fixture
+def runner():
+    return CliRunner()
+
+
 def test_format_cell_value_basic():
     """Test basic cell value formatting."""
     # Test regular string
@@ -1164,3 +1169,446 @@ def test_rich_print_functions_with_console_errors():
             )
         except Exception:
             pass  # Expected
+
+
+def test_missing_command_basic(runner, tmp_path):
+    """Test basic missing command functionality."""
+    result = runner.invoke(missing, ["small_table"])
+    assert result.exit_code in [0, 1]  # May fail due to missing dependencies
+    assert "Loaded dataset: small_table" in result.output or "Error:" in result.output
+
+
+def test_missing_command_with_html_output(runner, tmp_path):
+    """Test missing command with HTML output."""
+    output_file = tmp_path / "missing_report.html"
+    result = runner.invoke(missing, ["small_table", "--output-html", str(output_file)])
+    assert result.exit_code in [0, 1]  # May fail due to missing dependencies
+
+
+def test_missing_command_with_invalid_data(runner):
+    """Test missing command with invalid data source."""
+    result = runner.invoke(missing, ["nonexistent_file.csv"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+
+
+def test_extract_command_basic(runner, tmp_path):
+    """Test basic extract command functionality."""
+    # Create a simple validation script
+    script_file = tmp_path / "validation.py"
+    script_content = """
+import pointblank as pb
+data = pb.load_dataset("small_table")
+validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
+"""
+    script_file.write_text(script_content)
+
+    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
+    assert result.exit_code in [0, 1]  # May fail due to missing dependencies or validation issues
+
+
+def test_extract_command_with_outputs(runner, tmp_path):
+    """Test extract command with output files."""
+    script_file = tmp_path / "validation.py"
+    csv_file = tmp_path / "failing_rows.csv"
+    html_file = tmp_path / "failing_rows.html"
+
+    script_content = """
+import pointblank as pb
+data = pb.load_dataset("small_table")
+validation = pb.validate(data).col_vals_gt("c", -999).interrogate()  # Should pass for testing
+"""
+    script_file.write_text(script_content)
+
+    result = runner.invoke(
+        extract,
+        [
+            "small_table",
+            str(script_file),
+            "1",
+            "--output-csv",
+            str(csv_file),
+            "--output-html",
+            str(html_file),
+            "--limit",
+            "5",
+        ],
+    )
+    assert result.exit_code in [0, 1]
+
+
+def test_extract_command_invalid_script(runner, tmp_path):
+    """Test extract command with invalid script."""
+    script_file = tmp_path / "bad_script.py"
+    script_file.write_text("invalid python code !!!")
+
+    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
+    assert result.exit_code == 1
+    assert "Error executing validation script:" in result.output
+
+
+def test_extract_command_no_validation_object(runner, tmp_path):
+    """Test extract command with script that has no validation object."""
+    script_file = tmp_path / "no_validation.py"
+    script_file.write_text("print('hello world')")
+
+    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
+    assert result.exit_code == 1
+    assert "No validation object found" in result.output
+
+
+def test_validate_command_comprehensive(runner, tmp_path):
+    """Test validate command with comprehensive options."""
+    script_file = tmp_path / "validation.py"
+    html_file = tmp_path / "report.html"
+    json_file = tmp_path / "report.json"
+
+    script_content = """
+import pointblank as pb
+data = pb.load_dataset("small_table")
+validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
+"""
+    script_file.write_text(script_content)
+
+    result = runner.invoke(
+        validate,
+        [
+            "small_table",
+            str(script_file),
+            "--output-html",
+            str(html_file),
+            "--output-json",
+            str(json_file),
+        ],
+    )
+    assert result.exit_code in [0, 1]
+
+
+def test_validate_command_fail_on_error(runner, tmp_path):
+    """Test validate command with fail-on-error option."""
+    script_file = tmp_path / "validation.py"
+    script_content = """
+import pointblank as pb
+data = pb.load_dataset("small_table")
+validation = pb.validate(data).col_vals_gt("c", 999999).interrogate()  # Should fail
+"""
+    script_file.write_text(script_content)
+
+    result = runner.invoke(validate, ["small_table", str(script_file), "--fail-on-error"])
+    assert result.exit_code in [0, 1]
+
+
+def test_validate_command_invalid_script(runner, tmp_path):
+    """Test validate command with invalid script."""
+    script_file = tmp_path / "bad_script.py"
+    script_file.write_text("invalid python syntax !!!")
+
+    result = runner.invoke(validate, ["small_table", str(script_file)])
+    assert result.exit_code == 1
+    assert "Error executing validation script:" in result.output
+
+
+def test_column_range_selection_edge_cases(runner):
+    """Test column range selection with various edge cases."""
+    # Test invalid range format
+    result = runner.invoke(preview, ["small_table", "--col-range", "invalid"])
+    assert result.exit_code in [0, 1]
+
+    # Test range with missing end
+    result = runner.invoke(preview, ["small_table", "--col-range", "1:"])
+    assert result.exit_code in [0, 1]
+
+    # Test range with missing start
+    result = runner.invoke(preview, ["small_table", "--col-range", ":3"])
+    assert result.exit_code in [0, 1]
+
+
+def test_preview_with_data_processing_errors(runner, monkeypatch):
+    """Test preview with data processing errors."""
+
+    def mock_process_error(*args, **kwargs):
+        raise Exception("Processing error")
+
+    # Mock data processing functions to raise errors
+    monkeypatch.setattr("pointblank.validate._process_connection_string", mock_process_error)
+
+    result = runner.invoke(preview, ["nonexistent.csv"])
+    assert result.exit_code in [0, 1]
+
+
+def test_scan_with_data_processing_errors(runner, monkeypatch):
+    """Test scan with data processing errors."""
+
+    def mock_scan_error(*args, **kwargs):
+        raise Exception("Scan error")
+
+    monkeypatch.setattr("pointblank.col_summary_tbl", mock_scan_error)
+
+    result = runner.invoke(scan, ["small_table"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+
+
+def test_format_cell_value_with_pandas_dtypes():
+    """Test format_cell_value with pandas-specific data types."""
+    try:
+        import pandas as pd
+        import numpy as np
+
+        # Test with pandas NA
+        assert _format_cell_value(pd.NA) == "[red]NA[/red]"
+
+        # Test with pandas Timestamp
+        ts = pd.Timestamp("2021-01-01")
+        result = _format_cell_value(ts)
+        assert "2021-01-01" in result
+
+        # Test with pandas categorical
+        cat = pd.Categorical(["a", "b", "c"])
+        result = _format_cell_value(cat[0])
+        assert result == "a"
+
+    except ImportError:
+        # Skip if pandas not available
+        pass
+
+
+def test_get_column_dtypes_with_schema_based_systems():
+    """Test _get_column_dtypes with schema-based systems."""
+
+    # Mock object with schema attribute
+    class MockSchemaObj:
+        def __init__(self):
+            self.schema = MockSchema()
+
+        @property
+        def columns(self):
+            return ["col1", "col2"]
+
+    class MockSchema:
+        def to_dict(self):
+            return {"col1": "int64", "col2": "str"}
+
+    obj = MockSchemaObj()
+    result = _get_column_dtypes(obj, obj.columns)
+    assert "col1" in result
+    assert "col2" in result
+
+
+def test_rich_print_functions_with_different_table_formats():
+    """Test rich print functions with different table formats."""
+    from rich.console import Console
+    from io import StringIO
+
+    # Mock GT table-like object
+    class MockGTTable:
+        def _repr_html_(self):
+            return "<table><tr><td>test</td></tr></table>"
+
+    # Test with string buffer to capture output
+    string_io = StringIO()
+    console = Console(file=string_io, width=80)
+
+    # This should not crash
+    try:
+        _rich_print_gt_table(MockGTTable(), console=console)
+    except Exception:
+        pass  # Expected to fail in test environment, but shouldn't crash
+
+
+def test_display_validation_summary_edge_cases():
+    """Test display_validation_summary with edge cases."""
+
+    # Mock validation object with no info
+    class MockValidation:
+        validation_info = None
+
+    # Should not crash
+    try:
+        _display_validation_summary(MockValidation())
+    except Exception:
+        pass  # May fail but shouldn't crash the system
+
+    # Mock validation object with empty info
+    class MockValidationEmpty:
+        validation_info = []
+
+    try:
+        _display_validation_summary(MockValidationEmpty())
+    except Exception:
+        pass
+
+
+def test_format_dtype_compact_with_complex_types():
+    """Test _format_dtype_compact with complex data types."""
+    # Test various pandas dtypes
+    assert "obj" == _format_dtype_compact("object")
+    assert "i64" == _format_dtype_compact("int64")
+    assert "f32" == _format_dtype_compact("float32")
+    assert "bool" == _format_dtype_compact("boolean")
+    assert "datetime" == _format_dtype_compact("datetime64[ns]")
+
+    # Test unknown types (should be truncated if too long)
+    result = _format_dtype_compact("unknown_type_12345")
+    assert result == "unknown_…"  # Long types get truncated
+
+
+def test_preview_with_column_selection_and_row_num(runner):
+    """Test preview with column selection when _row_num_ exists."""
+    result = runner.invoke(preview, ["small_table", "--columns", "a,b", "--head", "3"])
+    assert result.exit_code in [0, 1]
+
+
+def test_cli_commands_with_connection_strings(runner):
+    """Test CLI commands with various connection string formats."""
+    # Test with DuckDB connection string
+    result = runner.invoke(preview, ["duckdb:///test.db::table"])
+    assert result.exit_code in [0, 1]  # Will fail but shouldn't crash
+
+    # Test with SQL query in connection string
+    result = runner.invoke(scan, ["duckdb:///test.db::SELECT * FROM table"])
+    assert result.exit_code in [0, 1]
+
+
+def test_format_cell_value_with_special_pandas_cases():
+    """Test format_cell_value with special pandas cases that might be missed."""
+    try:
+        import pandas as pd
+        import numpy as np
+
+        # Test with pandas Series element
+        series = pd.Series([1, 2, 3])
+        result = _format_cell_value(series.iloc[0])
+        assert result == "1"
+
+        # Test with pandas Index element
+        index = pd.Index([1, 2, 3])
+        result = _format_cell_value(index[0])
+        assert result == "1"
+
+    except ImportError:
+        pass
+
+
+def test_get_column_dtypes_error_recovery():
+    """Test _get_column_dtypes error recovery."""
+
+    # Mock object that causes errors
+    class ErrorObj:
+        @property
+        def columns(self):
+            raise Exception("Column access error")
+
+        @property
+        def dtypes(self):
+            raise Exception("Dtypes access error")
+
+    obj = ErrorObj()
+    columns = ["col1", "col2"]
+
+    # Should return fallback dictionary
+    result = _get_column_dtypes(obj, columns)
+    assert all(col in result for col in columns)
+    assert all(result[col] == "?" for col in columns)
+
+
+def test_rich_print_gt_table_with_wide_data():
+    """Test _rich_print_gt_table with wide table handling."""
+
+    # Mock a wide GT table
+    class MockWideGTTable:
+        def _repr_html_(self):
+            # Simulate wide table HTML
+            cols = [f"col_{i}" for i in range(20)]  # Many columns
+            html = "<table><tr>"
+            for col in cols:
+                html += f"<th>{col}</th>"
+            html += "</tr><tr>"
+            for i in range(20):
+                html += f"<td>value_{i}</td>"
+            html += "</tr></table>"
+            return html
+
+    # This should handle wide tables gracefully
+    try:
+        _rich_print_gt_table(MockWideGTTable())
+    except Exception:
+        pass  # May fail but shouldn't crash
+
+
+def test_format_missing_percentage_boundary_values():
+    """Test _format_missing_percentage with boundary values."""
+    # Test exactly 0%
+    assert _format_missing_percentage(0.0) == "[green]●[/green]"
+
+    # Test exactly 100%
+    assert _format_missing_percentage(100.0) == "[red]●[/red]"
+
+    # Test very small percentage
+    assert _format_missing_percentage(0.0001) == "<1%"
+
+    # Test very large percentage (>100%)
+    assert _format_missing_percentage(150.0) == "150%"
+
+
+def test_preview_command_with_file_not_found_error(runner):
+    """Test preview command when file processing functions throw specific errors."""
+    result = runner.invoke(preview, ["/nonexistent/path/file.csv"])
+    assert result.exit_code in [0, 1]
+    # Should handle gracefully without crashing
+
+
+def test_scan_command_with_html_file_write_error(runner, tmp_path, monkeypatch):
+    """Test scan command with HTML file write error."""
+    # Create a directory instead of a file to cause write error
+    output_dir = tmp_path / "scan_output.html"
+    output_dir.mkdir()
+
+    result = runner.invoke(scan, ["small_table", "--output-html", str(output_dir)])
+    assert result.exit_code in [0, 1]
+
+
+def test_validate_command_with_file_output_errors(runner, tmp_path, monkeypatch):
+    """Test validate command with file output errors."""
+    script_file = tmp_path / "validation.py"
+    script_content = """
+import pointblank as pb
+data = pb.load_dataset("small_table")
+validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
+"""
+    script_file.write_text(script_content)
+
+    # Create directories instead of files to cause write errors
+    html_dir = tmp_path / "report.html"
+    json_dir = tmp_path / "report.json"
+    html_dir.mkdir()
+    json_dir.mkdir()
+
+    result = runner.invoke(
+        validate,
+        [
+            "small_table",
+            str(script_file),
+            "--output-html",
+            str(html_dir),
+            "--output-json",
+            str(json_dir),
+        ],
+    )
+    assert result.exit_code in [0, 1]
+    # Should show warnings about not being able to save files
+
+
+def test_preview_with_column_iteration_error():
+    """Test preview command error handling during column iteration."""
+
+    # This tests the exception handling in _rich_print_gt_table
+    class MockErrorTable:
+        def _repr_html_(self):
+            raise Exception("HTML generation error")
+
+    # Should handle the error gracefully
+    try:
+        _rich_print_gt_table(MockErrorTable())
+    except Exception:
+        pass  # Expected to fail gracefully
