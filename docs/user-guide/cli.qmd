@@ -233,18 +233,5 @@ pb validate-simple --help
 
 ## Terminal Demonstrations
 
-For a hands-on experience with the CLI, check out our
-[detailed terminal examples](../demos/cli-interactive/index.qmd) that show real command execution
-with actual output and step-by-step workflows.
-
-## Next Steps
-
-While the CLI is great for simple validations, for more complex validation workflows, consider using
-Pointblank's Python API which offers:
-
-- multi-step validation plans
-- advanced reporting options
-- custom validation logic
-- integration with data pipelines
-
-See the [Validation Overview](validation-overview.qmd) to learn more about the full Python API.
+Check out our [step-by-step terminal demos](../demos/cli-interactive/index.qmd) that show real
+command execution with actual output.
