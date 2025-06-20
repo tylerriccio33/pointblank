@@ -217,4 +217,9 @@ The CLI is perfect for:
 - exploratory data analysis from the terminal
 - integration with shell scripts and automation workflows
 
+::: {.callout-tip}
+## See the CLI in Action
+Watch our [interactive CLI demonstrations](../demos/cli-interactive/index.qmd) to see these commands executing in real-time with actual output formatting.
+:::
+
 Learn more about the CLI capabilities in the [Command Line Interface](cli.qmd) guide.
