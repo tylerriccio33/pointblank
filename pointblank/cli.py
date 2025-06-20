@@ -2148,16 +2148,13 @@ def validate_simple(
 
     \b
     pb validate-simple data.csv --check rows-distinct
-    pb validate-simple small_table --check rows-distinct --show-extract
-    pb validate-simple data.csv --check col-vals-not-null --column email
-    pb validate-simple data.csv --check col-vals-not-null --column email --show-extract
-    pb validate-simple data.csv --check rows-complete
-    pb validate-simple data.csv --check rows-complete --show-extract
-    pb validate-simple data.csv --check col-exists --column price
-    pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
-    pb validate-simple data.csv --check col-vals-gt --column score --value 50
-    pb validate-simple data.csv --check col-vals-ge --column age --value 18
+    pb validate-simple data.csv --check rows-distinct --show-extract
     pb validate-simple data.csv --check rows-distinct --exit-code
+    pb validate-simple data.csv --check rows-complete
+    pb validate-simple data.csv --check col-exists --column price
+    pb validate-simple data.csv --check col-vals-not-null --column email
+    pb validate-simple data.csv --check col-vals-gt --column score --value 50
+    pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
     """
     try:
         # Validate required parameters for different check types
