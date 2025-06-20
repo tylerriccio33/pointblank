@@ -11,9 +11,13 @@ _Data validation made beautiful and powerful_
 
 </div>
 
-Pointblank is a powerful, yet elegant data validation framework for Python that transforms how you ensure data quality. With its intuitive, chainable API, you can quickly validate your data against comprehensive quality checks and visualize results through stunning, interactive reports that make data issues immediately actionable.
+Pointblank is a powerful, yet elegant data validation framework for Python that transforms how you
+ensure data quality. With its intuitive, chainable API, you can quickly validate your data against
+comprehensive quality checks and visualize results through stunning, interactive reports that make
+data issues immediately actionable.
 
-Whether you're a data scientist, data engineer, or analyst, Pointblank helps you catch data quality issues before they impact your analyses or downstream systems.
+Whether you're a data scientist, data engineer, or analyst, Pointblank helps you catch data quality
+issues before they impact your analyses or downstream systems.
 
 ## Getting Started in 30 Seconds
 
@@ -116,9 +120,11 @@ validation.get_step_report(i=3).show("browser")  # Get failing records from step
 
 </div>
 
-## Command Line Interface (CLI)
+## Command Line Interface
 
-Pointblank includes a powerful CLI utility called `pb` that lets you run data validation workflows directly from the command line. Perfect for CI/CD pipelines, scheduled data quality checks, or quick validation tasks.
+Pointblank includes a powerful CLI utility called `pb` that lets you run data validation workflows
+directly from the command line. Perfect for CI/CD pipelines, scheduled data quality checks, or quick
+validation tasks.
 
 <div style="text-align: center;">
 
@@ -199,28 +205,12 @@ pip install "pointblank[postgres]" # Install Pointblank with Ibis + PostgreSQL
 pip install "pointblank[sqlite]"   # Install Pointblank with Ibis + SQLite
 ```
 
-## Command Line Interface
-
-Pointblank provides a powerful CLI for quick data validation without writing Python code. Now featuring enhanced validation checks including `col-vals-lt` and `col-vals-le`:
-
-::: {style="text-align: center; margin: 20px 0;"}
-![CLI Quick Demo](assets/vhs/cli-features.gif)
-:::
-
-```bash
-# Quick validation checks from the terminal
-pb validate-simple data.csv --check rows-distinct
-pb validate-simple sales.csv --check col-vals-gt --column revenue --value 0
-pb validate-simple users.csv --check col-vals-lt --column age --value 120  # NEW!
-pb validate-simple inventory.csv --check col-vals-le --column stock --value 1000  # NEW!
-pb validate-simple users.csv --check col-not-null --column email --show-extract
-```
-
-The CLI is perfect for CI/CD pipelines, shell scripts, and exploratory data analysis. See the [CLI documentation](user-guide/cli.qmd) for complete details and [interactive demos](demos/cli-interactive/index.qmd) for live examples.
-
 ## Technical Details
 
-Pointblank uses [Narwhals](https://github.com/narwhals-dev/narwhals) to work with Polars and Pandas DataFrames, and integrates with [Ibis](https://github.com/ibis-project/ibis) for database and file format support. This architecture provides a consistent API for validating tabular data from various sources.
+Pointblank uses [Narwhals](https://github.com/narwhals-dev/narwhals) to work with Polars and Pandas
+DataFrames, and integrates with [Ibis](https://github.com/ibis-project/ibis) for database and file
+format support. This architecture provides a consistent API for validating tabular data from various
+sources.
 
 ## Contributing to Pointblank
 
@@ -245,7 +235,8 @@ We're actively working on enhancing Pointblank with:
 7. Expanded backend support and certification
 8. High-quality documentation and examples
 
-If you have any ideas for features or improvements, don't hesitate to share them with us! We are always looking for ways to make Pointblank better.
+If you have any ideas for features or improvements, don't hesitate to share them with us! We are
+always looking for ways to make Pointblank better.
 
 ## Code of Conduct
 
