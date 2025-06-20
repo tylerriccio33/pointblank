@@ -63,7 +63,6 @@ website:
           contents:
             - user-guide/index.qmd
             - user-guide/installation.qmd
-            - user-guide/cli.qmd
         - section: "Validation Plan"
           contents:
             - user-guide/validation-overview.qmd
@@ -90,6 +89,10 @@ website:
             - user-guide/preview.qmd
             - user-guide/col-summary-tbl.qmd
             - user-guide/missing-vals-tbl.qmd
+        - section: "CLI Utility"
+          contents:
+            - user-guide/cli.qmd
+
   page-footer:
     left: 'Proudly supported by <a href="https://www.posit.co/" class="no-icon"><img src="/assets/posit-logo-black.svg" alt="Posit" width="80" style="padding-left: 3px;vertical-align:text-top;"></a>'
     right: "&copy; 2024&ndash;2025 Posit Software, PBC."
