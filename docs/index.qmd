@@ -154,6 +154,25 @@ pip install "pointblank[postgres]" # Install Pointblank with Ibis + PostgreSQL
 pip install "pointblank[sqlite]"   # Install Pointblank with Ibis + SQLite
 ```
 
+## Command Line Interface
+
+Pointblank provides a powerful CLI for quick data validation without writing Python code. Now featuring enhanced validation checks including `col-vals-lt` and `col-vals-le`:
+
+::: {style="text-align: center; margin: 20px 0;"}
+![CLI Quick Demo](assets/vhs/cli-features.gif)
+:::
+
+```bash
+# Quick validation checks from the terminal
+pb validate-simple data.csv --check rows-distinct
+pb validate-simple sales.csv --check col-vals-gt --column revenue --value 0
+pb validate-simple users.csv --check col-vals-lt --column age --value 120  # NEW!
+pb validate-simple inventory.csv --check col-vals-le --column stock --value 1000  # NEW!
+pb validate-simple users.csv --check col-not-null --column email --show-extract
+```
+
+The CLI is perfect for CI/CD pipelines, shell scripts, and exploratory data analysis. See the [CLI documentation](user-guide/cli.qmd) for complete details and [interactive demos](demos/cli-interactive/index.qmd) for live examples.
+
 ## Technical Details
 
 Pointblank uses [Narwhals](https://github.com/narwhals-dev/narwhals) to work with Polars and Pandas DataFrames, and integrates with [Ibis](https://github.com/ibis-project/ibis) for database and file format support. This architecture provides a consistent API for validating tabular data from various sources.
