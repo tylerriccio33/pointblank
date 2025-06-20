@@ -149,6 +149,49 @@ validation.get_step_report(i=3).show("browser")  # Get failing records from step
 
 <br>
 
+## Command Line Interface (CLI)
+
+Pointblank includes a powerful CLI utility called `pb` that lets you run data validation workflows directly from the command line. Perfect for CI/CD pipelines, scheduled data quality checks, or quick validation tasks.
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/complete-workflow.gif" width="800px">
+</div>
+
+**Explore Your Data**
+
+```bash
+# Get a quick preview of your data
+pb preview small_table
+
+# Check for missing values
+pb missing small_table
+
+# Generate column summaries
+pb scan small_table
+```
+
+**Run Essential Validations**
+
+```bash
+# Check for duplicate rows
+pb validate-simple small_table --check rows-distinct
+
+# Verify no null values
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# Extract failing data for debugging
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**Integrate with CI/CD**
+
+```bash
+# Use exit codes for automation (0 = pass, 1 = fail)
+pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks passed"
+```
+
+Learn more in our [CLI documentation](https://posit-dev.github.io/pointblank/user-guide/cli.html).
+
 ## Features That Set Pointblank Apart
 
 - **Complete validation workflow** - From data access to validation to reporting in a single pipeline
