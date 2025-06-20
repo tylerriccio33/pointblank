@@ -1,6 +1,8 @@
 project:
   type: website
   post-render: scripts/post-render.py
+  resources:
+    - "assets/**"
 
 format:
   html:
