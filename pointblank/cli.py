@@ -469,9 +469,9 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                         for row in df
                     ]
                 else:
-                    rows = [["Could not extract data from this format"]]
+                    rows = [["Could not extract data from this format"]]  # pragma: no cover
             except Exception as e:
-                rows = [[f"Error extracting data: {e}"]]
+                rows = [[f"Error extracting data: {e}"]]  # pragma: no cover
 
             # Add rows to Rich table with separator between head and tail
             max_rows = 50  # Reasonable limit for terminal display
@@ -512,8 +512,8 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                     rich_table.add_row(*row)
                 except Exception as e:  # pragma: no cover
                     # If there's an issue with row data, show error
-                    rich_table.add_row(*[f"Error: {e}" for _ in columns])
-                    break
+                    rich_table.add_row(*[f"Error: {e}" for _ in columns])  # pragma: no cover
+                    break  # pragma: no cover
 
             # Show the table
             console.print()
@@ -1222,7 +1222,7 @@ def missing(data_source: str, output_html: str | None):
                     original_data = _process_connection_string(data)
                     original_data = _process_csv_input(original_data)
                     original_data = _process_parquet_input(original_data)
-                except Exception:
+                except Exception:  # pragma: no cover
                     pass  # Use the string data as fallback
 
         if output_html:
