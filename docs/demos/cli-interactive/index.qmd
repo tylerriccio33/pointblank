@@ -25,7 +25,7 @@ format:
 
 # Command Line Interface: Interactive Demos
 
-These CLI demos showcase practical data quality workflows that teams can use for exploration and in production environments.
+These CLI demos showcase practical data quality workflows that you can use!
 
 ::: {.callout-tip}
 ## 🎬 Workflow-Based Demonstrations
