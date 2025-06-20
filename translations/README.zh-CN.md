@@ -153,6 +153,49 @@ validation.get_step_report(i=3).show("browser")  # 获取步骤 3 的失败记�
 - **可定制** - 根据您的特定需求定制验证步骤和报告
 - **国际化** - 报告可以用超过 20 种语言生成，包括英语、西班牙语、法语和德语
 
+## 命令行界面 (CLI)
+
+Pointblank 包含一个强大的 CLI 工具称为 `pb`，让您可以直接从命令行运行数据验证工作流。非常适合 CI/CD 管道、定时数据质量检查或快速验证任务。
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**探索您的数据**
+
+```bash
+# 快速预览您的数据
+pb preview small_table
+
+# 检查缺失值
+pb missing small_table
+
+# 生成列摘要
+pb scan small_table
+```
+
+**运行基本验证**
+
+```bash
+# 检查重复行
+pb validate-simple small_table --check rows-distinct
+
+# 验证无空值
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# 提取失败数据进行调试
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**与 CI/CD 集成**
+
+```bash
+# 使用退出代码进行自动化（0 = 通过，1 = 失败）
+pb validate-simple small_table --check rows-distinct && echo "✅ 质量检查通过"
+```
+
+在我们的 [CLI 文档](https://posit-dev.github.io/pointblank/user-guide/cli.html) 中了解更多。
+
 ## 文档和示例
 
 访问我们的[文档站点](https://posit-dev.github.io/pointblank)获取：

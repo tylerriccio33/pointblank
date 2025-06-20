@@ -149,6 +149,49 @@ validation.get_step_report(i=3).show("browser")  # 단계 3의 실패 레코드 
 
 <br>
 
+## 명령줄 인터페이스 (CLI)
+
+Pointblank은 `pb`라는 강력한 CLI 유틸리티를 포함하여 명령줄에서 직접 데이터 검증 워크플로우를 실행할 수 있습니다. CI/CD 파이프라인, 예약된 데이터 품질 검사 또는 빠른 검증 작업에 완벽합니다.
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**데이터 탐색**
+
+```bash
+# 데이터의 빠른 미리보기 얻기
+pb preview small_table
+
+# 누락된 값 확인
+pb missing small_table
+
+# 열 요약 생성
+pb scan small_table
+```
+
+**필수 검증 실행**
+
+```bash
+# 중복 행 확인
+pb validate-simple small_table --check rows-distinct
+
+# null 값이 없는지 확인
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# 디버깅을 위해 실패 데이터 추출
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**CI/CD와 통합**
+
+```bash
+# 자동화를 위한 종료 코드 사용 (0 = 통과, 1 = 실패)
+pb validate-simple small_table --check rows-distinct && echo "✅ 품질 검사 통과"
+```
+
+자세한 내용은 [CLI 문서](https://posit-dev.github.io/pointblank/user-guide/cli.html)에서 확인하세요.
+
 ## Pointblank을 차별화하는 기능
 
 - **완전한 검증 워크플로우** - 단일 파이프라인에서 데이터 액세스부터 검증, 보고까지

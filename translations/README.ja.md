@@ -149,6 +149,49 @@ validation.get_step_report(i=3).show("browser")  # ステップ3の失敗レコ�
 
 <br>
 
+## コマンドラインインターフェース (CLI)
+
+Pointblank には、`pb` という強力な CLI ユーティリティが含まれており、コマンドラインから直接データ検証ワークフローを実行できます。CI/CD パイプライン、スケジュールされたデータ品質チェック、または迅速な検証タスクに最適です。
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**データを探索する**
+
+```bash
+# データの簡単なプレビューを取得
+pb preview small_table
+
+# 欠損値をチェック
+pb missing small_table
+
+# 列の要約を生成
+pb scan small_table
+```
+
+**基本的な検証を実行**
+
+```bash
+# 重複行をチェック
+pb validate-simple small_table --check rows-distinct
+
+# null 値がないことを確認
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# デバッグのため失敗データを抽出
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**CI/CD との統合**
+
+```bash
+# 自動化のため終了コードを使用（0 = 成功、1 = 失敗）
+pb validate-simple small_table --check rows-distinct && echo "✅ 品質チェック合格"
+```
+
+詳しくは [CLI ドキュメント](https://posit-dev.github.io/pointblank/user-guide/cli.html) をご覧ください。
+
 ## Pointblank を際立たせる特徴
 
 - **完全な検証ワークフロー** - データアクセスから検証、レポート作成まで単一のパイプラインで

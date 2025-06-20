@@ -149,6 +149,49 @@ validation.get_step_report(i=3).show("browser")  # Ottieni i record falliti al p
 
 <br>
 
+## Interfaccia a Riga di Comando (CLI)
+
+Pointblank include un potente strumento CLI chiamato `pb` che ti consente di eseguire flussi di lavoro di validazione dei dati direttamente dalla riga di comando. Perfetto per pipeline CI/CD, controlli di qualità dei dati programmati o attività di validazione rapide.
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**Esplora i tuoi dati**
+
+```bash
+# Ottieni un'anteprima rapida dei tuoi dati
+pb preview small_table
+
+# Controlla i valori mancanti
+pb missing small_table
+
+# Genera riassunti delle colonne
+pb scan small_table
+```
+
+**Esegui validazioni essenziali**
+
+```bash
+# Controlla righe duplicate
+pb validate-simple small_table --check rows-distinct
+
+# Verifica l'assenza di valori nulli
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# Estrai dati problematici per il debug
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**Integra con CI/CD**
+
+```bash
+# Usa codici di uscita per l'automazione (0 = successo, 1 = fallimento)
+pb validate-simple small_table --check rows-distinct && echo "✅ Controlli di qualità superati"
+```
+
+Scopri di più nella nostra [documentazione CLI](https://posit-dev.github.io/pointblank/user-guide/cli.html).
+
 ## Caratteristiche che distinguono Pointblank
 
 - **Flusso di lavoro di validazione completo** - Dall'accesso ai dati alla validazione fino al reporting in un'unica pipeline

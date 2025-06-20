@@ -39,7 +39,7 @@ _Datavalidatie gemaakt mooi en krachtig_
 
 Pointblank is een krachtig maar elegant datavalidatieframework voor Python dat verandert hoe je datakwaliteit waarborgt. Met de intuïtieve, aaneenschakelbare API kun je je data snel valideren tegen uitgebreide kwaliteitscontroles en de resultaten visualiseren via prachtige, interactieve rapporten die dataproblemen onmiddellijk actiegericht maken.
 
-Of je nu een data scientist, data engineer of analist bent, Pointblank helpt je datakwaliteitsproblemen te vinden voordat ze impact hebben op je analyses of downstream systemen.
+Of je nu een
 
 ## In 30 seconden aan de slag
 
@@ -148,6 +148,49 @@ validation.get_step_report(i=3).show("browser")  # Krijg falende records van sta
 </div>
 
 <br>
+
+## Commandoregelinterface (CLI)
+
+Pointblank bevat een krachtig CLI-hulpprogramma genaamd `pb` waarmee je datavalidatieworkflows direct vanaf de commandoregel kunt uitvoeren. Perfect voor CI/CD-pipelines, geplande datakwaliteitscontroles of snelle validatietaken.
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**Verken je data**
+
+```bash
+# Krijg een snelle preview van je data
+pb preview small_table
+
+# Controleer op ontbrekende waarden
+pb missing small_table
+
+# Genereer kolomsamenvattingen
+pb scan small_table
+```
+
+**Voer essentiële validaties uit**
+
+```bash
+# Controleer op dubbele rijen
+pb validate-simple small_table --check rows-distinct
+
+# Verifieer geen null-waarden
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# Extraheer falende data voor debugging
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**Integreer met CI/CD**
+
+```bash
+# Gebruik exit-codes voor automatisering (0 = slagen, 1 = falen)
+pb validate-simple small_table --check rows-distinct && echo "✅ Kwaliteitscontroles geslaagd"
+```
+
+Leer meer in onze [CLI-documentatie](https://posit-dev.github.io/pointblank/user-guide/cli.html).
 
 ## Kenmerken die Pointblank onderscheiden
 

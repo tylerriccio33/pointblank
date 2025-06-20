@@ -149,6 +149,49 @@ validation.get_step_report(i=3).show("browser")  # Fehlgeschlagene Datensätze a
 
 <br>
 
+## Kommandozeilenschnittstelle (CLI)
+
+Pointblank enthält ein leistungsstarkes CLI-Dienstprogramm namens `pb`, mit dem Sie Datenvalidierungsworkflows direkt von der Kommandozeile aus ausführen können. Perfekt für CI/CD-Pipelines, geplante Datenqualitätsprüfungen oder schnelle Validierungsaufgaben.
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-complete-workflow.gif" width="800px">
+</div>
+
+**Erkunden Sie Ihre Daten**
+
+```bash
+# Schnelle Vorschau Ihrer Daten
+pb preview small_table
+
+# Auf fehlende Werte prüfen
+pb missing small_table
+
+# Spaltenzusammenfassungen generieren
+pb scan small_table
+```
+
+**Führen Sie grundlegende Validierungen durch**
+
+```bash
+# Auf doppelte Zeilen prüfen
+pb validate-simple small_table --check rows-distinct
+
+# Keine Null-Werte verifizieren
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# Fehlerhafte Daten für Debugging extrahieren
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+**Integration mit CI/CD**
+
+```bash
+# Exit-Codes für Automatisierung verwenden (0 = Erfolg, 1 = Fehler)
+pb validate-simple small_table --check rows-distinct && echo "✅ Qualitätsprüfungen bestanden"
+```
+
+Erfahren Sie mehr in unserer [CLI-Dokumentation](https://posit-dev.github.io/pointblank/user-guide/cli.html).
+
 ## Funktionen, die Pointblank auszeichnen
 
 - **Vollständiger Validierungs-Workflow** - Von Datenzugriff über Validierung bis hin zur Berichterstattung in einer einzigen Pipeline
