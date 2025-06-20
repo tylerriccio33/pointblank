@@ -1,0 +1,141 @@
+---
+title: "CLI Interactive Demos"
+pagetitle: "CLI Interactive Demos"
+format:
+  html:
+    toc: true
+    css: |
+      .demo-section {
+        margin-bottom: 40px;
+      }
+      .gif-container {
+        margin: 20px 0;
+        text-align: center;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 20px;
+        background: #f8f9fa;
+      }
+      .gif-container img {
+        max-width: 100%;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+---
+
+# Command Line Interface: Interactive Demos
+
+These CLI demos showcase practical data quality workflows that you can use!
+
+::: {.callout-tip}
+## 🎬 Workflow-Based Demonstrations
+- **Essential validations** for everyday data quality checks
+- **Data exploration** tools that require no Python knowledge
+- **CI/CD integration** patterns for automated data quality
+- **Complete pipelines** from exploration to production validation
+:::
+
+::: {.callout-note}
+## Prerequisites
+To follow along with these demonstrations:
+```bash
+pip install pointblank
+pb --help  # Verify installation
+```
+:::
+
+### Getting Started with the CLI
+
+Learn the basics of Pointblank's CLI and run your first validation:
+
+::: {.gif-container}
+![Getting Started](../../assets/vhs/cli-getting-started.gif)
+*CLI overview and your first data quality validation*
+:::
+
+### Essential Data Quality Validations
+
+See the most commonly used validation checks that catch critical data issues:
+
+::: {.gif-container}
+![Essential Validations](../../assets/vhs/cli-essential-validations.gif)
+*Duplicate detection, null checks, and data extract debugging*
+:::
+
+### Data Exploration Without Python
+
+Discover how to profile and explore data using CLI tools that don't require Python knowledge:
+
+::: {.gif-container}
+![Data Exploration](../../assets/vhs/cli-data-exploration.gif)
+*Preview data, find missing values, and generate column summaries*
+:::
+
+### CI/CD Integration & Automation
+
+Learn how to integrate data quality checks into automated pipelines:
+
+::: {.gif-container}
+![CI/CD Integration](../../assets/vhs/cli-cicd-workflows.gif)
+*Exit codes, pipeline integration, and automated quality gates*
+:::
+
+### Complete Data Quality Workflow
+
+Follow an end-to-end data quality pipeline combining exploration, validation, and profiling:
+
+::: {.gif-container}
+![Complete Workflow](../../assets/vhs/cli-complete-workflow.gif)
+*Full pipeline: explore → validate → profile → automate*
+:::
+
+## Getting Started
+
+Ready to implement data quality workflows? Here's how to get started:
+
+### 1. Install and Verify
+
+```bash
+pip install pointblank
+pb --help
+```
+
+### 2. Explore Your Data
+
+```bash
+# Get a quick preview of your data
+pb preview small_table
+
+# Check for missing values
+pb missing small_table
+
+# Generate column summaries
+pb scan small_table
+```
+
+### 3. Run Essential Validations
+
+```bash
+# Check for duplicate rows
+pb validate-simple small_table --check rows-distinct
+
+# Verify no null values
+pb validate-simple small_table --check col-vals-not-null --column a
+
+# Extract failing data for debugging
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```
+
+### 4. Integrate with CI/CD
+
+```bash
+# Use exit codes for automation (0 = pass, 1 = fail)
+pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks passed"
+```
+
+::: {.callout-tip}
+## Next Steps
+- visit the [CLI User Guide](../../user-guide/cli.qmd) for detailed documentation
+- use `pb validate-simple --help` for validation command options
+- Combine exploration, validation, and profiling for robust data quality pipelines
+:::

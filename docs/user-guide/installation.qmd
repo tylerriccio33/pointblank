@@ -164,8 +164,8 @@ print(pb.__version__)
 ## System Requirements
 
 - Python 3.10 or higher
-- A supported DataFrame library (Pandas or Polars)
-- Optional: Ibis (for database connectivity)
+- a supported DataFrame library (Pandas or Polars)
+- optional: Ibis (for database connectivity)
 
 ## Next Steps
 
@@ -195,3 +195,31 @@ validation = (
 # Display the validation results
 validation
 ```
+
+## Command Line Interface
+
+Once installed, Pointblank also provides a powerful command-line interface for quick data validation tasks:
+
+```bash
+# Test the CLI with a built-in dataset
+pb validate-simple small_table --check rows-distinct
+
+# Check if a column exists
+pb validate-simple small_table --check col-exists --column a
+
+# Validate data ranges
+pb validate-simple small_table --check col-vals-lt --column a --value 10
+```
+
+The CLI is perfect for:
+
+- quick data quality checks in CI/CD pipelines
+- exploratory data analysis from the terminal
+- integration with shell scripts and automation workflows
+
+::: {.callout-tip}
+## See the CLI in Action
+Watch our [interactive CLI demonstrations](../demos/cli-interactive/index.qmd) to see these commands executing in real-time with actual output formatting.
+:::
+
+Learn more about the CLI capabilities in the [Command Line Interface](cli.qmd) guide.
