@@ -41,6 +41,161 @@ def runner():
     return CliRunner()
 
 
+@pytest.fixture(autouse=True)
+def mock_data_loading(monkeypatch):
+    """Mock all data loading functions to prevent file creation during tests."""
+    # Create a realistic pandas DataFrame as mock data
+    try:
+        import pandas as pd
+
+        mock_data = pd.DataFrame(
+            {
+                "a": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                "b": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"],
+                "c": [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.1, 11.1, 12.2, 13.3],
+                "date": pd.date_range("2024-01-01", periods=13),
+                "date_time": pd.date_range("2024-01-01 10:00:00", periods=13, freq="h"),
+                "f": ["x", "y", "z"] * 4 + ["x"],
+                "g": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
+                "h": [
+                    True,
+                    False,
+                    True,
+                    False,
+                    True,
+                    False,
+                    True,
+                    False,
+                    True,
+                    False,
+                    True,
+                    False,
+                    True,
+                ],
+            }
+        )
+    except ImportError:
+        # Fallback to Mock if pandas not available
+        mock_data = Mock()
+        mock_data.columns = ["a", "b", "c", "date", "date_time", "f", "g", "h"]
+        mock_data.shape = (13, 8)
+        mock_data.dtypes = {
+            "a": "int64",
+            "b": "object",
+            "c": "float64",
+            "date": "datetime64[ns]",
+            "date_time": "datetime64[ns]",
+            "f": "object",
+            "g": "int64",
+            "h": "bool",
+        }
+
+    # Store original functions to call for invalid datasets
+    original_load_dataset = pb.load_dataset
+    original_col_summary_tbl = pb.col_summary_tbl
+    original_missing_vals_tbl = pb.missing_vals_tbl
+    original_preview = pb.preview
+
+    def mock_load_dataset(name, *args, **kwargs):
+        # Only mock known valid datasets to prevent file creation
+        if name in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+            return mock_data
+        else:
+            # For invalid datasets, call original function to get proper error handling
+            return original_load_dataset(name, *args, **kwargs)
+
+    def mock_col_summary_tbl(data=None, *args, **kwargs):
+        # If data is our mock_data or a known dataset string, return mock
+        if data is mock_data or data in [
+            "small_table",
+            "game_revenue",
+            "nycflights",
+            "global_sales",
+        ]:
+            mock_gt = Mock()
+            mock_gt._tbl_data = mock_data
+            mock_gt.as_raw_html.return_value = "<html><body>Mock HTML</body></html>"
+            return mock_gt
+        else:
+            # For other data, call original function
+            return original_col_summary_tbl(data=data, *args, **kwargs)
+
+    def mock_missing_vals_tbl(data=None, *args, **kwargs):
+        # If data is our mock_data or a known dataset string, return mock
+        if data is mock_data or data in [
+            "small_table",
+            "game_revenue",
+            "nycflights",
+            "global_sales",
+        ]:
+            mock_gt = Mock()
+            mock_gt._tbl_data = mock_data
+            mock_gt.as_raw_html.return_value = "<html><body>Mock Missing Report</body></html>"
+            return mock_gt
+        else:
+            # For other data, call original function
+            return original_missing_vals_tbl(data=data, *args, **kwargs)
+
+    def mock_preview(data=None, *args, **kwargs):
+        # If data is our mock_data or a known dataset string, return mock
+        if data is mock_data or data in [
+            "small_table",
+            "game_revenue",
+            "nycflights",
+            "global_sales",
+        ]:
+            mock_gt = Mock()
+            mock_gt._tbl_data = mock_data
+            mock_gt.as_raw_html.return_value = "<html><body>Mock Preview</body></html>"
+            return mock_gt
+        else:
+            # For other data, call original function
+            return original_preview(data=data, *args, **kwargs)
+
+    def mock_get_row_count(data=None, *args, **kwargs):
+        if data is mock_data:
+            return 13
+        # For other data, don't mock - let it fail naturally if needed
+        return pb.get_row_count(data, *args, **kwargs)
+
+    def mock_get_column_count(data=None, *args, **kwargs):
+        if data is mock_data:
+            return 8
+        # For other data, don't mock - let it fail naturally if needed
+        return pb.get_column_count(data, *args, **kwargs)
+
+    def mock_get_tbl_type(data=None, *args, **kwargs):
+        if data is mock_data:
+            return "pandas"
+        # For other data, don't mock - let it fail naturally if needed
+        return _get_tbl_type(data, *args, **kwargs)
+
+    def mock_validate(*args, **kwargs):
+        mock_validation = Mock()
+        mock_validation.col_exists.return_value = mock_validation
+        mock_validation.col_vals_gt.return_value = mock_validation
+        mock_validation.interrogate.return_value = mock_validation
+        mock_validation._tbl_validation = Mock()
+        mock_validation._tbl_validation.n_pass = 5
+        mock_validation._tbl_validation.n_fail = 2
+        mock_validation._tbl_validation.n_warn = 1
+        mock_validation._tbl_validation.n_notify = 0
+        return mock_validation
+
+    # Mock all data loading and processing functions
+    monkeypatch.setattr("pointblank.load_dataset", mock_load_dataset)
+    monkeypatch.setattr("pointblank.col_summary_tbl", mock_col_summary_tbl)
+    monkeypatch.setattr("pointblank.missing_vals_tbl", mock_missing_vals_tbl)
+    monkeypatch.setattr("pointblank.get_row_count", mock_get_row_count)
+    monkeypatch.setattr("pointblank.get_column_count", mock_get_column_count)
+    monkeypatch.setattr("pointblank._utils._get_tbl_type", mock_get_tbl_type)
+    monkeypatch.setattr("pointblank.Validate", mock_validate)
+    monkeypatch.setattr("pointblank.validate", mock_validate)
+    monkeypatch.setattr("pointblank.preview", mock_preview)
+
+    return mock_data
+
+
 def test_format_cell_value_basic():
     """Test basic cell value formatting."""
     # Test regular string
@@ -640,7 +795,7 @@ def test_cli_commands_basic_functionality():
 
 
 def test_scan_command_basic():
-    """Test scan command basic functionality."""
+    """Test scan command basic functionality with mocked data loading."""
     runner = CliRunner()
     result = runner.invoke(scan, ["small_table"])
     assert result.exit_code == 0
@@ -1198,7 +1353,7 @@ def test_extract_command_basic(runner, tmp_path):
     script_file = tmp_path / "validation.py"
     script_content = """
 import pointblank as pb
-data = pb.load_dataset("small_table")
+# Use the data variable passed from CLI instead of loading dataset
 validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
 """
     script_file.write_text(script_content)
@@ -1215,7 +1370,7 @@ def test_extract_command_with_outputs(runner, tmp_path):
 
     script_content = """
 import pointblank as pb
-data = pb.load_dataset("small_table")
+# Use the data variable passed from CLI instead of loading dataset
 validation = pb.validate(data).col_vals_gt("c", -999).interrogate()  # Should pass for testing
 """
     script_file.write_text(script_content)
@@ -1265,7 +1420,7 @@ def test_validate_command_comprehensive(runner, tmp_path):
 
     script_content = """
 import pointblank as pb
-data = pb.load_dataset("small_table")
+# Use the data variable passed from CLI instead of loading dataset
 validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
 """
     script_file.write_text(script_content)
@@ -1289,7 +1444,7 @@ def test_validate_command_fail_on_error(runner, tmp_path):
     script_file = tmp_path / "validation.py"
     script_content = """
 import pointblank as pb
-data = pb.load_dataset("small_table")
+# Use the data variable passed from CLI instead of loading dataset
 validation = pb.validate(data).col_vals_gt("c", 999999).interrogate()  # Should fail
 """
     script_file.write_text(script_content)
@@ -1323,17 +1478,12 @@ def test_column_range_selection_edge_cases(runner):
     assert result.exit_code in [0, 1]
 
 
-def test_preview_with_data_processing_errors(runner, monkeypatch):
+def test_preview_with_data_processing_errors(runner):
     """Test preview with data processing errors."""
-
-    def mock_process_error(*args, **kwargs):
-        raise Exception("Processing error")
-
-    # Mock data processing functions to raise errors
-    monkeypatch.setattr("pointblank.validate._process_connection_string", mock_process_error)
-
-    result = runner.invoke(preview, ["nonexistent.csv"])
-    assert result.exit_code in [0, 1]
+    # Test with a definitely invalid file that should cause processing errors
+    result = runner.invoke(preview, ["nonexistent_file_xyz.csv"])
+    assert result.exit_code == 1  # Should fail
+    assert "Error:" in result.output
 
 
 def test_scan_with_data_processing_errors(runner, monkeypatch):
@@ -1573,7 +1723,7 @@ def test_validate_command_with_file_output_errors(runner, tmp_path, monkeypatch)
     script_file = tmp_path / "validation.py"
     script_content = """
 import pointblank as pb
-data = pb.load_dataset("small_table")
+# Use the data variable passed from CLI instead of loading dataset
 validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
 """
     script_file.write_text(script_content)
