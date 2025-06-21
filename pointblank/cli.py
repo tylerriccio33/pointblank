@@ -15,6 +15,43 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
+def _load_data_source(data_source: str) -> Any:
+    """
+    Centralized data loading function for CLI that handles all supported data source types.
+
+    This function provides a consistent way to load data across all CLI commands by leveraging
+    the _process_data() utility function and adding support for pointblank dataset names.
+
+    Parameters
+    ----------
+    data_source : str
+        The data source which could be:
+        - A pointblank dataset name (small_table, game_revenue, nycflights, global_sales)
+        - A GitHub URL pointing to a CSV or Parquet file
+        - A database connection string (e.g., "duckdb:///path/to/file.ddb::table_name")
+        - A CSV file path (string or Path object with .csv extension)
+        - A Parquet file path, glob pattern, directory, or partitioned dataset
+
+    Returns
+    -------
+    Any
+        Loaded data as a DataFrame or other data object
+
+    Raises
+    ------
+    ValueError
+        If the pointblank dataset name is not recognized
+    """
+    # Check if it's a pointblank dataset name first
+    if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+        return pb.load_dataset(data_source)
+
+    # Otherwise, use the centralized _process_data() function for all other data sources
+    from pointblank.validate import _process_data
+
+    return _process_data(data_source)
+
+
 def _format_cell_value(
     value: Any, is_row_number: bool = False, max_width: int = 50, num_columns: int = 10
 ) -> str:
