@@ -740,6 +740,79 @@ def get_data_path(
 # =============================================================================
 
 
+def _process_github_url(data: FrameT | Any) -> FrameT | Any:
+    """
+    Process data parameter to handle GitHub URLs pointing to CSV or Parquet files.
+
+    Transforms GitHub URLs to raw content URLs and then processes them as file inputs.
+
+    Supports:
+    - github.com URLs pointing to CSV or Parquet files
+    - Automatic transformation to raw.githubusercontent.com URLs
+    - Both CSV and Parquet file formats
+
+    Returns the original data if it's not a GitHub URL pointing to a supported file format.
+    """
+    import re
+    import tempfile
+    from urllib.parse import urlparse
+    from urllib.request import urlopen
+
+    # Check if data is a string that looks like a GitHub URL
+    if not isinstance(data, str):
+        return data
+
+    # Parse the URL to check if it's a GitHub URL
+    try:
+        parsed = urlparse(data)
+    except Exception:
+        return data
+
+    # Check if it's a GitHub URL
+    if parsed.netloc not in ["github.com", "www.github.com"]:
+        return data
+
+    # Check if it points to a CSV or Parquet file
+    path_lower = parsed.path.lower()
+    if not (path_lower.endswith(".csv") or path_lower.endswith(".parquet")):
+        return data
+
+    # Transform GitHub URL to raw content URL
+    # Pattern: https://github.com/user/repo/blob/branch/path/file.ext
+    # Becomes: https://raw.githubusercontent.com/user/repo/branch/path/file.ext
+    github_pattern = r"github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)"
+    match = re.search(github_pattern, data)
+
+    if not match:
+        # If URL doesn't match expected GitHub blob pattern, return original data
+        return data
+
+    user, repo, branch, file_path = match.groups()
+    raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+
+    # Download the file content to a temporary file
+    try:
+        with urlopen(raw_url) as response:
+            content = response.read()
+
+        # Determine file extension
+        file_ext = ".csv" if path_lower.endswith(".csv") else ".parquet"
+
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=file_ext, delete=False) as tmp_file:
+            tmp_file.write(content)
+            tmp_file_path = tmp_file.name
+
+        # Process the temporary file using existing CSV or Parquet processing functions
+        if file_ext == ".csv":
+            return _process_csv_input(tmp_file_path)
+        else:  # .parquet
+            return _process_parquet_input(tmp_file_path)
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to download or process GitHub file from {raw_url}: {e}") from e
+
+
 def _process_connection_string(data: FrameT | Any) -> FrameT | Any:
     """
     Process data parameter to handle database connection strings.
