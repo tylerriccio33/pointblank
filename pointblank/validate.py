@@ -2431,25 +2431,14 @@ def get_column_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        # First check for GitHub URLs
-        if (
-            isinstance(data, str)
-            and "github.com" in data
-            and ("/blob/" in data)
-            and (data.lower().endswith(".csv") or data.lower().endswith(".parquet"))
-        ):
-            data = _process_github_url(data)
-        elif "::" in str(data):
-            data = _process_connection_string(data)
-        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
-            data = _process_csv_input(data)
-        elif (
-            str(data).endswith(".parquet")
-            or str(data).endswith(".PARQUET")
-            or "*" in str(data)
-            or Path(data).is_dir()
-        ):
-            data = _process_parquet_input(data)
+        # Process GitHub URLs first
+        data = _process_github_url(data)
+        # Handle connection string input
+        data = _process_connection_string(data)
+        # Handle CSV file input
+        data = _process_csv_input(data)
+        # Handle Parquet file input
+        data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
@@ -2618,25 +2607,14 @@ def get_row_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        # First check for GitHub URLs
-        if (
-            isinstance(data, str)
-            and "github.com" in data
-            and ("/blob/" in data)
-            and (data.lower().endswith(".csv") or data.lower().endswith(".parquet"))
-        ):
-            data = _process_github_url(data)
-        elif "::" in str(data):
-            data = _process_connection_string(data)
-        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
-            data = _process_csv_input(data)
-        elif (
-            str(data).endswith(".parquet")
-            or str(data).endswith(".PARQUET")
-            or "*" in str(data)
-            or Path(data).is_dir()
-        ):
-            data = _process_parquet_input(data)
+        # Process GitHub URLs first
+        data = _process_github_url(data)
+        # Handle connection string input
+        data = _process_connection_string(data)
+        # Handle CSV file input
+        data = _process_csv_input(data)
+        # Handle Parquet file input
+        data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
