@@ -1635,9 +1635,9 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     Parameters
     ----------
     data
-        The table for which to display the missing values. This could be a DataFrame object or an
-        Ibis table object. Read the *Supported Input Table Types* section for details on the
-        supported table types.
+        The table for which to display the missing values. This could be a DataFrame object, an
+        Ibis table object, a CSV file path, a Parquet file path, or a database connection string.
+        Read the *Supported Input Table Types* section for details on the supported table types.
 
     Returns
     -------
@@ -1660,6 +1660,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
+    - CSV files (string path or `pathlib.Path` object with `.csv` extension)
+    - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
+    extension, or partitioned dataset)
+    - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
     `ibis.expr.types.relations.Table`). Furthermore, using `missing_vals_tbl()` with these types of
@@ -1701,6 +1705,16 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     for each column. The various shades of gray indicate the proportion of missing values in each
     sector. Many columns have no missing values at all, and those sectors are colored light blue.
     """
+
+    # Process input data to handle different data source types
+    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
+    data = _process_connection_string(data)
+
+    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
+    data = _process_csv_input(data)
+
+    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
+    data = _process_parquet_input(data)
 
     # Make a copy of the data to avoid modifying the original
     data = copy.deepcopy(data)
