@@ -100,17 +100,22 @@ pip install pointblank
 pb --help
 ```
 
-### 2. Explore Your Data
+### 2. Explore Various Data Sources
 
 ```bash
-# Get a quick preview of your data
+# Built-in datasets
 pb preview small_table
 
-# Check for missing values
-pb missing small_table
+# Local files with patterns
+pb preview "data/*.parquet"
+pb scan sales_data.csv
 
-# Generate column summaries
-pb scan small_table
+# GitHub repositories (no download required)
+pb preview "https://github.com/user/repo/blob/main/data.csv"
+pb missing "https://raw.githubusercontent.com/user/repo/main/sales.parquet"
+
+# Database connections
+pb info "duckdb:///warehouse/analytics.ddb::customers"
 ```
 
 ### 3. Run Essential Validations
@@ -119,8 +124,9 @@ pb scan small_table
 # Check for duplicate rows
 pb validate-simple small_table --check rows-distinct
 
-# Verify no null values
-pb validate-simple small_table --check col-vals-not-null --column a
+# Validate data from multiple sources
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column customer_id
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check rows-distinct
 
 # Extract failing data for debugging
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
