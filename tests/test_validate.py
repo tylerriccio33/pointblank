@@ -9496,6 +9496,53 @@ def test_missing_vals_tbl_using_ibis_no_polars():
         missing_vals_tbl(small_table)
 
 
+def test_missing_vals_tbl_csv_input():
+    """Test missing_vals_tbl with CSV file inputs."""
+    # Test with individual CSV file
+    csv_path = "data_raw/small_table.csv"
+    result = missing_vals_tbl(csv_path)
+    assert result is not None
+    
+    # Test with another CSV file
+    csv_path2 = "data_raw/game_revenue.csv"
+    result2 = missing_vals_tbl(csv_path2)
+    assert result2 is not None
+
+
+def test_missing_vals_tbl_parquet_input():
+    """Test missing_vals_tbl with Parquet file inputs."""
+    # Test with individual Parquet file
+    parquet_path = "tests/tbl_files/tbl_xyz.parquet"
+    result = missing_vals_tbl(parquet_path)
+    assert result is not None
+    
+    # Test with another Parquet file
+    parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
+    result2 = missing_vals_tbl(parquet_path2)
+    assert result2 is not None
+
+
+def test_missing_vals_tbl_connection_string_input():
+    """Test missing_vals_tbl with connection string inputs."""
+    # Test with DuckDB connection string (use proper duckdb:// format)
+    duckdb_conn = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    result = missing_vals_tbl(duckdb_conn)
+    assert result is not None
+    
+    # Test with SQLite connection string
+    sqlite_conn = "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    result2 = missing_vals_tbl(sqlite_conn)
+    assert result2 is not None
+
+
+def test_missing_vals_tbl_parquet_glob_patterns():
+    """Test missing_vals_tbl with Parquet glob patterns."""
+    # Test with glob pattern for taxi parts
+    taxi_glob = "tests/tbl_files/taxi_part_*.parquet"
+    result = missing_vals_tbl(taxi_glob)
+    assert result is not None
+
+
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars", "duckdb"])
 def test_get_column_count(tbl_type):
     small_table = load_dataset(dataset="small_table", tbl_type=tbl_type)
