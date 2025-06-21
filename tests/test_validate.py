@@ -9497,7 +9497,6 @@ def test_missing_vals_tbl_using_ibis_no_polars():
 
 
 def test_missing_vals_tbl_csv_input():
-    """Test missing_vals_tbl with CSV file inputs."""
     # Test with individual CSV file
     csv_path = "data_raw/small_table.csv"
     result = missing_vals_tbl(csv_path)
@@ -9510,7 +9509,6 @@ def test_missing_vals_tbl_csv_input():
 
 
 def test_missing_vals_tbl_parquet_input():
-    """Test missing_vals_tbl with Parquet file inputs."""
     # Test with individual Parquet file
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     result = missing_vals_tbl(parquet_path)
@@ -9524,26 +9522,25 @@ def test_missing_vals_tbl_parquet_input():
 
 def test_missing_vals_tbl_connection_string_input():
     """Test missing_vals_tbl with connection string inputs."""
-    # Test with DuckDB connection string (use proper duckdb:// format)
-    duckdb_conn = (
-        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
-    )
+    # Test with DuckDB connection string using get_data_path
+    duckdb_path = get_data_path("small_table", "duckdb")
+    duckdb_conn = f"duckdb:///{duckdb_path}::small_table"
     result = missing_vals_tbl(duckdb_conn)
     assert result is not None
 
-    # Test with SQLite connection string
-    sqlite_conn = (
-        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
-    )
+    # Test with SQLite connection string using absolute path
+    import os
+
+    sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
+    sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
     result2 = missing_vals_tbl(sqlite_conn)
     assert result2 is not None
 
 
 def test_missing_vals_tbl_parquet_glob_patterns():
-    """Test missing_vals_tbl with Parquet glob patterns."""
-    # Test with glob pattern for taxi parts
-    taxi_glob = "tests/tbl_files/taxi_part_*.parquet"
-    result = missing_vals_tbl(taxi_glob)
+    # Test with glob pattern for parquet files
+    parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
+    result = missing_vals_tbl(parquet_glob)
     assert result is not None
 
 
@@ -9604,6 +9601,101 @@ def test_get_row_count_no_polars_duckdb_table():
     with patch.dict(sys.modules, {"polars": None, "pandas": None}):
         with pytest.raises(ImportError):
             assert get_row_count(small_table) == 13
+
+
+def test_get_column_count_csv_input():
+    # Test with individual CSV file
+    csv_path = "data_raw/small_table.csv"
+    result = get_column_count(csv_path)
+    assert result == 8
+
+    # Test with another CSV file
+    csv_path2 = "data_raw/game_revenue.csv"
+    result2 = get_column_count(csv_path2)
+    assert result2 == 11
+
+
+def test_get_column_count_parquet_input():
+    # Test with individual Parquet file
+    parquet_path = "tests/tbl_files/tbl_xyz.parquet"
+    result = get_column_count(parquet_path)
+    assert result > 0
+
+    # Test with another Parquet file
+    parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
+    result2 = get_column_count(parquet_path2)
+    assert result2 > 0
+
+
+def test_get_column_count_connection_string_input():
+    # Test with DuckDB connection string using get_data_path
+    duckdb_path = get_data_path("small_table", "duckdb")
+    duckdb_conn = f"duckdb:///{duckdb_path}::small_table"
+    result = get_column_count(duckdb_conn)
+    assert result == 8
+
+    # Test with SQLite connection string using absolute path
+    import os
+
+    sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
+    sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
+    result2 = get_column_count(sqlite_conn)
+    assert result2 > 0
+
+
+def test_get_column_count_parquet_glob_patterns():
+    # Test with glob pattern for committed parquet files
+    parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
+    result = get_column_count(parquet_glob)
+    assert result > 0
+
+
+def test_get_row_count_csv_input():
+    # Test with individual CSV file
+    csv_path = "data_raw/small_table.csv"
+    result = get_row_count(csv_path)
+    assert result == 13
+
+    # Test with another CSV file
+    csv_path2 = "data_raw/game_revenue.csv"
+    result2 = get_row_count(csv_path2)
+    assert result2 == 2000
+
+
+def test_get_row_count_parquet_input():
+    # Test with individual Parquet file
+    parquet_path = "tests/tbl_files/tbl_xyz.parquet"
+    result = get_row_count(parquet_path)
+    assert result > 0
+
+    # Test with another Parquet file
+    parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
+    result2 = get_row_count(parquet_path2)
+    assert result2 > 0
+
+
+def test_get_row_count_connection_string_input():
+    """Test get_row_count with connection string inputs."""
+    # Test with DuckDB connection string using get_data_path
+    duckdb_path = get_data_path("small_table", "duckdb")
+    duckdb_conn = f"duckdb:///{duckdb_path}::small_table"
+    result = get_row_count(duckdb_conn)
+    assert result == 13
+
+    # Test with SQLite connection string using absolute path
+    import os
+
+    sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
+    sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
+    result2 = get_row_count(sqlite_conn)
+    assert result2 > 0
+
+
+def test_get_row_count_parquet_glob_patterns():
+    # Test with glob pattern for parquet files
+    parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
+    result = get_row_count(parquet_glob)
+    assert result > 0
 
 
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
