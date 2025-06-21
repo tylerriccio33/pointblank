@@ -740,6 +740,75 @@ def get_data_path(
 # =============================================================================
 
 
+def _process_data(data: FrameT | Any) -> FrameT | Any:
+    """
+    Centralized data processing pipeline that handles all supported input types.
+
+    This function consolidates the data processing pipeline used across multiple
+    classes and functions in Pointblank. It processes data through a consistent
+    sequence of transformations to handle different data source types.
+
+    The processing order is important:
+    1. GitHub URLs (must come before connection string processing)
+    2. Database connection strings
+    3. CSV file paths
+    4. Parquet file paths
+
+    Parameters
+    ----------
+    data : FrameT | Any
+        The input data which could be:
+        - A DataFrame object (Polars, Pandas, Ibis, etc.)
+        - A GitHub URL pointing to a CSV or Parquet file
+        - A database connection string (e.g., "duckdb:///path/to/file.ddb::table_name")
+        - A CSV file path (string or Path object with .csv extension)
+        - A Parquet file path, glob pattern, directory, or partitioned dataset
+        - Any other data type (returned unchanged)
+
+    Returns
+    -------
+    FrameT | Any
+        Processed data as a DataFrame if input was a supported data source type,
+        otherwise the original data unchanged.
+
+    Examples
+    --------
+    >>> # GitHub URL
+    >>> data = "https://github.com/user/repo/blob/main/data.csv"
+    >>> df = _process_data(data)
+
+    >>> # Database connection string
+    >>> data = "duckdb:///path/to/database.ddb::table_name"
+    >>> df = _process_data(data)
+
+    >>> # CSV file
+    >>> data = "data.csv"
+    >>> df = _process_data(data)
+
+    >>> # Parquet file/pattern
+    >>> data = "data/*.parquet"
+    >>> df = _process_data(data)
+
+    >>> # Already a DataFrame - returned unchanged
+    >>> import polars as pl
+    >>> df = pl.DataFrame({"a": [1, 2, 3]})
+    >>> result = _process_data(df)  # Same as input
+    """
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
+    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
+    data = _process_connection_string(data)
+
+    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
+    data = _process_csv_input(data)
+
+    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
+    data = _process_parquet_input(data)
+
+    return data
+
+
 def _process_github_url(data: FrameT | Any) -> FrameT | Any:
     """
     Process data parameter to handle GitHub URLs pointing to CSV or Parquet files.
