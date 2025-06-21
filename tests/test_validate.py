@@ -50,6 +50,7 @@ from pointblank.validate import (
     _process_brief,
     _process_connection_string,
     _process_csv_input,
+    _process_data,
     _process_parquet_input,
     connect_to_table,
     _process_title_text,
@@ -7799,6 +7800,265 @@ def test_process_action_str():
     assert partial_process_action_str(action_str="Action: {i} {ASSERTION} {SEVERITY} {time}") == (
         f"Action: 1 COL_VALS_GT WARNING {datetime_val}"
     )
+
+
+def test_process_data_dataframe_passthrough_polars():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame
+    df = pl.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+
+    # Process through the function
+    result = _process_data(df)
+
+    # Should be the same object
+    assert result is df
+
+
+def test_process_data_dataframe_passthrough_pandas():
+    pd = pytest.importorskip("pandas")
+
+    # Create test DataFrame
+    df = pd.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+
+    # Process through the function
+    result = _process_data(df)
+
+    # Should be the same object
+    assert result is df
+
+
+def test_process_data_non_data_passthrough():
+    test_cases = [
+        42,  # Integer
+        3.14,  # Float
+        "not_a_file.txt",  # Random string
+        ["list", "of", "items"],  # List
+        {"key": "value"},  # Dict
+        None,  # None
+    ]
+
+    for test_input in test_cases:
+        result = _process_data(test_input)
+        assert result is test_input
+
+
+def test_process_data_csv_file_processing():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame and temporary CSV file
+    df = pl.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"], "c": [1.1, 2.2, 3.3]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df.write_csv(f.name)
+        csv_path = f.name
+
+    try:
+        # Process the CSV file
+        result = _process_data(csv_path)
+
+        # Should return a DataFrame
+        assert hasattr(result, "columns") or hasattr(result, "shape")
+        assert len(result) == 3  # Should have 3 rows
+
+    finally:
+        # Clean up
+        Path(csv_path).unlink()
+
+
+def test_process_data_csv_path_object_processing():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame and temporary CSV file
+    df = pl.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"], "c": [1.1, 2.2, 3.3]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df.write_csv(f.name)
+        path_obj = Path(f.name)
+
+    try:
+        # Process the Path object
+        result = _process_data(path_obj)
+
+        # Should return a DataFrame
+        assert hasattr(result, "columns") or hasattr(result, "shape")
+        assert len(result) == 3  # Should have 3 rows
+
+    finally:
+        # Clean up
+        path_obj.unlink()
+
+
+def test_process_data_parquet_file_processing():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame and temporary Parquet file
+    df = pl.DataFrame({"x": [10, 20, 30], "y": ["a", "b", "c"], "z": [10.5, 20.5, 30.5]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".parquet", delete=False) as f:
+        df.write_parquet(f.name)
+        parquet_path = f.name
+
+    try:
+        # Process the Parquet file
+        result = _process_data(parquet_path)
+
+        # Should return a DataFrame
+        assert hasattr(result, "columns") or hasattr(result, "shape")
+        assert len(result) == 3  # Should have 3 rows
+
+    finally:
+        # Clean up
+        Path(parquet_path).unlink()
+
+
+def test_process_data_nonexistent_file():
+    # Test CSV
+    with pytest.raises(FileNotFoundError):
+        _process_data("nonexistent_file.csv")
+
+    # Test Parquet
+    with pytest.raises(FileNotFoundError):
+        _process_data("nonexistent_file.parquet")
+
+
+def test_process_data_processing_order():
+    # This test ensures GitHub URLs are processed before connection strings
+    # by mocking the individual processing functions
+
+    test_input = "test_string"
+
+    with (
+        patch("pointblank.validate._process_github_url") as mock_github,
+        patch("pointblank.validate._process_connection_string") as mock_conn,
+        patch("pointblank.validate._process_csv_input") as mock_csv,
+        patch("pointblank.validate._process_parquet_input") as mock_parquet,
+    ):
+        # Set up the mocks to pass through the input
+        mock_github.return_value = test_input
+        mock_conn.return_value = test_input
+        mock_csv.return_value = test_input
+        mock_parquet.return_value = test_input
+
+        # Call the function
+        result = _process_data(test_input)
+
+        # Verify the order of calls
+        mock_github.assert_called_once_with(test_input)
+        mock_conn.assert_called_once_with(test_input)
+        mock_csv.assert_called_once_with(test_input)
+        mock_parquet.assert_called_once_with(test_input)
+
+        # Verify result
+        assert result == test_input
+
+
+@patch("pointblank.validate._process_github_url")
+def test_process_data_github_url_processing(mock_github):
+    pl = pytest.importorskip("polars")
+
+    # Mock the GitHub processing to return a DataFrame
+    mock_df = pl.DataFrame({"test": [1, 2, 3]})
+    mock_github.return_value = mock_df
+
+    # Test with a GitHub URL
+    github_url = "https://github.com/user/repo/blob/main/data.csv"
+    result = _process_data(github_url)
+
+    # Verify GitHub processing was called
+    mock_github.assert_called_once_with(github_url)
+    assert result is mock_df
+
+
+def test_process_data_case_insensitive_extensions():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame
+    df = pl.DataFrame({"test": [1, 2, 3]})
+
+    # Test CSV with uppercase extension
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".CSV", delete=False) as f:
+        df.write_csv(f.name)
+        csv_path = f.name
+
+    try:
+        result = _process_data(csv_path)
+        assert hasattr(result, "columns") or hasattr(result, "shape")
+    finally:
+        Path(csv_path).unlink()
+
+
+def test_process_data_integration_with_validate_class():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame and temporary CSV file
+    df = pl.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"], "c": [1.1, 2.2, 3.3]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df.write_csv(f.name)
+        csv_path = f.name
+
+    try:
+        # Create a Validate instance with CSV path
+        validation = Validate(data=csv_path)
+
+        # The data should have been processed into a DataFrame
+        assert hasattr(validation.data, "columns") or hasattr(validation.data, "shape")
+        assert len(validation.data) == 3
+
+    finally:
+        # Clean up
+        Path(csv_path).unlink()
+
+
+def test_process_data_error_handling():
+    # Test with invalid file paths
+    with pytest.raises((FileNotFoundError, OSError)):
+        _process_data("/invalid/path/file.csv")
+
+
+def test_process_data_with_connection_string():
+    with patch("pointblank.validate._process_connection_string") as mock_conn:
+        mock_table = Mock()
+        mock_conn.return_value = mock_table
+
+        # Test that the function delegates to connection string processing
+        result = _process_data("duckdb://test.db::table")
+
+        # Should call _process_connection_string and return the result
+        mock_conn.assert_called_once_with("duckdb://test.db::table")
+        assert result == mock_table
+
+
+def test_process_data_dataframe_goes_through_pipeline():
+    pl = pytest.importorskip("polars")
+
+    # Create test DataFrame
+    df = pl.DataFrame({"test": [1, 2, 3]})
+
+    with (
+        patch("pointblank.validate._process_github_url") as mock_github,
+        patch("pointblank.validate._process_connection_string") as mock_conn,
+        patch("pointblank.validate._process_csv_input") as mock_csv,
+        patch("pointblank.validate._process_parquet_input") as mock_parquet,
+    ):
+        # Set up the mocks to pass through the input (as they would for DataFrames)
+        mock_github.return_value = df
+        mock_conn.return_value = df
+        mock_csv.return_value = df
+        mock_parquet.return_value = df
+
+        # Call the function with a DataFrame
+        result = _process_data(df)
+
+        # Should return the DataFrame after going through all processing functions
+        assert result is df
+
+        # All processing functions should have been called
+        mock_github.assert_called_once_with(df)
+        mock_conn.assert_called_once_with(df)
+        mock_csv.assert_called_once_with(df)
+        mock_parquet.assert_called_once_with(df)
 
 
 def test_process_title_text():
