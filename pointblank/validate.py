@@ -1288,6 +1288,9 @@ def preview(
     """
 
     # Process input data to handle different data source types
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
     # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
     data = _process_connection_string(data)
 
@@ -1780,6 +1783,9 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     """
 
     # Process input data to handle different data source types
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
     # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
     data = _process_connection_string(data)
 
@@ -2296,6 +2302,11 @@ def get_column_count(data: FrameT | Any) -> int:
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
 
+    GitHub URLs pointing to CSV or Parquet files are automatically detected and converted to raw
+    content URLs for downloading. The URL format should be:
+    `https://github.com/user/repo/blob/branch/path/file.csv` or
+    `https://github.com/user/repo/blob/branch/path/file.parquet`
+
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
 
@@ -2387,7 +2398,15 @@ def get_column_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        if "::" in str(data):
+        # First check for GitHub URLs
+        if (
+            isinstance(data, str)
+            and "github.com" in data
+            and ("/blob/" in data)
+            and (data.lower().endswith(".csv") or data.lower().endswith(".parquet"))
+        ):
+            data = _process_github_url(data)
+        elif "::" in str(data):
             data = _process_connection_string(data)
         elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
             data = _process_csv_input(data)
@@ -2458,6 +2477,7 @@ def get_row_count(data: FrameT | Any) -> int:
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
     extension, or partitioned dataset)
+    - GitHub URLs (direct links to CSV or Parquet files on GitHub)
     - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -2468,6 +2488,11 @@ def get_row_count(data: FrameT | Any) -> int:
     To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
+
+    GitHub URLs pointing to CSV or Parquet files are automatically detected and converted to raw
+    content URLs for downloading. The URL format should be:
+    `https://github.com/user/repo/blob/branch/path/file.csv` or
+    `https://github.com/user/repo/blob/branch/path/file.parquet`
 
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
@@ -2560,7 +2585,15 @@ def get_row_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        if "::" in str(data):
+        # First check for GitHub URLs
+        if (
+            isinstance(data, str)
+            and "github.com" in data
+            and ("/blob/" in data)
+            and (data.lower().endswith(".csv") or data.lower().endswith(".parquet"))
+        ):
+            data = _process_github_url(data)
+        elif "::" in str(data):
             data = _process_connection_string(data)
         elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
             data = _process_csv_input(data)
@@ -2978,13 +3011,15 @@ class Validate:
     ----------
     data
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
-        file path, a Parquet file path, or a database connection string. When providing a CSV or
-        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
-        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
-        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
-        Connection strings enable direct database access via Ibis with optional table specification
-        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
-        on the supported table types.
+        file path, a Parquet file path, a GitHub URL pointing to a CSV or Parquet file, or a
+        database connection string. When providing a CSV or Parquet file path (as a string or
+        `pathlib.Path` object), the file will be automatically loaded using an available DataFrame
+        library (Polars or Pandas). Parquet input also supports glob patterns, directories
+        containing .parquet files, and Spark-style partitioned datasets. GitHub URLs are
+        automatically transformed to raw content URLs and downloaded. Connection strings enable
+        direct database access via Ibis with optional table specification using the `::table_name`
+        suffix. Read the *Supported Input Table Types* section for details on the supported table
+        types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -3504,6 +3539,9 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
+        # Handle GitHub URL input for the data parameter
+        self.data = _process_github_url(self.data)
+
         # Handle connection string input for the data parameter
         self.data = _process_connection_string(self.data)
 
