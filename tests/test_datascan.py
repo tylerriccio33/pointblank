@@ -13,6 +13,7 @@ import polars.testing as pt
 import pointblank as pb
 
 from pointblank.datascan import DataScan, col_summary_tbl
+from pointblank.validate import get_data_path
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 from pointblank.scan_profile_stats import StatGroup, COLUMN_ORDER_REGISTRY
 
@@ -286,7 +287,6 @@ def test_compact_0_1_fmt():
 
 
 def test_datascan_csv_input():
-    """Test DataScan class with CSV file inputs."""
     # Test with individual CSV file
     csv_path = "data_raw/small_table.csv"
     scanner = DataScan(data=csv_path)
@@ -299,7 +299,6 @@ def test_datascan_csv_input():
 
 
 def test_datascan_parquet_input():
-    """Test DataScan class with Parquet file inputs."""
     # Test with individual Parquet file
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     scanner = DataScan(data=parquet_path)
@@ -312,32 +311,29 @@ def test_datascan_parquet_input():
 
 
 def test_datascan_connection_string_input():
-    """Test DataScan class with connection string inputs."""
-    # Test with DuckDB connection string
-    duckdb_conn = (
-        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
-    )
+    # Test with DuckDB connection string using get_data_path
+    duckdb_path = get_data_path("small_table", "duckdb")
+    duckdb_conn = f"duckdb:///{duckdb_path}::small_table"
     scanner = DataScan(data=duckdb_conn)
     assert scanner.summary_data is not None
 
-    # Test with SQLite connection string
-    sqlite_conn = (
-        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
-    )
+    # Test with SQLite connection string using absolute path
+    import os
+
+    sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
+    sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
     scanner2 = DataScan(data=sqlite_conn)
     assert scanner2.summary_data is not None
 
 
 def test_datascan_parquet_glob_patterns():
-    """Test DataScan class with Parquet glob patterns."""
-    # Test with glob pattern for taxi parts
-    taxi_glob = "tests/tbl_files/taxi_part_*.parquet"
-    scanner = DataScan(data=taxi_glob)
+    # Test with glob pattern for committed parquet files
+    parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
+    scanner = DataScan(data=parquet_glob)
     assert scanner.summary_data is not None
 
 
 def test_col_summary_tbl_csv_input():
-    """Test col_summary_tbl with CSV file inputs."""
     # Test with individual CSV file
     csv_path = "data_raw/small_table.csv"
     result = col_summary_tbl(csv_path)
@@ -350,7 +346,6 @@ def test_col_summary_tbl_csv_input():
 
 
 def test_col_summary_tbl_parquet_input():
-    """Test col_summary_tbl with Parquet file inputs."""
     # Test with individual Parquet file
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     result = col_summary_tbl(parquet_path)
@@ -363,27 +358,25 @@ def test_col_summary_tbl_parquet_input():
 
 
 def test_col_summary_tbl_connection_string_input():
-    """Test col_summary_tbl with connection string inputs."""
-    # Test with DuckDB connection string
-    duckdb_conn = (
-        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
-    )
+    # Test with DuckDB connection string using get_data_path
+    duckdb_path = get_data_path("small_table", "duckdb")
+    duckdb_conn = f"duckdb:///{duckdb_path}::small_table"
     result = col_summary_tbl(duckdb_conn)
     assert isinstance(result, GT)
 
-    # Test with SQLite connection string
-    sqlite_conn = (
-        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
-    )
+    # Test with SQLite connection string using absolute path
+    import os
+
+    sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
+    sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
     result2 = col_summary_tbl(sqlite_conn)
     assert isinstance(result2, GT)
 
 
 def test_col_summary_tbl_parquet_glob_patterns():
-    """Test col_summary_tbl with Parquet glob patterns."""
-    # Test with glob pattern for taxi parts
-    taxi_glob = "tests/tbl_files/taxi_part_*.parquet"
-    result = col_summary_tbl(taxi_glob)
+    # Test with glob pattern for parquet files
+    parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
+    result = col_summary_tbl(parquet_glob)
     assert isinstance(result, GT)
 
 
