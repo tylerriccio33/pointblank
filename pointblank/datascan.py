@@ -57,7 +57,8 @@ class DataScan:
     ----------
     data
         The data to scan and summarize. This could be a DataFrame object, an Ibis table object,
-        a CSV file path, a Parquet file path, or a database connection string.
+        a CSV file path, a Parquet file path, a GitHub URL pointing to a CSV or Parquet file,
+        or a database connection string.
     tbl_name
         Optionally, the name of the table could be provided as `tbl_name`.
 
@@ -127,10 +128,14 @@ class DataScan:
         from pointblank.validate import (
             _process_connection_string,
             _process_csv_input,
+            _process_github_url,
             _process_parquet_input,
         )
 
         # Process input data to handle different data source types
+        # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+        data = _process_github_url(data)
+
         # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
         data = _process_connection_string(data)
 
@@ -557,6 +562,7 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
     extension, or partitioned dataset)
+    - GitHub URLs (direct links to CSV or Parquet files on GitHub)
     - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -593,10 +599,14 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
     from pointblank.validate import (
         _process_connection_string,
         _process_csv_input,
+        _process_github_url,
         _process_parquet_input,
     )
 
     # Process input data to handle different data source types
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
     # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
     data = _process_connection_string(data)
 

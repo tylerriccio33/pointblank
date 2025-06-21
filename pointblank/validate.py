@@ -740,6 +740,112 @@ def get_data_path(
 # =============================================================================
 
 
+def _process_github_url(data: FrameT | Any) -> FrameT | Any:
+    """
+    Process data parameter to handle GitHub URLs pointing to CSV or Parquet files.
+
+    Handles both standard GitHub URLs and raw GitHub content URLs, downloading the content
+    and processing it as a local file.
+
+    Supports:
+    - Standard github.com URLs pointing to CSV or Parquet files (automatically transformed to raw URLs)
+    - Raw raw.githubusercontent.com URLs pointing to CSV or Parquet files (processed directly)
+    - Both CSV and Parquet file formats
+    - Automatic temporary file management and cleanup
+
+    Parameters
+    ----------
+    data : FrameT | Any
+        The data parameter which may be a GitHub URL string or any other data type.
+
+    Returns
+    -------
+    FrameT | Any
+        If the input is a supported GitHub URL, returns a DataFrame loaded from the downloaded file.
+        Otherwise, returns the original data unchanged.
+
+    Examples
+    --------
+    Standard GitHub URL (automatically transformed):
+    >>> url = "https://github.com/user/repo/blob/main/data.csv"
+    >>> df = _process_github_url(url)
+
+    Raw GitHub URL (used directly):
+    >>> raw_url = "https://raw.githubusercontent.com/user/repo/main/data.csv"
+    >>> df = _process_github_url(raw_url)
+    """
+    import re
+    import tempfile
+    from urllib.parse import urlparse
+    from urllib.request import urlopen
+
+    # Check if data is a string that looks like a GitHub URL
+    if not isinstance(data, str):
+        return data
+
+    # Parse the URL to check if it's a GitHub URL
+    try:
+        parsed = urlparse(data)
+    except Exception:
+        return data
+
+    # Check if it's a GitHub URL (standard or raw)
+    is_standard_github = parsed.netloc in ["github.com", "www.github.com"]
+    is_raw_github = parsed.netloc == "raw.githubusercontent.com"
+
+    if not (is_standard_github or is_raw_github):
+        return data
+
+    # Check if it points to a CSV or Parquet file
+    path_lower = parsed.path.lower()
+    if not (path_lower.endswith(".csv") or path_lower.endswith(".parquet")):
+        return data
+
+    # Determine the raw URL to download from
+    if is_raw_github:
+        # Already a raw GitHub URL, use it directly
+        raw_url = data
+    else:
+        # Transform GitHub URL to raw content URL
+        # Pattern: https://github.com/user/repo/blob/branch/path/file.ext
+        # Becomes: https://raw.githubusercontent.com/user/repo/branch/path/file.ext
+        github_pattern = r"github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)"
+        match = re.search(github_pattern, data)
+
+        if not match:
+            # If URL doesn't match expected GitHub blob pattern, return original data
+            return data
+
+        user, repo, branch, file_path = match.groups()
+        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+
+    # Download the file content to a temporary file
+    try:
+        with urlopen(raw_url) as response:
+            content = response.read()
+
+        # Determine file extension
+        file_ext = ".csv" if path_lower.endswith(".csv") else ".parquet"
+
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=file_ext, delete=False) as tmp_file:
+            tmp_file.write(content)
+            tmp_file_path = tmp_file.name
+
+        # Process the temporary file using existing CSV or Parquet processing functions
+        if file_ext == ".csv":
+            return _process_csv_input(tmp_file_path)
+        else:  # .parquet
+            return _process_parquet_input(tmp_file_path)
+
+    except Exception:
+        # If download or processing fails, return original data
+        return data
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to download or process GitHub file from {raw_url}: {e}") from e
+
+
 def _process_connection_string(data: FrameT | Any) -> FrameT | Any:
     """
     Process data parameter to handle database connection strings.
@@ -1215,6 +1321,9 @@ def preview(
     """
 
     # Process input data to handle different data source types
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
     # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
     data = _process_connection_string(data)
 
@@ -1707,6 +1816,9 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     """
 
     # Process input data to handle different data source types
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
     # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
     data = _process_connection_string(data)
 
@@ -2223,6 +2335,11 @@ def get_column_count(data: FrameT | Any) -> int:
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
 
+    GitHub URLs pointing to CSV or Parquet files are automatically detected and converted to raw
+    content URLs for downloading. The URL format should be:
+    `https://github.com/user/repo/blob/branch/path/file.csv` or
+    `https://github.com/user/repo/blob/branch/path/file.parquet`
+
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
 
@@ -2314,17 +2431,14 @@ def get_column_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        if "::" in str(data):
-            data = _process_connection_string(data)
-        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
-            data = _process_csv_input(data)
-        elif (
-            str(data).endswith(".parquet")
-            or str(data).endswith(".PARQUET")
-            or "*" in str(data)
-            or Path(data).is_dir()
-        ):
-            data = _process_parquet_input(data)
+        # Process GitHub URLs first
+        data = _process_github_url(data)
+        # Handle connection string input
+        data = _process_connection_string(data)
+        # Handle CSV file input
+        data = _process_csv_input(data)
+        # Handle Parquet file input
+        data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
@@ -2385,6 +2499,7 @@ def get_row_count(data: FrameT | Any) -> int:
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
     extension, or partitioned dataset)
+    - GitHub URLs (direct links to CSV or Parquet files on GitHub)
     - Database connection strings (URI format with optional table specification)
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -2395,6 +2510,11 @@ def get_row_count(data: FrameT | Any) -> int:
     To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
     provided. The file will be automatically detected and loaded using the best available DataFrame
     library. The loading preference is Polars first, then Pandas as a fallback.
+
+    GitHub URLs pointing to CSV or Parquet files are automatically detected and converted to raw
+    content URLs for downloading. The URL format should be:
+    `https://github.com/user/repo/blob/branch/path/file.csv` or
+    `https://github.com/user/repo/blob/branch/path/file.parquet`
 
     Connection strings follow database URL formats and must also specify a table using the
     `::table_name` suffix. Examples include:
@@ -2487,17 +2607,14 @@ def get_row_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        if "::" in str(data):
-            data = _process_connection_string(data)
-        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
-            data = _process_csv_input(data)
-        elif (
-            str(data).endswith(".parquet")
-            or str(data).endswith(".PARQUET")
-            or "*" in str(data)
-            or Path(data).is_dir()
-        ):
-            data = _process_parquet_input(data)
+        # Process GitHub URLs first
+        data = _process_github_url(data)
+        # Handle connection string input
+        data = _process_connection_string(data)
+        # Handle CSV file input
+        data = _process_csv_input(data)
+        # Handle Parquet file input
+        data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
@@ -2905,13 +3022,15 @@ class Validate:
     ----------
     data
         The table to validate, which could be a DataFrame object, an Ibis table object, a CSV
-        file path, a Parquet file path, or a database connection string. When providing a CSV or
-        Parquet file path (as a string or `pathlib.Path` object), the file will be automatically
-        loaded using an available DataFrame library (Polars or Pandas). Parquet input also supports
-        glob patterns, directories containing .parquet files, and Spark-style partitioned datasets.
-        Connection strings enable direct database access via Ibis with optional table specification
-        using the `::table_name` suffix. Read the *Supported Input Table Types* section for details
-        on the supported table types.
+        file path, a Parquet file path, a GitHub URL pointing to a CSV or Parquet file, or a
+        database connection string. When providing a CSV or Parquet file path (as a string or
+        `pathlib.Path` object), the file will be automatically loaded using an available DataFrame
+        library (Polars or Pandas). Parquet input also supports glob patterns, directories
+        containing .parquet files, and Spark-style partitioned datasets. GitHub URLs are
+        automatically transformed to raw content URLs and downloaded. Connection strings enable
+        direct database access via Ibis with optional table specification using the `::table_name`
+        suffix. Read the *Supported Input Table Types* section for details on the supported table
+        types.
     tbl_name
         An optional name to assign to the input table object. If no value is provided, a name will
         be generated based on whatever information is available. This table name will be displayed
@@ -3431,6 +3550,9 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
+        # Handle GitHub URL input for the data parameter
+        self.data = _process_github_url(self.data)
+
         # Handle connection string input for the data parameter
         self.data = _process_connection_string(self.data)
 

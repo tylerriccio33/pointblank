@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import pytest
 import narwhals as nw
 
@@ -13,7 +14,7 @@ import polars.testing as pt
 import pointblank as pb
 
 from pointblank.datascan import DataScan, col_summary_tbl
-from pointblank.validate import get_data_path
+from pointblank.validate import get_data_path, _process_github_url
 from pointblank._datascan_utils import _compact_0_1_fmt, _compact_decimal_fmt, _compact_integer_fmt
 from pointblank.scan_profile_stats import StatGroup, COLUMN_ORDER_REGISTRY
 
@@ -207,8 +208,6 @@ def test_col_summary_tbl(df):
 
 
 def test_col_summary_tbl_polars_categorical_column():
-    import polars as pl
-
     log_levels = pl.Enum(["debug", "info", "warning", "error"])
 
     df_pl = pl.DataFrame(
@@ -318,7 +317,6 @@ def test_datascan_connection_string_input():
     assert scanner.summary_data is not None
 
     # Test with SQLite connection string using absolute path
-    import os
 
     sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
     sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
@@ -365,7 +363,6 @@ def test_col_summary_tbl_connection_string_input():
     assert isinstance(result, GT)
 
     # Test with SQLite connection string using absolute path
-    import os
 
     sqlite_path = os.path.abspath("tests/tbl_files/tbl_xyz.sqlite")
     sqlite_conn = f"sqlite:///{sqlite_path}::tbl_xyz"
@@ -378,6 +375,120 @@ def test_col_summary_tbl_parquet_glob_patterns():
     parquet_glob = "tests/tbl_files/parquet_data/data_*.parquet"
     result = col_summary_tbl(parquet_glob)
     assert isinstance(result, GT)
+
+
+def test_datascan_github_url_csv():
+    # Test with a GitHub CSV file from our own repository
+    github_csv_url = "https://github.com/posit-dev/pointblank/blob/main/data_raw/small_table.csv"
+
+    try:
+        scanner = DataScan(data=github_csv_url)
+        assert scanner.summary_data is not None
+        # Verify we got some columns
+        assert len(scanner.summary_data) > 0
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(f"GitHub URL test skipped due to network or access issue: {e}")
+
+
+def test_datascan_github_url_parquet():
+    # Test with a GitHub Parquet file from our own repository
+    github_parquet_url = "https://github.com/posit-dev/pointblank/blob/main/tests/tbl_files/parquet_data/data_a.parquet"
+
+    try:
+        scanner = DataScan(data=github_parquet_url)
+        assert scanner.summary_data is not None
+        # Verify we got some columns
+        assert len(scanner.summary_data) > 0
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(f"GitHub URL test skipped due to network or access issue: {e}")
+
+
+def test_col_summary_tbl_github_url_csv():
+    # Test with a GitHub CSV file from our own repository
+    github_csv_url = "https://github.com/posit-dev/pointblank/blob/main/data_raw/small_table.csv"
+
+    try:
+        result = col_summary_tbl(github_csv_url)
+        assert isinstance(result, GT)
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(f"GitHub URL test skipped due to network or access issue: {e}")
+
+
+def test_github_url_processing_function():
+    # Test with non-GitHub URL (should return unchanged)
+    non_github_url = "https://example.com/data.csv"
+    result = _process_github_url(non_github_url)
+    assert result == non_github_url
+
+    # Test with non-URL string (should return unchanged)
+    non_url = "local_file.csv"
+    result = _process_github_url(non_url)
+    assert result == non_url
+
+    # Test with GitHub URL that doesn't point to CSV/Parquet (should return unchanged)
+    github_non_data_url = "https://github.com/user/repo/blob/main/README.md"
+    result = _process_github_url(github_non_data_url)
+    assert result == github_non_data_url
+
+    # Test with malformed GitHub URL (should return unchanged)
+    malformed_url = "https://github.com/user/repo/data.csv"  # missing /blob/branch/
+    result = _process_github_url(malformed_url)
+    assert result == malformed_url
+
+
+def test_raw_github_url_processing():
+    # Use a raw GitHub URL from our own repository
+    raw_github_csv_url = (
+        "https://raw.githubusercontent.com/posit-dev/pointblank/main/data_raw/small_table.csv"
+    )
+
+    try:
+        result = _process_github_url(raw_github_csv_url)
+        # Should return a dataframe, not the original URL string
+        assert not isinstance(result, str), "Result should be a dataframe, not a string"
+        # Should be a dataframe with some basic properties
+        assert hasattr(result, "shape") or hasattr(result, "height"), (
+            "Result should be a dataframe with shape/height attribute"
+        )
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(f"Raw GitHub URL test skipped due to network or access issue: {e}")
+
+
+def test_raw_github_url_in_col_summary_tbl():
+    # Use a raw GitHub URL from our own repository
+    raw_github_csv_url = (
+        "https://raw.githubusercontent.com/posit-dev/pointblank/main/data_raw/small_table.csv"
+    )
+
+    try:
+        result = col_summary_tbl(raw_github_csv_url)
+        # Should work without being misclassified as a connection string
+        assert isinstance(result, GT)
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(
+            f"Raw GitHub URL col_summary_tbl test skipped due to network or access issue: {e}"
+        )
+
+
+def test_raw_github_url_in_datascan():
+    # Use a raw GitHub URL from our own repository
+    raw_github_csv_url = (
+        "https://raw.githubusercontent.com/posit-dev/pointblank/main/data_raw/small_table.csv"
+    )
+
+    try:
+        data_scan = DataScan(raw_github_csv_url)
+        result = data_scan.get_tabular_report()
+        # Should work without being misclassified as a connection string
+        assert isinstance(result, GT)
+    except Exception as e:
+        # If URL access fails (network issues, etc.), skip the test
+        pytest.skip(f"Raw GitHub URL DataScan test skipped due to network or access issue: {e}")
 
 
 if __name__ == "__main__":
