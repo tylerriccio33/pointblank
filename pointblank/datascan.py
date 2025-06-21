@@ -126,24 +126,11 @@ class DataScan:
     def __init__(self, data: IntoFrameT, tbl_name: str | None = None) -> None:
         # Import processing functions from validate module
         from pointblank.validate import (
-            _process_connection_string,
-            _process_csv_input,
-            _process_github_url,
-            _process_parquet_input,
+            _process_data,
         )
 
         # Process input data to handle different data source types
-        # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
-        data = _process_github_url(data)
-
-        # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
-        data = _process_connection_string(data)
-
-        # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
-        data = _process_csv_input(data)
-
-        # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
-        data = _process_parquet_input(data)
+        data = _process_data(data)
 
         as_native = nw.from_native(data)
 
@@ -596,25 +583,10 @@ def col_summary_tbl(data: FrameT | Any, tbl_name: str | None = None) -> GT:
     """
 
     # Import processing functions from validate module
-    from pointblank.validate import (
-        _process_connection_string,
-        _process_csv_input,
-        _process_github_url,
-        _process_parquet_input,
-    )
+    from pointblank.validate import _process_data
 
     # Process input data to handle different data source types
-    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
-    data = _process_github_url(data)
-
-    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
-    data = _process_connection_string(data)
-
-    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
-    data = _process_csv_input(data)
-
-    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
-    data = _process_parquet_input(data)
+    data = _process_data(data)
 
     scanner = DataScan(data=data, tbl_name=tbl_name)
     return scanner.get_tabular_report()

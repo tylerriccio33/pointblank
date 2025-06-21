@@ -11,21 +11,13 @@ if TYPE_CHECKING:
 class Compare:
     def __init__(self, a: IntoFrame, b: IntoFrame) -> None:
         # Import processing functions from validate module
-        from pointblank.validate import (
-            _process_connection_string,
-            _process_csv_input,
-            _process_parquet_input,
-        )
+        from pointblank.validate import _process_data
 
         # Process input data for table a
-        a = _process_connection_string(a)
-        a = _process_csv_input(a)
-        a = _process_parquet_input(a)
+        a = _process_data(a)
 
         # Process input data for table b
-        b = _process_connection_string(b)
-        b = _process_csv_input(b)
-        b = _process_parquet_input(b)
+        b = _process_data(b)
 
         self.a: IntoFrame = a
         self.b: IntoFrame = b

@@ -180,21 +180,10 @@ def assistant(
     # If a dataset is provided, generate a table summary in JSON format
     if data is not None:
         # Import processing functions from validate module
-        from pointblank.validate import (
-            _process_connection_string,
-            _process_csv_input,
-            _process_parquet_input,
-        )
+        from pointblank.validate import _process_data
 
         # Process input data to handle different data source types
-        # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
-        data = _process_connection_string(data)
-
-        # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
-        data = _process_csv_input(data)
-
-        # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
-        data = _process_parquet_input(data)
+        data = _process_data(data)
 
         scan = DataScan(data=data)
 

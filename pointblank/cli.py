@@ -832,18 +832,12 @@ def preview(
 
             # If data has _row_num_ and it's not explicitly included, add it at the beginning
             try:
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
+                from pointblank.validate import _process_data
 
                 # Process the data source to get actual data object to check for _row_num_
                 processed_data = data
                 if isinstance(data, str):
-                    processed_data = _process_connection_string(data)
-                    processed_data = _process_csv_input(processed_data)
-                    processed_data = _process_parquet_input(processed_data)
+                    processed_data = _process_data(data)
 
                 # Get column names from the processed data
                 all_columns = []
@@ -861,18 +855,12 @@ def preview(
         elif col_range or col_first or col_last:
             # Need to get column names to apply range/first/last selection
             # Load the data to get column names
-            from pointblank.validate import (
-                _process_connection_string,
-                _process_csv_input,
-                _process_parquet_input,
-            )
+            from pointblank.validate import _process_data
 
             # Process the data source to get actual data object
             processed_data = data
             if isinstance(data, str):
-                processed_data = _process_connection_string(data)
-                processed_data = _process_csv_input(processed_data)
-                processed_data = _process_parquet_input(processed_data)
+                processed_data = _process_data(data)
 
             # Get column names from the processed data
             all_columns = []
@@ -935,17 +923,11 @@ def preview(
             # Get total dataset size before preview and gather metadata
             try:
                 # Process the data to get the actual data object for row count and metadata
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
+                from pointblank.validate import _process_data
 
                 processed_data = data
                 if isinstance(data, str):
-                    processed_data = _process_connection_string(data)
-                    processed_data = _process_csv_input(processed_data)
-                    processed_data = _process_parquet_input(processed_data)
+                    processed_data = _process_data(data)
 
                 total_dataset_rows = pb.get_row_count(processed_data)
 
@@ -1024,15 +1006,9 @@ def info(data_source: str):
                 source_type = f"External source: {data_source}"
 
                 # Process the data to get actual table object for inspection
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
+                from pointblank.validate import _process_data
 
-                data = _process_connection_string(data)
-                data = _process_csv_input(data)
-                data = _process_parquet_input(data)
+                data = _process_data(data)
                 console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Get table information
@@ -1131,15 +1107,9 @@ def scan(
                     total_rows = None
             else:
                 # For file paths and connection strings, load the data first
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
+                from pointblank.validate import _process_data
 
-                processed_data = _process_connection_string(data)
-                processed_data = _process_csv_input(processed_data)
-                processed_data = _process_parquet_input(processed_data)
+                processed_data = _process_data(data)
                 scan_result = pb.col_summary_tbl(data=processed_data)
                 source_type = f"External source: {data_source}"
                 table_type = _get_tbl_type(processed_data)
@@ -1212,16 +1182,10 @@ def missing(data_source: str, output_html: str | None):
             original_data = data
             if isinstance(data, str):
                 # Process the data to get the actual data object
-                from pointblank.validate import (
-                    _process_connection_string,
-                    _process_csv_input,
-                    _process_parquet_input,
-                )
+                from pointblank.validate import _process_data
 
                 try:
-                    original_data = _process_connection_string(data)
-                    original_data = _process_csv_input(original_data)
-                    original_data = _process_parquet_input(original_data)
+                    original_data = _process_data(data)
                 except Exception:  # pragma: no cover
                     pass  # Use the string data as fallback
 
