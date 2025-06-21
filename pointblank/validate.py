@@ -744,14 +744,35 @@ def _process_github_url(data: FrameT | Any) -> FrameT | Any:
     """
     Process data parameter to handle GitHub URLs pointing to CSV or Parquet files.
 
-    Transforms GitHub URLs to raw content URLs and then processes them as file inputs.
+    Handles both standard GitHub URLs and raw GitHub content URLs, downloading the content
+    and processing it as a local file.
 
     Supports:
-    - github.com URLs pointing to CSV or Parquet files
-    - Automatic transformation to raw.githubusercontent.com URLs
+    - Standard github.com URLs pointing to CSV or Parquet files (automatically transformed to raw URLs)
+    - Raw raw.githubusercontent.com URLs pointing to CSV or Parquet files (processed directly)
     - Both CSV and Parquet file formats
+    - Automatic temporary file management and cleanup
 
-    Returns the original data if it's not a GitHub URL pointing to a supported file format.
+    Parameters
+    ----------
+    data : FrameT | Any
+        The data parameter which may be a GitHub URL string or any other data type.
+
+    Returns
+    -------
+    FrameT | Any
+        If the input is a supported GitHub URL, returns a DataFrame loaded from the downloaded file.
+        Otherwise, returns the original data unchanged.
+
+    Examples
+    --------
+    Standard GitHub URL (automatically transformed):
+    >>> url = "https://github.com/user/repo/blob/main/data.csv"
+    >>> df = _process_github_url(url)
+
+    Raw GitHub URL (used directly):
+    >>> raw_url = "https://raw.githubusercontent.com/user/repo/main/data.csv"
+    >>> df = _process_github_url(raw_url)
     """
     import re
     import tempfile
@@ -768,8 +789,11 @@ def _process_github_url(data: FrameT | Any) -> FrameT | Any:
     except Exception:
         return data
 
-    # Check if it's a GitHub URL
-    if parsed.netloc not in ["github.com", "www.github.com"]:
+    # Check if it's a GitHub URL (standard or raw)
+    is_standard_github = parsed.netloc in ["github.com", "www.github.com"]
+    is_raw_github = parsed.netloc == "raw.githubusercontent.com"
+
+    if not (is_standard_github or is_raw_github):
         return data
 
     # Check if it points to a CSV or Parquet file
@@ -777,18 +801,23 @@ def _process_github_url(data: FrameT | Any) -> FrameT | Any:
     if not (path_lower.endswith(".csv") or path_lower.endswith(".parquet")):
         return data
 
-    # Transform GitHub URL to raw content URL
-    # Pattern: https://github.com/user/repo/blob/branch/path/file.ext
-    # Becomes: https://raw.githubusercontent.com/user/repo/branch/path/file.ext
-    github_pattern = r"github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)"
-    match = re.search(github_pattern, data)
+    # Determine the raw URL to download from
+    if is_raw_github:
+        # Already a raw GitHub URL, use it directly
+        raw_url = data
+    else:
+        # Transform GitHub URL to raw content URL
+        # Pattern: https://github.com/user/repo/blob/branch/path/file.ext
+        # Becomes: https://raw.githubusercontent.com/user/repo/branch/path/file.ext
+        github_pattern = r"github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)"
+        match = re.search(github_pattern, data)
 
-    if not match:
-        # If URL doesn't match expected GitHub blob pattern, return original data
-        return data
+        if not match:
+            # If URL doesn't match expected GitHub blob pattern, return original data
+            return data
 
-    user, repo, branch, file_path = match.groups()
-    raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+        user, repo, branch, file_path = match.groups()
+        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
 
     # Download the file content to a temporary file
     try:
@@ -808,6 +837,10 @@ def _process_github_url(data: FrameT | Any) -> FrameT | Any:
             return _process_csv_input(tmp_file_path)
         else:  # .parquet
             return _process_parquet_input(tmp_file_path)
+
+    except Exception:
+        # If download or processing fails, return original data
+        return data
 
     except Exception as e:
         raise RuntimeError(f"Failed to download or process GitHub file from {raw_url}: {e}") from e
