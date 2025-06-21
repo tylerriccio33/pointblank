@@ -735,9 +735,51 @@ def get_data_path(
                 return tmp_file.name
 
 
-# =============================================================================
-# Utility functions for processing input data (shared by preview() and Validate class)
-# =============================================================================
+def _process_data(data: FrameT | Any) -> FrameT | Any:
+    """
+    Centralized data processing pipeline that handles all supported input types.
+
+    This function consolidates the data processing pipeline used across multiple
+    classes and functions in Pointblank. It processes data through a consistent
+    sequence of transformations to handle different data source types.
+
+    The processing order is important:
+
+    1. GitHub URLs (must come before connection string processing)
+    2. Database connection strings
+    3. CSV file paths
+    4. Parquet file paths
+
+    Parameters
+    ----------
+    data : FrameT | Any
+        The input data which could be:
+        - a DataFrame object (Polars, Pandas, Ibis, etc.)
+        - a GitHub URL pointing to a CSV or Parquet file
+        - a database connection string (e.g., "duckdb:///path/to/file.ddb::table_name")
+        - a CSV file path (string or Path object with .csv extension)
+        - a Parquet file path, glob pattern, directory, or partitioned dataset
+        - any other data type (returned unchanged)
+
+    Returns
+    -------
+    FrameT | Any
+        Processed data as a DataFrame if input was a supported data source type,
+        otherwise the original data unchanged.
+    """
+    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
+    data = _process_github_url(data)
+
+    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
+    data = _process_connection_string(data)
+
+    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
+    data = _process_csv_input(data)
+
+    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
+    data = _process_parquet_input(data)
+
+    return data
 
 
 def _process_github_url(data: FrameT | Any) -> FrameT | Any:
@@ -1321,17 +1363,7 @@ def preview(
     """
 
     # Process input data to handle different data source types
-    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
-    data = _process_github_url(data)
-
-    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
-    data = _process_connection_string(data)
-
-    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
-    data = _process_csv_input(data)
-
-    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
-    data = _process_parquet_input(data)
+    data = _process_data(data)
 
     if incl_header is None:
         incl_header = global_config.preview_incl_header
@@ -1816,17 +1848,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     """
 
     # Process input data to handle different data source types
-    # Handle GitHub URL input (e.g., "https://github.com/user/repo/blob/main/data.csv")
-    data = _process_github_url(data)
-
-    # Handle connection string input (e.g., "duckdb:///path/to/file.ddb::table_name")
-    data = _process_connection_string(data)
-
-    # Handle CSV file input (e.g., "data.csv" or Path("data.csv"))
-    data = _process_csv_input(data)
-
-    # Handle Parquet file input (e.g., "data.parquet", "data/*.parquet", "data/")
-    data = _process_parquet_input(data)
+    data = _process_data(data)
 
     # Make a copy of the data to avoid modifying the original
     data = copy.deepcopy(data)
@@ -2431,14 +2453,7 @@ def get_column_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        # Process GitHub URLs first
-        data = _process_github_url(data)
-        # Handle connection string input
-        data = _process_connection_string(data)
-        # Handle CSV file input
-        data = _process_csv_input(data)
-        # Handle Parquet file input
-        data = _process_parquet_input(data)
+        data = _process_data(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
@@ -2607,14 +2622,7 @@ def get_row_count(data: FrameT | Any) -> int:
 
     # Process different input types
     if isinstance(data, str) or isinstance(data, Path):
-        # Process GitHub URLs first
-        data = _process_github_url(data)
-        # Handle connection string input
-        data = _process_connection_string(data)
-        # Handle CSV file input
-        data = _process_csv_input(data)
-        # Handle Parquet file input
-        data = _process_parquet_input(data)
+        data = _process_data(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
@@ -3550,17 +3558,8 @@ class Validate:
     locale: str | None = None
 
     def __post_init__(self):
-        # Handle GitHub URL input for the data parameter
-        self.data = _process_github_url(self.data)
-
-        # Handle connection string input for the data parameter
-        self.data = _process_connection_string(self.data)
-
-        # Handle CSV file input for the data parameter
-        self.data = _process_csv_input(self.data)
-
-        # Handle Parquet file input for the data parameter
-        self.data = _process_parquet_input(self.data)
+        # Process data through the centralized data processing pipeline
+        self.data = _process_data(self.data)
 
         # Check input of the `thresholds=` argument
         _check_thresholds(thresholds=self.thresholds)
