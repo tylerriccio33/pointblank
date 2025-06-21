@@ -9502,7 +9502,7 @@ def test_missing_vals_tbl_csv_input():
     csv_path = "data_raw/small_table.csv"
     result = missing_vals_tbl(csv_path)
     assert result is not None
-    
+
     # Test with another CSV file
     csv_path2 = "data_raw/game_revenue.csv"
     result2 = missing_vals_tbl(csv_path2)
@@ -9515,7 +9515,7 @@ def test_missing_vals_tbl_parquet_input():
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     result = missing_vals_tbl(parquet_path)
     assert result is not None
-    
+
     # Test with another Parquet file
     parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
     result2 = missing_vals_tbl(parquet_path2)
@@ -9525,12 +9525,16 @@ def test_missing_vals_tbl_parquet_input():
 def test_missing_vals_tbl_connection_string_input():
     """Test missing_vals_tbl with connection string inputs."""
     # Test with DuckDB connection string (use proper duckdb:// format)
-    duckdb_conn = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    duckdb_conn = (
+        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    )
     result = missing_vals_tbl(duckdb_conn)
     assert result is not None
-    
+
     # Test with SQLite connection string
-    sqlite_conn = "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    sqlite_conn = (
+        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    )
     result2 = missing_vals_tbl(sqlite_conn)
     assert result2 is not None
 

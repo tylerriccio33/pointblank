@@ -291,7 +291,7 @@ def test_datascan_csv_input():
     csv_path = "data_raw/small_table.csv"
     scanner = DataScan(data=csv_path)
     assert scanner.summary_data is not None
-    
+
     # Test with another CSV file
     csv_path2 = "data_raw/game_revenue.csv"
     scanner2 = DataScan(data=csv_path2)
@@ -304,7 +304,7 @@ def test_datascan_parquet_input():
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     scanner = DataScan(data=parquet_path)
     assert scanner.summary_data is not None
-    
+
     # Test with another Parquet file
     parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
     scanner2 = DataScan(data=parquet_path2)
@@ -314,12 +314,16 @@ def test_datascan_parquet_input():
 def test_datascan_connection_string_input():
     """Test DataScan class with connection string inputs."""
     # Test with DuckDB connection string
-    duckdb_conn = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    duckdb_conn = (
+        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    )
     scanner = DataScan(data=duckdb_conn)
     assert scanner.summary_data is not None
-    
+
     # Test with SQLite connection string
-    sqlite_conn = "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    sqlite_conn = (
+        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    )
     scanner2 = DataScan(data=sqlite_conn)
     assert scanner2.summary_data is not None
 
@@ -338,7 +342,7 @@ def test_col_summary_tbl_csv_input():
     csv_path = "data_raw/small_table.csv"
     result = col_summary_tbl(csv_path)
     assert isinstance(result, GT)
-    
+
     # Test with another CSV file
     csv_path2 = "data_raw/game_revenue.csv"
     result2 = col_summary_tbl(csv_path2)
@@ -351,7 +355,7 @@ def test_col_summary_tbl_parquet_input():
     parquet_path = "tests/tbl_files/tbl_xyz.parquet"
     result = col_summary_tbl(parquet_path)
     assert isinstance(result, GT)
-    
+
     # Test with another Parquet file
     parquet_path2 = "tests/tbl_files/taxi_sample.parquet"
     result2 = col_summary_tbl(parquet_path2)
@@ -361,12 +365,16 @@ def test_col_summary_tbl_parquet_input():
 def test_col_summary_tbl_connection_string_input():
     """Test col_summary_tbl with connection string inputs."""
     # Test with DuckDB connection string
-    duckdb_conn = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    duckdb_conn = (
+        "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
+    )
     result = col_summary_tbl(duckdb_conn)
     assert isinstance(result, GT)
-    
+
     # Test with SQLite connection string
-    sqlite_conn = "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    sqlite_conn = (
+        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    )
     result2 = col_summary_tbl(sqlite_conn)
     assert isinstance(result2, GT)
 

@@ -41,7 +41,9 @@ def test_compare_connection_string_input():
     """Test Compare class with connection string inputs."""
     # Test with connection strings
     conn1 = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
-    conn2 = "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    conn2 = (
+        "sqlite:///Users/riannone/py_projects/pointblank/tests/tbl_files/tbl_xyz.sqlite::tbl_xyz"
+    )
     comp = Compare(conn1, conn2)
     comp.compare()  # Need to call compare() to create the scan objects
     assert comp._scana is not None
@@ -57,7 +59,7 @@ def test_compare_mixed_input_types():
     comp.compare()  # Need to call compare() to create the scan objects
     assert comp._scana is not None
     assert comp._scanb is not None
-    
+
     # Test connection string vs CSV
     conn = "duckdb:///Users/riannone/py_projects/pointblank/datasets/small_table.ddb::small_table"
     comp2 = Compare(conn, csv_path)

@@ -2247,9 +2247,14 @@ def get_column_count(data: FrameT | Any) -> int:
     if isinstance(data, str) or isinstance(data, Path):
         if "::" in str(data):
             data = _process_connection_string(data)
-        elif str(data).endswith('.csv') or str(data).endswith('.CSV'):
+        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
             data = _process_csv_input(data)
-        elif str(data).endswith('.parquet') or str(data).endswith('.PARQUET') or '*' in str(data) or Path(data).is_dir():
+        elif (
+            str(data).endswith(".parquet")
+            or str(data).endswith(".PARQUET")
+            or "*" in str(data)
+            or Path(data).is_dir()
+        ):
             data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
@@ -2346,9 +2351,14 @@ def get_row_count(data: FrameT | Any) -> int:
     if isinstance(data, str) or isinstance(data, Path):
         if "::" in str(data):
             data = _process_connection_string(data)
-        elif str(data).endswith('.csv') or str(data).endswith('.CSV'):
+        elif str(data).endswith(".csv") or str(data).endswith(".CSV"):
             data = _process_csv_input(data)
-        elif str(data).endswith('.parquet') or str(data).endswith('.PARQUET') or '*' in str(data) or Path(data).is_dir():
+        elif (
+            str(data).endswith(".parquet")
+            or str(data).endswith(".PARQUET")
+            or "*" in str(data)
+            or Path(data).is_dir()
+        ):
             data = _process_parquet_input(data)
     elif isinstance(data, list):
         # Handle list of file paths (likely Parquet files)
