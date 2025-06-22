@@ -163,11 +163,14 @@ Pointblank은 `pb`라는 강력한 CLI 유틸리티를 포함하여 명령줄에
 # 데이터의 빠른 미리보기 얻기
 pb preview small_table
 
-# 누락된 값 확인
-pb missing small_table
+# GitHub URL에서 데이터 미리보기
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# 열 요약 생성
-pb scan small_table
+# Parquet 파일의 누락된 값 확인
+pb missing data.parquet
+
+# 데이터베이스 연결에서 열 요약 생성
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **필수 검증 실행**
@@ -176,8 +179,11 @@ pb scan small_table
 # 중복 행 확인
 pb validate-simple small_table --check rows-distinct
 
-# null 값이 없는지 확인
-pb validate-simple small_table --check col-vals-not-null --column a
+# GitHub에서 직접 데이터 검증
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# Parquet 데이터셋에서 null 값이 없는지 확인
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # 디버깅을 위해 실패 데이터 추출
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract

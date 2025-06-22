@@ -2,9 +2,21 @@
 
 <a href="https://posit-dev.github.io/pointblank/"><img src="https://posit-dev.github.io/pointblank/assets/pointblank_logo.svg" width="75%"/></a>
 
-_数据验证，既美观又强大_
+\_数据验证，既美观又强**运行基本验证**
 
-[![Python Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
+````bash
+# 检查重复行
+pb validate-simple small_table --check rows-distinct
+
+# 直接从 GitHub 验证数据
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# 验证 Parquet 数据集中没有空值
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+
+# 提取失败的数据进行调试
+pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+```n Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
 [![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pointblank)](https://pypistats.org/packages/pointblank)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pointblank.svg)](https://anaconda.org/conda-forge/pointblank)
@@ -59,7 +71,7 @@ validation.get_tabular_report().show()
 
 # 在 notebook 中只需使用：
 validation
-```
+````
 
 <div align="center">
 <img src="https://posit-dev.github.io/pointblank/assets/pointblank-tabular-report.png" width="800px">
@@ -167,11 +179,14 @@ Pointblank 包含一个强大的 CLI 工具称为 `pb`，让您可以直接从�
 # 快速预览您的数据
 pb preview small_table
 
-# 检查缺失值
-pb missing small_table
+# 从 GitHub URL 预览数据
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# 生成列摘要
-pb scan small_table
+# 检查 Parquet 文件中的缺失值
+pb missing data.parquet
+
+# 从数据库连接生成列摘要
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **运行基本验证**

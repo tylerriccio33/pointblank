@@ -163,11 +163,14 @@ Pointblank には、`pb` という強力な CLI ユーティリティが含ま�
 # データの簡単なプレビューを取得
 pb preview small_table
 
-# 欠損値をチェック
-pb missing small_table
+# GitHub URL からのデータプレビュー
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# 列の要約を生成
-pb scan small_table
+# Parquet ファイルの欠損値をチェック
+pb missing data.parquet
+
+# データベース接続から列の要約を生成
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **基本的な検証を実行**
@@ -176,8 +179,11 @@ pb scan small_table
 # 重複行をチェック
 pb validate-simple small_table --check rows-distinct
 
-# null 値がないことを確認
-pb validate-simple small_table --check col-vals-not-null --column a
+# GitHub から直接データを検証
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# Parquet データセットで null 値がないことを確認
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # デバッグのため失敗データを抽出
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
