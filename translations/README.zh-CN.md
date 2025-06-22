@@ -156,15 +156,6 @@ validation.get_step_report(i=3).show("browser")  # 获取步骤 3 的失败记�
 
 <br>
 
-## Pointblank 的独特功能
-
-- **完整的验证工作流** - 在单个管道中从数据访问到验证再到报告
-- **为协作而构建** - 通过精美的交互式报告与同事分享结果
-- **实用的输出** - 获取您所需的内容：计数、提取、摘要或完整报告
-- **灵活部署** - 可用于笔记本、脚本或数据管道
-- **可定制** - 根据您的特定需求定制验证步骤和报告
-- **国际化** - 报告可以用超过 20 种语言生成，包括英语、西班牙语、法语和德语
-
 ## 命令行界面 (CLI)
 
 Pointblank 包含一个强大的 CLI 工具称为 `pb`，让您可以直接从命令行运行数据验证工作流。非常适合 CI/CD 管道、定时数据质量检查或快速验证任务。
@@ -195,8 +186,11 @@ pb scan "duckdb:///data/sales.ddb::customers"
 # 检查重复行
 pb validate-simple small_table --check rows-distinct
 
-# 验证无空值
-pb validate-simple small_table --check col-vals-not-null --column a
+# 直接从 GitHub 验证数据
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# 验证 Parquet 数据集中没有空值
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # 提取失败数据进行调试
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
@@ -210,6 +204,15 @@ pb validate-simple small_table --check rows-distinct && echo "✅ 质量检查�
 ```
 
 在我们的 [CLI 文档](https://posit-dev.github.io/pointblank/user-guide/cli.html) 中了解更多。
+
+## Pointblank 的突出特点
+
+- **完整的验证工作流** - 在单个管道中从数据访问到验证再到报告
+- **为协作而构建** - 通过精美的交互式报告与同事分享结果
+- **实用的输出** - 获取您所需的内容：计数、提取、摘要或完整报告
+- **灵活部署** - 可用于笔记本、脚本或数据管道
+- **可定制** - 根据您的特定需求定制验证步骤和报告
+- **国际化** - 报告可以用超过 20 种语言生成，包括英语、西班牙语、法语和德语
 
 ## 文档和示例
 
