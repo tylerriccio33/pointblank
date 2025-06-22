@@ -120,11 +120,12 @@ pb preview "duckdb:///data/sales.ddb::transactions"
 ### Automatic Data Type Detection
 
 The CLI automatically detects and handles:
-- **CSV files**: Single files or glob patterns
-- **Parquet files**: Files, patterns, directories, and partitioned datasets
-- **GitHub URLs**: Both standard and raw URLs for CSV/Parquet files
-- **Database connections**: Connection strings with table specifications
-- **Built-in datasets**: Pointblank's included sample datasets
+
+- CSV files: single files or glob patterns
+- Parquet files: files, patterns, directories, and partitioned datasets
+- GitHub URLs: both standard and raw URLs for CSV/Parquet files
+- database connections: connection strings with table specifications
+- built-in datasets: Pointblank's included sample datasets
 
 This unified approach means you can use the same CLI commands regardless of where your data is stored.
 
