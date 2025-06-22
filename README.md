@@ -163,11 +163,14 @@ Pointblank includes a powerful CLI utility called `pb` that lets you run data va
 # Get a quick preview of your data
 pb preview small_table
 
-# Check for missing values
-pb missing small_table
+# Preview data from GitHub URLs
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# Generate column summaries
-pb scan small_table
+# Check for missing values in Parquet files
+pb missing data.parquet
+
+# Generate column summaries from database connections
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **Run Essential Validations**
@@ -176,8 +179,11 @@ pb scan small_table
 # Check for duplicate rows
 pb validate-simple small_table --check rows-distinct
 
-# Verify no null values
-pb validate-simple small_table --check col-vals-not-null --column a
+# Validate data directly from GitHub
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# Verify no null values in Parquet datasets
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # Extract failing data for debugging
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract

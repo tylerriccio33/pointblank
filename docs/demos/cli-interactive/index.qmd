@@ -23,8 +23,6 @@ format:
       }
 ---
 
-# Command Line Interface: Interactive Demos
-
 These CLI demos showcase practical data quality workflows that you can use!
 
 ::: {.callout-tip}
@@ -93,49 +91,50 @@ Follow an end-to-end data quality pipeline combining exploration, validation, an
 
 Ready to implement data quality workflows? Here's how to get started:
 
-### 1. Install and Verify
+#### 1. Install and Verify
 
 ```bash
 pip install pointblank
 pb --help
 ```
 
-### 2. Explore Your Data
+#### 2. Explore Various Data Sources
 
 ```bash
-# Get a quick preview of your data
+# Built-in datasets
 pb preview small_table
 
-# Check for missing values
-pb missing small_table
+# Local files with patterns
+pb preview "data/*.parquet"
+pb scan sales_data.csv
 
-# Generate column summaries
-pb scan small_table
+# GitHub repositories (no download required)
+pb preview "https://github.com/user/repo/blob/main/data.csv"
+pb missing "https://raw.githubusercontent.com/user/repo/main/sales.parquet"
+
+# Database connections
+pb info "duckdb:///warehouse/analytics.ddb::customers"
 ```
 
-### 3. Run Essential Validations
+#### 3. Run Essential Validations
 
 ```bash
 # Check for duplicate rows
 pb validate-simple small_table --check rows-distinct
 
-# Verify no null values
-pb validate-simple small_table --check col-vals-not-null --column a
+# Validate data from multiple sources
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column customer_id
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check rows-distinct
 
 # Extract failing data for debugging
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
-### 4. Integrate with CI/CD
+#### 4. Integrate with CI/CD
 
 ```bash
 # Use exit codes for automation (0 = pass, 1 = fail)
 pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks passed"
 ```
 
-::: {.callout-tip}
-## Next Steps
-- visit the [CLI User Guide](../../user-guide/cli.qmd) for detailed documentation
-- use `pb validate-simple --help` for validation command options
-- Combine exploration, validation, and profiling for robust data quality pipelines
-:::
+

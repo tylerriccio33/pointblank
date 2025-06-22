@@ -1330,7 +1330,7 @@ def test_missing_command_basic(runner, tmp_path):
     """Test basic missing command functionality."""
     result = runner.invoke(missing, ["small_table"])
     assert result.exit_code in [0, 1]  # May fail due to missing dependencies
-    assert "Loaded dataset: small_table" in result.output or "Error:" in result.output
+    assert "✓ Loaded data source: small_table" in result.output or "Error:" in result.output
 
 
 def test_missing_command_with_html_output(runner, tmp_path):

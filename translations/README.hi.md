@@ -162,11 +162,14 @@ validation.get_step_report(i=3).show("browser")  # स्टेप 3 से अ�
 # अपने डेटा का त्वरित पूर्वावलोकन प्राप्त करें
 pb preview small_table
 
-# गुम मानों की जांच करें
-pb missing small_table
+# GitHub URLs से डेटा पूर्वावलोकन
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# स्तंभ सारांश जेनरेट करें
-pb scan small_table
+# Parquet फाइलों में गुम मानों की जांच करें
+pb missing data.parquet
+
+# डेटाबेस कनेक्शन से स्तंभ सारांश जेनरेट करें
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **आवश्यक वैलिडेशन चलाएं**
@@ -175,8 +178,11 @@ pb scan small_table
 # डुप्लिकेट पंक्तियों की जांच करें
 pb validate-simple small_table --check rows-distinct
 
-# null मान न होने की पुष्टि करें
-pb validate-simple small_table --check col-vals-not-null --column a
+# GitHub से सीधे डेटा वैलिडेट करें
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# Parquet डेटासेट में null मान न होने की पुष्टि करें
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # डिबगिंग के लिए असफल डेटा निकालें
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract

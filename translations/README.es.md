@@ -163,11 +163,14 @@ Pointblank incluye una potente herramienta CLI llamada `pb` que te permite ejecu
 # Obtén una vista previa rápida de tus datos
 pb preview small_table
 
-# Verifica valores faltantes
-pb missing small_table
+# Vista previa de datos desde URLs de GitHub
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# Genera resúmenes de columnas
-pb scan small_table
+# Verifica valores faltantes en archivos Parquet
+pb missing data.parquet
+
+# Genera resúmenes de columnas desde conexiones de base de datos
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **Ejecuta validaciones esenciales**
@@ -176,8 +179,11 @@ pb scan small_table
 # Verifica filas duplicadas
 pb validate-simple small_table --check rows-distinct
 
-# Verifica que no haya valores nulos
-pb validate-simple small_table --check col-vals-not-null --column a
+# Valida datos directamente desde GitHub
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# Verifica que no haya valores nulos en conjuntos de datos Parquet
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # Extrae datos fallidos para depuración
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract

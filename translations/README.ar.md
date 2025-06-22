@@ -171,11 +171,14 @@ validation.get_step_report(i=3).show("browser")  # الحصول على السج�
 # احصل على معاينة سريعة لبياناتك
 pb preview small_table
 
-# تحقق من القيم المفقودة
-pb missing small_table
+# معاينة البيانات من عناوين GitHub
+pb preview "https://github.com/user/repo/blob/main/data.csv"
 
-# إنشاء ملخصات الأعمدة
-pb scan small_table
+# تحقق من القيم المفقودة في ملفات Parquet
+pb missing data.parquet
+
+# إنشاء ملخصات الأعمدة من اتصالات قاعدة البيانات
+pb scan "duckdb:///data/sales.ddb::customers"
 ```
 
 **تشغيل التحققات الأساسية**
@@ -184,8 +187,11 @@ pb scan small_table
 # تحقق من الصفوف المكررة
 pb validate-simple small_table --check rows-distinct
 
-# تحقق من عدم وجود قيم فارغة
-pb validate-simple small_table --check col-vals-not-null --column a
+# تحقق من البيانات مباشرة من GitHub
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+
+# تحقق من عدم وجود قيم فارغة في مجموعات بيانات Parquet
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
 
 # استخراج البيانات الفاشلة للتصحيح
 pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract

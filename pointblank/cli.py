@@ -15,6 +15,43 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
+def _load_data_source(data_source: str) -> Any:
+    """
+    Centralized data loading function for CLI that handles all supported data source types.
+
+    This function provides a consistent way to load data across all CLI commands by leveraging
+    the _process_data() utility function and adding support for pointblank dataset names.
+
+    Parameters
+    ----------
+    data_source : str
+        The data source which could be:
+        - A pointblank dataset name (small_table, game_revenue, nycflights, global_sales)
+        - A GitHub URL pointing to a CSV or Parquet file
+        - A database connection string (e.g., "duckdb:///path/to/file.ddb::table_name")
+        - A CSV file path (string or Path object with .csv extension)
+        - A Parquet file path, glob pattern, directory, or partitioned dataset
+
+    Returns
+    -------
+    Any
+        Loaded data as a DataFrame or other data object
+
+    Raises
+    ------
+    ValueError
+        If the pointblank dataset name is not recognized
+    """
+    # Check if it's a pointblank dataset name first
+    if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+        return pb.load_dataset(data_source)
+
+    # Otherwise, use the centralized _process_data() function for all other data sources
+    from pointblank.validate import _process_data
+
+    return _process_data(data_source)
+
+
 def _format_cell_value(
     value: Any, is_row_number: bool = False, max_width: int = 50, num_columns: int = 10
 ) -> str:
@@ -799,6 +836,7 @@ def preview(
     \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
@@ -816,14 +854,10 @@ def preview(
     """
     try:
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Parse columns if provided
         columns_list = None
@@ -832,12 +866,8 @@ def preview(
 
             # If data has _row_num_ and it's not explicitly included, add it at the beginning
             try:
-                from pointblank.validate import _process_data
-
-                # Process the data source to get actual data object to check for _row_num_
+                # Data is already processed, just use it directly
                 processed_data = data
-                if isinstance(data, str):
-                    processed_data = _process_data(data)
 
                 # Get column names from the processed data
                 all_columns = []
@@ -854,13 +884,8 @@ def preview(
                 pass
         elif col_range or col_first or col_last:
             # Need to get column names to apply range/first/last selection
-            # Load the data to get column names
-            from pointblank.validate import _process_data
-
-            # Process the data source to get actual data object
+            # Data is already processed, just use it directly
             processed_data = data
-            if isinstance(data, str):
-                processed_data = _process_data(data)
 
             # Get column names from the processed data
             all_columns = []
@@ -922,12 +947,8 @@ def preview(
         with console.status("[bold green]Generating preview..."):
             # Get total dataset size before preview and gather metadata
             try:
-                # Process the data to get the actual data object for row count and metadata
-                from pointblank.validate import _process_data
-
+                # Data is already processed, just use it directly
                 processed_data = data
-                if isinstance(data, str):
-                    processed_data = _process_data(data)
 
                 total_dataset_rows = pb.get_row_count(processed_data)
 
@@ -992,52 +1013,48 @@ def info(data_source: str):
     Display information about a data source.
 
     Shows table type, dimensions, column names, and data types.
+
+    DATA_SOURCE can be:
+
+    \b
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
     try:
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                source_type = f"Pointblank dataset: {data_source}"
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                source_type = f"External source: {data_source}"
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
 
-                # Process the data to get actual table object for inspection
-                from pointblank.validate import _process_data
+            # Get table information
+            tbl_type = _get_tbl_type(data)
+            row_count = pb.get_row_count(data)
+            col_count = pb.get_column_count(data)
 
-                data = _process_data(data)
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Import the box style for consistent styling with scan table
+            from rich.box import SIMPLE_HEAD
 
-        # Get table information
-        tbl_type = _get_tbl_type(data)
-        row_count = pb.get_row_count(data)
-        col_count = pb.get_column_count(data)
+            # Create info table with same styling as scan table
+            info_table = Table(
+                title="Data Source Information",
+                show_header=True,
+                header_style="bold magenta",
+                box=SIMPLE_HEAD,
+                title_style="bold cyan",
+                title_justify="left",
+            )
+            info_table.add_column("Property", style="cyan", no_wrap=True)
+            info_table.add_column("Value", style="green")
 
-        # Import the box style for consistent styling with scan table
-        from rich.box import SIMPLE_HEAD
+            info_table.add_row("Source", data_source)
+            info_table.add_row("Table Type", tbl_type)
+            info_table.add_row("Rows", f"{row_count:,}")
+            info_table.add_row("Columns", f"{col_count:,}")
 
-        # Create info table with same styling as scan table
-        info_table = Table(
-            title="Data Source Information",
-            show_header=True,
-            header_style="bold magenta",
-            box=SIMPLE_HEAD,
-            title_style="bold cyan",
-            title_justify="left",
-        )
-        info_table.add_column("Property", style="cyan", no_wrap=True)
-        info_table.add_column("Value", style="green")
-
-        info_table.add_row("Source", source_type)
-        info_table.add_row("Table Type", tbl_type)
-        info_table.add_row("Rows", f"{row_count:,}")
-        info_table.add_row("Columns", f"{col_count:,}")
-
-        console.print()
-        console.print(info_table)
+            console.print()
+            console.print(info_table)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -1069,6 +1086,7 @@ def scan(
     \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
@@ -1078,14 +1096,10 @@ def scan(
         start_time = time.time()
 
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Parse columns if provided
         columns_list = None
@@ -1095,29 +1109,20 @@ def scan(
         # Generate data scan
         with console.status("[bold green]Generating data scan..."):
             # Use col_summary_tbl for comprehensive column scanning
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                # For pointblank datasets, data is already the loaded dataframe
-                scan_result = pb.col_summary_tbl(data=data)
-                source_type = f"Pointblank dataset: {data_source}"
-                table_type = _get_tbl_type(data)
-                # Get row count for footer
-                try:
-                    total_rows = pb.get_row_count(data)
-                except Exception:
-                    total_rows = None
-            else:
-                # For file paths and connection strings, load the data first
-                from pointblank.validate import _process_data
+            # Data is already processed by _load_data_source
+            scan_result = pb.col_summary_tbl(data=data)
 
-                processed_data = _process_data(data)
-                scan_result = pb.col_summary_tbl(data=processed_data)
+            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                source_type = f"Pointblank dataset: {data_source}"
+            else:
                 source_type = f"External source: {data_source}"
-                table_type = _get_tbl_type(processed_data)
-                # Get row count for footer
-                try:
-                    total_rows = pb.get_row_count(processed_data)
-                except Exception:
-                    total_rows = None
+
+            table_type = _get_tbl_type(data)
+            # Get row count for footer
+            try:
+                total_rows = pb.get_row_count(data)
+            except Exception:
+                total_rows = None
 
         scan_time = time.time() - start_time
 
@@ -1160,34 +1165,23 @@ def missing(data_source: str, output_html: str | None):
     \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
     try:
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Generate missing values table
         with console.status("[bold green]Analyzing missing values..."):
             gt_table = pb.missing_vals_tbl(data)
 
-            # Get original data for column types
+            # Data is already processed, just use it directly
             original_data = data
-            if isinstance(data, str):
-                # Process the data to get the actual data object
-                from pointblank.validate import _process_data
-
-                try:
-                    original_data = _process_data(data)
-                except Exception:  # pragma: no cover
-                    pass  # Use the string data as fallback
 
         if output_html:
             # Save HTML to file
@@ -1282,6 +1276,7 @@ def validate(
     \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
@@ -1290,14 +1285,10 @@ def validate(
     """
     try:
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Execute the validation script
         with console.status("[bold green]Running validation..."):
@@ -1416,20 +1407,24 @@ def extract(
     This command runs a validation and extracts the rows that failed
     a specific validation step, which is useful for debugging data quality issues.
 
-    DATA_SOURCE: Same as validate command
+    DATA_SOURCE can be:
+
+    \b
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+
     VALIDATION_SCRIPT: Path to validation script
     STEP_NUMBER: The step number to extract failing rows from (1-based)
     """
     try:
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Execute the validation script
         with console.status("[bold green]Running validation..."):
@@ -1954,6 +1949,7 @@ def _rich_print_scan_table(
                     return f"{num_val:.2f}"
                 else:
                     # Very small numbers - use scientific notation
+
                     return f"{num_val:.1e}"
 
             except (ValueError, TypeError):
@@ -2092,6 +2088,7 @@ def validate_simple(
     \b
     - CSV file path (e.g., data.csv)
     - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
@@ -2206,14 +2203,10 @@ def validate_simple(
             sys.exit(1)
 
         with console.status("[bold green]Loading data..."):
-            # Try to load as a pointblank dataset first
-            if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
-                data = pb.load_dataset(data_source)
-                console.print(f"[green]✓[/green] Loaded dataset: {data_source}")
-            else:
-                # Assume it's a file path or connection string
-                data = data_source
-                console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
         # Perform the validation based on the check type
         with console.status(f"[bold green]Running {check} validation..."):
@@ -2695,7 +2688,3 @@ def validate_simple(
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    cli()

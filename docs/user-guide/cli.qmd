@@ -44,23 +44,90 @@ You can validate various types of data sources:
 pb validate-simple data.csv --check rows-distinct
 ```
 
-*Parquet files*
+*Parquet files (including glob patterns and directories)*
 
 ```bash
 pb validate-simple data.parquet --check col-vals-not-null --column age
+pb validate-simple "data/*.parquet" --check rows-distinct
+pb validate-simple data/ --check rows-complete  # directory of parquet files
 ```
 
-*Database tables*
+*GitHub URLs (direct links to CSV or Parquet files)*
+
+```bash
+pb validate-simple "https://github.com/user/repo/blob/main/data.csv" --check rows-distinct
+pb validate-simple "https://raw.githubusercontent.com/user/repo/main/data.parquet" --check col-exists --column id
+```
+
+*Database tables (connection strings)*
 
 ```bash
 pb validate-simple "duckdb:///path/to/db.ddb::table_name" --check rows-complete
 ```
 
-*built-in datasets*
+*Built-in datasets*
 
 ```bash
 pb validate-simple small_table --check col-exists --column a
 ```
+
+## Enhanced Data Source Support
+
+The CLI leverages Pointblank's centralized data processing pipeline, providing comprehensive support for various data sources:
+
+### GitHub Integration
+
+Validate data directly from GitHub repositories without downloading files:
+
+```bash
+# Standard GitHub URLs (automatically converted to raw URLs)
+pb preview "https://github.com/user/repo/blob/main/data.csv"
+pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check rows-distinct
+
+# Raw GitHub URLs (used directly)
+pb scan "https://raw.githubusercontent.com/user/repo/main/data.parquet"
+```
+
+### Advanced File Patterns
+
+Support for complex file patterns and directory structures:
+
+```bash
+# Glob patterns for multiple files
+pb validate-simple "data/*.parquet" --check col-vals-not-null --column id
+pb preview "sales_data_*.csv"
+
+# Entire directories of Parquet files
+pb scan data/partitioned_dataset/
+pb missing warehouse/daily_reports/
+
+# Partitioned datasets (automatically detects partition columns)
+pb validate-simple partitioned_sales/ --check rows-distinct
+```
+
+### Database Connections
+
+Enhanced support for database connection strings:
+
+```bash
+# DuckDB databases with table specification
+pb validate-simple "duckdb:///warehouse/analytics.ddb::customer_metrics" --check col-exists --column customer_id
+
+# Preview database tables
+pb preview "duckdb:///data/sales.ddb::transactions"
+```
+
+### Automatic Data Type Detection
+
+The CLI automatically detects and handles:
+
+- CSV files: single files or glob patterns
+- Parquet files: files, patterns, directories, and partitioned datasets
+- GitHub URLs: both standard and raw URLs for CSV/Parquet files
+- database connections: connection strings with table specifications
+- built-in datasets: Pointblank's included sample datasets
+
+This unified approach means you can use the same CLI commands regardless of where your data is stored.
 
 ## Available Validation Checks
 
