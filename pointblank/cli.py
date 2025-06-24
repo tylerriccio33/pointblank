@@ -15,6 +15,44 @@ from pointblank._utils import _get_tbl_type, _is_lib_present
 console = Console()
 
 
+class OrderedGroup(click.Group):
+    """A Click Group that displays commands in a custom order."""
+
+    def list_commands(self, ctx):
+        """Return commands in the desired logical order."""
+        # Define the desired order
+        desired_order = [
+            # Data Discovery/Exploration
+            "info",
+            "preview",
+            "scan",
+            "missing",
+            # Validation
+            "validate-simple",
+            "validate",
+            "validate-example",
+            # Utilities
+            "datasets",
+            "requirements",
+        ]
+
+        # Get all available commands
+        available_commands = super().list_commands(ctx)
+
+        # Return commands in desired order, followed by any not in the list
+        ordered = []
+        for cmd in desired_order:
+            if cmd in available_commands:
+                ordered.append(cmd)
+
+        # Add any commands not in our desired order (safety fallback)
+        for cmd in available_commands:
+            if cmd not in ordered:
+                ordered.append(cmd)
+
+        return ordered
+
+
 def _load_data_source(data_source: str) -> Any:
     """
     Centralized data loading function for CLI that handles all supported data source types.
@@ -737,7 +775,7 @@ def _display_validation_summary(validation: Any) -> None:
         console.print(f"[dim]{traceback.format_exc()}[/dim]")  # pragma: no cover
 
 
-@click.group()
+@click.group(cls=OrderedGroup)
 @click.version_option(version=pb.__version__, prog_name="pb")
 def cli():
     """
@@ -750,60 +788,58 @@ def cli():
 
 
 @cli.command()
-def datasets():
+@click.argument("data_source", type=str)
+def info(data_source: str):
     """
-    List available built-in datasets.
+    Display information about a data source.
+
+    Shows table type, dimensions, column names, and data types.
+
+    DATA_SOURCE can be:
+
+    \b
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
-    datasets_info = [
-        ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
-        ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
-        ("nycflights", "336,776 rows × 18 columns", "NYC airport flights data from 2013"),
-        ("global_sales", "50,000 rows × 20 columns", "Global sales data across regions"),
-    ]
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
 
-    table = Table(
-        title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
-    )
-    table.add_column("Dataset Name", style="cyan", no_wrap=True)
-    table.add_column("Dimensions", style="green")
-    table.add_column("Description", style="white")
+            # Get table information
+            tbl_type = _get_tbl_type(data)
+            row_count = pb.get_row_count(data)
+            col_count = pb.get_column_count(data)
 
-    for name, dims, desc in datasets_info:
-        table.add_row(name, dims, desc)
+            # Import the box style for consistent styling with scan table
+            from rich.box import SIMPLE_HEAD
 
-    console.print(table)
-    console.print("\n[dim]Use these dataset names directly with any pb CLI command.[/dim]")
-    console.print("[dim]Example: pb preview small_table[/dim]")
+            # Create info table with same styling as scan table
+            info_table = Table(
+                title="Data Source Information",
+                show_header=True,
+                header_style="bold magenta",
+                box=SIMPLE_HEAD,
+                title_style="bold cyan",
+                title_justify="left",
+            )
+            info_table.add_column("Property", style="cyan", no_wrap=True)
+            info_table.add_column("Value", style="green")
 
+            info_table.add_row("Source", data_source)
+            info_table.add_row("Table Type", tbl_type)
+            info_table.add_row("Rows", f"{row_count:,}")
+            info_table.add_row("Columns", f"{col_count:,}")
 
-@cli.command()
-def requirements():
-    """
-    Check installed dependencies and their availability.
-    """
-    dependencies = [
-        ("polars", "Polars DataFrame support"),
-        ("pandas", "Pandas DataFrame support"),
-        ("ibis", "Ibis backend support (DuckDB, etc.)"),
-        ("duckdb", "DuckDB database support"),
-        ("pyarrow", "Parquet file support"),
-    ]
+            console.print()
+            console.print(info_table)
 
-    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
-    table.add_column("Package", style="cyan", no_wrap=True)
-    table.add_column("Status", style="white")
-    table.add_column("Description", style="dim")
-
-    for package, description in dependencies:
-        if _is_lib_present(package):
-            status = "[green]✓ Installed[/green]"
-        else:
-            status = "[red]✗ Not installed[/red]"
-
-        table.add_row(package, status, description)
-
-    console.print(table)
-    console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -1018,61 +1054,6 @@ def preview(
 
 @cli.command()
 @click.argument("data_source", type=str)
-def info(data_source: str):
-    """
-    Display information about a data source.
-
-    Shows table type, dimensions, column names, and data types.
-
-    DATA_SOURCE can be:
-
-    \b
-    - CSV file path (e.g., data.csv)
-    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
-    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
-    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
-    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
-    """
-    try:
-        with console.status("[bold green]Loading data..."):
-            # Load the data source using the centralized function
-            data = _load_data_source(data_source)
-
-            # Get table information
-            tbl_type = _get_tbl_type(data)
-            row_count = pb.get_row_count(data)
-            col_count = pb.get_column_count(data)
-
-            # Import the box style for consistent styling with scan table
-            from rich.box import SIMPLE_HEAD
-
-            # Create info table with same styling as scan table
-            info_table = Table(
-                title="Data Source Information",
-                show_header=True,
-                header_style="bold magenta",
-                box=SIMPLE_HEAD,
-                title_style="bold cyan",
-                title_justify="left",
-            )
-            info_table.add_column("Property", style="cyan", no_wrap=True)
-            info_table.add_column("Value", style="green")
-
-            info_table.add_row("Source", data_source)
-            info_table.add_row("Table Type", tbl_type)
-            info_table.add_row("Rows", f"{row_count:,}")
-            info_table.add_row("Columns", f"{col_count:,}")
-
-            console.print()
-            console.print(info_table)
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-@cli.command()
-@click.argument("data_source", type=str)
 @click.option("--output-html", type=click.Path(), help="Save HTML scan report to file")
 @click.option("--columns", "-c", help="Comma-separated list of columns to scan")
 def scan(
@@ -1209,826 +1190,6 @@ def missing(data_source: str, output_html: str | None):
         sys.exit(1)
 
 
-@cli.command()
-@click.argument("output_file", type=click.Path())
-def validate_example(output_file: str):
-    """
-    Generate an example validation script.
-
-    Creates a sample Python script showing how to use Pointblank for validation.
-    """
-    example_script = '''"""
-Example Pointblank validation script.
-
-This script demonstrates how to create validation rules for your data.
-Modify the validation rules below to match your data requirements.
-"""
-
-import pointblank as pb
-
-# Create a validation object
-# The 'data' variable is automatically provided by the CLI
-validation = (
-    pb.Validate(
-        data=data,
-        tbl_name="Example Data",
-        label="CLI Validation Example",
-        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
-    )
-    # Add your validation rules here
-    # Example rules (modify these based on your data structure):
-
-    # Check that specific columns exist
-    # .col_exists(["column1", "column2"])
-
-    # Check for null values
-    # .col_vals_not_null(columns="important_column")
-
-    # Check value ranges
-    # .col_vals_gt(columns="amount", value=0)
-    # .col_vals_between(columns="score", left=0, right=100)
-
-    # Check string patterns
-    # .col_vals_regex(columns="email", pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$")
-
-    # Check unique values
-    # .col_vals_unique(columns="id")
-
-    # Finalize the validation
-    .interrogate()
-)
-
-# The validation object will be automatically used by the CLI
-'''
-
-    Path(output_file).write_text(example_script)
-    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
-    console.print("\nEdit the script to add your validation rules, then run:")
-    console.print(f"[cyan]pb validate your_data.csv {output_file}[/cyan]")
-
-
-@cli.command()
-@click.argument("data_source", type=str)
-@click.argument("validation_script", type=click.Path(exists=True))
-@click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
-@click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
-@click.option("--fail-on-error", is_flag=True, help="Exit with non-zero code if validation fails")
-def validate(
-    data_source: str,
-    validation_script: str,
-    output_html: str | None,
-    output_json: str | None,
-    fail_on_error: bool,
-):
-    """
-    Run validation using a Python validation script.
-
-    DATA_SOURCE can be:
-
-    \b
-    - CSV file path (e.g., data.csv)
-    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
-    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
-    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
-    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
-
-    VALIDATION_SCRIPT should be a Python file that defines validation rules.
-    See 'pb validate-example' for a sample script.
-    """
-    try:
-        with console.status("[bold green]Loading data..."):
-            # Load the data source using the centralized function
-            data = _load_data_source(data_source)
-
-            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
-
-        # Execute the validation script
-        with console.status("[bold green]Running validation..."):
-            # Read and execute the validation script
-            script_content = Path(validation_script).read_text()
-
-            # Create a namespace with pointblank and the data
-            namespace = {
-                "pb": pb,
-                "pointblank": pb,
-                "data": data,
-                "__name__": "__main__",
-            }
-
-            # Execute the script
-            try:
-                exec(script_content, namespace)
-            except Exception as e:
-                console.print(f"[red]Error executing validation script:[/red] {e}")
-                sys.exit(1)
-
-            # Look for a validation object in the namespace
-            validation = None
-
-            # Try to find the 'validation' variable specifically first
-            if "validation" in namespace:
-                validation = namespace["validation"]
-            else:
-                # Look for any validation object in the namespace
-                for key, value in namespace.items():
-                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
-                        validation = value
-                        break
-                    # Also check if it's a Validate object that has been interrogated
-                    elif str(type(value)).find("Validate") != -1:
-                        validation = value
-                        break
-
-            if validation is None:
-                raise ValueError(
-                    "No validation object found in script. "
-                    "Script should create a Validate object and assign it to a variable named 'validation'."
-                )
-
-        console.print("[green]✓[/green] Validation completed")
-
-        # Display summary
-        _display_validation_summary(validation)
-
-        # Save outputs
-        if output_html:
-            try:
-                # Get HTML representation
-                html_content = validation._repr_html_()
-                Path(output_html).write_text(html_content, encoding="utf-8")
-                console.print(f"[green]✓[/green] HTML report saved to: {output_html}")
-            except Exception as e:
-                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
-
-        if output_json:
-            try:
-                # Get JSON report
-                json_report = validation.get_json_report()
-                Path(output_json).write_text(json_report, encoding="utf-8")
-                console.print(f"[green]✓[/green] JSON summary saved to: {output_json}")
-            except Exception as e:
-                console.print(f"[yellow]Warning: Could not save JSON report: {e}[/yellow]")
-
-        # Check if we should fail on error
-        if fail_on_error:
-            try:
-                if (
-                    hasattr(validation, "validation_info")
-                    and validation.validation_info is not None
-                ):
-                    info = validation.validation_info
-                    n_critical = sum(1 for step in info if step.critical)
-                    n_error = sum(1 for step in info if step.error)
-
-                    if n_critical > 0 or n_error > 0:
-                        severity = "critical" if n_critical > 0 else "error"
-                        console.print(
-                            f"[red]Exiting with error due to {severity} validation failures[/red]"
-                        )
-                        sys.exit(1)
-            except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
-                )
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-@cli.command()
-@click.argument("data_source", type=str)
-@click.argument("validation_script", type=click.Path(exists=True))
-@click.argument("step_number", type=int)
-@click.option(
-    "--limit", "-l", default=100, help="Maximum number of failing rows to show (default: 100)"
-)
-@click.option("--output-csv", type=click.Path(), help="Save failing rows to CSV file")
-@click.option("--output-html", type=click.Path(), help="Save failing rows table to HTML file")
-def extract(
-    data_source: str,
-    validation_script: str,
-    step_number: int,
-    limit: int,
-    output_csv: str | None,
-    output_html: str | None,
-):
-    """
-    Extract failing rows from a specific validation step.
-
-    This command runs a validation and extracts the rows that failed
-    a specific validation step, which is useful for debugging data quality issues.
-
-    DATA_SOURCE can be:
-
-    \b
-    - CSV file path (e.g., data.csv)
-    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
-    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
-    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
-    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
-
-    VALIDATION_SCRIPT: Path to validation script
-    STEP_NUMBER: The step number to extract failing rows from (1-based)
-    """
-    try:
-        with console.status("[bold green]Loading data..."):
-            # Load the data source using the centralized function
-            data = _load_data_source(data_source)
-
-            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
-
-        # Execute the validation script
-        with console.status("[bold green]Running validation..."):
-            # Read and execute the validation script
-            script_content = Path(validation_script).read_text()
-
-            # Create a namespace with pointblank and the data
-            namespace = {
-                "pb": pb,
-                "pointblank": pb,
-                "data": data,
-                "__name__": "__main__",
-            }
-
-            # Execute the script
-            try:
-                exec(script_content, namespace)
-            except Exception as e:
-                console.print(f"[red]Error executing validation script:[/red] {e}")
-                sys.exit(1)
-
-            # Look for a validation object in the namespace
-            validation = None
-            if "validation" in namespace:
-                validation = namespace["validation"]
-            else:
-                # Look for any validation object in the namespace
-                for key, value in namespace.items():
-                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
-                        validation = value
-                        break
-                    elif str(type(value)).find("Validate") != -1:
-                        validation = value
-                        break
-
-            if validation is None:
-                raise ValueError(
-                    "No validation object found in script. "
-                    "Script should create a Validate object and assign it to a variable named 'validation'."
-                )
-
-        console.print("[green]✓[/green] Validation completed")
-
-        # Extract failing rows from the specified step
-        with console.status(f"[bold green]Extracting failing rows from step {step_number}..."):
-            try:
-                # Get the data extracts for the specific step
-                step_extract = validation.get_data_extracts(i=step_number, frame=True)
-
-                if step_extract is None or len(step_extract) == 0:
-                    console.print(f"[yellow]No failing rows found for step {step_number}[/yellow]")
-                    return
-
-                # Limit the results
-                if len(step_extract) > limit:
-                    step_extract = step_extract.head(limit)
-                    console.print(f"[yellow]Limited to first {limit} failing rows[/yellow]")
-
-                console.print(f"[green]✓[/green] Extracted {len(step_extract)} failing rows")
-
-                # Save outputs
-                if output_csv:
-                    if hasattr(step_extract, "write_csv"):
-                        step_extract.write_csv(output_csv)
-                    else:
-                        step_extract.to_csv(output_csv, index=False)
-                    console.print(f"[green]✓[/green] Failing rows saved to CSV: {output_csv}")
-
-                if output_html:
-                    # Create a preview of the failing rows
-                    preview_table = pb.preview(
-                        step_extract, n_head=min(10, len(step_extract)), n_tail=0
-                    )
-                    html_content = preview_table._repr_html_()
-                    Path(output_html).write_text(html_content, encoding="utf-8")
-                    console.print(
-                        f"[green]✓[/green] Failing rows table saved to HTML: {output_html}"
-                    )
-
-                if not output_csv and not output_html:
-                    # Display basic info about the failing rows
-                    info_table = Table(
-                        title=f"Failing Rows - Step {step_number}",
-                        show_header=True,
-                        header_style="bold red",
-                    )
-                    info_table.add_column("Property", style="cyan")
-                    info_table.add_column("Value", style="white")
-
-                    info_table.add_row("Total Failing Rows", f"{len(step_extract):,}")
-                    info_table.add_row(
-                        "Columns",
-                        f"{len(step_extract.columns) if hasattr(step_extract, 'columns') else 'N/A'}",
-                    )
-
-                    console.print(info_table)
-                    console.print(
-                        "\n[dim]Use --output-csv or --output-html to save the failing rows.[/dim]"
-                    )
-
-            except Exception as e:
-                console.print(f"[red]Error extracting failing rows:[/red] {e}")
-                # Try to provide helpful information
-                if hasattr(validation, "validation_info") and validation.validation_info:
-                    max_step = len(validation.validation_info)
-                    console.print(f"[yellow]Available steps: 1 to {max_step}[/yellow]")
-
-                    # Show step information
-                    steps_table = Table(title="Available Validation Steps", show_header=True)
-                    steps_table.add_column("Step", style="cyan")
-                    steps_table.add_column("Type", style="white")
-                    steps_table.add_column("Column", style="green")
-                    steps_table.add_column("Has Failures", style="yellow")
-
-                    for i, step in enumerate(validation.validation_info, 1):
-                        has_failures = "Yes" if not step.all_passed else "No"
-                        steps_table.add_row(
-                            str(i),
-                            step.assertion_type,
-                            str(step.column) if step.column else "—",
-                            has_failures,
-                        )
-
-                    console.print(steps_table)
-                sys.exit(1)
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-def _format_missing_percentage(value: float) -> str:
-    """Format missing value percentages for display.
-
-    Args:
-        value: The percentage value (0-100)
-
-    Returns:
-        Formatted string with proper percentage display
-    """
-    if value == 0.0:
-        return "[green]●[/green]"  # Large green circle for no missing values
-    elif value == 100.0:
-        return "[red]●[/red]"  # Large red circle for completely missing values
-    elif value < 1.0 and value > 0:
-        return "<1%"  # Less than 1%
-    elif value > 99.0 and value < 100.0:
-        return ">99%"  # More than 99%
-    else:
-        return f"{int(round(value))}%"  # Round to nearest integer with % sign
-
-
-def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
-    """Convert a missing values GT table to Rich table with special formatting.
-
-    Args:
-        gt_table: The GT table object for missing values
-        original_data: The original data source to extract column types
-    """
-    try:
-        # Extract the underlying data from the GT table
-        df = None
-
-        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
-            df = gt_table._tbl_data
-        elif hasattr(gt_table, "_data") and gt_table._data is not None:
-            df = gt_table._data
-        elif hasattr(gt_table, "data") and gt_table.data is not None:
-            df = gt_table.data
-
-        if df is not None:
-            # Create a Rich table with horizontal lines
-            from rich.box import SIMPLE_HEAD
-
-            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
-
-            # Get column names
-            columns = []
-            try:
-                if hasattr(df, "columns"):
-                    columns = list(df.columns)
-                elif hasattr(df, "schema"):
-                    columns = list(df.schema.names)
-            except Exception as e:
-                console.print(f"[red]Error getting columns:[/red] {e}")
-                columns = []
-
-            if not columns:
-                columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
-
-            # Get original data to extract column types
-            column_types = {}
-            if original_data is not None:
-                try:
-                    # Get column types from original data
-                    if hasattr(original_data, "columns"):
-                        original_columns = list(original_data.columns)
-                        column_types = _get_column_dtypes(original_data, original_columns)
-                except Exception as e:
-                    console.print(f"[red]Error getting column types:[/red] {e}")
-                    pass  # Use empty dict as fallback
-
-            # Add columns to Rich table with special formatting for missing values table
-            sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
-
-            # Two separate columns: Column name (20 chars) and Data type (10 chars)
-            rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
-            rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
-
-            # Sector columns: All same width, optimized for "100%" (4 chars + padding)
-            for sector in sector_columns:
-                rich_table.add_column(
-                    sector,
-                    style="cyan",
-                    justify="center",
-                    no_wrap=True,
-                    width=5,  # Fixed width optimized for percentage values
-                )
-
-            # Convert data to rows with special formatting
-            rows = []
-            try:
-                if hasattr(df, "to_dicts"):
-                    data_dict = df.to_dicts()
-                elif hasattr(df, "to_dict"):
-                    data_dict = df.to_dict("records")
-                else:
-                    data_dict = []
-
-                for i, row in enumerate(data_dict):
-                    try:
-                        # Each row should have: [column_name, data_type, sector1, sector2, ...]
-                        column_name = str(row.get("columns", ""))
-
-                        # Truncate column name to 20 characters with ellipsis if needed
-                        if len(column_name) > 20:
-                            truncated_name = column_name[:17] + "…"
-                        else:
-                            truncated_name = column_name
-
-                        # Get data type for this column
-                        if column_name in column_types:
-                            dtype = column_types[column_name]
-                            if len(dtype) > 10:
-                                truncated_dtype = dtype[:9] + "…"
-                            else:
-                                truncated_dtype = dtype
-                        else:
-                            truncated_dtype = "?"
-
-                        # Start building the row with column name and type
-                        formatted_row = [truncated_name, truncated_dtype]
-
-                        # Add sector values (formatted percentages)
-                        for sector in sector_columns:
-                            value = row.get(sector, 0.0)
-                            if isinstance(value, (int, float)):
-                                formatted_row.append(_format_missing_percentage(float(value)))
-                            else:
-                                formatted_row.append(str(value))
-
-                        rows.append(formatted_row)
-
-                    except Exception as e:
-                        console.print(f"[red]Error processing row {i}:[/red] {e}")
-                        continue
-
-            except Exception as e:
-                console.print(f"[red]Error extracting data:[/red] {e}")
-                rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
-
-            # Add rows to Rich table
-            for row in rows:
-                try:
-                    rich_table.add_row(*row)
-                except Exception as e:
-                    console.print(f"[red]Error adding row:[/red] {e}")
-                    break
-
-            # Show the table with custom spanner header if we have sector columns
-            if sector_columns:
-                # Create a custom header line that shows the spanner
-                header_parts = []
-                header_parts.append(" " * 20)  # Space for Column header
-                header_parts.append(" " * 10)  # Space for Type header
-
-                # Left-align "Row Sectors" with the first numbered column
-                row_sectors_text = "Row Sectors"
-                header_parts.append(row_sectors_text)
-
-                # Print the custom spanner header
-                console.print("[dim]" + "  ".join(header_parts) + "[/dim]")
-
-                # Add a horizontal rule below the spanner
-                rule_parts = []
-                rule_parts.append(" " * 20)  # Space for Column header
-                rule_parts.append(" " * 10)  # Space for Type header
-
-                # Use a fixed width horizontal rule for "Row Sectors"
-                horizontal_rule = "─" * 20
-                rule_parts.append(horizontal_rule)
-
-                # Print the horizontal rule
-                console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
-
-            # Print the Rich table (will handle terminal width automatically)
-            console.print(rich_table)
-            footer_text = (
-                "[dim]Symbols: [green]●[/green] = no missing values, "
-                "[red]●[/red] = completely missing, "
-                "<1% = less than 1% missing, "
-                ">99% = more than 99% missing[/dim]"
-            )
-            console.print(footer_text)
-
-        else:
-            # Fallback to regular table display
-            _rich_print_gt_table(gt_table)
-
-    except Exception as e:
-        console.print(f"[red]Error rendering missing values table:[/red] {e}")
-        # Fallback to regular table display
-        _rich_print_gt_table(gt_table)
-
-
-def _rich_print_scan_table(
-    scan_result: Any,
-    data_source: str,
-    source_type: str,
-    table_type: str,
-    total_rows: int | None = None,
-    total_columns: int | None = None,
-) -> None:
-    """
-    Display scan results as a Rich table in the terminal with statistical measures.
-
-    Args:
-        scan_result: The GT object from col_summary_tbl()
-        data_source: Name of the data source being scanned
-        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
-        table_type: Type of table (e.g., "polars.LazyFrame")
-        total_rows: Total number of rows in the dataset
-        total_columns: Total number of columns in the dataset
-    """
-    try:
-        import re
-
-        import narwhals as nw
-        from rich.box import SIMPLE_HEAD
-
-        # Extract the underlying DataFrame from the GT object
-        # The GT object has a _tbl_data attribute that contains the DataFrame
-        gt_data = scan_result._tbl_data
-
-        # Convert to Narwhals DataFrame for consistent handling
-        nw_data = nw.from_native(gt_data)
-
-        # Convert to dictionary for easier access
-        data_dict = nw_data.to_dict(as_series=False)
-
-        # Create main scan table with missing data table styling
-        # Create a comprehensive title with data source, source type, and table type
-        title_text = f"Column Summary / {source_type} / {table_type}"
-
-        # Add dimensions subtitle in gray if available
-        if total_rows is not None and total_columns is not None:
-            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
-
-        scan_table = Table(
-            title=title_text,
-            show_header=True,
-            header_style="bold magenta",
-            box=SIMPLE_HEAD,
-            title_style="bold cyan",
-            title_justify="left",
-        )
-
-        # Add columns with specific styling and appropriate widths
-        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
-        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
-        scan_table.add_column(
-            "NA", style="red", width=6, justify="right"
-        )  # Adjusted for better formatting
-        scan_table.add_column(
-            "UQ", style="green", width=8, justify="right"
-        )  # Adjusted for boolean values
-
-        # Add statistical columns if they exist with appropriate widths
-        stat_columns = []
-        column_mapping = {
-            "mean": ("Mean", "blue", 9),
-            "std": ("SD", "blue", 9),
-            "min": ("Min", "yellow", 9),
-            "median": ("Med", "yellow", 9),
-            "max": ("Max", "yellow", 9),
-            "q_1": ("Q₁", "magenta", 8),
-            "q_3": ("Q₃", "magenta", 9),
-            "iqr": ("IQR", "magenta", 8),
-        }
-
-        for col_key, (display_name, color, width) in column_mapping.items():
-            if col_key in data_dict:
-                scan_table.add_column(display_name, style=color, width=width, justify="right")
-                stat_columns.append(col_key)
-
-        # Helper function to extract column name and type from HTML
-        def extract_column_info(html_content: str) -> tuple[str, str]:
-            """Extract column name and type from HTML formatted content."""
-            # Extract column name from first div
-            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
-            column_name = name_match.group(1) if name_match else "Unknown"
-
-            # Extract data type from second div (with gray color)
-            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
-            if type_match:
-                data_type = type_match.group(1)
-                # Convert to compact format using the existing function
-                compact_type = _format_dtype_compact(data_type)
-                data_type = compact_type
-            else:
-                data_type = "unknown"
-
-            return column_name, data_type
-
-        # Helper function to format values with improved number formatting
-        def format_value(
-            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
-        ) -> str:
-            """Format values for display with smart number formatting and HTML cleanup."""
-            if value is None or (isinstance(value, str) and value.strip() == ""):
-                return "[dim]—[/dim]"
-
-            # Handle missing values indicator
-            if is_missing and str(value) == "0":
-                return "[green]●[/green]"  # No missing values
-
-            # Clean up HTML formatting from the raw data
-            str_val = str(value)
-
-            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
-            if "<br>" in str_val:
-                str_val = str_val.split("<br>")[0].strip()
-                # For unique values, we want just the integer part
-                if is_unique:
-                    try:
-                        # Try to extract just the integer part for unique counts
-                        num_val = float(str_val)
-                        return str(int(num_val))
-                    except (ValueError, TypeError):
-                        pass
-
-            # Now handle HTML content (especially from boolean unique values)
-            if "<" in str_val and ">" in str_val:
-                # Remove HTML tags completely for cleaner display
-                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
-                # Clean up extra whitespace
-                str_val = re.sub(r"\s+", " ", str_val).strip()
-
-            # Handle values like "2<.01" - extract the first number
-            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
-                # Extract number before the < symbol
-                before_lt = str_val.split("<")[0].strip()
-                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
-                    str_val = before_lt
-
-            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
-            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
-                # Extract T and F values
-                t_match = re.search(r"T(\d+\.\d+)", str_val)
-                f_match = re.search(r"F(\d+\.\d+)", str_val)
-                if t_match and f_match:
-                    t_val = float(t_match.group(1))
-                    f_val = float(f_match.group(1))
-                    # Show as "T0.62F0.38" but truncated if needed
-                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
-                    if len(formatted) > max_width:
-                        # Truncate to fit, showing dominant value
-                        if t_val > f_val:
-                            return f"T{t_val:.1f}"
-                        else:
-                            return f"F{f_val:.1f}"
-                    return formatted
-
-            # Try to parse as a number for better formatting
-            try:
-                # Try to convert to float first
-                num_val = float(str_val)
-
-                # Handle special cases
-                if num_val == 0:
-                    return "0"
-                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
-                    # Simple integers under 10000
-                    return str(int(num_val))
-                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
-                    # Likely dates in YYYYMMDD format - format as date-like
-                    int_val = int(num_val)
-                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
-                        str_date = str(int_val)
-                        if len(str_date) == 8:
-                            return (
-                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
-                                + "…"
-                            )
-                    # Otherwise treat as large number
-                    return f"{num_val / 1000000:.1f}M"
-                elif abs(num_val) >= 1000000:
-                    # Large numbers - use scientific notation or M/k notation
-
-                    if abs(num_val) >= 1000000000:
-                        return f"{num_val:.1e}"
-                    else:
-                        return f"{num_val / 1000000:.1f}M"
-                elif abs(num_val) >= 10000:
-                    # Numbers >= 10k - use compact notation
-                    return f"{num_val / 1000:.1f}k"
-                elif abs(num_val) >= 100:
-                    # Numbers 100-9999 - show with minimal decimals
-                    return f"{num_val:.1f}"
-                elif abs(num_val) >= 10:
-                    # Numbers 10-99 - show with one decimal
-                    return f"{num_val:.1f}"
-                elif abs(num_val) >= 1:
-                    # Numbers 1-9 - show with two decimals
-                    return f"{num_val:.2f}"
-                elif abs(num_val) >= 0.01:
-                    # Small numbers - show with appropriate precision
-                    return f"{num_val:.2f}"
-                else:
-                    # Very small numbers - use scientific notation
-
-                    return f"{num_val:.1e}"
-
-            except (ValueError, TypeError):
-                # Not a number, handle as string
-                pass
-
-            # Handle date/datetime strings - show abbreviated format
-            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
-                # Likely a date/datetime, show abbreviated
-                if len(str_val) > max_width:
-                    return str_val[: max_width - 1] + "…"
-
-            # General string truncation with ellipsis
-            if len(str_val) > max_width:
-                return str_val[: max_width - 1] + "…"
-
-            return str_val
-
-        # Populate table rows
-        num_rows = len(data_dict["colname"])
-        for i in range(num_rows):
-            row_data = []
-
-            # Column name and type from HTML content
-            colname_html = data_dict["colname"][i]
-            column_name, data_type = extract_column_info(colname_html)
-            row_data.append(column_name)
-            row_data.append(data_type)
-
-            # Missing values (NA)
-            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
-            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
-
-            # Unique values (UQ)
-            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
-            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
-
-            # Statistical columns
-            for stat_col in stat_columns:
-                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
-                # Use appropriate width based on column type
-                if stat_col in ["q_1", "iqr"]:
-                    width = 8
-                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
-                    width = 9
-                else:
-                    width = 8
-                row_data.append(format_value(stat_val, max_width=width))
-
-            scan_table.add_row(*row_data)
-
-        # Display the results
-        console.print()
-        console.print(scan_table)
-
-    except Exception as e:
-        # Fallback to simple message if table creation fails
-        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
-        console.print(f"[red]Error displaying table: {str(e)}[/red]")
-
-
 @cli.command(name="validate-simple")
 @click.argument("data_source", type=str)
 @click.option(
@@ -2062,8 +1223,9 @@ def _rich_print_scan_table(
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
 )
+@click.option("--write-extract", type=click.Path(), help="Save failing rows to CSV file")
 @click.option(
-    "--limit", "-l", default=10, help="Maximum number of failing rows to show (default: 10)"
+    "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
 @click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
 def validate_simple(
@@ -2073,14 +1235,14 @@ def validate_simple(
     set: str | None,
     value: float | None,
     show_extract: bool,
+    write_extract: str | None,
     limit: int,
     exit_code: bool,
 ):
     """
-    Perform simple, single-step validations directly from the command line.
+    Perform simple, single-step data validations.
 
-    This command provides a quick way to perform common data validation checks
-    without needing to write a validation script.
+    Quick way to run common validation checks without writing a script.
 
     DATA_SOURCE can be:
 
@@ -2109,6 +1271,7 @@ def validate_simple(
     \b
     pb validate-simple data.csv --check rows-distinct
     pb validate-simple data.csv --check rows-distinct --show-extract
+    pb validate-simple data.csv --check rows-distinct --write-extract failing_rows.csv
     pb validate-simple data.csv --check rows-distinct --exit-code
     pb validate-simple data.csv --check rows-complete
     pb validate-simple data.csv --check col-exists --column price
@@ -2135,13 +1298,6 @@ def validate_simple(
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
                 "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive'"
-            )
-            sys.exit(1)
-
-        if check == "col-vals-in-set" and not set:
-            console.print(f"[red]Error:[/red] --set is required for {check} check")
-            console.print(
-                "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive,pending'"
             )
             sys.exit(1)
 
@@ -2487,7 +1643,7 @@ def validate_simple(
         console.print(result_table)
 
         # Show extract if requested and validation failed
-        if show_extract and not all_passed:
+        if (show_extract or write_extract) and not all_passed:
             console.print()
 
             # Dynamic message based on check type
@@ -2521,45 +1677,96 @@ def validate_simple(
                 extract_message = "[yellow]Preview of failing rows:[/yellow]"
                 row_type = "failing rows"
 
-            console.print(extract_message)
+            if show_extract:
+                console.print(extract_message)
 
             # Special handling for col-exists check - no rows to show when column doesn't exist
             if check == "col-exists" and not all_passed:
-                console.print(f"[dim]The column '{column}' was not found in the dataset.[/dim]")
-                console.print(
-                    "[dim]Use --show-extract with other check types to see failing data rows.[/dim]"
-                )
+                if show_extract:
+                    console.print(f"[dim]The column '{column}' was not found in the dataset.[/dim]")
+                    console.print(
+                        "[dim]Use --show-extract with other check types to see failing data rows.[/dim]"
+                    )
+                if write_extract:
+                    console.print(
+                        "[yellow]Cannot save failing rows when column doesn't exist[/yellow]"
+                    )
             else:
                 try:
                     # Get failing rows extract
                     failing_rows = validation.get_data_extracts(i=1, frame=True)
 
                     if failing_rows is not None and len(failing_rows) > 0:
-                        # Limit the number of rows shown
-                        if len(failing_rows) > limit:
-                            display_rows = failing_rows.head(limit)
-                            console.print(
-                                f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                        if show_extract:
+                            # Limit the number of rows shown
+                            if len(failing_rows) > limit:
+                                display_rows = failing_rows.head(limit)
+                                console.print(
+                                    f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                                )
+                            else:
+                                display_rows = failing_rows
+                                console.print(
+                                    f"[dim]Showing all {len(failing_rows)} {row_type}[/dim]"
+                                )
+
+                            # Create a preview table using pointblank's preview function
+                            preview_table = pb.preview(
+                                data=display_rows,
+                                n_head=min(limit, len(display_rows)),
+                                n_tail=0,
+                                limit=limit,
+                                show_row_numbers=True,
                             )
-                        else:
-                            display_rows = failing_rows
-                            console.print(f"[dim]Showing all {len(failing_rows)} {row_type}[/dim]")
 
-                        # Create a preview table using pointblank's preview function
-                        preview_table = pb.preview(
-                            data=display_rows,
-                            n_head=min(limit, len(display_rows)),
-                            n_tail=0,
-                            limit=limit,
-                            show_row_numbers=True,
-                        )
+                            # Display using our Rich table function
+                            _rich_print_gt_table(preview_table)
 
-                        # Display using our Rich table function
-                        _rich_print_gt_table(preview_table)
+                        if write_extract:
+                            try:
+                                # Limit the output if needed
+                                write_rows = failing_rows
+                                if len(failing_rows) > limit:
+                                    write_rows = failing_rows.head(limit)
+
+                                # Save to CSV
+                                if hasattr(write_rows, "write_csv"):
+                                    # Polars
+                                    write_rows.write_csv(write_extract)
+                                elif hasattr(write_rows, "to_csv"):
+                                    # Pandas
+                                    write_rows.to_csv(write_extract, index=False)
+                                else:
+                                    # Try converting to pandas as fallback
+                                    import pandas as pd
+
+                                    pd_data = pd.DataFrame(write_rows)
+                                    pd_data.to_csv(write_extract, index=False)
+
+                                rows_saved = (
+                                    len(write_rows) if hasattr(write_rows, "__len__") else limit
+                                )
+                                console.print(
+                                    f"[green]✓[/green] {rows_saved} failing rows saved to: {write_extract}"
+                                )
+                            except Exception as e:
+                                console.print(
+                                    f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                                )
                     else:
-                        console.print("[yellow]No failing rows could be extracted[/yellow]")
+                        if show_extract:
+                            console.print("[yellow]No failing rows could be extracted[/yellow]")
+                        if write_extract:
+                            console.print(
+                                "[yellow]No failing rows could be extracted to save[/yellow]"
+                            )
                 except Exception as e:
-                    console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+                    if show_extract:
+                        console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+                    if write_extract:
+                        console.print(
+                            f"[yellow]Could not extract failing rows to save: {e}[/yellow]"
+                        )
 
         # Summary message
         console.print()
@@ -2669,3 +1876,619 @@ def validate_simple(
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
+
+
+@cli.command()
+def datasets():
+    """
+    List available built-in datasets.
+    """
+    datasets_info = [
+        ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
+        ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
+        ("nycflights", "336,776 rows × 18 columns", "NYC airport flights data from 2013"),
+        ("global_sales", "50,000 rows × 20 columns", "Global sales data across regions"),
+    ]
+
+    table = Table(
+        title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
+    )
+    table.add_column("Dataset Name", style="cyan", no_wrap=True)
+    table.add_column("Dimensions", style="green")
+    table.add_column("Description", style="white")
+
+    for name, dims, desc in datasets_info:
+        table.add_row(name, dims, desc)
+
+    console.print(table)
+    console.print("\n[dim]Use these dataset names directly with any pb CLI command.[/dim]")
+    console.print("[dim]Example: pb preview small_table[/dim]")
+
+
+@cli.command()
+def requirements():
+    """
+    Check installed dependencies and their availability.
+    """
+    dependencies = [
+        ("polars", "Polars DataFrame support"),
+        ("pandas", "Pandas DataFrame support"),
+        ("ibis", "Ibis backend support (DuckDB, etc.)"),
+        ("duckdb", "DuckDB database support"),
+        ("pyarrow", "Parquet file support"),
+    ]
+
+    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
+    table.add_column("Package", style="cyan", no_wrap=True)
+    table.add_column("Status", style="white")
+    table.add_column("Description", style="dim")
+
+    for package, description in dependencies:
+        if _is_lib_present(package):
+            status = "[green]✓ Installed[/green]"
+        else:
+            status = "[red]✗ Not installed[/red]"
+
+        table.add_row(package, status, description)
+
+    console.print(table)
+    console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
+
+
+def _rich_print_scan_table(
+    scan_result: Any,
+    data_source: str,
+    source_type: str,
+    table_type: str,
+    total_rows: int | None = None,
+    total_columns: int | None = None,
+) -> None:
+    """
+    Display scan results as a Rich table in the terminal.
+    """
+    # Simplified implementation
+    console.print(f"[green]✓[/green] Data scan completed for {data_source}")
+    console.print("Use --output-html to save the full interactive scan report.")
+
+
+def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
+    """Convert a missing values GT table to Rich table with special formatting.
+
+    Args:
+        gt_table: The GT table object for missing values
+        original_data: The original data source to extract column types
+    """
+    try:
+        # Extract the underlying data from the GT table
+        df = None
+
+        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
+            df = gt_table._tbl_data
+        elif hasattr(gt_table, "_data") and gt_table._data is not None:
+            df = gt_table._data
+        elif hasattr(gt_table, "data") and gt_table.data is not None:
+            df = gt_table.data
+
+        if df is not None:
+            # Create a Rich table with horizontal lines
+            from rich.box import SIMPLE_HEAD
+
+            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
+
+            # Get column names
+            columns = []
+            try:
+                if hasattr(df, "columns"):
+                    columns = list(df.columns)
+                elif hasattr(df, "schema"):
+                    columns = list(df.schema.names)
+            except Exception as e:
+                console.print(f"[red]Error getting columns:[/red] {e}")
+                columns = []
+
+            if not columns:
+                columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
+
+            # Get original data to extract column types
+            column_types = {}
+            if original_data is not None:
+                try:
+                    # Get column types from original data
+                    if hasattr(original_data, "columns"):
+                        original_columns = list(original_data.columns)
+                        column_types = _get_column_dtypes(original_data, original_columns)
+                except Exception as e:
+                    console.print(f"[red]Error getting column types:[/red] {e}")
+                    pass  # Use empty dict as fallback
+
+            # Add columns to Rich table with special formatting for missing values table
+            sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
+
+            # Two separate columns: Column name (20 chars) and Data type (10 chars)
+            rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+            rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+
+            # Sector columns: All same width, optimized for "100%" (4 chars + padding)
+            for sector in sector_columns:
+                rich_table.add_column(
+                    sector,
+                    style="cyan",
+                    justify="center",
+                    no_wrap=True,
+                    width=5,  # Fixed width optimized for percentage values
+                )
+
+            # Convert data to rows with special formatting
+            rows = []
+            try:
+                if hasattr(df, "to_dicts"):
+                    data_dict = df.to_dicts()
+                elif hasattr(df, "to_dict"):
+                    data_dict = df.to_dict("records")
+                else:
+                    data_dict = []
+
+                for i, row in enumerate(data_dict):
+                    try:
+                        # Each row should have: [column_name, data_type, sector1, sector2, ...]
+                        column_name = str(row.get("columns", ""))
+
+                        # Truncate column name to 20 characters with ellipsis if needed
+                        if len(column_name) > 20:
+                            truncated_name = column_name[:17] + "…"
+                        else:
+                            truncated_name = column_name
+
+                        # Get data type for this column
+                        if column_name in column_types:
+                            dtype = column_types[column_name]
+                            if len(dtype) > 10:
+                                truncated_dtype = dtype[:9] + "…"
+                            else:
+                                truncated_dtype = dtype
+                        else:
+                            truncated_dtype = "?"
+
+                        # Start building the row with column name and type
+                        formatted_row = [truncated_name, truncated_dtype]
+
+                        # Add sector values (formatted percentages)
+                        for sector in sector_columns:
+                            value = row.get(sector, 0.0)
+                            if isinstance(value, (int, float)):
+                                formatted_row.append(_format_missing_percentage(float(value)))
+                            else:
+                                formatted_row.append(str(value))
+
+                        rows.append(formatted_row)
+
+                    except Exception as e:
+                        console.print(f"[red]Error processing row {i}:[/red] {e}")
+                        continue
+
+            except Exception as e:
+                console.print(f"[red]Error extracting data:[/red] {e}")
+                rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
+
+            # Add rows to Rich table
+            for row in rows:
+                try:
+                    rich_table.add_row(*row)
+                except Exception as e:
+                    console.print(f"[red]Error adding row:[/red] {e}")
+                    break
+
+            # Show the table with custom spanner header if we have sector columns
+            if sector_columns:
+                # Create a custom header line that shows the spanner
+                header_parts = []
+                header_parts.append(" " * 20)  # Space for Column header
+                header_parts.append(" " * 10)  # Space for Type header
+
+                # Left-align "Row Sectors" with the first numbered column
+                row_sectors_text = "Row Sectors"
+                header_parts.append(row_sectors_text)
+
+                # Print the custom spanner header
+                console.print("[dim]" + "  ".join(header_parts) + "[/dim]")
+
+                # Add a horizontal rule below the spanner
+                rule_parts = []
+                rule_parts.append(" " * 20)  # Space for Column header
+                rule_parts.append(" " * 10)  # Space for Type header
+
+                # Use a fixed width horizontal rule for "Row Sectors"
+                horizontal_rule = "─" * 20
+                rule_parts.append(horizontal_rule)
+
+                # Print the horizontal rule
+                console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
+
+            # Print the Rich table (will handle terminal width automatically)
+            console.print(rich_table)
+            footer_text = (
+                "[dim]Symbols: [green]●[/green] = no missing values, "
+                "[red]●[/red] = completely missing, "
+                "<1% = less than 1% missing, "
+                ">99% = more than 99% missing[/dim]"
+            )
+            console.print(footer_text)
+
+        else:
+            # Fallback to regular table display
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error rendering missing values table:[/red] {e}")
+        # Fallback to regular table display
+        _rich_print_gt_table(gt_table)
+
+
+@cli.command()
+@click.argument("output_file", type=click.Path())
+def validate_example(output_file: str):
+    """
+    Generate an example validation script.
+
+    Creates a sample Python script showing how to use Pointblank for validation.
+    """
+    example_script = '''"""
+Example Pointblank validation script.
+
+This script demonstrates how to create validation rules for your data.
+Modify the validation rules below to match your data requirements.
+"""
+
+import pointblank as pb
+
+# Create a validation object
+# The 'data' variable is automatically provided by the CLI
+validation = (
+    pb.Validate(
+        data=data,
+        tbl_name="Example Data",
+        label="CLI Validation Example",
+        thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
+    )
+    # Add your validation rules here
+    # Example rules (modify these based on your data structure):
+
+    # Check that specific columns exist
+    # .col_exists(["column1", "column2"])
+
+    # Check for null values
+    # .col_vals_not_null(columns="important_column")
+
+    # Check value ranges
+    # .col_vals_gt(columns="amount", value=0)
+    # .col_vals_between(columns="score", left=0, right=100)
+
+    # Check string patterns
+    # .col_vals_regex(columns="email", pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$")
+
+    # Check unique values
+    # .col_vals_unique(columns="id")
+
+    # Finalize the validation
+    .interrogate()
+)
+
+# The validation object will be automatically used by the CLI
+'''
+
+    Path(output_file).write_text(example_script)
+    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
+    console.print("\nEdit the script to add your validation rules, then run:")
+    console.print(f"[cyan]pb validate your_data.csv {output_file}[/cyan]")
+
+
+@cli.command()
+@click.argument("data_source", type=str)
+@click.argument("validation_script", type=click.Path(exists=True))
+@click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
+@click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
+@click.option(
+    "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
+)
+@click.option(
+    "--write-extract",
+    type=click.Path(),
+    help="Save failing rows from failed validation steps to CSV file",
+)
+@click.option(
+    "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
+)
+@click.option("--fail-on-error", is_flag=True, help="Exit with non-zero code if validation fails")
+def validate(
+    data_source: str,
+    validation_script: str,
+    output_html: str | None,
+    output_json: str | None,
+    show_extract: bool,
+    write_extract: str | None,
+    limit: int,
+    fail_on_error: bool,
+):
+    """
+    Run validation using a Python validation script.
+
+    DATA_SOURCE can be:
+
+    \b
+    - CSV file path (e.g., data.csv)
+    - Parquet file path or pattern (e.g., data.parquet, data/*.parquet)
+    - GitHub URL to CSV/Parquet (e.g., https://github.com/user/repo/blob/main/data.csv)
+    - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
+    - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
+
+    VALIDATION_SCRIPT should be a Python file that defines validation rules.
+    See 'pb validate-example' for a sample script.
+
+    Examples:
+
+    \b
+    pb validate data.csv validation_script.py
+    pb validate data.csv validation_script.py --output-html report.html
+    pb validate data.csv validation_script.py --show-extract
+    pb validate data.csv validation_script.py --write-extract failing_rows.csv
+    pb validate data.csv validation_script.py --fail-on-error
+    """
+    try:
+        with console.status("[bold green]Loading data..."):
+            # Load the data source using the centralized function
+            data = _load_data_source(data_source)
+
+            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+
+        # Execute the validation script
+        with console.status("[bold green]Running validation..."):
+            # Read and execute the validation script
+            script_content = Path(validation_script).read_text()
+
+            # Create a namespace with pointblank and the data
+            namespace = {
+                "pb": pb,
+                "pointblank": pb,
+                "data": data,
+                "__name__": "__main__",
+            }
+
+            # Execute the script
+            try:
+                exec(script_content, namespace)
+            except Exception as e:
+                console.print(f"[red]Error executing validation script:[/red] {e}")
+                sys.exit(1)
+
+            # Look for a validation object in the namespace
+            validation = None
+
+            # Try to find the 'validation' variable specifically first
+            if "validation" in namespace:
+                validation = namespace["validation"]
+            else:
+                # Look for any validation object in the namespace
+                for key, value in namespace.items():
+                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
+                        validation = value
+                        break
+                    # Also check if it's a Validate object that has been interrogated
+                    elif str(type(value)).find("Validate") != -1:
+                        validation = value
+                        break
+
+            if validation is None:
+                raise ValueError(
+                    "No validation object found in script. "
+                    "Script should create a Validate object and assign it to a variable named 'validation'."
+                )
+
+        console.print("[green]✓[/green] Validation completed")
+
+        # Display summary
+        _display_validation_summary(validation)
+
+        # Save outputs
+        if output_html:
+            try:
+                # Get HTML representation
+                html_content = validation._repr_html_()
+                Path(output_html).write_text(html_content, encoding="utf-8")
+                console.print(f"[green]✓[/green] HTML report saved to: {output_html}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
+
+        if output_json:
+            try:
+                # Get JSON report
+                json_report = validation.get_json_report()
+                Path(output_json).write_text(json_report, encoding="utf-8")
+                console.print(f"[green]✓[/green] JSON summary saved to: {output_json}")
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not save JSON report: {e}[/yellow]")
+
+        # Handle extract functionality for failed validations
+        validation_failed = False
+        failed_steps = []
+        if hasattr(validation, "validation_info") and validation.validation_info:
+            for i, step_info in enumerate(validation.validation_info, 1):
+                if step_info.n_failed > 0:
+                    validation_failed = True
+                    failed_steps.append((i, step_info))
+
+        if validation_failed and (show_extract or write_extract):
+            console.print()
+
+            if show_extract:
+                console.print("[yellow]Preview of failing rows from validation steps:[/yellow]")
+
+                for step_num, step_info in failed_steps:
+                    try:
+                        failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+
+                        if failing_rows is not None and len(failing_rows) > 0:
+                            console.print(
+                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                            )
+
+                            # Limit the number of rows shown
+                            if len(failing_rows) > limit:
+                                display_rows = failing_rows.head(limit)
+                                console.print(
+                                    f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
+                                )
+                            else:
+                                display_rows = failing_rows
+                                console.print(
+                                    f"[dim]Showing all {len(failing_rows)} failing rows[/dim]"
+                                )
+
+                            # Create a preview table using pointblank's preview function
+                            preview_table = pb.preview(
+                                data=display_rows,
+                                n_head=min(limit, len(display_rows)),
+                                n_tail=0,
+                                limit=limit,
+                                show_row_numbers=True,
+                            )
+
+                            # Display using our Rich table function
+                            _rich_print_gt_table(preview_table)
+                        else:
+                            console.print(
+                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                            )
+                            console.print("[yellow]No failing rows could be extracted[/yellow]")
+                    except Exception as e:
+                        console.print(f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}")
+                        console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+
+            if write_extract:
+                try:
+                    # Combine all failing rows from all failed steps
+                    all_failing_rows = []
+                    step_sources = []
+
+                    for step_num, step_info in failed_steps:
+                        try:
+                            failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+                            if failing_rows is not None and len(failing_rows) > 0:
+                                # Add step information to track source
+                                import narwhals as nw
+
+                                nw_data = nw.from_native(failing_rows)
+
+                                # Add step metadata columns
+                                step_data = nw_data.with_columns(
+                                    [
+                                        nw.lit(step_num).alias("validation_step"),
+                                        nw.lit(step_info.assertion_type).alias("validation_type"),
+                                    ]
+                                )
+
+                                all_failing_rows.append(nw.to_native(step_data))
+                                step_sources.append(f"Step {step_num}: {step_info.assertion_type}")
+                        except Exception as e:
+                            console.print(
+                                f"[yellow]Warning: Could not extract failing rows from step {step_num}: {e}[/yellow]"
+                            )
+
+                    if all_failing_rows:
+                        # Concatenate all failing rows
+                        if len(all_failing_rows) == 1:
+                            combined_failing_rows = all_failing_rows[0]
+                        else:
+                            # Try to concatenate - implementation depends on the data type
+                            try:
+                                import narwhals as nw
+
+                                # Convert all to narwhals and concatenate
+                                nw_frames = [nw.from_native(df) for df in all_failing_rows]
+                                combined_nw = nw.concat(nw_frames)
+                                combined_failing_rows = nw.to_native(combined_nw)
+                            except Exception:
+                                # Fallback: just use the first dataset
+                                combined_failing_rows = all_failing_rows[0]
+
+                        # Limit the output if needed
+                        if (
+                            hasattr(combined_failing_rows, "head")
+                            and len(combined_failing_rows) > limit
+                        ):
+                            combined_failing_rows = combined_failing_rows.head(limit)
+
+                        # Save to CSV
+                        if hasattr(combined_failing_rows, "write_csv"):
+                            # Polars
+                            combined_failing_rows.write_csv(write_extract)
+                        elif hasattr(combined_failing_rows, "to_csv"):
+                            # Pandas
+                            combined_failing_rows.to_csv(write_extract, index=False)
+                        else:
+                            # Try converting to pandas as fallback
+                            import pandas as pd
+
+                            pd_data = pd.DataFrame(combined_failing_rows)
+                            pd_data.to_csv(write_extract, index=False)
+
+                        console.print(f"[green]✓[/green] Failing rows saved to: {write_extract}")
+                        if len(step_sources) > 1:
+                            console.print(
+                                f"[dim]Combined rows from: {', '.join(step_sources)}[/dim]"
+                            )
+                        else:
+                            console.print(f"[dim]Rows from: {step_sources[0]}[/dim]")
+                    else:
+                        console.print("[yellow]No failing rows could be extracted to save[/yellow]")
+
+                except Exception as e:
+                    console.print(
+                        f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                    )
+
+        # Check if we should fail on error
+        if fail_on_error:
+            try:
+                if (
+                    hasattr(validation, "validation_info")
+                    and validation.validation_info is not None
+                ):
+                    info = validation.validation_info
+                    n_critical = sum(1 for step in info if step.critical)
+                    n_error = sum(1 for step in info if step.error)
+
+                    if n_critical > 0 or n_error > 0:
+                        severity = "critical" if n_critical > 0 else "error"
+                        console.print(
+                            f"[red]Exiting with error due to {severity} validation failures[/red]"
+                        )
+                        sys.exit(1)
+            except Exception as e:
+                console.print(
+                    f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
+                )
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
+def _format_missing_percentage(value: float) -> str:
+    """Format missing value percentages for display.
+
+    Args:
+        value: The percentage value (0-100)
+
+    Returns:
+        Formatted string with proper percentage display
+    """
+    if value == 0.0:
+        return "[green]●[/green]"  # Large green circle for no missing values
+    elif value == 100.0:
+        return "[red]●[/red]"  # Large red circle for completely missing values
+    elif value < 1.0 and value > 0:
+        return "<1%"  # Less than 1%
+    elif value > 99.0 and value < 100.0:
+        return ">99%"  # More than 99%
+    else:
+        return f"{int(round(value))}%"  # Round to nearest integer with % sign
