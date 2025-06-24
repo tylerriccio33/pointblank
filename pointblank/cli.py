@@ -1952,9 +1952,176 @@ def _rich_print_scan_table(
 
 
 def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
-    """Convert a missing values GT table to Rich table with special formatting."""
-    # Simplified implementation - fall back to regular GT table display
-    _rich_print_gt_table(gt_table)
+    """Convert a missing values GT table to Rich table with special formatting.
+
+    Args:
+        gt_table: The GT table object for missing values
+        original_data: The original data source to extract column types
+    """
+    try:
+        # Extract the underlying data from the GT table
+        df = None
+
+        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
+            df = gt_table._tbl_data
+        elif hasattr(gt_table, "_data") and gt_table._data is not None:
+            df = gt_table._data
+        elif hasattr(gt_table, "data") and gt_table.data is not None:
+            df = gt_table.data
+
+        if df is not None:
+            # Create a Rich table with horizontal lines
+            from rich.box import SIMPLE_HEAD
+
+            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
+
+            # Get column names
+            columns = []
+            try:
+                if hasattr(df, "columns"):
+                    columns = list(df.columns)
+                elif hasattr(df, "schema"):
+                    columns = list(df.schema.names)
+            except Exception as e:
+                console.print(f"[red]Error getting columns:[/red] {e}")
+                columns = []
+
+            if not columns:
+                columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
+
+            # Get original data to extract column types
+            column_types = {}
+            if original_data is not None:
+                try:
+                    # Get column types from original data
+                    if hasattr(original_data, "columns"):
+                        original_columns = list(original_data.columns)
+                        column_types = _get_column_dtypes(original_data, original_columns)
+                except Exception as e:
+                    console.print(f"[red]Error getting column types:[/red] {e}")
+                    pass  # Use empty dict as fallback
+
+            # Add columns to Rich table with special formatting for missing values table
+            sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
+
+            # Two separate columns: Column name (20 chars) and Data type (10 chars)
+            rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+            rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+
+            # Sector columns: All same width, optimized for "100%" (4 chars + padding)
+            for sector in sector_columns:
+                rich_table.add_column(
+                    sector,
+                    style="cyan",
+                    justify="center",
+                    no_wrap=True,
+                    width=5,  # Fixed width optimized for percentage values
+                )
+
+            # Convert data to rows with special formatting
+            rows = []
+            try:
+                if hasattr(df, "to_dicts"):
+                    data_dict = df.to_dicts()
+                elif hasattr(df, "to_dict"):
+                    data_dict = df.to_dict("records")
+                else:
+                    data_dict = []
+
+                for i, row in enumerate(data_dict):
+                    try:
+                        # Each row should have: [column_name, data_type, sector1, sector2, ...]
+                        column_name = str(row.get("columns", ""))
+
+                        # Truncate column name to 20 characters with ellipsis if needed
+                        if len(column_name) > 20:
+                            truncated_name = column_name[:17] + "…"
+                        else:
+                            truncated_name = column_name
+
+                        # Get data type for this column
+                        if column_name in column_types:
+                            dtype = column_types[column_name]
+                            if len(dtype) > 10:
+                                truncated_dtype = dtype[:9] + "…"
+                            else:
+                                truncated_dtype = dtype
+                        else:
+                            truncated_dtype = "?"
+
+                        # Start building the row with column name and type
+                        formatted_row = [truncated_name, truncated_dtype]
+
+                        # Add sector values (formatted percentages)
+                        for sector in sector_columns:
+                            value = row.get(sector, 0.0)
+                            if isinstance(value, (int, float)):
+                                formatted_row.append(_format_missing_percentage(float(value)))
+                            else:
+                                formatted_row.append(str(value))
+
+                        rows.append(formatted_row)
+
+                    except Exception as e:
+                        console.print(f"[red]Error processing row {i}:[/red] {e}")
+                        continue
+
+            except Exception as e:
+                console.print(f"[red]Error extracting data:[/red] {e}")
+                rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
+
+            # Add rows to Rich table
+            for row in rows:
+                try:
+                    rich_table.add_row(*row)
+                except Exception as e:
+                    console.print(f"[red]Error adding row:[/red] {e}")
+                    break
+
+            # Show the table with custom spanner header if we have sector columns
+            if sector_columns:
+                # Create a custom header line that shows the spanner
+                header_parts = []
+                header_parts.append(" " * 20)  # Space for Column header
+                header_parts.append(" " * 10)  # Space for Type header
+
+                # Left-align "Row Sectors" with the first numbered column
+                row_sectors_text = "Row Sectors"
+                header_parts.append(row_sectors_text)
+
+                # Print the custom spanner header
+                console.print("[dim]" + "  ".join(header_parts) + "[/dim]")
+
+                # Add a horizontal rule below the spanner
+                rule_parts = []
+                rule_parts.append(" " * 20)  # Space for Column header
+                rule_parts.append(" " * 10)  # Space for Type header
+
+                # Use a fixed width horizontal rule for "Row Sectors"
+                horizontal_rule = "─" * 20
+                rule_parts.append(horizontal_rule)
+
+                # Print the horizontal rule
+                console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
+
+            # Print the Rich table (will handle terminal width automatically)
+            console.print(rich_table)
+            footer_text = (
+                "[dim]Symbols: [green]●[/green] = no missing values, "
+                "[red]●[/red] = completely missing, "
+                "<1% = less than 1% missing, "
+                ">99% = more than 99% missing[/dim]"
+            )
+            console.print(footer_text)
+
+        else:
+            # Fallback to regular table display
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error rendering missing values table:[/red] {e}")
+        # Fallback to regular table display
+        _rich_print_gt_table(gt_table)
 
 
 @cli.command()
