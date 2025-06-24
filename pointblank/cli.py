@@ -2224,9 +2224,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-not-null":
                 # Create validation for not null values in specified column
                 validation = (
@@ -2242,9 +2240,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "rows-complete":
                 # Create validation for complete rows (no missing values in any column)
                 validation = (
@@ -2260,9 +2256,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-exists":
                 # Create validation for column existence
                 validation = (
@@ -2278,9 +2272,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-in-set":
                 # Parse the comma-separated set values
                 allowed_values = [value.strip() for value in set.split(",")]
@@ -2299,9 +2291,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-gt":
                 # Create validation for values greater than threshold
                 validation = (
@@ -2317,9 +2307,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-ge":
                 # Create validation for values greater than or equal to threshold
                 validation = (
@@ -2335,9 +2323,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-lt":
                 # Create validation for values less than threshold
                 validation = (
@@ -2353,9 +2339,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-le":
                 # Create validation for values less than or equal to threshold
                 validation = (
@@ -2371,9 +2355,7 @@ def validate_simple(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(
-                    f"[green]✓[/green] {check.replace('-', ' ').title()} validation completed"
-                )
+                console.print(f"[green]✓[/green] {check} validation completed")
             else:
                 # This shouldn't happen due to click.Choice, but just in case
                 console.print(f"[red]Error:[/red] Unknown check type: {check}")
