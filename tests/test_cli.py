@@ -21,7 +21,6 @@ from pointblank.cli import (
     missing,
     validate_example,
     validate,
-    extract,
     validate_simple,
     _format_cell_value,
     _get_column_dtypes,
@@ -605,7 +604,6 @@ def test_cli_commands_help_output():
         "scan",
         "missing",
         "validate",
-        "extract",
     ]
 
     for cmd_name in commands:
@@ -784,10 +782,6 @@ def test_cli_commands_basic_functionality():
     # Test missing command
     result = runner.invoke(missing, ["small_table"])
     assert result.exit_code == 0
-
-    # Test extract command
-    result = runner.invoke(extract, ["small_table"])
-    assert result.exit_code in [0, 1, 2]  # May have different exit codes
 
     # Test validate-example command
     result = runner.invoke(validate_example, ["small_table"])
@@ -1345,71 +1339,6 @@ def test_missing_command_with_invalid_data(runner):
     result = runner.invoke(missing, ["nonexistent_file.csv"])
     assert result.exit_code == 1
     assert "Error:" in result.output
-
-
-def test_extract_command_basic(runner, tmp_path):
-    """Test basic extract command functionality."""
-    # Create a simple validation script
-    script_file = tmp_path / "validation.py"
-    script_content = """
-import pointblank as pb
-# Use the data variable passed from CLI instead of loading dataset
-validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
-"""
-    script_file.write_text(script_content)
-
-    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
-    assert result.exit_code in [0, 1]  # May fail due to missing dependencies or validation issues
-
-
-def test_extract_command_with_outputs(runner, tmp_path):
-    """Test extract command with output files."""
-    script_file = tmp_path / "validation.py"
-    csv_file = tmp_path / "failing_rows.csv"
-    html_file = tmp_path / "failing_rows.html"
-
-    script_content = """
-import pointblank as pb
-# Use the data variable passed from CLI instead of loading dataset
-validation = pb.validate(data).col_vals_gt("c", -999).interrogate()  # Should pass for testing
-"""
-    script_file.write_text(script_content)
-
-    result = runner.invoke(
-        extract,
-        [
-            "small_table",
-            str(script_file),
-            "1",
-            "--output-csv",
-            str(csv_file),
-            "--output-html",
-            str(html_file),
-            "--limit",
-            "5",
-        ],
-    )
-    assert result.exit_code in [0, 1]
-
-
-def test_extract_command_invalid_script(runner, tmp_path):
-    """Test extract command with invalid script."""
-    script_file = tmp_path / "bad_script.py"
-    script_file.write_text("invalid python code !!!")
-
-    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
-    assert result.exit_code == 1
-    assert "Error executing validation script:" in result.output
-
-
-def test_extract_command_no_validation_object(runner, tmp_path):
-    """Test extract command with script that has no validation object."""
-    script_file = tmp_path / "no_validation.py"
-    script_file.write_text("print('hello world')")
-
-    result = runner.invoke(extract, ["small_table", str(script_file), "1"])
-    assert result.exit_code == 1
-    assert "No validation object found" in result.output
 
 
 def test_validate_command_comprehensive(runner, tmp_path):
