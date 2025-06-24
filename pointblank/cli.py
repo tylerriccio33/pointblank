@@ -1240,10 +1240,9 @@ def validate_simple(
     exit_code: bool,
 ):
     """
-    Perform simple, single-step validations directly from the command line.
+    Perform simple, single-step data validations.
 
-    This command provides a quick way to perform common data validation checks
-    without needing to write a validation script.
+    Quick way to run common validation checks without writing a script.
 
     DATA_SOURCE can be:
 
