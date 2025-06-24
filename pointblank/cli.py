@@ -284,6 +284,13 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                 table_type = preview_info["table_type"]
                 table_title = f"Data Preview / {source_type} / {table_type}"
 
+                # Add dimensions subtitle in gray if available
+                if "total_rows" in preview_info and "total_columns" in preview_info:
+                    total_rows = preview_info["total_rows"]
+                    total_columns = preview_info["total_columns"]
+                    if total_rows is not None and total_columns is not None:
+                        table_title += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
             rich_table = Table(
                 title=table_title,
                 show_header=True,
@@ -951,6 +958,7 @@ def preview(
                 processed_data = data
 
                 total_dataset_rows = pb.get_row_count(processed_data)
+                total_dataset_columns = pb.get_column_count(processed_data)
 
                 # Determine source type and table type for enhanced preview title
                 if data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
@@ -962,6 +970,7 @@ def preview(
             except Exception:
                 # If we can't get metadata, set defaults
                 total_dataset_rows = None
+                total_dataset_columns = None
                 source_type = f"Data source: {data_source}"
                 table_type = "unknown"
 
@@ -992,6 +1001,7 @@ def preview(
 
                 preview_info = {
                     "total_rows": total_dataset_rows,
+                    "total_columns": total_dataset_columns,
                     "head_rows": head,
                     "tail_rows": tail,
                     "is_complete": is_complete,
