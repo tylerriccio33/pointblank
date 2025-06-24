@@ -1118,11 +1118,13 @@ def scan(
                 source_type = f"External source: {data_source}"
 
             table_type = _get_tbl_type(data)
-            # Get row count for footer
+            # Get row count and column count for header
             try:
                 total_rows = pb.get_row_count(data)
+                total_columns = pb.get_column_count(data)
             except Exception:
                 total_rows = None
+                total_columns = None
 
         scan_time = time.time() - start_time
 
@@ -1142,7 +1144,7 @@ def scan(
             # Display detailed column summary using rich formatting
             try:
                 _rich_print_scan_table(
-                    scan_result, data_source, source_type, table_type, total_rows
+                    scan_result, data_source, source_type, table_type, total_rows, total_columns
                 )
 
             except Exception as e:
@@ -1756,6 +1758,7 @@ def _rich_print_scan_table(
     source_type: str,
     table_type: str,
     total_rows: int | None = None,
+    total_columns: int | None = None,
 ) -> None:
     """
     Display scan results as a Rich table in the terminal with statistical measures.
@@ -1766,6 +1769,7 @@ def _rich_print_scan_table(
         source_type: Type of data source (e.g., "Pointblank dataset: small_table")
         table_type: Type of table (e.g., "polars.LazyFrame")
         total_rows: Total number of rows in the dataset
+        total_columns: Total number of columns in the dataset
     """
     try:
         import re
@@ -1786,6 +1790,10 @@ def _rich_print_scan_table(
         # Create main scan table with missing data table styling
         # Create a comprehensive title with data source, source type, and table type
         title_text = f"Column Summary / {source_type} / {table_type}"
+
+        # Add dimensions subtitle in gray if available
+        if total_rows is not None and total_columns is not None:
+            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
 
         scan_table = Table(
             title=title_text,
@@ -2003,26 +2011,7 @@ def _rich_print_scan_table(
 
         # Display the results
         console.print()
-        console.print(scan_table)  # Add informational footer about the scan scope
-        try:
-            if total_rows is not None:
-                # Full table scan
-                footer_text = f"[dim]Scan from all {total_rows:,} rows in the table.[/dim]"
-
-                # Create a simple footer
-                footer_table = Table(
-                    show_header=False,
-                    show_lines=False,
-                    box=None,
-                    padding=(0, 0),
-                )
-                footer_table.add_column("", style="dim", width=80)
-                footer_table.add_row(footer_text)
-                console.print(footer_table)
-
-        except Exception:
-            # If we can't determine the scan scope, don't show a footer
-            pass
+        console.print(scan_table)
 
     except Exception as e:
         # Fallback to simple message if table creation fails
