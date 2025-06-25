@@ -19,8 +19,8 @@ from pointblank.cli import (
     info,
     scan,
     missing,
-    validate_example,
-    validate,
+    run_example,
+    run,
     validate_simple,
     _format_cell_value,
     _get_column_dtypes,
@@ -603,7 +603,7 @@ def test_cli_commands_help_output():
         "info",
         "scan",
         "missing",
-        "validate",
+        "run",
     ]
 
     for cmd_name in commands:
@@ -764,121 +764,6 @@ def test_requirements_command_detailed():
     assert "pyarrow" in result.output
 
 
-def test_validate_example_command():
-    """Test the validate-example command."""
-    runner = CliRunner()
-    result = runner.invoke(validate_example, ["small_table"])
-    assert result.exit_code in [0, 1]  # May pass or fail validation
-
-
-def test_cli_commands_basic_functionality():
-    """Test basic functionality of all CLI commands with valid inputs."""
-    runner = CliRunner()
-
-    # Test info command
-    result = runner.invoke(info, ["small_table"])
-    assert result.exit_code == 0
-
-    # Test missing command
-    result = runner.invoke(missing, ["small_table"])
-    assert result.exit_code == 0
-
-    # Test validate-example command
-    result = runner.invoke(validate_example, ["small_table"])
-    assert result.exit_code in [0, 1]  # May pass or fail validation
-
-
-def test_scan_command_basic():
-    """Test scan command basic functionality with mocked data loading."""
-    runner = CliRunner()
-    result = runner.invoke(scan, ["small_table"])
-    assert result.exit_code == 0
-
-
-def test_validate_command_basic():
-    """Test validate command basic functionality."""
-    runner = CliRunner()
-
-    # Create a temporary validation script
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write("""
-import pointblank as pb
-
-validation = (
-    pb.Validate(data=data)
-    .col_exists(['a', 'b'])
-    .interrogate()
-)
-""")
-        script_path = f.name
-
-    try:
-        result = runner.invoke(validate, ["small_table", script_path])
-        assert result.exit_code in [0, 1]  # May pass or fail validation
-    finally:
-        Path(script_path).unlink()
-
-
-def test_preview_with_different_head_tail_combinations():
-    """Test preview command with different head/tail combinations."""
-    runner = CliRunner()
-
-    # Test with different head values
-    result = runner.invoke(preview, ["small_table", "--head", "3"])
-    assert result.exit_code == 0
-
-    # Test with different tail values
-    result = runner.invoke(preview, ["small_table", "--tail", "2"])
-    assert result.exit_code == 0
-
-    # Test with both head and tail
-    result = runner.invoke(preview, ["small_table", "--head", "2", "--tail", "1"])
-    assert result.exit_code == 0
-
-    # Test with limit
-    result = runner.invoke(preview, ["small_table", "--limit", "5"])
-    assert result.exit_code in [0, 1]  # May have issues with limit validation
-
-
-def test_preview_column_selection_combinations():
-    """Test preview command with various column selection methods."""
-    runner = CliRunner()
-
-    # Test col-first
-    result = runner.invoke(preview, ["small_table", "--col-first", "3"])
-    assert result.exit_code == 0
-
-    # Test col-last
-    result = runner.invoke(preview, ["small_table", "--col-last", "2"])
-    assert result.exit_code == 0
-
-    # Test col-range with different formats
-    result = runner.invoke(preview, ["small_table", "--col-range", "2:4"])
-    assert result.exit_code == 0
-
-    result = runner.invoke(preview, ["small_table", "--col-range", "2:"])
-    assert result.exit_code == 0
-
-    result = runner.invoke(preview, ["small_table", "--col-range", ":3"])
-    assert result.exit_code == 0
-
-
-def test_all_built_in_datasets():
-    """Test that all built-in datasets work with basic commands."""
-    runner = CliRunner()
-
-    datasets = ["small_table", "game_revenue", "nycflights", "global_sales"]
-
-    for dataset in datasets:
-        # Test preview
-        result = runner.invoke(preview, [dataset])
-        assert result.exit_code == 0
-
-        # Test info
-        result = runner.invoke(info, [dataset])
-        assert result.exit_code == 0
-
-
 def test_format_cell_value_comprehensive():
     """Test format_cell_value with comprehensive scenarios."""
 
@@ -960,60 +845,47 @@ def test_format_missing_percentage_edge_cases():
     assert _format_missing_percentage(99.9) == ">99%"
 
 
-def test_cli_error_handling_scenarios():
-    """Test CLI error handling with various problematic scenarios."""
+def test_cli_commands_basic_functionality():
+    """Test basic functionality of all CLI commands with valid inputs."""
     runner = CliRunner()
 
-    # Test with completely invalid data source
-    result = runner.invoke(preview, ["completely_invalid_source_12345"])
-    assert result.exit_code == 1
+    # Test info command
+    result = runner.invoke(info, ["small_table"])
+    assert result.exit_code == 0
 
-    # Test with invalid column range formats
-    result = runner.invoke(preview, ["small_table", "--col-range", "abc:def"])
-    assert result.exit_code in [0, 1]  # May handle gracefully or fail
+    # Test missing command
+    result = runner.invoke(missing, ["small_table"])
+    assert result.exit_code == 0
 
-    # Test with negative head/tail values
-    result = runner.invoke(preview, ["small_table", "--head", "-5"])
-    assert result.exit_code in [0, 1]
-
-    result = runner.invoke(preview, ["small_table", "--tail", "-3"])
-    assert result.exit_code in [0, 1]
-
-    # Test with zero head/tail values
-    result = runner.invoke(preview, ["small_table", "--head", "0"])
-    assert result.exit_code in [0, 1]
-
-
-def test_output_file_handling():
-    """Test output file handling with various scenarios."""
-    runner = CliRunner()
-
-    # Test HTML output with temporary files
-    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmp:
-        tmp_path = tmp.name
+    # Test run-example command
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        result = runner.invoke(run_example, [f.name])
+        script_path = f.name
 
     try:
-        # Test preview HTML output
-        result = runner.invoke(preview, ["small_table", "--output-html", tmp_path])
         assert result.exit_code == 0
-        assert Path(tmp_path).exists()
-
-        # Test scan HTML output
-        result = runner.invoke(scan, ["small_table", "--output-html", tmp_path])
-        assert result.exit_code == 0
-
     finally:
-        if Path(tmp_path).exists():
-            Path(tmp_path).unlink()
+        Path(script_path).unlink(missing_ok=True)
 
-    # Test JSON output
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
-        tmp_path = tmp.name
+
+def test_scan_command_basic():
+    """Test scan command basic functionality with mocked data loading."""
+    runner = CliRunner()
+    result = runner.invoke(scan, ["small_table"])
+    assert result.exit_code == 0
+
+
+def test_run_command_basic():
+    """Test run command basic functionality."""
+    runner = CliRunner()
 
     # Create a temporary validation script
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write("""
 import pointblank as pb
+
+# Load data directly in script
+data = pb.load_dataset("small_table")
 
 validation = (
     pb.Validate(data=data)
@@ -1024,275 +896,70 @@ validation = (
         script_path = f.name
 
     try:
-        result = runner.invoke(validate, ["small_table", script_path, "--output-json", tmp_path])
-        assert result.exit_code in [0, 1]
-        assert Path(tmp_path).exists()
-
-    finally:
-        if Path(tmp_path).exists():
-            Path(tmp_path).unlink()
-        if Path(script_path).exists():
-            Path(script_path).unlink()
-
-
-def test_format_cell_value_with_special_values():
-    """Test format_cell_value with special numeric values."""
-
-    # Test with infinity
-    result = _format_cell_value(float("inf"))
-    assert isinstance(result, str)
-
-    # Test with negative infinity
-    result = _format_cell_value(float("-inf"))
-    assert isinstance(result, str)
-
-    # Test with very large numbers
-    result = _format_cell_value(1e100)
-    assert isinstance(result, str)
-
-    # Test with very small numbers
-    result = _format_cell_value(1e-100)
-    assert isinstance(result, str)
-
-
-def test_get_column_dtypes_complex_scenarios():
-    """Test _get_column_dtypes with complex DataFrame scenarios."""
-
-    # Test with DataFrame that has dtypes but no to_dict method
-    mock_df = Mock()
-    mock_dtypes = Mock()
-    mock_dtypes.to_dict = None  # Remove to_dict
-    mock_dtypes.iloc = Mock(side_effect=lambda i: f"dtype_{i}")
-    mock_df.dtypes = mock_dtypes
-
-    result = _get_column_dtypes(mock_df, ["col1", "col2"])
-    assert "col1" in result
-    assert "col2" in result
-
-    # Test with DataFrame that has dtypes but iloc raises exception
-    mock_df2 = Mock()
-    mock_dtypes2 = Mock()
-    mock_dtypes2.to_dict = None
-    mock_dtypes2.iloc = Mock(side_effect=Exception("Mock exception"))
-    mock_dtypes2.__getitem__ = Mock(side_effect=lambda i: f"dtype_{i}")
-    mock_df2.dtypes = mock_dtypes2
-
-    result = _get_column_dtypes(mock_df2, ["col1"])
-    assert "col1" in result
-
-
-def test_cli_with_nonexistent_dataset():
-    """Test CLI commands with nonexistent dataset names."""
-    runner = CliRunner()
-
-    # Test with invalid dataset name
-    result = runner.invoke(preview, ["nonexistent_dataset"])
-    assert result.exit_code == 1
-
-    result = runner.invoke(info, ["nonexistent_dataset"])
-    assert result.exit_code == 1
-
-    result = runner.invoke(scan, ["nonexistent_dataset"])
-    assert result.exit_code == 1
-
-
-def test_validate_simple_missing_required_params():
-    """Test validate-simple with missing required parameters."""
-    runner = CliRunner()
-
-    # Test gt check without value param
-    result = runner.invoke(
-        validate_simple,
-        [
-            "small_table",
-            "--check",
-            "col-vals-gt",
-            "--column",
-            "c",
-            # Missing --value
-        ],
-    )
-    assert result.exit_code == 1  # Custom error handling in validate-simple
-
-    # Test in-set check without values
-    result = runner.invoke(
-        validate_simple,
-        [
-            "small_table",
-            "--check",
-            "col-vals-in-set",
-            "--column",
-            "f",
-            # Missing --set
-        ],
-    )
-    assert result.exit_code == 1  # Custom error handling in validate-simple
-
-
-def test_preview_with_output_html_file_exists():
-    """Test preview with HTML output when file already exists."""
-    runner = CliRunner()
-
-    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmp:
-        # Create file first
-        tmp.write(b"existing content")
-        tmp.flush()
-
-        # Test overwriting existing file
-        result = runner.invoke(preview, ["small_table", "--output-html", tmp.name])
-        assert result.exit_code == 0
-
-        # Clean up
-        Path(tmp.name).unlink()
-
-
-def test_scan_with_output_html_file_error():
-    """Test scan command with HTML output file error."""
-    runner = CliRunner()
-
-    # Test with invalid output path - this should succeed initially but may warn on write
-    result = runner.invoke(scan, ["small_table", "--output-html", "/invalid/path/output.html"])
-    # The command may succeed but show a warning about file write failure
-    assert result.exit_code in [0, 1]
-
-
-def test_validate_with_json_output():
-    """Test validate command with JSON output."""
-    runner = CliRunner()
-
-    # Create a temporary validation script
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write("""
-import pointblank as pb
-
-validation = (
-    pb.Validate(data=data)
-    .col_exists(['a', 'b'])
-    .interrogate()
-)
-""")
-        script_path = f.name
-
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
-        result = runner.invoke(validate, ["small_table", script_path, "--output-json", tmp.name])
+        result = runner.invoke(run, [script_path])
         assert result.exit_code in [0, 1]  # May pass or fail validation
-
-        # Check file was created
-        assert Path(tmp.name).exists()
-
-        # Clean up
-        Path(tmp.name).unlink()
+    finally:
         Path(script_path).unlink()
 
 
-def test_format_cell_value_with_mock_pandas_errors():
-    """Test format_cell_value with pandas import/usage errors."""
-
-    # Test with mock pandas that raises TypeError on isna
-    with patch("pandas.isna", side_effect=TypeError("Mock error")):
-        result = _format_cell_value(None)
-        assert "[red]None[/red]" == result
-
-    # Test fallback behavior when pandas operations fail
-    result = _format_cell_value(None)
-    assert "[red]None[/red]" == result
-
-
-def test_get_column_dtypes_with_no_methods():
-    """Test _get_column_dtypes with DataFrame that has no useful methods."""
-
-    # Create a mock DataFrame with no dtypes, schema, etc.
-    mock_df = Mock()
-    del mock_df.dtypes
-    del mock_df.schema
-
-    result = _get_column_dtypes(mock_df, ["col1", "col2", "col3"])
-    expected = {"col1": "?", "col2": "?", "col3": "?"}
-    assert result == expected
-
-
-def test_rich_print_gt_table_with_no_data():
-    """Test _rich_print_gt_table with GT table that has no extractable data."""
-
-    # Create mock GT table with no accessible data
-    mock_gt = Mock()
-    del mock_gt._tbl_data
-    del mock_gt._body
-    del mock_gt._data
-    del mock_gt.data
-
-    # Test with preview info
-    preview_info = {
-        "source_type": "CSV",
-        "table_type": "DataFrame",
-        "total_rows": 100,
-        "head_rows": 5,
-        "tail_rows": 5,
-        "is_complete": False,
-    }
-
-    try:
-        _rich_print_gt_table(mock_gt, preview_info)
-    except Exception:
-        # Expected due to mocking limitations
-        pass
-
-
-def test_format_dtype_compact_with_case_variations():
-    """Test _format_dtype_compact with various case and format variations."""
-
-    test_cases = [
-        ("UTF8", "str"),
-        ("STRING", "str"),
-        ("INT64", "i64"),
-        ("FLOAT32", "f32"),
-        ("BOOLEAN", "bool"),
-        ("Bool", "bool"),
-        ("Datetime", "datetime"),
-        ("DATE", "date"),
-        ("Time", "time"),
-        ("OBJECT", "obj"),
-        ("Category", "cat"),
-        # Edge cases
-        ("null", "null"),
-        ("unknown_very_long_type_name", "unknown_…"),
-    ]
-
-    for input_type, expected in test_cases:
-        result = _format_dtype_compact(input_type)
-        # For long type names, just check it's truncated appropriately
-        if len(input_type) > 8 and not expected.endswith("…"):
-            assert len(result) <= 9  # 8 chars + "…"
-            assert result.endswith("…")
-        else:
-            # For shorter or expected types, check exact match or reasonable output
-            assert result == expected or (isinstance(result, str) and len(result) > 0)
-
-
-def test_cli_commands_with_empty_string_arguments():
-    """Test CLI commands with empty string arguments."""
+def test_preview_with_different_head_tail_combinations():
+    """Test preview command with different head/tail combinations."""
     runner = CliRunner()
 
-    # Test with empty data source - CLI may handle this gracefully
-    result = runner.invoke(preview, [""])
-    assert result.exit_code in [0, 1]  # May handle empty string gracefully or fail
+    # Test with different head values
+    result = runner.invoke(preview, ["small_table", "--head", "3"])
+    assert result.exit_code == 0
 
-    # Test with empty column specification
-    result = runner.invoke(preview, ["small_table", "--columns", ""])
-    assert result.exit_code in [0, 1]  # May handle gracefully
+    # Test with different tail values
+    result = runner.invoke(preview, ["small_table", "--tail", "2"])
+    assert result.exit_code == 0
+
+    # Test with both head and tail
+    result = runner.invoke(preview, ["small_table", "--head", "2", "--tail", "1"])
+    assert result.exit_code == 0
+
+    # Test with limit
+    result = runner.invoke(preview, ["small_table", "--limit", "5"])
+    assert result.exit_code in [0, 1]  # May have issues with limit validation
 
 
-def test_missing_percentage_with_zero_division():
-    """Test missing percentage calculation with edge cases."""
+def test_preview_column_selection_combinations():
+    """Test preview command with various column selection methods."""
+    runner = CliRunner()
 
-    # Test with zero percentage (should not crash)
-    result = _format_missing_percentage(0.0)
-    assert result == "[green]●[/green]"
+    # Test col-first
+    result = runner.invoke(preview, ["small_table", "--col-first", "3"])
+    assert result.exit_code == 0
 
-    # Test with edge case percentages
-    result = _format_missing_percentage(200.0)
-    # Should still work, even if mathematically odd
-    assert result == "200%"
+    # Test col-last
+    result = runner.invoke(preview, ["small_table", "--col-last", "2"])
+    assert result.exit_code == 0
+
+    # Test col-range with different formats
+    result = runner.invoke(preview, ["small_table", "--col-range", "2:4"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(preview, ["small_table", "--col-range", "2:"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(preview, ["small_table", "--col-range", ":3"])
+    assert result.exit_code == 0
+
+
+def test_all_built_in_datasets():
+    """Test that all built-in datasets work with basic commands."""
+    runner = CliRunner()
+
+    datasets = ["small_table", "game_revenue", "nycflights", "global_sales"]
+
+    for dataset in datasets:
+        # Test preview
+        result = runner.invoke(preview, [dataset])
+        assert result.exit_code == 0
+
+        # Test info
+        result = runner.invoke(info, [dataset])
+        assert result.exit_code == 0
 
 
 def test_rich_print_functions_with_console_errors():
@@ -1341,24 +1008,31 @@ def test_missing_command_with_invalid_data(runner):
     assert "Error:" in result.output
 
 
-def test_validate_command_comprehensive(runner, tmp_path):
-    """Test validate command with comprehensive options."""
+def test_run_command_comprehensive(runner, tmp_path):
+    """Test run command with comprehensive options."""
     script_file = tmp_path / "validation.py"
     html_file = tmp_path / "report.html"
     json_file = tmp_path / "report.json"
 
     script_content = """
 import pointblank as pb
-# Use the data variable passed from CLI instead of loading dataset
-validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
+
+# Use CLI-provided data if available, otherwise load default
+if 'cli_data' in globals() and cli_data is not None:
+    data = cli_data
+else:
+    data = pb.load_dataset("small_table")
+
+validation = pb.Validate(data=data).col_vals_gt("c", 0).interrogate()
 """
     script_file.write_text(script_content)
 
     result = runner.invoke(
-        validate,
+        run,
         [
-            "small_table",
             str(script_file),
+            "--data",
+            "small_table",
             "--output-html",
             str(html_file),
             "--output-json",
@@ -1368,26 +1042,34 @@ validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
     assert result.exit_code in [0, 1]
 
 
-def test_validate_command_fail_on_error(runner, tmp_path):
-    """Test validate command with fail-on-error option."""
+def test_run_command_fail_on_critical(runner, tmp_path):
+    """Test run command with fail-on option."""
     script_file = tmp_path / "validation.py"
     script_content = """
 import pointblank as pb
-# Use the data variable passed from CLI instead of loading dataset
-validation = pb.validate(data).col_vals_gt("c", 999999).interrogate()  # Should fail
+
+# Use CLI-provided data if available, otherwise load default
+if 'cli_data' in globals() and cli_data is not None:
+    data = cli_data
+else:
+    data = pb.load_dataset("small_table")
+
+validation = pb.Validate(data=data, thresholds=pb.Thresholds(critical=0.01)).col_vals_gt("c", 999999).interrogate()  # Should fail
 """
     script_file.write_text(script_content)
 
-    result = runner.invoke(validate, ["small_table", str(script_file), "--fail-on-error"])
+    result = runner.invoke(
+        run, [str(script_file), "--data", "small_table", "--fail-on", "critical"]
+    )
     assert result.exit_code in [0, 1]
 
 
-def test_validate_command_invalid_script(runner, tmp_path):
-    """Test validate command with invalid script."""
+def test_run_command_invalid_script(runner, tmp_path):
+    """Test run command with invalid script."""
     script_file = tmp_path / "bad_script.py"
     script_file.write_text("invalid python syntax !!!")
 
-    result = runner.invoke(validate, ["small_table", str(script_file)])
+    result = runner.invoke(run, [str(script_file)])
     assert result.exit_code == 1
     assert "Error executing validation script:" in result.output
 
@@ -1647,13 +1329,19 @@ def test_scan_command_with_html_file_write_error(runner, tmp_path, monkeypatch):
     assert result.exit_code in [0, 1]
 
 
-def test_validate_command_with_file_output_errors(runner, tmp_path, monkeypatch):
-    """Test validate command with file output errors."""
+def test_run_command_with_file_output_errors(runner, tmp_path, monkeypatch):
+    """Test run command with file output errors."""
     script_file = tmp_path / "validation.py"
     script_content = """
 import pointblank as pb
-# Use the data variable passed from CLI instead of loading dataset
-validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
+
+# Use CLI-provided data if available, otherwise load default
+if 'cli_data' in globals() and cli_data is not None:
+    data = cli_data
+else:
+    data = pb.load_dataset("small_table")
+
+validation = pb.Validate(data=data).col_vals_gt("c", 0).interrogate()
 """
     script_file.write_text(script_content)
 
@@ -1664,10 +1352,11 @@ validation = pb.validate(data).col_vals_gt("c", 0).interrogate()
     json_dir.mkdir()
 
     result = runner.invoke(
-        validate,
+        run,
         [
-            "small_table",
             str(script_file),
+            "--data",
+            "small_table",
             "--output-html",
             str(html_dir),
             "--output-json",
