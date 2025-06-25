@@ -1486,7 +1486,7 @@ def missing(data_source: str, output_html: str | None):
     help="Numeric value for comparison (required for col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
 )
 @click.option(
-    "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
+    "--show-extract", is_flag=True, help="Show extract of failing rows if validation fails"
 )
 @click.option(
     "--write-extract", type=str, help="Save failing rows to folder. Provide base name for folder."
@@ -1988,10 +1988,10 @@ def validate(
 
             # Dynamic message based on check type
             if check == "rows-distinct":
-                extract_message = "[yellow]Preview of failing rows (duplicates):[/yellow]"
+                extract_message = "[yellow]Extract of failing rows (duplicates):[/yellow]"
                 row_type = "duplicate rows"
             elif check == "rows-complete":
-                extract_message = "[yellow]Preview of failing rows (incomplete rows):[/yellow]"
+                extract_message = "[yellow]Extract of failing rows (incomplete rows):[/yellow]"
                 row_type = "incomplete rows"
             elif check == "col-exists":
                 extract_message = (
@@ -2000,21 +2000,21 @@ def validate(
                 row_type = "missing column"
             elif check == "col-vals-in-set":
                 extract_message = (
-                    f"[yellow]Preview of failing rows (invalid values in '{column}'):[/yellow]"
+                    f"[yellow]Extract of failing rows (invalid values in '{column}'):[/yellow]"
                 )
                 row_type = "rows with invalid values"
             elif check == "col-vals-gt":
                 extract_message = (
-                    f"[yellow]Preview of failing rows (values in '{column}' <= {value}):[/yellow]"
+                    f"[yellow]Extract of failing rows (values in '{column}' <= {value}):[/yellow]"
                 )
                 row_type = f"rows with values <= {value}"
             elif check == "col-vals-ge":
                 extract_message = (
-                    f"[yellow]Preview of failing rows (values in '{column}' < {value}):[/yellow]"
+                    f"[yellow]Extract of failing rows (values in '{column}' < {value}):[/yellow]"
                 )
                 row_type = f"rows with values < {value}"
             else:
-                extract_message = "[yellow]Preview of failing rows:[/yellow]"
+                extract_message = "[yellow]Extract of failing rows:[/yellow]"
                 row_type = "failing rows"
 
             if show_extract:
@@ -2836,7 +2836,7 @@ validation = (
 @click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
 @click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
 @click.option(
-    "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
+    "--show-extract", is_flag=True, help="Show extract of failing rows if validation fails"
 )
 @click.option(
     "--write-extract",
@@ -2993,7 +2993,7 @@ def run(
                 console.print()
 
                 if show_extract:
-                    extract_title = "Preview of failing rows from validation steps"
+                    extract_title = "Extract of failing rows from validation steps"
                     if len(validations) > 1:
                         extract_title += f" (Validation {i})"
                     console.print(f"[yellow]{extract_title}:[/yellow]")
