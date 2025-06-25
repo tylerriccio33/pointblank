@@ -21,7 +21,7 @@ from pointblank.cli import (
     missing,
     make_template,
     run,
-    validate_simple,
+    validate,
     _format_cell_value,
     _get_column_dtypes,
     _format_dtype_compact,
@@ -611,20 +611,20 @@ def test_cli_commands_help_output():
         assert result.exit_code == 0
 
 
-def test_validate_simple_all_check_types():
-    """Test validate-simple with all available check types."""
+def test_validate_all_check_types():
+    """Test validate with all available check types."""
     runner = CliRunner()
 
     # Test each check type individually (only using available choices)
     basic_checks = ["rows-distinct", "rows-complete", "col-vals-not-null"]
 
     for check in basic_checks:
-        result = runner.invoke(validate_simple, ["small_table", "--check", check])
+        result = runner.invoke(validate, ["small_table", "--check", check])
         assert result.exit_code in [0, 1]  # May pass or fail validation
 
     # Test checks that require additional parameters
     result = runner.invoke(
-        validate_simple,
+        validate,
         [
             "small_table",
             "--check",
