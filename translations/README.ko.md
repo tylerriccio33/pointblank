@@ -177,23 +177,23 @@ pb scan "duckdb:///data/sales.ddb::customers"
 
 ```bash
 # 중복 행 확인
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # GitHub에서 직접 데이터 검증
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
 
 # Parquet 데이터셋에서 null 값이 없는지 확인
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+pb validate "data/*.parquet" --check col-vals-not-null --column a
 
 # 디버깅을 위해 실패 데이터 추출
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
 **CI/CD와 통합**
 
 ```bash
 # 자동화를 위한 종료 코드 사용 (0 = 통과, 1 = 실패)
-pb validate-simple small_table --check rows-distinct && echo "✅ 품질 검사 통과"
+pb validate small_table --check rows-distinct && echo "✅ 품질 검사 통과"
 ```
 
 자세한 내용은 [CLI 문서](https://posit-dev.github.io/pointblank/user-guide/cli.html)에서 확인하세요.

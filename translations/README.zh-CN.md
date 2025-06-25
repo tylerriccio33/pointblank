@@ -6,17 +6,19 @@
 
 ````bash
 # 检查重复行
-pb validate-simple small_table --check rows-distinct
+```bash
+# 检查重复行
+pb validate small_table --check rows-distinct
 
 # 直接从 GitHub 验证数据
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
 
 # 验证 Parquet 数据集中没有空值
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+pb validate "data/*.parquet" --check col-vals-not-null --column a
 
 # 提取失败的数据进行调试
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
-```n Versions](https://img.shields.io/pypi/pyversions/pointblank.svg)](https://pypi.python.org/pypi/pointblank)
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
+```
 [![PyPI](https://img.shields.io/pypi/v/pointblank)](https://pypi.org/project/pointblank/#history)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pointblank)](https://pypistats.org/packages/pointblank)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pointblank.svg)](https://anaconda.org/conda-forge/pointblank)
@@ -184,23 +186,23 @@ pb scan "duckdb:///data/sales.ddb::customers"
 
 ```bash
 # 检查重复行
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # 直接从 GitHub 验证数据
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
 
 # 验证 Parquet 数据集中没有空值
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+pb validate "data/*.parquet" --check col-vals-not-null --column a
 
 # 提取失败数据进行调试
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
 **与 CI/CD 集成**
 
 ```bash
 # 使用退出代码进行自动化（0 = 通过，1 = 失败）
-pb validate-simple small_table --check rows-distinct && echo "✅ 质量检查通过"
+pb validate small_table --check rows-distinct && echo "✅ 质量检查通过"
 ```
 
 在我们的 [CLI 文档](https://posit-dev.github.io/pointblank/user-guide/cli.html) 中了解更多。

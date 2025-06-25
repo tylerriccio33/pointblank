@@ -28,9 +28,9 @@ class OrderedGroup(click.Group):
             "scan",
             "missing",
             # Validation
-            "validate-simple",
             "validate",
-            "validate-example",
+            "run",
+            "make-template",
             # Utilities
             "datasets",
             "requirements",
@@ -281,6 +281,273 @@ def _format_dtype_compact(dtype_str: str) -> str:
         return dtype_str
 
 
+def _rich_print_scan_table(
+    scan_result: Any,
+    data_source: str,
+    source_type: str,
+    table_type: str,
+    total_rows: int | None = None,
+    total_columns: int | None = None,
+) -> None:
+    """
+    Display scan results as a Rich table in the terminal with statistical measures.
+
+    Args:
+        scan_result: The GT object from col_summary_tbl()
+        data_source: Name of the data source being scanned
+        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
+        table_type: Type of table (e.g., "polars.LazyFrame")
+        total_rows: Total number of rows in the dataset
+        total_columns: Total number of columns in the dataset
+    """
+    try:
+        import re
+
+        import narwhals as nw
+        from rich.box import SIMPLE_HEAD
+
+        # Extract the underlying DataFrame from the GT object
+        # The GT object has a _tbl_data attribute that contains the DataFrame
+        gt_data = scan_result._tbl_data
+
+        # Convert to Narwhals DataFrame for consistent handling
+        nw_data = nw.from_native(gt_data)
+
+        # Convert to dictionary for easier access
+        data_dict = nw_data.to_dict(as_series=False)
+
+        # Create main scan table with missing data table styling
+        # Create a comprehensive title with data source, source type, and table type
+        title_text = f"Column Summary / {source_type} / {table_type}"
+
+        # Add dimensions subtitle in gray if available
+        if total_rows is not None and total_columns is not None:
+            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+        scan_table = Table(
+            title=title_text,
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
+        )
+
+        # Add columns with specific styling and appropriate widths
+        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+        scan_table.add_column(
+            "NA", style="red", width=6, justify="right"
+        )  # Adjusted for better formatting
+        scan_table.add_column(
+            "UQ", style="green", width=8, justify="right"
+        )  # Adjusted for boolean values
+
+        # Add statistical columns if they exist with appropriate widths
+        stat_columns = []
+        column_mapping = {
+            "mean": ("Mean", "blue", 9),
+            "std": ("SD", "blue", 9),
+            "min": ("Min", "yellow", 9),
+            "median": ("Med", "yellow", 9),
+            "max": ("Max", "yellow", 9),
+            "q_1": ("Q₁", "magenta", 8),
+            "q_3": ("Q₃", "magenta", 9),
+            "iqr": ("IQR", "magenta", 8),
+        }
+
+        for col_key, (display_name, color, width) in column_mapping.items():
+            if col_key in data_dict:
+                scan_table.add_column(display_name, style=color, width=width, justify="right")
+                stat_columns.append(col_key)
+
+        # Helper function to extract column name and type from HTML
+        def extract_column_info(html_content: str) -> tuple[str, str]:
+            """Extract column name and type from HTML formatted content."""
+            # Extract column name from first div
+            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
+            column_name = name_match.group(1) if name_match else "Unknown"
+
+            # Extract data type from second div (with gray color)
+            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
+            if type_match:
+                data_type = type_match.group(1)
+                # Convert to compact format using the existing function
+                compact_type = _format_dtype_compact(data_type)
+                data_type = compact_type
+            else:
+                data_type = "unknown"
+
+            return column_name, data_type
+
+        # Helper function to format values with improved number formatting
+        def format_value(
+            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
+        ) -> str:
+            """Format values for display with smart number formatting and HTML cleanup."""
+            if value is None or (isinstance(value, str) and value.strip() == ""):
+                return "[dim]—[/dim]"
+
+            # Handle missing values indicator
+            if is_missing and str(value) == "0":
+                return "[green]●[/green]"  # No missing values
+
+            # Clean up HTML formatting from the raw data
+            str_val = str(value)
+
+            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            if "<br>" in str_val:
+                str_val = str_val.split("<br>")[0].strip()
+                # For unique values, we want just the integer part
+                if is_unique:
+                    try:
+                        # Try to extract just the integer part for unique counts
+                        num_val = float(str_val)
+                        return str(int(num_val))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Now handle HTML content (especially from boolean unique values)
+            if "<" in str_val and ">" in str_val:
+                # Remove HTML tags completely for cleaner display
+                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
+                # Clean up extra whitespace
+                str_val = re.sub(r"\s+", " ", str_val).strip()
+
+            # Handle values like "2<.01" - extract the first number
+            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
+                # Extract number before the < symbol
+                before_lt = str_val.split("<")[0].strip()
+                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
+                    str_val = before_lt
+
+            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
+                # Extract T and F values
+                t_match = re.search(r"T(\d+\.\d+)", str_val)
+                f_match = re.search(r"F(\d+\.\d+)", str_val)
+                if t_match and f_match:
+                    t_val = float(t_match.group(1))
+                    f_val = float(f_match.group(1))
+                    # Show as "T0.62F0.38" but truncated if needed
+                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
+                    if len(formatted) > max_width:
+                        # Truncate to fit, showing dominant value
+                        if t_val > f_val:
+                            return f"T{t_val:.1f}"
+                        else:
+                            return f"F{f_val:.1f}"
+                    return formatted
+
+            # Try to parse as a number for better formatting
+            try:
+                # Try to convert to float first
+                num_val = float(str_val)
+
+                # Handle special cases
+                if num_val == 0:
+                    return "0"
+                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
+                    # Simple integers under 10000
+                    return str(int(num_val))
+                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
+                    # Likely dates in YYYYMMDD format - format as date-like
+                    int_val = int(num_val)
+                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
+                        str_date = str(int_val)
+                        if len(str_date) == 8:
+                            return (
+                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
+                                + "…"
+                            )
+                    # Otherwise treat as large number
+                    return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 1000000:
+                    # Large numbers - use scientific notation or M/k notation
+
+                    if abs(num_val) >= 1000000000:
+                        return f"{num_val:.1e}"
+                    else:
+                        return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 10000:
+                    # Numbers >= 10k - use compact notation
+                    return f"{num_val / 1000:.1f}k"
+                elif abs(num_val) >= 100:
+                    # Numbers 100-9999 - show with minimal decimals
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 10:
+                    # Numbers 10-99 - show with one decimal
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 1:
+                    # Numbers 1-9 - show with two decimals
+                    return f"{num_val:.2f}"
+                elif abs(num_val) >= 0.01:
+                    # Small numbers - show with appropriate precision
+                    return f"{num_val:.2f}"
+                else:
+                    # Very small numbers - use scientific notation
+
+                    return f"{num_val:.1e}"
+
+            except (ValueError, TypeError):
+                # Not a number, handle as string
+                pass
+
+            # Handle date/datetime strings - show abbreviated format
+            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
+                # Likely a date/datetime, show abbreviated
+                if len(str_val) > max_width:
+                    return str_val[: max_width - 1] + "…"
+
+            # General string truncation with ellipsis
+            if len(str_val) > max_width:
+                return str_val[: max_width - 1] + "…"
+
+            return str_val
+
+        # Populate table rows
+        num_rows = len(data_dict["colname"])
+        for i in range(num_rows):
+            row_data = []
+
+            # Column name and type from HTML content
+            colname_html = data_dict["colname"][i]
+            column_name, data_type = extract_column_info(colname_html)
+            row_data.append(column_name)
+            row_data.append(data_type)
+
+            # Missing values (NA)
+            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
+            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
+
+            # Unique values (UQ)
+            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
+            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
+
+            # Statistical columns
+            for stat_col in stat_columns:
+                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
+                # Use appropriate width based on column type
+                if stat_col in ["q_1", "iqr"]:
+                    width = 8
+                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
+                    width = 9
+                else:
+                    width = 8
+                row_data.append(format_value(stat_val, max_width=width))
+
+            scan_table.add_row(*row_data)
+
+        # Display the results
+        console.print()
+        console.print(scan_table)
+
+    except Exception as e:
+        # Fallback to simple message if table creation fails
+        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
+        console.print(f"[red]Error displaying table: {str(e)}[/red]")
+
+
 def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
 
@@ -321,13 +588,6 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                 source_type = preview_info["source_type"]
                 table_type = preview_info["table_type"]
                 table_title = f"Data Preview / {source_type} / {table_type}"
-
-                # Add dimensions subtitle in gray if available
-                if "total_rows" in preview_info and "total_columns" in preview_info:
-                    total_rows = preview_info["total_rows"]
-                    total_columns = preview_info["total_columns"]
-                    if total_rows is not None and total_columns is not None:
-                        table_title += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
 
             rich_table = Table(
                 title=table_title,
@@ -781,7 +1041,7 @@ def cli():
     """
     Pointblank CLI - Data validation and quality tools for data engineers.
 
-    Use this CLI to validate data, preview tables, and generate reports
+    Use this CLI to run validation scripts, preview tables, and generate reports
     directly from the command line.
     """
     pass
@@ -1190,7 +1450,7 @@ def missing(data_source: str, output_html: str | None):
         sys.exit(1)
 
 
-@cli.command(name="validate-simple")
+@cli.command(name="validate")
 @click.argument("data_source", type=str)
 @click.option(
     "--check",
@@ -1223,12 +1483,14 @@ def missing(data_source: str, output_html: str | None):
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
 )
-@click.option("--write-extract", type=click.Path(), help="Save failing rows to CSV file")
+@click.option(
+    "--write-extract", type=str, help="Save failing rows to folder. Provide base name for folder."
+)
 @click.option(
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
 @click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
-def validate_simple(
+def validate(
     data_source: str,
     check: str,
     column: str | None,
@@ -1269,91 +1531,89 @@ def validate_simple(
     Examples:
 
     \b
-    pb validate-simple data.csv --check rows-distinct
-    pb validate-simple data.csv --check rows-distinct --show-extract
-    pb validate-simple data.csv --check rows-distinct --write-extract failing_rows.csv
-    pb validate-simple data.csv --check rows-distinct --exit-code
-    pb validate-simple data.csv --check rows-complete
-    pb validate-simple data.csv --check col-exists --column price
-    pb validate-simple data.csv --check col-vals-not-null --column email
-    pb validate-simple data.csv --check col-vals-gt --column score --value 50
-    pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
+    pb validate data.csv --check rows-distinct
+    pb validate data.csv --check rows-distinct --show-extract
+    pb validate data.csv --check rows-distinct --write-extract failing_rows_folder
+    pb validate data.csv --check rows-distinct --exit-code
+    pb validate data.csv --check rows-complete
+    pb validate data.csv --check col-exists --column price
+    pb validate data.csv --check col-vals-not-null --column email
+    pb validate data.csv --check col-vals-gt --column score --value 50
+    pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
     """
     try:
         # Validate required parameters for different check types
         if check == "col-vals-not-null" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
-            console.print(
-                "Example: pb validate-simple data.csv --check col-vals-not-null --column email"
-            )
+            console.print("Example: pb validate data.csv --check col-vals-not-null --column email")
             sys.exit(1)
             sys.exit(1)
 
         if check == "col-exists" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
-            console.print("Example: pb validate-simple data.csv --check col-exists --column price")
+            console.print("Example: pb validate data.csv --check col-exists --column price")
             sys.exit(1)
 
         if check == "col-vals-in-set" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive'"
+                "Example: pb validate data.csv --check col-vals-in-set --column status --set 'active,inactive'"
             )
             sys.exit(1)
 
         if check == "col-vals-gt" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+                "Example: pb validate data.csv --check col-vals-gt --column score --value 50"
             )
             sys.exit(1)
 
         if check == "col-vals-gt" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+                "Example: pb validate data.csv --check col-vals-gt --column score --value 50"
             )
             sys.exit(1)
 
         if check == "col-vals-ge" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+                "Example: pb validate data.csv --check col-vals-ge --column age --value 18"
             )
             sys.exit(1)
 
         if check == "col-vals-ge" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+                "Example: pb validate data.csv --check col-vals-ge --column age --value 18"
             )
             sys.exit(1)
 
         if check == "col-vals-lt" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+                "Example: pb validate data.csv --check col-vals-lt --column age --value 65"
             )
             sys.exit(1)
 
         if check == "col-vals-lt" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+                "Example: pb validate data.csv --check col-vals-lt --column age --value 65"
             )
             sys.exit(1)
 
         if check == "col-vals-le" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
+                "Example: pb validate data.csv --check col-vals-le --column score --value 100"
             )
             sys.exit(1)
 
         if check == "col-vals-le" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
+                "Example: pb validate data.csv --check col-vals-le --column score --value 100"
             )
             sys.exit(1)
 
@@ -1724,6 +1984,17 @@ def validate_simple(
 
                         if write_extract:
                             try:
+                                folder_name = write_extract
+
+                                # Create the output folder
+                                output_folder = Path(folder_name)
+                                output_folder.mkdir(parents=True, exist_ok=True)
+
+                                # Create safe filename from check type
+                                safe_check_type = check.replace("-", "_")
+                                filename = f"step_01_{safe_check_type}.csv"
+                                filepath = output_folder / filename
+
                                 # Limit the output if needed
                                 write_rows = failing_rows
                                 if len(failing_rows) > limit:
@@ -1732,26 +2003,27 @@ def validate_simple(
                                 # Save to CSV
                                 if hasattr(write_rows, "write_csv"):
                                     # Polars
-                                    write_rows.write_csv(write_extract)
+                                    write_rows.write_csv(str(filepath))
                                 elif hasattr(write_rows, "to_csv"):
                                     # Pandas
-                                    write_rows.to_csv(write_extract, index=False)
+                                    write_rows.to_csv(str(filepath), index=False)
                                 else:
                                     # Try converting to pandas as fallback
                                     import pandas as pd
 
                                     pd_data = pd.DataFrame(write_rows)
-                                    pd_data.to_csv(write_extract, index=False)
+                                    pd_data.to_csv(str(filepath), index=False)
 
                                 rows_saved = (
                                     len(write_rows) if hasattr(write_rows, "__len__") else limit
                                 )
                                 console.print(
-                                    f"[green]✓[/green] {rows_saved} failing rows saved to: {write_extract}"
+                                    f"[green]✓[/green] Failing rows saved to folder: {output_folder}"
                                 )
+                                console.print(f"[dim]  - {filename}: {rows_saved} rows[/dim]")
                             except Exception as e:
                                 console.print(
-                                    f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                                    f"[yellow]Warning: Could not save failing rows: {e}[/yellow]"
                                 )
                     else:
                         if show_extract:
@@ -1944,11 +2216,262 @@ def _rich_print_scan_table(
     total_columns: int | None = None,
 ) -> None:
     """
-    Display scan results as a Rich table in the terminal.
+    Display scan results as a Rich table in the terminal with statistical measures.
+
+    Args:
+        scan_result: The GT object from col_summary_tbl()
+        data_source: Name of the data source being scanned
+        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
+        table_type: Type of table (e.g., "polars.LazyFrame")
+        total_rows: Total number of rows in the dataset
+        total_columns: Total number of columns in the dataset
     """
-    # Simplified implementation
-    console.print(f"[green]✓[/green] Data scan completed for {data_source}")
-    console.print("Use --output-html to save the full interactive scan report.")
+    try:
+        import re
+
+        import narwhals as nw
+        from rich.box import SIMPLE_HEAD
+
+        # Extract the underlying DataFrame from the GT object
+        # The GT object has a _tbl_data attribute that contains the DataFrame
+        gt_data = scan_result._tbl_data
+
+        # Convert to Narwhals DataFrame for consistent handling
+        nw_data = nw.from_native(gt_data)
+
+        # Convert to dictionary for easier access
+        data_dict = nw_data.to_dict(as_series=False)
+
+        # Create main scan table with missing data table styling
+        # Create a comprehensive title with data source, source type, and table type
+        title_text = f"Column Summary / {source_type} / {table_type}"
+
+        # Add dimensions subtitle in gray if available
+        if total_rows is not None and total_columns is not None:
+            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+        scan_table = Table(
+            title=title_text,
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
+        )
+
+        # Add columns with specific styling and appropriate widths
+        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+        scan_table.add_column(
+            "NA", style="red", width=6, justify="right"
+        )  # Adjusted for better formatting
+        scan_table.add_column(
+            "UQ", style="green", width=8, justify="right"
+        )  # Adjusted for boolean values
+
+        # Add statistical columns if they exist with appropriate widths
+        stat_columns = []
+        column_mapping = {
+            "mean": ("Mean", "blue", 9),
+            "std": ("SD", "blue", 9),
+            "min": ("Min", "yellow", 9),
+            "median": ("Med", "yellow", 9),
+            "max": ("Max", "yellow", 9),
+            "q_1": ("Q₁", "magenta", 8),
+            "q_3": ("Q₃", "magenta", 9),
+            "iqr": ("IQR", "magenta", 8),
+        }
+
+        for col_key, (display_name, color, width) in column_mapping.items():
+            if col_key in data_dict:
+                scan_table.add_column(display_name, style=color, width=width, justify="right")
+                stat_columns.append(col_key)
+
+        # Helper function to extract column name and type from HTML
+        def extract_column_info(html_content: str) -> tuple[str, str]:
+            """Extract column name and type from HTML formatted content."""
+            # Extract column name from first div
+            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
+            column_name = name_match.group(1) if name_match else "Unknown"
+
+            # Extract data type from second div (with gray color)
+            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
+            if type_match:
+                data_type = type_match.group(1)
+                # Convert to compact format using the existing function
+                compact_type = _format_dtype_compact(data_type)
+                data_type = compact_type
+            else:
+                data_type = "unknown"
+
+            return column_name, data_type
+
+        # Helper function to format values with improved number formatting
+        def format_value(
+            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
+        ) -> str:
+            """Format values for display with smart number formatting and HTML cleanup."""
+            if value is None or (isinstance(value, str) and value.strip() == ""):
+                return "[dim]—[/dim]"
+
+            # Handle missing values indicator
+            if is_missing and str(value) == "0":
+                return "[green]●[/green]"  # No missing values
+
+            # Clean up HTML formatting from the raw data
+            str_val = str(value)
+
+            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            if "<br>" in str_val:
+                str_val = str_val.split("<br>")[0].strip()
+                # For unique values, we want just the integer part
+                if is_unique:
+                    try:
+                        # Try to extract just the integer part for unique counts
+                        num_val = float(str_val)
+                        return str(int(num_val))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Now handle HTML content (especially from boolean unique values)
+            if "<" in str_val and ">" in str_val:
+                # Remove HTML tags completely for cleaner display
+                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
+                # Clean up extra whitespace
+                str_val = re.sub(r"\s+", " ", str_val).strip()
+
+            # Handle values like "2<.01" - extract the first number
+            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
+                # Extract number before the < symbol
+                before_lt = str_val.split("<")[0].strip()
+                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
+                    str_val = before_lt
+
+            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
+                # Extract T and F values
+                t_match = re.search(r"T(\d+\.\d+)", str_val)
+                f_match = re.search(r"F(\d+\.\d+)", str_val)
+                if t_match and f_match:
+                    t_val = float(t_match.group(1))
+                    f_val = float(f_match.group(1))
+                    # Show as "T0.62F0.38" but truncated if needed
+                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
+                    if len(formatted) > max_width:
+                        # Truncate to fit, showing dominant value
+                        if t_val > f_val:
+                            return f"T{t_val:.1f}"
+                        else:
+                            return f"F{f_val:.1f}"
+                    return formatted
+
+            # Try to parse as a number for better formatting
+            try:
+                # Try to convert to float first
+                num_val = float(str_val)
+
+                # Handle special cases
+                if num_val == 0:
+                    return "0"
+                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
+                    # Simple integers under 10000
+                    return str(int(num_val))
+                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
+                    # Likely dates in YYYYMMDD format - format as date-like
+                    int_val = int(num_val)
+                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
+                        str_date = str(int_val)
+                        if len(str_date) == 8:
+                            return (
+                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
+                                + "…"
+                            )
+                    # Otherwise treat as large number
+                    return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 1000000:
+                    # Large numbers - use scientific notation or M/k notation
+
+                    if abs(num_val) >= 1000000000:
+                        return f"{num_val:.1e}"
+                    else:
+                        return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 10000:
+                    # Numbers >= 10k - use compact notation
+                    return f"{num_val / 1000:.1f}k"
+                elif abs(num_val) >= 100:
+                    # Numbers 100-9999 - show with minimal decimals
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 10:
+                    # Numbers 10-99 - show with one decimal
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 1:
+                    # Numbers 1-9 - show with two decimals
+                    return f"{num_val:.2f}"
+                elif abs(num_val) >= 0.01:
+                    # Small numbers - show with appropriate precision
+                    return f"{num_val:.2f}"
+                else:
+                    # Very small numbers - use scientific notation
+
+                    return f"{num_val:.1e}"
+
+            except (ValueError, TypeError):
+                # Not a number, handle as string
+                pass
+
+            # Handle date/datetime strings - show abbreviated format
+            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
+                # Likely a date/datetime, show abbreviated
+                if len(str_val) > max_width:
+                    return str_val[: max_width - 1] + "…"
+
+            # General string truncation with ellipsis
+            if len(str_val) > max_width:
+                return str_val[: max_width - 1] + "…"
+
+            return str_val
+
+        # Populate table rows
+        num_rows = len(data_dict["colname"])
+        for i in range(num_rows):
+            row_data = []
+
+            # Column name and type from HTML content
+            colname_html = data_dict["colname"][i]
+            column_name, data_type = extract_column_info(colname_html)
+            row_data.append(column_name)
+            row_data.append(data_type)
+
+            # Missing values (NA)
+            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
+            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
+
+            # Unique values (UQ)
+            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
+            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
+
+            # Statistical columns
+            for stat_col in stat_columns:
+                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
+                # Use appropriate width based on column type
+                if stat_col in ["q_1", "iqr"]:
+                    width = 8
+                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
+                    width = 9
+                else:
+                    width = 8
+                row_data.append(format_value(stat_val, max_width=width))
+
+            scan_table.add_row(*row_data)
+
+        # Display the results
+        console.print()
+        console.print(scan_table)
+
+    except Exception as e:
+        # Fallback to simple message if table creation fails
+        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
+        console.print(f"[red]Error displaying table: {str(e)}[/red]")
 
 
 def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
@@ -2126,28 +2649,46 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 
 @cli.command()
 @click.argument("output_file", type=click.Path())
-def validate_example(output_file: str):
+def make_template(output_file: str):
     """
-    Generate an example validation script.
+    Create a validation script template.
 
-    Creates a sample Python script showing how to use Pointblank for validation.
+    Creates a sample Python script with examples showing how to use Pointblank
+    for data validation. Edit the template to add your own data loading and
+    validation rules, then run it with 'pb run'.
+
+    OUTPUT_FILE is the path where the template script will be created.
+
+    Examples:
+
+    \b
+    pb make-template my_validation.py
+    pb make-template validation_template.py
     """
     example_script = '''"""
 Example Pointblank validation script.
 
 This script demonstrates how to create validation rules for your data.
-Modify the validation rules below to match your data requirements.
+Modify the data loading and validation rules below to match your requirements.
 """
 
 import pointblank as pb
 
+# Load your data (replace this with your actual data source)
+# You can load from various sources:
+# data = pb.load_dataset("small_table")  # Built-in dataset
+# data = pd.read_csv("your_data.csv")    # CSV file
+# data = pl.read_parquet("data.parquet") # Parquet file
+# data = pb.load_data("database://connection") # Database
+
+data = pb.load_dataset("small_table")  # Example with built-in dataset
+
 # Create a validation object
-# The 'data' variable is automatically provided by the CLI
 validation = (
     pb.Validate(
         data=data,
         tbl_name="Example Data",
-        label="CLI Validation Example",
+        label="Validation Example",
         thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
     )
     # Add your validation rules here
@@ -2174,17 +2715,23 @@ validation = (
 )
 
 # The validation object will be automatically used by the CLI
+# You can also access results programmatically:
+# print(f"All passed: {validation.all_passed()}")
+# print(f"Failed steps: {validation.n_failed()}")
 '''
 
     Path(output_file).write_text(example_script)
-    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
-    console.print("\nEdit the script to add your validation rules, then run:")
-    console.print(f"[cyan]pb validate your_data.csv {output_file}[/cyan]")
+    console.print(f"[green]✓[/green] Validation script template created: {output_file}")
+    console.print("\nEdit the template to add your data loading and validation rules, then run:")
+    console.print(f"[cyan]pb run {output_file}[/cyan]")
+    console.print(
+        f"[cyan]pb run {output_file} --data your_data.csv[/cyan]  [dim]# Override data source[/dim]"
+    )
 
 
 @cli.command()
-@click.argument("data_source", type=str)
 @click.argument("validation_script", type=click.Path(exists=True))
+@click.option("--data", type=str, help="Optional data source to override script's data loading")
 @click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
 @click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
 @click.option(
@@ -2192,27 +2739,37 @@ validation = (
 )
 @click.option(
     "--write-extract",
-    type=click.Path(),
-    help="Save failing rows from failed validation steps to CSV file",
+    type=str,
+    help="Save failing rows to folders (one CSV per step). Provide base name for folder.",
 )
 @click.option(
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
-@click.option("--fail-on-error", is_flag=True, help="Exit with non-zero code if validation fails")
-def validate(
-    data_source: str,
+@click.option(
+    "--fail-on",
+    type=click.Choice(["critical", "error", "warning", "any"], case_sensitive=False),
+    help="Exit with non-zero code when validation reaches this threshold level",
+)
+def run(
     validation_script: str,
+    data: str | None,
     output_html: str | None,
     output_json: str | None,
     show_extract: bool,
     write_extract: str | None,
     limit: int,
-    fail_on_error: bool,
+    fail_on: str | None,
 ):
     """
-    Run validation using a Python validation script.
+    Run a Pointblank validation script.
 
-    DATA_SOURCE can be:
+    VALIDATION_SCRIPT should be a Python file that defines validation logic.
+    The script should load its own data and create validation objects.
+
+    If --data is provided, it will be available as a 'cli_data' variable in the script,
+    allowing you to optionally override your script's data loading.
+
+    DATA can be:
 
     \b
     - CSV file path (e.g., data.csv)
@@ -2221,36 +2778,35 @@ def validate(
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
-    VALIDATION_SCRIPT should be a Python file that defines validation rules.
-    See 'pb validate-example' for a sample script.
-
     Examples:
 
     \b
-    pb validate data.csv validation_script.py
-    pb validate data.csv validation_script.py --output-html report.html
-    pb validate data.csv validation_script.py --show-extract
-    pb validate data.csv validation_script.py --write-extract failing_rows.csv
-    pb validate data.csv validation_script.py --fail-on-error
+    pb run validation_script.py
+    pb run validation_script.py --data data.csv
+    pb run validation_script.py --data small_table --output-html report.html
+    pb run validation_script.py --show-extract --fail-on error
+    pb run validation_script.py --write-extract extracts_folder --fail-on critical
     """
     try:
-        with console.status("[bold green]Loading data..."):
-            # Load the data source using the centralized function
-            data = _load_data_source(data_source)
-
-            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+        # Load optional data override if provided
+        cli_data = None
+        if data:
+            with console.status(f"[bold green]Loading data from {data}..."):
+                cli_data = _load_data_source(data)
+                console.print(f"[green]✓[/green] Loaded data override: {data}")
 
         # Execute the validation script
-        with console.status("[bold green]Running validation..."):
+        with console.status("[bold green]Running validation script..."):
             # Read and execute the validation script
             script_content = Path(validation_script).read_text()
 
-            # Create a namespace with pointblank and the data
+            # Create a namespace with pointblank and optional CLI data
             namespace = {
                 "pb": pb,
                 "pointblank": pb,
-                "data": data,
+                "cli_data": cli_data,  # Available if --data was provided
                 "__name__": "__main__",
+                "__file__": str(Path(validation_script).resolve()),
             }
 
             # Execute the script
@@ -2260,213 +2816,281 @@ def validate(
                 console.print(f"[red]Error executing validation script:[/red] {e}")
                 sys.exit(1)
 
-            # Look for a validation object in the namespace
-            validation = None
+            # Look for validation objects in the namespace
+            validations = []
 
-            # Try to find the 'validation' variable specifically first
+            # Look for the 'validation' variable specifically first
             if "validation" in namespace:
-                validation = namespace["validation"]
-            else:
-                # Look for any validation object in the namespace
-                for key, value in namespace.items():
-                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
-                        validation = value
-                        break
-                    # Also check if it's a Validate object that has been interrogated
-                    elif str(type(value)).find("Validate") != -1:
-                        validation = value
-                        break
+                validations.append(namespace["validation"])
 
-            if validation is None:
+            # Also look for any other validation objects
+            for key, value in namespace.items():
+                if (
+                    key != "validation"
+                    and hasattr(value, "interrogate")
+                    and hasattr(value, "validation_info")
+                ):
+                    validations.append(value)
+                # Also check if it's a Validate object that has been interrogated
+                elif key != "validation" and str(type(value)).find("Validate") != -1:
+                    validations.append(value)
+
+            if not validations:
                 raise ValueError(
-                    "No validation object found in script. "
-                    "Script should create a Validate object and assign it to a variable named 'validation'."
+                    "No validation objects found in script. "
+                    "Script should create Validate objects and call .interrogate() on them."
                 )
 
-        console.print("[green]✓[/green] Validation completed")
+        console.print(f"[green]✓[/green] Found {len(validations)} validation object(s)")
 
-        # Display summary
-        _display_validation_summary(validation)
+        # Process each validation
+        overall_failed = False
+        overall_critical = False
+        overall_error = False
+        overall_warning = False
 
-        # Save outputs
+        for i, validation in enumerate(validations, 1):
+            if len(validations) > 1:
+                console.print(f"\n[bold cyan]Validation {i}:[/bold cyan]")
+
+            # Display summary
+            _display_validation_summary(validation)
+
+            # Check failure status
+            validation_failed = False
+            has_critical = False
+            has_error = False
+            has_warning = False
+
+            if hasattr(validation, "validation_info") and validation.validation_info:
+                for step_info in validation.validation_info:
+                    if step_info.critical:
+                        has_critical = True
+                        overall_critical = True
+                    if step_info.error:
+                        has_error = True
+                        overall_error = True
+                    if step_info.warning:
+                        has_warning = True
+                        overall_warning = True
+                    if step_info.n_failed > 0:
+                        validation_failed = True
+                        overall_failed = True
+
+            # Handle extract functionality for failed validations
+            failed_steps = []
+            if (
+                validation_failed
+                and hasattr(validation, "validation_info")
+                and validation.validation_info
+            ):
+                for j, step_info in enumerate(validation.validation_info, 1):
+                    if step_info.n_failed > 0:
+                        failed_steps.append((j, step_info))
+
+            if validation_failed and failed_steps and (show_extract or write_extract):
+                console.print()
+
+                if show_extract:
+                    extract_title = "Preview of failing rows from validation steps"
+                    if len(validations) > 1:
+                        extract_title += f" (Validation {i})"
+                    console.print(f"[yellow]{extract_title}:[/yellow]")
+
+                    for step_num, step_info in failed_steps:
+                        try:
+                            failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+
+                            if failing_rows is not None and len(failing_rows) > 0:
+                                console.print(
+                                    f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                                )
+
+                                # Limit the number of rows shown
+                                if len(failing_rows) > limit:
+                                    display_rows = failing_rows.head(limit)
+                                    console.print(
+                                        f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
+                                    )
+                                else:
+                                    display_rows = failing_rows
+                                    console.print(
+                                        f"[dim]Showing all {len(failing_rows)} failing rows[/dim]"
+                                    )
+
+                                # Create a preview table using pointblank's preview function
+                                preview_table = pb.preview(
+                                    data=display_rows,
+                                    n_head=min(limit, len(display_rows)),
+                                    n_tail=0,
+                                    limit=limit,
+                                    show_row_numbers=True,
+                                )
+
+                                # Display using our Rich table function
+                                _rich_print_gt_table(preview_table)
+                            else:
+                                console.print(
+                                    f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                                )
+                                console.print("[yellow]No failing rows could be extracted[/yellow]")
+                        except Exception as e:
+                            console.print(
+                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                            )
+                            console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+
+                if write_extract:
+                    try:
+                        folder_name = write_extract
+
+                        # Add validation number if multiple validations
+                        if len(validations) > 1:
+                            folder_name = f"{folder_name}_validation_{i}"
+
+                        # Create the output folder
+                        output_folder = Path(folder_name)
+                        output_folder.mkdir(parents=True, exist_ok=True)
+
+                        saved_files = []
+
+                        # Save each failing step to its own CSV file
+                        for step_num, step_info in failed_steps:
+                            try:
+                                failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+                                if failing_rows is not None and len(failing_rows) > 0:
+                                    # Create safe filename from assertion type
+                                    safe_assertion_type = (
+                                        step_info.assertion_type.replace(" ", "_")
+                                        .replace("/", "_")
+                                        .replace("\\", "_")
+                                        .replace(":", "_")
+                                        .replace("<", "_")
+                                        .replace(">", "_")
+                                        .replace("|", "_")
+                                        .replace("?", "_")
+                                        .replace("*", "_")
+                                        .replace('"', "_")
+                                    )
+
+                                    filename = f"step_{step_num:02d}_{safe_assertion_type}.csv"
+                                    filepath = output_folder / filename
+
+                                    # Limit the output if needed
+                                    save_rows = failing_rows
+                                    if hasattr(failing_rows, "head") and len(failing_rows) > limit:
+                                        save_rows = failing_rows.head(limit)
+
+                                    # Save to CSV
+                                    if hasattr(save_rows, "write_csv"):
+                                        # Polars
+                                        save_rows.write_csv(str(filepath))
+                                    elif hasattr(save_rows, "to_csv"):
+                                        # Pandas
+                                        save_rows.to_csv(str(filepath), index=False)
+                                    else:
+                                        # Try converting to pandas as fallback
+                                        import pandas as pd
+
+                                        pd_data = pd.DataFrame(save_rows)
+                                        pd_data.to_csv(str(filepath), index=False)
+
+                                    saved_files.append((filename, len(failing_rows)))
+
+                            except Exception as e:
+                                console.print(
+                                    f"[yellow]Warning: Could not save failing rows from step {step_num}: {e}[/yellow]"
+                                )
+
+                        if saved_files:
+                            console.print(
+                                f"[green]✓[/green] Failing rows saved to folder: {output_folder}"
+                            )
+                            for filename, row_count in saved_files:
+                                console.print(f"[dim]  - {filename}: {row_count} rows[/dim]")
+                        else:
+                            console.print(
+                                "[yellow]No failing rows could be extracted to save[/yellow]"
+                            )
+
+                    except Exception as e:
+                        console.print(
+                            f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                        )
+
+        # Save HTML and JSON outputs (combine multiple validations if needed)
         if output_html:
             try:
-                # Get HTML representation
-                html_content = validation._repr_html_()
-                Path(output_html).write_text(html_content, encoding="utf-8")
+                if len(validations) == 1:
+                    # Single validation - save directly
+                    html_content = validations[0]._repr_html_()
+                    Path(output_html).write_text(html_content, encoding="utf-8")
+                else:
+                    # Multiple validations - combine them
+                    html_parts = []
+                    html_parts.append("<html><body>")
+                    html_parts.append("<h1>Pointblank Validation Report</h1>")
+
+                    for i, validation in enumerate(validations, 1):
+                        html_parts.append(f"<h2>Validation {i}</h2>")
+                        html_parts.append(validation._repr_html_())
+
+                    html_parts.append("</body></html>")
+                    html_content = "\n".join(html_parts)
+                    Path(output_html).write_text(html_content, encoding="utf-8")
+
                 console.print(f"[green]✓[/green] HTML report saved to: {output_html}")
             except Exception as e:
                 console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
 
         if output_json:
             try:
-                # Get JSON report
-                json_report = validation.get_json_report()
-                Path(output_json).write_text(json_report, encoding="utf-8")
+                if len(validations) == 1:
+                    # Single validation - save directly
+                    json_report = validations[0].get_json_report()
+                    Path(output_json).write_text(json_report, encoding="utf-8")
+                else:
+                    # Multiple validations - combine them
+                    import json
+
+                    combined_report = {"validations": []}
+
+                    for i, validation in enumerate(validations, 1):
+                        validation_json = json.loads(validation.get_json_report())
+                        validation_json["validation_id"] = i
+                        combined_report["validations"].append(validation_json)
+
+                    Path(output_json).write_text(
+                        json.dumps(combined_report, indent=2), encoding="utf-8"
+                    )
+
                 console.print(f"[green]✓[/green] JSON summary saved to: {output_json}")
             except Exception as e:
                 console.print(f"[yellow]Warning: Could not save JSON report: {e}[/yellow]")
 
-        # Handle extract functionality for failed validations
-        validation_failed = False
-        failed_steps = []
-        if hasattr(validation, "validation_info") and validation.validation_info:
-            for i, step_info in enumerate(validation.validation_info, 1):
-                if step_info.n_failed > 0:
-                    validation_failed = True
-                    failed_steps.append((i, step_info))
+        # Check if we should fail based on threshold
+        if fail_on:
+            should_exit = False
+            exit_reason = ""
 
-        if validation_failed and (show_extract or write_extract):
-            console.print()
+            if fail_on.lower() == "critical" and overall_critical:
+                should_exit = True
+                exit_reason = "critical validation failures"
+            elif fail_on.lower() == "error" and (overall_critical or overall_error):
+                should_exit = True
+                exit_reason = "error or critical validation failures"
+            elif fail_on.lower() == "warning" and (
+                overall_critical or overall_error or overall_warning
+            ):
+                should_exit = True
+                exit_reason = "warning, error, or critical validation failures"
+            elif fail_on.lower() == "any" and overall_failed:
+                should_exit = True
+                exit_reason = "validation failures"
 
-            if show_extract:
-                console.print("[yellow]Preview of failing rows from validation steps:[/yellow]")
-
-                for step_num, step_info in failed_steps:
-                    try:
-                        failing_rows = validation.get_data_extracts(i=step_num, frame=True)
-
-                        if failing_rows is not None and len(failing_rows) > 0:
-                            console.print(
-                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
-                            )
-
-                            # Limit the number of rows shown
-                            if len(failing_rows) > limit:
-                                display_rows = failing_rows.head(limit)
-                                console.print(
-                                    f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
-                                )
-                            else:
-                                display_rows = failing_rows
-                                console.print(
-                                    f"[dim]Showing all {len(failing_rows)} failing rows[/dim]"
-                                )
-
-                            # Create a preview table using pointblank's preview function
-                            preview_table = pb.preview(
-                                data=display_rows,
-                                n_head=min(limit, len(display_rows)),
-                                n_tail=0,
-                                limit=limit,
-                                show_row_numbers=True,
-                            )
-
-                            # Display using our Rich table function
-                            _rich_print_gt_table(preview_table)
-                        else:
-                            console.print(
-                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
-                            )
-                            console.print("[yellow]No failing rows could be extracted[/yellow]")
-                    except Exception as e:
-                        console.print(f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}")
-                        console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
-
-            if write_extract:
-                try:
-                    # Combine all failing rows from all failed steps
-                    all_failing_rows = []
-                    step_sources = []
-
-                    for step_num, step_info in failed_steps:
-                        try:
-                            failing_rows = validation.get_data_extracts(i=step_num, frame=True)
-                            if failing_rows is not None and len(failing_rows) > 0:
-                                # Add step information to track source
-                                import narwhals as nw
-
-                                nw_data = nw.from_native(failing_rows)
-
-                                # Add step metadata columns
-                                step_data = nw_data.with_columns(
-                                    [
-                                        nw.lit(step_num).alias("validation_step"),
-                                        nw.lit(step_info.assertion_type).alias("validation_type"),
-                                    ]
-                                )
-
-                                all_failing_rows.append(nw.to_native(step_data))
-                                step_sources.append(f"Step {step_num}: {step_info.assertion_type}")
-                        except Exception as e:
-                            console.print(
-                                f"[yellow]Warning: Could not extract failing rows from step {step_num}: {e}[/yellow]"
-                            )
-
-                    if all_failing_rows:
-                        # Concatenate all failing rows
-                        if len(all_failing_rows) == 1:
-                            combined_failing_rows = all_failing_rows[0]
-                        else:
-                            # Try to concatenate - implementation depends on the data type
-                            try:
-                                import narwhals as nw
-
-                                # Convert all to narwhals and concatenate
-                                nw_frames = [nw.from_native(df) for df in all_failing_rows]
-                                combined_nw = nw.concat(nw_frames)
-                                combined_failing_rows = nw.to_native(combined_nw)
-                            except Exception:
-                                # Fallback: just use the first dataset
-                                combined_failing_rows = all_failing_rows[0]
-
-                        # Limit the output if needed
-                        if (
-                            hasattr(combined_failing_rows, "head")
-                            and len(combined_failing_rows) > limit
-                        ):
-                            combined_failing_rows = combined_failing_rows.head(limit)
-
-                        # Save to CSV
-                        if hasattr(combined_failing_rows, "write_csv"):
-                            # Polars
-                            combined_failing_rows.write_csv(write_extract)
-                        elif hasattr(combined_failing_rows, "to_csv"):
-                            # Pandas
-                            combined_failing_rows.to_csv(write_extract, index=False)
-                        else:
-                            # Try converting to pandas as fallback
-                            import pandas as pd
-
-                            pd_data = pd.DataFrame(combined_failing_rows)
-                            pd_data.to_csv(write_extract, index=False)
-
-                        console.print(f"[green]✓[/green] Failing rows saved to: {write_extract}")
-                        if len(step_sources) > 1:
-                            console.print(
-                                f"[dim]Combined rows from: {', '.join(step_sources)}[/dim]"
-                            )
-                        else:
-                            console.print(f"[dim]Rows from: {step_sources[0]}[/dim]")
-                    else:
-                        console.print("[yellow]No failing rows could be extracted to save[/yellow]")
-
-                except Exception as e:
-                    console.print(
-                        f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
-                    )
-
-        # Check if we should fail on error
-        if fail_on_error:
-            try:
-                if (
-                    hasattr(validation, "validation_info")
-                    and validation.validation_info is not None
-                ):
-                    info = validation.validation_info
-                    n_critical = sum(1 for step in info if step.critical)
-                    n_error = sum(1 for step in info if step.error)
-
-                    if n_critical > 0 or n_error > 0:
-                        severity = "critical" if n_critical > 0 else "error"
-                        console.print(
-                            f"[red]Exiting with error due to {severity} validation failures[/red]"
-                        )
-                        sys.exit(1)
-            except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
-                )
+            if should_exit:
+                console.print(f"[red]Exiting with error due to {exit_reason}[/red]")
+                sys.exit(1)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")

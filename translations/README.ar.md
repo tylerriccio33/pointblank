@@ -185,23 +185,23 @@ pb scan "duckdb:///data/sales.ddb::customers"
 
 ```bash
 # تحقق من الصفوف المكررة
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # تحقق من البيانات مباشرة من GitHub
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
 
 # تحقق من عدم وجود قيم فارغة في مجموعات بيانات Parquet
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+pb validate "data/*.parquet" --check col-vals-not-null --column a
 
 # استخراج البيانات الفاشلة للتصحيح
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
 **التكامل مع CI/CD**
 
 ```bash
 # استخدم أكواد الخروج للأتمتة (0 = نجح، 1 = فشل)
-pb validate-simple small_table --check rows-distinct && echo "✅ فحوصات الجودة نجحت"
+pb validate small_table --check rows-distinct && echo "✅ فحوصات الجودة نجحت"
 ```
 
 تعلم المزيد في [وثائق CLI](https://posit-dev.github.io/pointblank/user-guide/cli.html).

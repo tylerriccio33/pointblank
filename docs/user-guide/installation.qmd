@@ -202,13 +202,13 @@ Once installed, Pointblank also provides a powerful command-line interface for q
 
 ```bash
 # Test the CLI with a built-in dataset
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # Check if a column exists
-pb validate-simple small_table --check col-exists --column a
+pb validate small_table --check col-exists --column a
 
 # Validate data ranges
-pb validate-simple small_table --check col-vals-lt --column a --value 10
+pb validate small_table --check col-vals-lt --column a --value 10
 ```
 
 The CLI is perfect for:

@@ -177,23 +177,23 @@ pb scan "duckdb:///data/sales.ddb::customers"
 
 ```bash
 # Vérifiez les lignes dupliquées
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # Validez les données directement depuis GitHub
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check col-vals-not-null --column customer_id
 
 # Vérifiez l'absence de valeurs nulles dans les jeux de données Parquet
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column a
+pb validate "data/*.parquet" --check col-vals-not-null --column a
 
 # Extrayez les données défaillantes pour le débogage
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
 **Intégrez avec CI/CD**
 
 ```bash
 # Utilisez les codes de sortie pour l'automatisation (0 = réussite, 1 = échec)
-pb validate-simple small_table --check rows-distinct && echo "✅ Vérifications de qualité réussies"
+pb validate small_table --check rows-distinct && echo "✅ Vérifications de qualité réussies"
 ```
 
 En savoir plus dans notre [documentation CLI](https://posit-dev.github.io/pointblank/user-guide/cli.html).
