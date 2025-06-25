@@ -29,8 +29,8 @@ class OrderedGroup(click.Group):
             "missing",
             # Validation
             "validate-simple",
-            "validate",
-            "validate-example",
+            "run",
+            "run-example",
             # Utilities
             "datasets",
             "requirements",
@@ -781,7 +781,7 @@ def cli():
     """
     Pointblank CLI - Data validation and quality tools for data engineers.
 
-    Use this CLI to validate data, preview tables, and generate reports
+    Use this CLI to run validation scripts, preview tables, and generate reports
     directly from the command line.
     """
     pass
@@ -2126,7 +2126,7 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 
 @cli.command()
 @click.argument("output_file", type=click.Path())
-def validate_example(output_file: str):
+def run_example(output_file: str):
     """
     Generate an example validation script.
 
@@ -2136,18 +2136,26 @@ def validate_example(output_file: str):
 Example Pointblank validation script.
 
 This script demonstrates how to create validation rules for your data.
-Modify the validation rules below to match your data requirements.
+Modify the data loading and validation rules below to match your requirements.
 """
 
 import pointblank as pb
 
+# Load your data (replace this with your actual data source)
+# You can load from various sources:
+# data = pb.load_dataset("small_table")  # Built-in dataset
+# data = pd.read_csv("your_data.csv")    # CSV file
+# data = pl.read_parquet("data.parquet") # Parquet file
+# data = pb.load_data("database://connection") # Database
+
+data = pb.load_dataset("small_table")  # Example with built-in dataset
+
 # Create a validation object
-# The 'data' variable is automatically provided by the CLI
 validation = (
     pb.Validate(
         data=data,
         tbl_name="Example Data",
-        label="CLI Validation Example",
+        label="Validation Example",
         thresholds=pb.Thresholds(warning=0.05, error=0.10, critical=0.15),
     )
     # Add your validation rules here
@@ -2174,17 +2182,23 @@ validation = (
 )
 
 # The validation object will be automatically used by the CLI
+# You can also access results programmatically:
+# print(f"All passed: {validation.all_passed()}")
+# print(f"Failed steps: {validation.n_failed()}")
 '''
 
     Path(output_file).write_text(example_script)
     console.print(f"[green]✓[/green] Example validation script created: {output_file}")
-    console.print("\nEdit the script to add your validation rules, then run:")
-    console.print(f"[cyan]pb validate your_data.csv {output_file}[/cyan]")
+    console.print("\nEdit the script to add your data loading and validation rules, then run:")
+    console.print(f"[cyan]pb run {output_file}[/cyan]")
+    console.print(
+        f"[cyan]pb run {output_file} --data your_data.csv[/cyan]  [dim]# Override data source[/dim]"
+    )
 
 
 @cli.command()
-@click.argument("data_source", type=str)
 @click.argument("validation_script", type=click.Path(exists=True))
+@click.option("--data", type=str, help="Optional data source to override script's data loading")
 @click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
 @click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
 @click.option(
@@ -2198,21 +2212,31 @@ validation = (
 @click.option(
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
-@click.option("--fail-on-error", is_flag=True, help="Exit with non-zero code if validation fails")
-def validate(
-    data_source: str,
+@click.option(
+    "--fail-on",
+    type=click.Choice(["critical", "error", "warning", "any"], case_sensitive=False),
+    help="Exit with non-zero code when validation reaches this threshold level",
+)
+def run(
     validation_script: str,
+    data: str | None,
     output_html: str | None,
     output_json: str | None,
     show_extract: bool,
     write_extract: str | None,
     limit: int,
-    fail_on_error: bool,
+    fail_on: str | None,
 ):
     """
-    Run validation using a Python validation script.
+    Run a Pointblank validation script.
 
-    DATA_SOURCE can be:
+    VALIDATION_SCRIPT should be a Python file that defines validation logic.
+    The script should load its own data and create validation objects.
+
+    If --data is provided, it will be available as a 'cli_data' variable in the script,
+    allowing you to optionally override your script's data loading.
+
+    DATA can be:
 
     \b
     - CSV file path (e.g., data.csv)
@@ -2221,36 +2245,35 @@ def validate(
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
-    VALIDATION_SCRIPT should be a Python file that defines validation rules.
-    See 'pb validate-example' for a sample script.
-
     Examples:
 
     \b
-    pb validate data.csv validation_script.py
-    pb validate data.csv validation_script.py --output-html report.html
-    pb validate data.csv validation_script.py --show-extract
-    pb validate data.csv validation_script.py --write-extract failing_rows.csv
-    pb validate data.csv validation_script.py --fail-on-error
+    pb run validation_script.py
+    pb run validation_script.py --data data.csv
+    pb run validation_script.py --data small_table --output-html report.html
+    pb run validation_script.py --show-extract --fail-on error
+    pb run validation_script.py --write-extract failing_rows.csv --fail-on critical
     """
     try:
-        with console.status("[bold green]Loading data..."):
-            # Load the data source using the centralized function
-            data = _load_data_source(data_source)
-
-            console.print(f"[green]✓[/green] Loaded data source: {data_source}")
+        # Load optional data override if provided
+        cli_data = None
+        if data:
+            with console.status(f"[bold green]Loading data from {data}..."):
+                cli_data = _load_data_source(data)
+                console.print(f"[green]✓[/green] Loaded data override: {data}")
 
         # Execute the validation script
-        with console.status("[bold green]Running validation..."):
+        with console.status("[bold green]Running validation script..."):
             # Read and execute the validation script
             script_content = Path(validation_script).read_text()
 
-            # Create a namespace with pointblank and the data
+            # Create a namespace with pointblank and optional CLI data
             namespace = {
                 "pb": pb,
                 "pointblank": pb,
-                "data": data,
+                "cli_data": cli_data,  # Available if --data was provided
                 "__name__": "__main__",
+                "__file__": str(Path(validation_script).resolve()),
             }
 
             # Execute the script
@@ -2260,213 +2283,303 @@ def validate(
                 console.print(f"[red]Error executing validation script:[/red] {e}")
                 sys.exit(1)
 
-            # Look for a validation object in the namespace
-            validation = None
+            # Look for validation objects in the namespace
+            validations = []
 
-            # Try to find the 'validation' variable specifically first
+            # Look for the 'validation' variable specifically first
             if "validation" in namespace:
-                validation = namespace["validation"]
-            else:
-                # Look for any validation object in the namespace
-                for key, value in namespace.items():
-                    if hasattr(value, "interrogate") and hasattr(value, "validation_info"):
-                        validation = value
-                        break
-                    # Also check if it's a Validate object that has been interrogated
-                    elif str(type(value)).find("Validate") != -1:
-                        validation = value
-                        break
+                validations.append(namespace["validation"])
 
-            if validation is None:
+            # Also look for any other validation objects
+            for key, value in namespace.items():
+                if (
+                    key != "validation"
+                    and hasattr(value, "interrogate")
+                    and hasattr(value, "validation_info")
+                ):
+                    validations.append(value)
+                # Also check if it's a Validate object that has been interrogated
+                elif key != "validation" and str(type(value)).find("Validate") != -1:
+                    validations.append(value)
+
+            if not validations:
                 raise ValueError(
-                    "No validation object found in script. "
-                    "Script should create a Validate object and assign it to a variable named 'validation'."
+                    "No validation objects found in script. "
+                    "Script should create Validate objects and call .interrogate() on them."
                 )
 
-        console.print("[green]✓[/green] Validation completed")
+        console.print(f"[green]✓[/green] Found {len(validations)} validation object(s)")
 
-        # Display summary
-        _display_validation_summary(validation)
+        # Process each validation
+        overall_failed = False
+        overall_critical = False
+        overall_error = False
+        overall_warning = False
 
-        # Save outputs
+        for i, validation in enumerate(validations, 1):
+            if len(validations) > 1:
+                console.print(f"\n[bold cyan]Validation {i}:[/bold cyan]")
+
+            # Display summary
+            _display_validation_summary(validation)
+
+            # Check failure status
+            validation_failed = False
+            has_critical = False
+            has_error = False
+            has_warning = False
+
+            if hasattr(validation, "validation_info") and validation.validation_info:
+                for step_info in validation.validation_info:
+                    if step_info.critical:
+                        has_critical = True
+                        overall_critical = True
+                    if step_info.error:
+                        has_error = True
+                        overall_error = True
+                    if step_info.warning:
+                        has_warning = True
+                        overall_warning = True
+                    if step_info.n_failed > 0:
+                        validation_failed = True
+                        overall_failed = True
+
+            # Handle extract functionality for failed validations
+            failed_steps = []
+            if (
+                validation_failed
+                and hasattr(validation, "validation_info")
+                and validation.validation_info
+            ):
+                for j, step_info in enumerate(validation.validation_info, 1):
+                    if step_info.n_failed > 0:
+                        failed_steps.append((j, step_info))
+
+            if validation_failed and failed_steps and (show_extract or write_extract):
+                console.print()
+
+                if show_extract:
+                    extract_title = "Preview of failing rows from validation steps"
+                    if len(validations) > 1:
+                        extract_title += f" (Validation {i})"
+                    console.print(f"[yellow]{extract_title}:[/yellow]")
+
+                    for step_num, step_info in failed_steps:
+                        try:
+                            failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+
+                            if failing_rows is not None and len(failing_rows) > 0:
+                                console.print(
+                                    f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                                )
+
+                                # Limit the number of rows shown
+                                if len(failing_rows) > limit:
+                                    display_rows = failing_rows.head(limit)
+                                    console.print(
+                                        f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
+                                    )
+                                else:
+                                    display_rows = failing_rows
+                                    console.print(
+                                        f"[dim]Showing all {len(failing_rows)} failing rows[/dim]"
+                                    )
+
+                                # Create a preview table using pointblank's preview function
+                                preview_table = pb.preview(
+                                    data=display_rows,
+                                    n_head=min(limit, len(display_rows)),
+                                    n_tail=0,
+                                    limit=limit,
+                                    show_row_numbers=True,
+                                )
+
+                                # Display using our Rich table function
+                                _rich_print_gt_table(preview_table)
+                            else:
+                                console.print(
+                                    f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                                )
+                                console.print("[yellow]No failing rows could be extracted[/yellow]")
+                        except Exception as e:
+                            console.print(
+                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
+                            )
+                            console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
+
+                if write_extract:
+                    try:
+                        # Create filename for multiple validations
+                        extract_file = write_extract
+                        if len(validations) > 1:
+                            # Insert validation number before file extension
+                            path_obj = Path(write_extract)
+                            extract_file = str(
+                                path_obj.with_name(
+                                    f"{path_obj.stem}_validation_{i}{path_obj.suffix}"
+                                )
+                            )
+
+                        # Combine all failing rows from all failed steps
+                        all_failing_rows = []
+                        step_sources = []
+
+                        for step_num, step_info in failed_steps:
+                            try:
+                                failing_rows = validation.get_data_extracts(i=step_num, frame=True)
+                                if failing_rows is not None and len(failing_rows) > 0:
+                                    # Add step information to track source
+                                    import narwhals as nw
+
+                                    nw_data = nw.from_native(failing_rows)
+
+                                    # Add step metadata columns
+                                    step_data = nw_data.with_columns(
+                                        [
+                                            nw.lit(step_num).alias("validation_step"),
+                                            nw.lit(step_info.assertion_type).alias(
+                                                "validation_type"
+                                            ),
+                                        ]
+                                    )
+
+                                    all_failing_rows.append(nw.to_native(step_data))
+                                    step_sources.append(
+                                        f"Step {step_num}: {step_info.assertion_type}"
+                                    )
+                            except Exception as e:
+                                console.print(
+                                    f"[yellow]Warning: Could not extract failing rows from step {step_num}: {e}[/yellow]"
+                                )
+
+                        if all_failing_rows:
+                            # Concatenate all failing rows
+                            if len(all_failing_rows) == 1:
+                                combined_failing_rows = all_failing_rows[0]
+                            else:
+                                # Try to concatenate - implementation depends on the data type
+                                try:
+                                    import narwhals as nw
+
+                                    # Convert all to narwhals and concatenate
+                                    nw_frames = [nw.from_native(df) for df in all_failing_rows]
+                                    combined_nw = nw.concat(nw_frames)
+                                    combined_failing_rows = nw.to_native(combined_nw)
+                                except Exception:
+                                    # Fallback: just use the first dataset
+                                    combined_failing_rows = all_failing_rows[0]
+
+                            # Limit the output if needed
+                            if (
+                                hasattr(combined_failing_rows, "head")
+                                and len(combined_failing_rows) > limit
+                            ):
+                                combined_failing_rows = combined_failing_rows.head(limit)
+
+                            # Save to CSV
+                            if hasattr(combined_failing_rows, "write_csv"):
+                                # Polars
+                                combined_failing_rows.write_csv(extract_file)
+                            elif hasattr(combined_failing_rows, "to_csv"):
+                                # Pandas
+                                combined_failing_rows.to_csv(extract_file, index=False)
+                            else:
+                                # Try converting to pandas as fallback
+                                import pandas as pd
+
+                                pd_data = pd.DataFrame(combined_failing_rows)
+                                pd_data.to_csv(extract_file, index=False)
+
+                            console.print(f"[green]✓[/green] Failing rows saved to: {extract_file}")
+                            if len(step_sources) > 1:
+                                console.print(
+                                    f"[dim]Combined rows from: {', '.join(step_sources)}[/dim]"
+                                )
+                            else:
+                                console.print(f"[dim]Rows from: {step_sources[0]}[/dim]")
+                        else:
+                            console.print(
+                                "[yellow]No failing rows could be extracted to save[/yellow]"
+                            )
+
+                    except Exception as e:
+                        console.print(
+                            f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                        )
+
+        # Save HTML and JSON outputs (combine multiple validations if needed)
         if output_html:
             try:
-                # Get HTML representation
-                html_content = validation._repr_html_()
-                Path(output_html).write_text(html_content, encoding="utf-8")
+                if len(validations) == 1:
+                    # Single validation - save directly
+                    html_content = validations[0]._repr_html_()
+                    Path(output_html).write_text(html_content, encoding="utf-8")
+                else:
+                    # Multiple validations - combine them
+                    html_parts = []
+                    html_parts.append("<html><body>")
+                    html_parts.append("<h1>Pointblank Validation Report</h1>")
+
+                    for i, validation in enumerate(validations, 1):
+                        html_parts.append(f"<h2>Validation {i}</h2>")
+                        html_parts.append(validation._repr_html_())
+
+                    html_parts.append("</body></html>")
+                    html_content = "\n".join(html_parts)
+                    Path(output_html).write_text(html_content, encoding="utf-8")
+
                 console.print(f"[green]✓[/green] HTML report saved to: {output_html}")
             except Exception as e:
                 console.print(f"[yellow]Warning: Could not save HTML report: {e}[/yellow]")
 
         if output_json:
             try:
-                # Get JSON report
-                json_report = validation.get_json_report()
-                Path(output_json).write_text(json_report, encoding="utf-8")
+                if len(validations) == 1:
+                    # Single validation - save directly
+                    json_report = validations[0].get_json_report()
+                    Path(output_json).write_text(json_report, encoding="utf-8")
+                else:
+                    # Multiple validations - combine them
+                    import json
+
+                    combined_report = {"validations": []}
+
+                    for i, validation in enumerate(validations, 1):
+                        validation_json = json.loads(validation.get_json_report())
+                        validation_json["validation_id"] = i
+                        combined_report["validations"].append(validation_json)
+
+                    Path(output_json).write_text(
+                        json.dumps(combined_report, indent=2), encoding="utf-8"
+                    )
+
                 console.print(f"[green]✓[/green] JSON summary saved to: {output_json}")
             except Exception as e:
                 console.print(f"[yellow]Warning: Could not save JSON report: {e}[/yellow]")
 
-        # Handle extract functionality for failed validations
-        validation_failed = False
-        failed_steps = []
-        if hasattr(validation, "validation_info") and validation.validation_info:
-            for i, step_info in enumerate(validation.validation_info, 1):
-                if step_info.n_failed > 0:
-                    validation_failed = True
-                    failed_steps.append((i, step_info))
+        # Check if we should fail based on threshold
+        if fail_on:
+            should_exit = False
+            exit_reason = ""
 
-        if validation_failed and (show_extract or write_extract):
-            console.print()
+            if fail_on.lower() == "critical" and overall_critical:
+                should_exit = True
+                exit_reason = "critical validation failures"
+            elif fail_on.lower() == "error" and (overall_critical or overall_error):
+                should_exit = True
+                exit_reason = "error or critical validation failures"
+            elif fail_on.lower() == "warning" and (
+                overall_critical or overall_error or overall_warning
+            ):
+                should_exit = True
+                exit_reason = "warning, error, or critical validation failures"
+            elif fail_on.lower() == "any" and overall_failed:
+                should_exit = True
+                exit_reason = "validation failures"
 
-            if show_extract:
-                console.print("[yellow]Preview of failing rows from validation steps:[/yellow]")
-
-                for step_num, step_info in failed_steps:
-                    try:
-                        failing_rows = validation.get_data_extracts(i=step_num, frame=True)
-
-                        if failing_rows is not None and len(failing_rows) > 0:
-                            console.print(
-                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
-                            )
-
-                            # Limit the number of rows shown
-                            if len(failing_rows) > limit:
-                                display_rows = failing_rows.head(limit)
-                                console.print(
-                                    f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
-                                )
-                            else:
-                                display_rows = failing_rows
-                                console.print(
-                                    f"[dim]Showing all {len(failing_rows)} failing rows[/dim]"
-                                )
-
-                            # Create a preview table using pointblank's preview function
-                            preview_table = pb.preview(
-                                data=display_rows,
-                                n_head=min(limit, len(display_rows)),
-                                n_tail=0,
-                                limit=limit,
-                                show_row_numbers=True,
-                            )
-
-                            # Display using our Rich table function
-                            _rich_print_gt_table(preview_table)
-                        else:
-                            console.print(
-                                f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
-                            )
-                            console.print("[yellow]No failing rows could be extracted[/yellow]")
-                    except Exception as e:
-                        console.print(f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}")
-                        console.print(f"[yellow]Could not extract failing rows: {e}[/yellow]")
-
-            if write_extract:
-                try:
-                    # Combine all failing rows from all failed steps
-                    all_failing_rows = []
-                    step_sources = []
-
-                    for step_num, step_info in failed_steps:
-                        try:
-                            failing_rows = validation.get_data_extracts(i=step_num, frame=True)
-                            if failing_rows is not None and len(failing_rows) > 0:
-                                # Add step information to track source
-                                import narwhals as nw
-
-                                nw_data = nw.from_native(failing_rows)
-
-                                # Add step metadata columns
-                                step_data = nw_data.with_columns(
-                                    [
-                                        nw.lit(step_num).alias("validation_step"),
-                                        nw.lit(step_info.assertion_type).alias("validation_type"),
-                                    ]
-                                )
-
-                                all_failing_rows.append(nw.to_native(step_data))
-                                step_sources.append(f"Step {step_num}: {step_info.assertion_type}")
-                        except Exception as e:
-                            console.print(
-                                f"[yellow]Warning: Could not extract failing rows from step {step_num}: {e}[/yellow]"
-                            )
-
-                    if all_failing_rows:
-                        # Concatenate all failing rows
-                        if len(all_failing_rows) == 1:
-                            combined_failing_rows = all_failing_rows[0]
-                        else:
-                            # Try to concatenate - implementation depends on the data type
-                            try:
-                                import narwhals as nw
-
-                                # Convert all to narwhals and concatenate
-                                nw_frames = [nw.from_native(df) for df in all_failing_rows]
-                                combined_nw = nw.concat(nw_frames)
-                                combined_failing_rows = nw.to_native(combined_nw)
-                            except Exception:
-                                # Fallback: just use the first dataset
-                                combined_failing_rows = all_failing_rows[0]
-
-                        # Limit the output if needed
-                        if (
-                            hasattr(combined_failing_rows, "head")
-                            and len(combined_failing_rows) > limit
-                        ):
-                            combined_failing_rows = combined_failing_rows.head(limit)
-
-                        # Save to CSV
-                        if hasattr(combined_failing_rows, "write_csv"):
-                            # Polars
-                            combined_failing_rows.write_csv(write_extract)
-                        elif hasattr(combined_failing_rows, "to_csv"):
-                            # Pandas
-                            combined_failing_rows.to_csv(write_extract, index=False)
-                        else:
-                            # Try converting to pandas as fallback
-                            import pandas as pd
-
-                            pd_data = pd.DataFrame(combined_failing_rows)
-                            pd_data.to_csv(write_extract, index=False)
-
-                        console.print(f"[green]✓[/green] Failing rows saved to: {write_extract}")
-                        if len(step_sources) > 1:
-                            console.print(
-                                f"[dim]Combined rows from: {', '.join(step_sources)}[/dim]"
-                            )
-                        else:
-                            console.print(f"[dim]Rows from: {step_sources[0]}[/dim]")
-                    else:
-                        console.print("[yellow]No failing rows could be extracted to save[/yellow]")
-
-                except Exception as e:
-                    console.print(
-                        f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
-                    )
-
-        # Check if we should fail on error
-        if fail_on_error:
-            try:
-                if (
-                    hasattr(validation, "validation_info")
-                    and validation.validation_info is not None
-                ):
-                    info = validation.validation_info
-                    n_critical = sum(1 for step in info if step.critical)
-                    n_error = sum(1 for step in info if step.error)
-
-                    if n_critical > 0 or n_error > 0:
-                        severity = "critical" if n_critical > 0 else "error"
-                        console.print(
-                            f"[red]Exiting with error due to {severity} validation failures[/red]"
-                        )
-                        sys.exit(1)
-            except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not check validation status for fail-on-error: {e}[/yellow]"
-                )
+            if should_exit:
+                console.print(f"[red]Exiting with error due to {exit_reason}[/red]")
+                sys.exit(1)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
