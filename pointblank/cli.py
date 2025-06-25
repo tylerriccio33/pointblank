@@ -1223,7 +1223,9 @@ def missing(data_source: str, output_html: str | None):
 @click.option(
     "--show-extract", is_flag=True, help="Show preview of failing rows if validation fails"
 )
-@click.option("--write-extract", type=click.Path(), help="Save failing rows to CSV file")
+@click.option(
+    "--write-extract", type=str, help="Save failing rows to folder. Provide base name for folder."
+)
 @click.option(
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
@@ -1271,7 +1273,7 @@ def validate_simple(
     \b
     pb validate-simple data.csv --check rows-distinct
     pb validate-simple data.csv --check rows-distinct --show-extract
-    pb validate-simple data.csv --check rows-distinct --write-extract failing_rows.csv
+    pb validate-simple data.csv --check rows-distinct --write-extract failing_rows_folder
     pb validate-simple data.csv --check rows-distinct --exit-code
     pb validate-simple data.csv --check rows-complete
     pb validate-simple data.csv --check col-exists --column price
@@ -1724,6 +1726,17 @@ def validate_simple(
 
                         if write_extract:
                             try:
+                                folder_name = write_extract
+
+                                # Create the output folder
+                                output_folder = Path(folder_name)
+                                output_folder.mkdir(parents=True, exist_ok=True)
+
+                                # Create safe filename from check type
+                                safe_check_type = check.replace("-", "_")
+                                filename = f"step_01_{safe_check_type}.csv"
+                                filepath = output_folder / filename
+
                                 # Limit the output if needed
                                 write_rows = failing_rows
                                 if len(failing_rows) > limit:
@@ -1732,26 +1745,27 @@ def validate_simple(
                                 # Save to CSV
                                 if hasattr(write_rows, "write_csv"):
                                     # Polars
-                                    write_rows.write_csv(write_extract)
+                                    write_rows.write_csv(str(filepath))
                                 elif hasattr(write_rows, "to_csv"):
                                     # Pandas
-                                    write_rows.to_csv(write_extract, index=False)
+                                    write_rows.to_csv(str(filepath), index=False)
                                 else:
                                     # Try converting to pandas as fallback
                                     import pandas as pd
 
                                     pd_data = pd.DataFrame(write_rows)
-                                    pd_data.to_csv(write_extract, index=False)
+                                    pd_data.to_csv(str(filepath), index=False)
 
                                 rows_saved = (
                                     len(write_rows) if hasattr(write_rows, "__len__") else limit
                                 )
                                 console.print(
-                                    f"[green]✓[/green] {rows_saved} failing rows saved to: {write_extract}"
+                                    f"[green]✓[/green] Failing rows saved to folder: {output_folder}"
                                 )
+                                console.print(f"[dim]  - {filename}: {rows_saved} rows[/dim]")
                             except Exception as e:
                                 console.print(
-                                    f"[yellow]Warning: Could not save failing rows to CSV: {e}[/yellow]"
+                                    f"[yellow]Warning: Could not save failing rows: {e}[/yellow]"
                                 )
                     else:
                         if show_extract:
@@ -2206,8 +2220,8 @@ validation = (
 )
 @click.option(
     "--write-extract",
-    type=click.Path(),
-    help="Save failing rows from failed validation steps to CSV file",
+    type=str,
+    help="Save failing rows to folders (one CSV per step). Provide base name for folder.",
 )
 @click.option(
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
@@ -2252,7 +2266,7 @@ def run(
     pb run validation_script.py --data data.csv
     pb run validation_script.py --data small_table --output-html report.html
     pb run validation_script.py --show-extract --fail-on error
-    pb run validation_script.py --write-extract failing_rows.csv --fail-on critical
+    pb run validation_script.py --write-extract extracts_folder --fail-on critical
     """
     try:
         # Load optional data override if provided
@@ -2409,94 +2423,72 @@ def run(
 
                 if write_extract:
                     try:
-                        # Create filename for multiple validations
-                        extract_file = write_extract
+                        folder_name = write_extract
+
+                        # Add validation number if multiple validations
                         if len(validations) > 1:
-                            # Insert validation number before file extension
-                            path_obj = Path(write_extract)
-                            extract_file = str(
-                                path_obj.with_name(
-                                    f"{path_obj.stem}_validation_{i}{path_obj.suffix}"
-                                )
-                            )
+                            folder_name = f"{folder_name}_validation_{i}"
 
-                        # Combine all failing rows from all failed steps
-                        all_failing_rows = []
-                        step_sources = []
+                        # Create the output folder
+                        output_folder = Path(folder_name)
+                        output_folder.mkdir(parents=True, exist_ok=True)
 
+                        saved_files = []
+
+                        # Save each failing step to its own CSV file
                         for step_num, step_info in failed_steps:
                             try:
                                 failing_rows = validation.get_data_extracts(i=step_num, frame=True)
                                 if failing_rows is not None and len(failing_rows) > 0:
-                                    # Add step information to track source
-                                    import narwhals as nw
-
-                                    nw_data = nw.from_native(failing_rows)
-
-                                    # Add step metadata columns
-                                    step_data = nw_data.with_columns(
-                                        [
-                                            nw.lit(step_num).alias("validation_step"),
-                                            nw.lit(step_info.assertion_type).alias(
-                                                "validation_type"
-                                            ),
-                                        ]
+                                    # Create safe filename from assertion type
+                                    safe_assertion_type = (
+                                        step_info.assertion_type.replace(" ", "_")
+                                        .replace("/", "_")
+                                        .replace("\\", "_")
+                                        .replace(":", "_")
+                                        .replace("<", "_")
+                                        .replace(">", "_")
+                                        .replace("|", "_")
+                                        .replace("?", "_")
+                                        .replace("*", "_")
+                                        .replace('"', "_")
                                     )
 
-                                    all_failing_rows.append(nw.to_native(step_data))
-                                    step_sources.append(
-                                        f"Step {step_num}: {step_info.assertion_type}"
-                                    )
+                                    filename = f"step_{step_num:02d}_{safe_assertion_type}.csv"
+                                    filepath = output_folder / filename
+
+                                    # Limit the output if needed
+                                    save_rows = failing_rows
+                                    if hasattr(failing_rows, "head") and len(failing_rows) > limit:
+                                        save_rows = failing_rows.head(limit)
+
+                                    # Save to CSV
+                                    if hasattr(save_rows, "write_csv"):
+                                        # Polars
+                                        save_rows.write_csv(str(filepath))
+                                    elif hasattr(save_rows, "to_csv"):
+                                        # Pandas
+                                        save_rows.to_csv(str(filepath), index=False)
+                                    else:
+                                        # Try converting to pandas as fallback
+                                        import pandas as pd
+
+                                        pd_data = pd.DataFrame(save_rows)
+                                        pd_data.to_csv(str(filepath), index=False)
+
+                                    saved_files.append((filename, len(failing_rows)))
+
                             except Exception as e:
                                 console.print(
-                                    f"[yellow]Warning: Could not extract failing rows from step {step_num}: {e}[/yellow]"
+                                    f"[yellow]Warning: Could not save failing rows from step {step_num}: {e}[/yellow]"
                                 )
 
-                        if all_failing_rows:
-                            # Concatenate all failing rows
-                            if len(all_failing_rows) == 1:
-                                combined_failing_rows = all_failing_rows[0]
-                            else:
-                                # Try to concatenate - implementation depends on the data type
-                                try:
-                                    import narwhals as nw
-
-                                    # Convert all to narwhals and concatenate
-                                    nw_frames = [nw.from_native(df) for df in all_failing_rows]
-                                    combined_nw = nw.concat(nw_frames)
-                                    combined_failing_rows = nw.to_native(combined_nw)
-                                except Exception:
-                                    # Fallback: just use the first dataset
-                                    combined_failing_rows = all_failing_rows[0]
-
-                            # Limit the output if needed
-                            if (
-                                hasattr(combined_failing_rows, "head")
-                                and len(combined_failing_rows) > limit
-                            ):
-                                combined_failing_rows = combined_failing_rows.head(limit)
-
-                            # Save to CSV
-                            if hasattr(combined_failing_rows, "write_csv"):
-                                # Polars
-                                combined_failing_rows.write_csv(extract_file)
-                            elif hasattr(combined_failing_rows, "to_csv"):
-                                # Pandas
-                                combined_failing_rows.to_csv(extract_file, index=False)
-                            else:
-                                # Try converting to pandas as fallback
-                                import pandas as pd
-
-                                pd_data = pd.DataFrame(combined_failing_rows)
-                                pd_data.to_csv(extract_file, index=False)
-
-                            console.print(f"[green]✓[/green] Failing rows saved to: {extract_file}")
-                            if len(step_sources) > 1:
-                                console.print(
-                                    f"[dim]Combined rows from: {', '.join(step_sources)}[/dim]"
-                                )
-                            else:
-                                console.print(f"[dim]Rows from: {step_sources[0]}[/dim]")
+                        if saved_files:
+                            console.print(
+                                f"[green]✓[/green] Failing rows saved to folder: {output_folder}"
+                            )
+                            for filename, row_count in saved_files:
+                                console.print(f"[dim]  - {filename}: {row_count} rows[/dim]")
                         else:
                             console.print(
                                 "[yellow]No failing rows could be extracted to save[/yellow]"
