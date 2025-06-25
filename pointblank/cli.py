@@ -1468,8 +1468,9 @@ def missing(data_source: str, output_html: str | None):
         ]
     ),
     default="rows-distinct",
-    help="Type of validation check to perform",
+    help="Type of validation check to perform. Use --list-checks to see all options.",
 )
+@click.option("--list-checks", is_flag=True, help="List available validation checks and exit")
 @click.option(
     "--column",
     help="Column name to validate (required for col-vals-not-null, col-exists, col-vals-in-set, col-vals-gt, col-vals-ge, col-vals-lt, and col-vals-le checks)",
@@ -1502,6 +1503,7 @@ def validate(
     write_extract: str | None,
     limit: int,
     exit_code: bool,
+    list_checks: bool,
 ):
     """
     Perform simple, single-step data validations.
@@ -1519,6 +1521,10 @@ def validate(
 
     AVAILABLE CHECKS:
 
+    Use --list-checks to see all available validation methods with examples.
+
+    The default check is 'rows-distinct' which checks for duplicate rows.
+
     \b
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
     - rows-complete: Check if all rows are complete (no missing values in any column)
@@ -1533,6 +1539,8 @@ def validate(
     Examples:
 
     \b
+    pb validate data.csv                                              # Uses default validation (rows-distinct)
+    pb validate data.csv --list-checks                               # Show all available checks
     pb validate data.csv --check rows-distinct
     pb validate data.csv --check rows-distinct --show-extract
     pb validate data.csv --check rows-distinct --write-extract failing_rows_folder
@@ -1544,6 +1552,61 @@ def validate(
     pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
     """
     try:
+        # Handle --list-checks option
+        if list_checks:
+            console.print("[bold bright_cyan]Available Validation Checks:[/bold bright_cyan]")
+            console.print()
+            console.print("[bold magenta]Basic checks:[/bold magenta]")
+            console.print(
+                "  • [bold cyan]rows-distinct[/bold cyan]     Check for duplicate rows [yellow](default)[/yellow]"
+            )
+            console.print(
+                "  • [bold cyan]rows-complete[/bold cyan]     Check for missing values in any column"
+            )
+            console.print()
+            console.print(
+                "[bold magenta]Column-specific checks [bright_black](require --column)[/bright_black]:[/bold magenta]"
+            )
+            console.print("  • [bold cyan]col-exists[/bold cyan]        Check if a column exists")
+            console.print(
+                "  • [bold cyan]col-vals-not-null[/bold cyan] Check for null values in a column"
+            )
+            console.print()
+            console.print(
+                "[bold magenta]Value comparison checks [bright_black](require --column and --value)[/bright_black]:[/bold magenta]"
+            )
+            console.print(
+                "  • [bold cyan]col-vals-gt[/bold cyan]       Values greater than threshold"
+            )
+            console.print(
+                "  • [bold cyan]col-vals-ge[/bold cyan]       Values greater than or equal to threshold"
+            )
+            console.print("  • [bold cyan]col-vals-lt[/bold cyan]       Values less than threshold")
+            console.print(
+                "  • [bold cyan]col-vals-le[/bold cyan]       Values less than or equal to threshold"
+            )
+            console.print()
+            console.print(
+                "[bold magenta]Set validation check [bright_black](requires --column and --set)[/bright_black]:[/bold magenta]"
+            )
+            console.print(
+                "  • [bold cyan]col-vals-in-set[/bold cyan]   Values must be in allowed set"
+            )
+            console.print()
+            console.print("[bold bright_yellow]Examples:[/bold bright_yellow]")
+            console.print(
+                f"  [bright_blue]pb validate {data_source} --check rows-distinct[/bright_blue]"
+            )
+            console.print(
+                f"  [bright_blue]pb validate {data_source} --check col-vals-not-null --column price[/bright_blue]"
+            )
+            console.print(
+                f"  [bright_blue]pb validate {data_source} --check col-vals-gt --column age --value 18[/bright_blue]"
+            )
+            import sys
+
+            sys.exit(0)
+
         # Check if --check option was explicitly provided by the user
         # If --check is not in the command line args, it means we're using the default
         import sys
@@ -2157,24 +2220,25 @@ def validate(
         if is_using_default_check:
             console.print()
             console.print("[bold blue]ℹ️  Information:[/bold blue] Using default validation method")
-            console.print("[dim]To specify a different validation, use the --check option.[/dim]")
+            console.print("To specify a different validation, use the --check option.")
             console.print()
-            console.print("[dim]Common validation options:[/dim]")
+            console.print("[bold magenta]Common validation options:[/bold magenta]")
             console.print(
-                "[dim]  • [cyan]--check rows-complete[/cyan]        Check for rows with missing values[/dim]"
+                "  • [bold cyan]--check rows-complete[/bold cyan]        Check for rows with missing values"
             )
             console.print(
-                "[dim]  • [cyan]--check col-vals-not-null[/cyan]   Check for null values in a column (requires --column)[/dim]"
+                "  • [bold cyan]--check col-vals-not-null[/bold cyan]   Check for null values in a column [bright_black](requires --column)[/bright_black]"
             )
             console.print(
-                "[dim]  • [cyan]--check col-exists[/cyan]          Check if a column exists (requires --column)[/dim]"
+                "  • [bold cyan]--check col-exists[/bold cyan]          Check if a column exists [bright_black](requires --column)[/bright_black]"
             )
             console.print()
+            console.print("[bold bright_yellow]Examples:[/bold bright_yellow]")
             console.print(
-                f"[dim]Example: [cyan]pb validate {data_source} --check rows-complete[/cyan][/dim]"
+                f"  [bright_blue]pb validate {data_source} --check rows-complete[/bright_blue]"
             )
             console.print(
-                f"[dim]         [cyan]pb validate {data_source} --check col-vals-not-null --column price[/cyan][/dim]"
+                f"  [bright_blue]pb validate {data_source} --check col-vals-not-null --column price[/bright_blue]"
             )
 
         # Exit with appropriate code if requested
