@@ -1490,7 +1490,9 @@ def missing(data_source: str, output_html: str | None):
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
 @click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
+@click.pass_context
 def validate(
+    ctx: click.Context,
     data_source: str,
     check: str,
     column: str | None,
@@ -1542,6 +1544,12 @@ def validate(
     pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
     """
     try:
+        # Check if --check option was explicitly provided by the user
+        # If --check is not in the command line args, it means we're using the default
+        import sys
+
+        is_using_default_check = check == "rows-distinct" and "--check" not in sys.argv
+
         # Validate required parameters for different check types
         if check == "col-vals-not-null" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
@@ -1640,7 +1648,12 @@ def validate(
                 # Get the result
                 all_passed = validation.all_passed()
 
-                console.print(f"[green]✓[/green] {check} validation completed")
+                if is_using_default_check:
+                    console.print(
+                        f"[green]✓[/green] {check} validation completed [dim](default validation)[/dim]"
+                    )
+                else:
+                    console.print(f"[green]✓[/green] {check} validation completed")
             elif check == "col-vals-not-null":
                 # Create validation for not null values in specified column
                 validation = (
@@ -2139,6 +2152,30 @@ def validate(
                         border_style="red",
                     )
                 )
+
+        # Add informational hints when using default validation
+        if is_using_default_check:
+            console.print()
+            console.print("[bold blue]ℹ️  Information:[/bold blue] Using default validation method")
+            console.print("[dim]To specify a different validation, use the --check option.[/dim]")
+            console.print()
+            console.print("[dim]Common validation options:[/dim]")
+            console.print(
+                "[dim]  • [cyan]--check rows-complete[/cyan]        Check for rows with missing values[/dim]"
+            )
+            console.print(
+                "[dim]  • [cyan]--check col-vals-not-null[/cyan]   Check for null values in a column (requires --column)[/dim]"
+            )
+            console.print(
+                "[dim]  • [cyan]--check col-exists[/cyan]          Check if a column exists (requires --column)[/dim]"
+            )
+            console.print()
+            console.print(
+                f"[dim]Example: [cyan]pb validate {data_source} --check rows-complete[/cyan][/dim]"
+            )
+            console.print(
+                f"[dim]         [cyan]pb validate {data_source} --check col-vals-not-null --column price[/cyan][/dim]"
+            )
 
         # Exit with appropriate code if requested
         if exit_code and not all_passed:
