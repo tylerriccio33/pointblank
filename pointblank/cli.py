@@ -548,7 +548,9 @@ def _rich_print_scan_table(
         console.print(f"[red]Error displaying table: {str(e)}[/red]")
 
 
-def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
+def _rich_print_gt_table(
+    gt_table: Any, preview_info: dict | None = None, show_summary: bool = True
+) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
 
     Args:
@@ -558,6 +560,7 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             - head_rows: Number of head rows shown
             - tail_rows: Number of tail rows shown
             - is_complete: Whether the entire dataset is shown
+        show_summary: Whether to show the row count summary at the bottom
     """
     try:
         # Try to extract the underlying data from the GT table
@@ -861,44 +864,45 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
             console.print()
             console.print(rich_table)
 
-            # Show summary info
-            total_rows = len(rows)
+            # Show summary info (conditionally)
+            if show_summary:
+                total_rows = len(rows)
 
-            # Use preview info if available, otherwise fall back to old logic
-            if preview_info:
-                total_dataset_rows = preview_info.get("total_rows", total_rows)
-                head_rows = preview_info.get("head_rows", 0)
-                tail_rows = preview_info.get("tail_rows", 0)
-                is_complete = preview_info.get("is_complete", False)
+                # Use preview info if available, otherwise fall back to old logic
+                if preview_info:
+                    total_dataset_rows = preview_info.get("total_rows", total_rows)
+                    head_rows = preview_info.get("head_rows", 0)
+                    tail_rows = preview_info.get("tail_rows", 0)
+                    is_complete = preview_info.get("is_complete", False)
 
-                if is_complete:
-                    console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
-                elif head_rows > 0 and tail_rows > 0:
-                    console.print(
-                        f"\n[dim]Showing first {head_rows} and last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
-                    )
-                elif head_rows > 0:
-                    console.print(
-                        f"\n[dim]Showing first {head_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
-                    )
-                elif tail_rows > 0:
-                    console.print(
-                        f"\n[dim]Showing last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
-                    )
+                    if is_complete:
+                        console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
+                    elif head_rows > 0 and tail_rows > 0:
+                        console.print(
+                            f"\n[dim]Showing first {head_rows} and last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                        )
+                    elif head_rows > 0:
+                        console.print(
+                            f"\n[dim]Showing first {head_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                        )
+                    elif tail_rows > 0:
+                        console.print(
+                            f"\n[dim]Showing last {tail_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                        )
+                    else:
+                        # Fallback for other cases
+                        console.print(
+                            f"\n[dim]Showing {total_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
+                        )
                 else:
-                    # Fallback for other cases
-                    console.print(
-                        f"\n[dim]Showing {total_rows} rows from {total_dataset_rows:,} total rows.[/dim]"
-                    )
-            else:
-                # Original logic as fallback
-                max_rows = 50  # This should match the limit used above
-                if total_rows > max_rows:
-                    console.print(
-                        f"\n[dim]Showing first {max_rows} of {total_rows} rows. Use --output-html to see all data.[/dim]"
-                    )
-                else:
-                    console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
+                    # Original logic as fallback
+                    max_rows = 50  # This should match the limit used above
+                    if total_rows > max_rows:
+                        console.print(
+                            f"\n[dim]Showing first {max_rows} of {total_rows} rows. Use --output-html to see all data.[/dim]"
+                        )
+                    else:
+                        console.print(f"\n[dim]Showing all {total_rows} rows.[/dim]")
 
         else:
             # If we can't extract data, show the success message
@@ -2056,7 +2060,7 @@ def validate(
                             )
 
                             # Display using our Rich table function
-                            _rich_print_gt_table(preview_table)
+                            _rich_print_gt_table(preview_table, show_summary=False)
 
                         if write_extract:
                             try:
@@ -3025,7 +3029,7 @@ def run(
                                 )
 
                                 # Display using our Rich table function
-                                _rich_print_gt_table(preview_table)
+                                _rich_print_gt_table(preview_table, show_summary=False)
                             else:
                                 console.print(
                                     f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
