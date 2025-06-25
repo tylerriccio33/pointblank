@@ -2179,9 +2179,7 @@ def validate(
 
                 # Add hint about --show-extract if not already used (except for col-exists which has no rows to show)
                 if not show_extract and check != "col-exists":
-                    failure_message += (
-                        "\n[dim]💡 Tip: Use --show-extract to see the failing rows[/dim]"
-                    )
+                    failure_message += "\n[bright_blue]💡 Tip:[/bright_blue] [cyan]Use --show-extract to see the failing rows[/cyan]"
 
                 console.print(
                     Panel(
@@ -2205,9 +2203,7 @@ def validate(
 
                 # Add hint about --show-extract if not already used
                 if not show_extract:
-                    failure_message += (
-                        "\n[dim]💡 Tip: Use --show-extract to see the failing rows[/dim]"
-                    )
+                    failure_message += "\n[bright_blue]💡 Tip:[/bright_blue] [cyan]Use --show-extract to see the failing rows[/cyan]"
 
                 console.print(
                     Panel(
