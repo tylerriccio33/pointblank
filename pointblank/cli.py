@@ -28,7 +28,7 @@ class OrderedGroup(click.Group):
             "scan",
             "missing",
             # Validation
-            "validate-simple",
+            "validate",
             "run",
             "make-template",
             # Utilities
@@ -1190,7 +1190,7 @@ def missing(data_source: str, output_html: str | None):
         sys.exit(1)
 
 
-@cli.command(name="validate-simple")
+@cli.command(name="validate")
 @click.argument("data_source", type=str)
 @click.option(
     "--check",
@@ -1230,7 +1230,7 @@ def missing(data_source: str, output_html: str | None):
     "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
 )
 @click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
-def validate_simple(
+def validate(
     data_source: str,
     check: str,
     column: str | None,
@@ -1271,84 +1271,82 @@ def validate_simple(
     Examples:
 
     \b
-    pb validate-simple data.csv --check rows-distinct
-    pb validate-simple data.csv --check rows-distinct --show-extract
-    pb validate-simple data.csv --check rows-distinct --write-extract failing_rows_folder
-    pb validate-simple data.csv --check rows-distinct --exit-code
-    pb validate-simple data.csv --check rows-complete
-    pb validate-simple data.csv --check col-exists --column price
-    pb validate-simple data.csv --check col-vals-not-null --column email
-    pb validate-simple data.csv --check col-vals-gt --column score --value 50
-    pb validate-simple data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
+    pb validate data.csv --check rows-distinct
+    pb validate data.csv --check rows-distinct --show-extract
+    pb validate data.csv --check rows-distinct --write-extract failing_rows_folder
+    pb validate data.csv --check rows-distinct --exit-code
+    pb validate data.csv --check rows-complete
+    pb validate data.csv --check col-exists --column price
+    pb validate data.csv --check col-vals-not-null --column email
+    pb validate data.csv --check col-vals-gt --column score --value 50
+    pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
     """
     try:
         # Validate required parameters for different check types
         if check == "col-vals-not-null" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
-            console.print(
-                "Example: pb validate-simple data.csv --check col-vals-not-null --column email"
-            )
+            console.print("Example: pb validate data.csv --check col-vals-not-null --column email")
             sys.exit(1)
             sys.exit(1)
 
         if check == "col-exists" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
-            console.print("Example: pb validate-simple data.csv --check col-exists --column price")
+            console.print("Example: pb validate data.csv --check col-exists --column price")
             sys.exit(1)
 
         if check == "col-vals-in-set" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-in-set --column status --set 'active,inactive'"
+                "Example: pb validate data.csv --check col-vals-in-set --column status --set 'active,inactive'"
             )
             sys.exit(1)
 
         if check == "col-vals-gt" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+                "Example: pb validate data.csv --check col-vals-gt --column score --value 50"
             )
             sys.exit(1)
 
         if check == "col-vals-gt" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-gt --column score --value 50"
+                "Example: pb validate data.csv --check col-vals-gt --column score --value 50"
             )
             sys.exit(1)
 
         if check == "col-vals-ge" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+                "Example: pb validate data.csv --check col-vals-ge --column age --value 18"
             )
             sys.exit(1)
 
         if check == "col-vals-ge" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-ge --column age --value 18"
+                "Example: pb validate data.csv --check col-vals-ge --column age --value 18"
             )
             sys.exit(1)
 
         if check == "col-vals-lt" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+                "Example: pb validate data.csv --check col-vals-lt --column age --value 65"
             )
             sys.exit(1)
 
         if check == "col-vals-lt" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-lt --column age --value 65"
+                "Example: pb validate data.csv --check col-vals-lt --column age --value 65"
             )
             sys.exit(1)
 
         if check == "col-vals-le" and not column:
             console.print(f"[red]Error:[/red] --column is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
+                "Example: pb validate data.csv --check col-vals-le --column score --value 100"
             )
             sys.exit(1)
 
