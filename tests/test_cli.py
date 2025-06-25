@@ -19,7 +19,7 @@ from pointblank.cli import (
     info,
     scan,
     missing,
-    run_example,
+    make_template,
     run,
     validate_simple,
     _format_cell_value,
@@ -857,9 +857,9 @@ def test_cli_commands_basic_functionality():
     result = runner.invoke(missing, ["small_table"])
     assert result.exit_code == 0
 
-    # Test run-example command
+    # Test make-template command
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        result = runner.invoke(run_example, [f.name])
+        result = runner.invoke(make_template, [f.name])
         script_path = f.name
 
     try:
