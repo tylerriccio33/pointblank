@@ -603,6 +603,7 @@ def test_cli_commands_help_output():
         "info",
         "scan",
         "missing",
+        "validate",
         "run",
     ]
 
