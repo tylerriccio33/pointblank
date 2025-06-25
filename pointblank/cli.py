@@ -1480,20 +1480,20 @@ def missing(data_source: str, output_html: str | None):
     "--column",
     "columns",  # Changed to collect multiple values
     multiple=True,  # Allow multiple --column options
-    help="Column name(s) to validate. Can be used multiple times. Order matches --check order for column-specific checks.",
+    help="Column name to validate.",
 )
 @click.option(
     "--set",
     "sets",  # Changed to collect multiple values
     multiple=True,  # Allow multiple --set options
-    help="Comma-separated allowed values for col-vals-in-set checks. Can be used multiple times. Order matches --check order.",
+    help="Comma-separated allowed values for col-vals-in-set checks.",
 )
 @click.option(
     "--value",
     "values",  # Changed to collect multiple values
     type=float,
     multiple=True,  # Allow multiple --value options
-    help="Numeric values for comparison checks. Can be used multiple times. Order matches --check order.",
+    help="Numeric value for comparison checks.",
 )
 @click.option(
     "--show-extract", is_flag=True, help="Show extract of failing rows if validation fails"
