@@ -281,6 +281,273 @@ def _format_dtype_compact(dtype_str: str) -> str:
         return dtype_str
 
 
+def _rich_print_scan_table(
+    scan_result: Any,
+    data_source: str,
+    source_type: str,
+    table_type: str,
+    total_rows: int | None = None,
+    total_columns: int | None = None,
+) -> None:
+    """
+    Display scan results as a Rich table in the terminal with statistical measures.
+
+    Args:
+        scan_result: The GT object from col_summary_tbl()
+        data_source: Name of the data source being scanned
+        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
+        table_type: Type of table (e.g., "polars.LazyFrame")
+        total_rows: Total number of rows in the dataset
+        total_columns: Total number of columns in the dataset
+    """
+    try:
+        import re
+
+        import narwhals as nw
+        from rich.box import SIMPLE_HEAD
+
+        # Extract the underlying DataFrame from the GT object
+        # The GT object has a _tbl_data attribute that contains the DataFrame
+        gt_data = scan_result._tbl_data
+
+        # Convert to Narwhals DataFrame for consistent handling
+        nw_data = nw.from_native(gt_data)
+
+        # Convert to dictionary for easier access
+        data_dict = nw_data.to_dict(as_series=False)
+
+        # Create main scan table with missing data table styling
+        # Create a comprehensive title with data source, source type, and table type
+        title_text = f"Column Summary / {source_type} / {table_type}"
+
+        # Add dimensions subtitle in gray if available
+        if total_rows is not None and total_columns is not None:
+            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+        scan_table = Table(
+            title=title_text,
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
+        )
+
+        # Add columns with specific styling and appropriate widths
+        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+        scan_table.add_column(
+            "NA", style="red", width=6, justify="right"
+        )  # Adjusted for better formatting
+        scan_table.add_column(
+            "UQ", style="green", width=8, justify="right"
+        )  # Adjusted for boolean values
+
+        # Add statistical columns if they exist with appropriate widths
+        stat_columns = []
+        column_mapping = {
+            "mean": ("Mean", "blue", 9),
+            "std": ("SD", "blue", 9),
+            "min": ("Min", "yellow", 9),
+            "median": ("Med", "yellow", 9),
+            "max": ("Max", "yellow", 9),
+            "q_1": ("Q₁", "magenta", 8),
+            "q_3": ("Q₃", "magenta", 9),
+            "iqr": ("IQR", "magenta", 8),
+        }
+
+        for col_key, (display_name, color, width) in column_mapping.items():
+            if col_key in data_dict:
+                scan_table.add_column(display_name, style=color, width=width, justify="right")
+                stat_columns.append(col_key)
+
+        # Helper function to extract column name and type from HTML
+        def extract_column_info(html_content: str) -> tuple[str, str]:
+            """Extract column name and type from HTML formatted content."""
+            # Extract column name from first div
+            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
+            column_name = name_match.group(1) if name_match else "Unknown"
+
+            # Extract data type from second div (with gray color)
+            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
+            if type_match:
+                data_type = type_match.group(1)
+                # Convert to compact format using the existing function
+                compact_type = _format_dtype_compact(data_type)
+                data_type = compact_type
+            else:
+                data_type = "unknown"
+
+            return column_name, data_type
+
+        # Helper function to format values with improved number formatting
+        def format_value(
+            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
+        ) -> str:
+            """Format values for display with smart number formatting and HTML cleanup."""
+            if value is None or (isinstance(value, str) and value.strip() == ""):
+                return "[dim]—[/dim]"
+
+            # Handle missing values indicator
+            if is_missing and str(value) == "0":
+                return "[green]●[/green]"  # No missing values
+
+            # Clean up HTML formatting from the raw data
+            str_val = str(value)
+
+            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            if "<br>" in str_val:
+                str_val = str_val.split("<br>")[0].strip()
+                # For unique values, we want just the integer part
+                if is_unique:
+                    try:
+                        # Try to extract just the integer part for unique counts
+                        num_val = float(str_val)
+                        return str(int(num_val))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Now handle HTML content (especially from boolean unique values)
+            if "<" in str_val and ">" in str_val:
+                # Remove HTML tags completely for cleaner display
+                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
+                # Clean up extra whitespace
+                str_val = re.sub(r"\s+", " ", str_val).strip()
+
+            # Handle values like "2<.01" - extract the first number
+            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
+                # Extract number before the < symbol
+                before_lt = str_val.split("<")[0].strip()
+                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
+                    str_val = before_lt
+
+            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
+                # Extract T and F values
+                t_match = re.search(r"T(\d+\.\d+)", str_val)
+                f_match = re.search(r"F(\d+\.\d+)", str_val)
+                if t_match and f_match:
+                    t_val = float(t_match.group(1))
+                    f_val = float(f_match.group(1))
+                    # Show as "T0.62F0.38" but truncated if needed
+                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
+                    if len(formatted) > max_width:
+                        # Truncate to fit, showing dominant value
+                        if t_val > f_val:
+                            return f"T{t_val:.1f}"
+                        else:
+                            return f"F{f_val:.1f}"
+                    return formatted
+
+            # Try to parse as a number for better formatting
+            try:
+                # Try to convert to float first
+                num_val = float(str_val)
+
+                # Handle special cases
+                if num_val == 0:
+                    return "0"
+                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
+                    # Simple integers under 10000
+                    return str(int(num_val))
+                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
+                    # Likely dates in YYYYMMDD format - format as date-like
+                    int_val = int(num_val)
+                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
+                        str_date = str(int_val)
+                        if len(str_date) == 8:
+                            return (
+                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
+                                + "…"
+                            )
+                    # Otherwise treat as large number
+                    return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 1000000:
+                    # Large numbers - use scientific notation or M/k notation
+
+                    if abs(num_val) >= 1000000000:
+                        return f"{num_val:.1e}"
+                    else:
+                        return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 10000:
+                    # Numbers >= 10k - use compact notation
+                    return f"{num_val / 1000:.1f}k"
+                elif abs(num_val) >= 100:
+                    # Numbers 100-9999 - show with minimal decimals
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 10:
+                    # Numbers 10-99 - show with one decimal
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 1:
+                    # Numbers 1-9 - show with two decimals
+                    return f"{num_val:.2f}"
+                elif abs(num_val) >= 0.01:
+                    # Small numbers - show with appropriate precision
+                    return f"{num_val:.2f}"
+                else:
+                    # Very small numbers - use scientific notation
+
+                    return f"{num_val:.1e}"
+
+            except (ValueError, TypeError):
+                # Not a number, handle as string
+                pass
+
+            # Handle date/datetime strings - show abbreviated format
+            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
+                # Likely a date/datetime, show abbreviated
+                if len(str_val) > max_width:
+                    return str_val[: max_width - 1] + "…"
+
+            # General string truncation with ellipsis
+            if len(str_val) > max_width:
+                return str_val[: max_width - 1] + "…"
+
+            return str_val
+
+        # Populate table rows
+        num_rows = len(data_dict["colname"])
+        for i in range(num_rows):
+            row_data = []
+
+            # Column name and type from HTML content
+            colname_html = data_dict["colname"][i]
+            column_name, data_type = extract_column_info(colname_html)
+            row_data.append(column_name)
+            row_data.append(data_type)
+
+            # Missing values (NA)
+            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
+            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
+
+            # Unique values (UQ)
+            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
+            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
+
+            # Statistical columns
+            for stat_col in stat_columns:
+                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
+                # Use appropriate width based on column type
+                if stat_col in ["q_1", "iqr"]:
+                    width = 8
+                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
+                    width = 9
+                else:
+                    width = 8
+                row_data.append(format_value(stat_val, max_width=width))
+
+            scan_table.add_row(*row_data)
+
+        # Display the results
+        console.print()
+        console.print(scan_table)
+
+    except Exception as e:
+        # Fallback to simple message if table creation fails
+        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
+        console.print(f"[red]Error displaying table: {str(e)}[/red]")
+
+
 def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> None:
     """Convert a GT table to Rich table and display it in the terminal.
 
@@ -321,13 +588,6 @@ def _rich_print_gt_table(gt_table: Any, preview_info: dict | None = None) -> Non
                 source_type = preview_info["source_type"]
                 table_type = preview_info["table_type"]
                 table_title = f"Data Preview / {source_type} / {table_type}"
-
-                # Add dimensions subtitle in gray if available
-                if "total_rows" in preview_info and "total_columns" in preview_info:
-                    total_rows = preview_info["total_rows"]
-                    total_columns = preview_info["total_columns"]
-                    if total_rows is not None and total_columns is not None:
-                        table_title += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
 
             rich_table = Table(
                 title=table_title,
@@ -1956,11 +2216,262 @@ def _rich_print_scan_table(
     total_columns: int | None = None,
 ) -> None:
     """
-    Display scan results as a Rich table in the terminal.
+    Display scan results as a Rich table in the terminal with statistical measures.
+
+    Args:
+        scan_result: The GT object from col_summary_tbl()
+        data_source: Name of the data source being scanned
+        source_type: Type of data source (e.g., "Pointblank dataset: small_table")
+        table_type: Type of table (e.g., "polars.LazyFrame")
+        total_rows: Total number of rows in the dataset
+        total_columns: Total number of columns in the dataset
     """
-    # Simplified implementation
-    console.print(f"[green]✓[/green] Data scan completed for {data_source}")
-    console.print("Use --output-html to save the full interactive scan report.")
+    try:
+        import re
+
+        import narwhals as nw
+        from rich.box import SIMPLE_HEAD
+
+        # Extract the underlying DataFrame from the GT object
+        # The GT object has a _tbl_data attribute that contains the DataFrame
+        gt_data = scan_result._tbl_data
+
+        # Convert to Narwhals DataFrame for consistent handling
+        nw_data = nw.from_native(gt_data)
+
+        # Convert to dictionary for easier access
+        data_dict = nw_data.to_dict(as_series=False)
+
+        # Create main scan table with missing data table styling
+        # Create a comprehensive title with data source, source type, and table type
+        title_text = f"Column Summary / {source_type} / {table_type}"
+
+        # Add dimensions subtitle in gray if available
+        if total_rows is not None and total_columns is not None:
+            title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+        scan_table = Table(
+            title=title_text,
+            show_header=True,
+            header_style="bold magenta",
+            box=SIMPLE_HEAD,
+            title_style="bold cyan",
+            title_justify="left",
+        )
+
+        # Add columns with specific styling and appropriate widths
+        scan_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+        scan_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+        scan_table.add_column(
+            "NA", style="red", width=6, justify="right"
+        )  # Adjusted for better formatting
+        scan_table.add_column(
+            "UQ", style="green", width=8, justify="right"
+        )  # Adjusted for boolean values
+
+        # Add statistical columns if they exist with appropriate widths
+        stat_columns = []
+        column_mapping = {
+            "mean": ("Mean", "blue", 9),
+            "std": ("SD", "blue", 9),
+            "min": ("Min", "yellow", 9),
+            "median": ("Med", "yellow", 9),
+            "max": ("Max", "yellow", 9),
+            "q_1": ("Q₁", "magenta", 8),
+            "q_3": ("Q₃", "magenta", 9),
+            "iqr": ("IQR", "magenta", 8),
+        }
+
+        for col_key, (display_name, color, width) in column_mapping.items():
+            if col_key in data_dict:
+                scan_table.add_column(display_name, style=color, width=width, justify="right")
+                stat_columns.append(col_key)
+
+        # Helper function to extract column name and type from HTML
+        def extract_column_info(html_content: str) -> tuple[str, str]:
+            """Extract column name and type from HTML formatted content."""
+            # Extract column name from first div
+            name_match = re.search(r"<div[^>]*>([^<]+)</div>", html_content)
+            column_name = name_match.group(1) if name_match else "Unknown"
+
+            # Extract data type from second div (with gray color)
+            type_match = re.search(r"<div[^>]*color: gray[^>]*>([^<]+)</div>", html_content)
+            if type_match:
+                data_type = type_match.group(1)
+                # Convert to compact format using the existing function
+                compact_type = _format_dtype_compact(data_type)
+                data_type = compact_type
+            else:
+                data_type = "unknown"
+
+            return column_name, data_type
+
+        # Helper function to format values with improved number formatting
+        def format_value(
+            value: Any, is_missing: bool = False, is_unique: bool = False, max_width: int = 8
+        ) -> str:
+            """Format values for display with smart number formatting and HTML cleanup."""
+            if value is None or (isinstance(value, str) and value.strip() == ""):
+                return "[dim]—[/dim]"
+
+            # Handle missing values indicator
+            if is_missing and str(value) == "0":
+                return "[green]●[/green]"  # No missing values
+
+            # Clean up HTML formatting from the raw data
+            str_val = str(value)
+
+            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            if "<br>" in str_val:
+                str_val = str_val.split("<br>")[0].strip()
+                # For unique values, we want just the integer part
+                if is_unique:
+                    try:
+                        # Try to extract just the integer part for unique counts
+                        num_val = float(str_val)
+                        return str(int(num_val))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Now handle HTML content (especially from boolean unique values)
+            if "<" in str_val and ">" in str_val:
+                # Remove HTML tags completely for cleaner display
+                str_val = re.sub(r"<[^>]+>", "", str_val).strip()
+                # Clean up extra whitespace
+                str_val = re.sub(r"\s+", " ", str_val).strip()
+
+            # Handle values like "2<.01" - extract the first number
+            if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
+                # Extract number before the < symbol
+                before_lt = str_val.split("<")[0].strip()
+                if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
+                    str_val = before_lt
+
+            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
+                # Extract T and F values
+                t_match = re.search(r"T(\d+\.\d+)", str_val)
+                f_match = re.search(r"F(\d+\.\d+)", str_val)
+                if t_match and f_match:
+                    t_val = float(t_match.group(1))
+                    f_val = float(f_match.group(1))
+                    # Show as "T0.62F0.38" but truncated if needed
+                    formatted = f"T{t_val:.2f}F{f_val:.2f}"
+                    if len(formatted) > max_width:
+                        # Truncate to fit, showing dominant value
+                        if t_val > f_val:
+                            return f"T{t_val:.1f}"
+                        else:
+                            return f"F{f_val:.1f}"
+                    return formatted
+
+            # Try to parse as a number for better formatting
+            try:
+                # Try to convert to float first
+                num_val = float(str_val)
+
+                # Handle special cases
+                if num_val == 0:
+                    return "0"
+                elif abs(num_val) == int(abs(num_val)) and abs(num_val) < 10000:
+                    # Simple integers under 10000
+                    return str(int(num_val))
+                elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
+                    # Likely dates in YYYYMMDD format - format as date-like
+                    int_val = int(num_val)
+                    if 19000101 <= int_val <= 29991231:  # Reasonable date range
+                        str_date = str(int_val)
+                        if len(str_date) == 8:
+                            return (
+                                f"{str_date[:4]}-{str_date[4:6]}-{str_date[6:]}"[: max_width - 1]
+                                + "…"
+                            )
+                    # Otherwise treat as large number
+                    return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 1000000:
+                    # Large numbers - use scientific notation or M/k notation
+
+                    if abs(num_val) >= 1000000000:
+                        return f"{num_val:.1e}"
+                    else:
+                        return f"{num_val / 1000000:.1f}M"
+                elif abs(num_val) >= 10000:
+                    # Numbers >= 10k - use compact notation
+                    return f"{num_val / 1000:.1f}k"
+                elif abs(num_val) >= 100:
+                    # Numbers 100-9999 - show with minimal decimals
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 10:
+                    # Numbers 10-99 - show with one decimal
+                    return f"{num_val:.1f}"
+                elif abs(num_val) >= 1:
+                    # Numbers 1-9 - show with two decimals
+                    return f"{num_val:.2f}"
+                elif abs(num_val) >= 0.01:
+                    # Small numbers - show with appropriate precision
+                    return f"{num_val:.2f}"
+                else:
+                    # Very small numbers - use scientific notation
+
+                    return f"{num_val:.1e}"
+
+            except (ValueError, TypeError):
+                # Not a number, handle as string
+                pass
+
+            # Handle date/datetime strings - show abbreviated format
+            if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
+                # Likely a date/datetime, show abbreviated
+                if len(str_val) > max_width:
+                    return str_val[: max_width - 1] + "…"
+
+            # General string truncation with ellipsis
+            if len(str_val) > max_width:
+                return str_val[: max_width - 1] + "…"
+
+            return str_val
+
+        # Populate table rows
+        num_rows = len(data_dict["colname"])
+        for i in range(num_rows):
+            row_data = []
+
+            # Column name and type from HTML content
+            colname_html = data_dict["colname"][i]
+            column_name, data_type = extract_column_info(colname_html)
+            row_data.append(column_name)
+            row_data.append(data_type)
+
+            # Missing values (NA)
+            missing_val = data_dict.get("n_missing", [None] * num_rows)[i]
+            row_data.append(format_value(missing_val, is_missing=True, max_width=6))
+
+            # Unique values (UQ)
+            unique_val = data_dict.get("n_unique", [None] * num_rows)[i]
+            row_data.append(format_value(unique_val, is_unique=True, max_width=8))
+
+            # Statistical columns
+            for stat_col in stat_columns:
+                stat_val = data_dict.get(stat_col, [None] * num_rows)[i]
+                # Use appropriate width based on column type
+                if stat_col in ["q_1", "iqr"]:
+                    width = 8
+                elif stat_col in ["mean", "std", "min", "median", "max", "q_3"]:
+                    width = 9
+                else:
+                    width = 8
+                row_data.append(format_value(stat_val, max_width=width))
+
+            scan_table.add_row(*row_data)
+
+        # Display the results
+        console.print()
+        console.print(scan_table)
+
+    except Exception as e:
+        # Fallback to simple message if table creation fails
+        console.print(f"[yellow]Scan results available for {data_source}[/yellow]")
+        console.print(f"[red]Error displaying table: {str(e)}[/red]")
 
 
 def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
