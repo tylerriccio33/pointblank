@@ -1379,4 +1379,4 @@ def test_preview_with_column_iteration_error():
     try:
         _rich_print_gt_table(MockErrorTable())
     except Exception:
-        pass  # Expected to fail gracefully
+        pass  # Expected
