@@ -120,21 +120,21 @@ pb info "duckdb:///warehouse/analytics.ddb::customers"
 
 ```bash
 # Check for duplicate rows
-pb validate-simple small_table --check rows-distinct
+pb validate small_table --check rows-distinct
 
 # Validate data from multiple sources
-pb validate-simple "data/*.parquet" --check col-vals-not-null --column customer_id
-pb validate-simple "https://github.com/user/repo/blob/main/sales.csv" --check rows-distinct
+pb validate "data/*.parquet" --check col-vals-not-null --column customer_id
+pb validate "https://github.com/user/repo/blob/main/sales.csv" --check rows-distinct
 
 # Extract failing data for debugging
-pb validate-simple small_table --check col-vals-gt --column a --value 5 --show-extract
+pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 ```
 
 #### 4. Integrate with CI/CD
 
 ```bash
 # Use exit codes for automation (0 = pass, 1 = fail)
-pb validate-simple small_table --check rows-distinct && echo "✅ Quality checks passed"
+pb validate small_table --check rows-distinct && echo "✅ Quality checks passed"
 ```
 
 
