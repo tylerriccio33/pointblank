@@ -1565,6 +1565,10 @@ def validate(
     pb validate data.csv --check col-vals-not-null --column email
     pb validate data.csv --check col-vals-gt --column score --value 50
     pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
+
+    Multiple validations in one command:
+    pb validate data.csv --check rows-distinct --check rows-complete
+    pb validate data.csv --check col-vals-not-null --column email --check col-vals-gt --column age --value 18
     """
     try:
         # Handle backward compatibility and parameter conversion
