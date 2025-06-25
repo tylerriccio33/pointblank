@@ -1353,7 +1353,7 @@ def validate(
         if check == "col-vals-le" and value is None:
             console.print(f"[red]Error:[/red] --value is required for {check} check")
             console.print(
-                "Example: pb validate-simple data.csv --check col-vals-le --column score --value 100"
+                "Example: pb validate data.csv --check col-vals-le --column score --value 100"
             )
             sys.exit(1)
 
