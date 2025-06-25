@@ -30,7 +30,7 @@ class OrderedGroup(click.Group):
             # Validation
             "validate-simple",
             "run",
-            "run-example",
+            "make-template",
             # Utilities
             "datasets",
             "requirements",
@@ -2140,11 +2140,21 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
 
 @cli.command()
 @click.argument("output_file", type=click.Path())
-def run_example(output_file: str):
+def make_template(output_file: str):
     """
-    Generate an example validation script.
+    Create a validation script template.
 
-    Creates a sample Python script showing how to use Pointblank for validation.
+    Creates a sample Python script with examples showing how to use Pointblank
+    for data validation. Edit the template to add your own data loading and
+    validation rules, then run it with 'pb run'.
+
+    OUTPUT_FILE is the path where the template script will be created.
+
+    Examples:
+
+    \b
+    pb make-template my_validation.py
+    pb make-template validation_template.py
     """
     example_script = '''"""
 Example Pointblank validation script.
@@ -2202,8 +2212,8 @@ validation = (
 '''
 
     Path(output_file).write_text(example_script)
-    console.print(f"[green]✓[/green] Example validation script created: {output_file}")
-    console.print("\nEdit the script to add your data loading and validation rules, then run:")
+    console.print(f"[green]✓[/green] Validation script template created: {output_file}")
+    console.print("\nEdit the template to add your data loading and validation rules, then run:")
     console.print(f"[cyan]pb run {output_file}[/cyan]")
     console.print(
         f"[cyan]pb run {output_file} --data your_data.csv[/cyan]  [dim]# Override data source[/dim]"
