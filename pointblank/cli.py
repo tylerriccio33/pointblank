@@ -1480,7 +1480,7 @@ def missing(data_source: str, output_html: str | None):
     "--column",
     "columns",  # Changed to collect multiple values
     multiple=True,  # Allow multiple --column options
-    help="Column name to validate.",
+    help="Column name or integer position as #N (1-based index) for validation.",
 )
 @click.option(
     "--set",
@@ -1701,6 +1701,36 @@ def validate(
         with console.status("[bold green]Loading data..."):
             # Load the data source using the centralized function
             data = _load_data_source(data_source)
+
+            # Get all column names for error reporting
+            if hasattr(data, "columns"):
+                all_columns = list(data.columns)
+            elif hasattr(data, "schema"):
+                all_columns = list(data.schema.names)
+            else:
+                all_columns = []
+
+            # Resolve any '#N' column references to actual column names
+            columns_list = _resolve_column_indices(columns_list, data)
+
+            # Check for out-of-range #N columns and provide a helpful error
+            for col in columns_list:
+                if isinstance(col, str) and col.startswith("#"):
+                    try:
+                        idx = int(col[1:])
+                        if idx < 1 or idx > len(all_columns):
+                            console.print(
+                                f"[red]Error:[/red] There is no column {idx} (the column position "
+                                f"range is 1 to {len(all_columns)})"
+                            )
+                            sys.exit(1)
+                    except Exception:
+                        pass  # Let later validation handle other errors
+
+            # Update mapped_columns to use resolved column names
+            mapped_columns, mapped_sets, mapped_values = _map_parameters_to_checks(
+                checks_list, columns_list, sets_list, values_list
+            )
 
             console.print(f"[green]✓[/green] Loaded data source: {data_source}")
 
@@ -2414,6 +2444,34 @@ def _map_parameters_to_checks(
             mapped_values.append(None)
 
     return mapped_columns, mapped_sets, mapped_values
+
+
+def _resolve_column_indices(columns_list, data):
+    """
+    Replace any '#N' entries in columns_list with the actual column name from data (1-based).
+    """
+    # Get column names from the data
+    if hasattr(data, "columns"):
+        all_columns = list(data.columns)
+    elif hasattr(data, "schema"):
+        all_columns = list(data.schema.names)
+    else:
+        return columns_list  # Can't resolve, return as-is
+
+    resolved = []
+    for col in columns_list:
+        if isinstance(col, str) and col.startswith("#"):
+            try:
+                idx = int(col[1:]) - 1  # 1-based to 0-based
+                if 0 <= idx < len(all_columns):
+                    resolved.append(all_columns[idx])
+                else:
+                    resolved.append(col)  # Out of range, keep as-is
+            except Exception:
+                resolved.append(col)  # Not a valid number, keep as-is
+        else:
+            resolved.append(col)
+    return resolved
 
 
 def _display_validation_result(
