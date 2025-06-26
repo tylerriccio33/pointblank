@@ -60,9 +60,9 @@ See the most commonly used validation checks that catch critical data issues:
 *Duplicate detection, null checks, and data extract debugging*
 :::
 
-### Data Exploration Without Python
+### Data Exploration Tools
 
-Discover how to profile and explore data using CLI tools that don't require Python knowledge:
+Discover how to profile and explore data using CLI tools that are quick and easy to use:
 
 ::: {.gif-container}
 ![Data Exploration](../../assets/vhs/cli-data-exploration.gif)
@@ -84,7 +84,7 @@ Follow an end-to-end data quality pipeline combining exploration, validation, an
 
 ::: {.gif-container}
 ![Complete Workflow](../../assets/vhs/cli-complete-workflow.gif)
-*Full pipeline: explore → validate → profile → automate*
+*Full pipeline: explore → validate → automate*
 :::
 
 ## Getting Started
@@ -101,18 +101,18 @@ pb --help
 #### 2. Explore Various Data Sources
 
 ```bash
-# Built-in datasets
+# Try previewing a built-in dataset
 pb preview small_table
 
-# Local files with patterns
-pb preview "data/*.parquet"
-pb scan sales_data.csv
+# Access local files (even use patterns to combine multiple Parquet files)
+pb preview sales_data.csv
+pb scan "data/*.parquet"
 
-# GitHub repositories (no download required)
+# Inspect datasets in GitHub repositories (no need to download the data!)
 pb preview "https://github.com/user/repo/blob/main/data.csv"
 pb missing "https://raw.githubusercontent.com/user/repo/main/sales.parquet"
 
-# Database connections
+# Work with DB tables through connection strings
 pb info "duckdb:///warehouse/analytics.ddb::customers"
 ```
 
@@ -134,7 +134,5 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 
 ```bash
 # Use exit codes for automation (0 = pass, 1 = fail)
-pb validate small_table --check rows-distinct && echo "✅ Quality checks passed"
+pb validate small_table --check rows-distinct --exit-code
 ```
-
-
