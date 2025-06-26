@@ -1554,7 +1554,7 @@ def validate(
     Examples:
 
     \b
-    pb validate data.csv                                              # Uses default validation (rows-distinct)
+    pb validate data.csv                                             # Uses default validation (rows-distinct)
     pb validate data.csv --list-checks                               # Show all available checks
     pb validate data.csv --check rows-distinct
     pb validate data.csv --check rows-distinct --show-extract
