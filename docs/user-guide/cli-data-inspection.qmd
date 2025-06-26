@@ -1,0 +1,122 @@
+---
+title: Data Inspection and Exploration
+jupyter: python3
+toc-expand: 2
+---
+
+Pointblank’s CLI makes it easy to inspect, preview, and explore your data before running
+validations. This is useful for understanding your data’s structure, checking for obvious issues,
+and confirming that your data source is being read correctly.
+
+## Supported Data Sources
+
+You can inspect a wide variety of data sources using the CLI:
+
+- CSV files: single files, glob patterns
+- Parquet files: as single files, directories, or partitioned datasets
+- GitHub URLs: for CSV/Parquet files as standard or raw URLs
+- database tables: via connection strings
+- built-in datasets: these are provided by Pointblank
+
+::: {.callout-info}
+
+## Quick Reference for the Data Inspection Commands
+
+| Command         | Purpose                                      |
+|-----------------|----------------------------------------------|
+| `pb info`       | Show table type, dimensions, columns, types  |
+| `pb preview`    | Preview head/tail rows, select columns       |
+| `pb scan`       | Full column summary/profile (stats, NA, etc) |
+| `pb missing`    | Visualize missing value patterns             |
+
+:::
+
+## `pb info`: Inspecting Data Structure
+
+Use `pb info` to display basic information about your data source:
+
+```bash
+pb info data.csv
+pb info "data/*.parquet"
+pb info "duckdb:///warehouse/analytics.ddb::customer_metrics"
+pb info small_table
+```
+
+This command shows the
+
+- table type (e.g., pandas, polars, etc.)
+- number of rows and columns
+- data source path or identifier
+
+## `pb preview`: Previewing Data
+
+Use `pb preview` to view the first and last rows of your data, with flexible column selection:
+
+```bash
+pb preview data.csv
+pb preview "data/*.parquet"
+pb preview "https://github.com/user/repo/blob/main/data.csv"
+pb preview "duckdb:///path/to/db.ddb::table_name"
+pb preview small_table
+```
+
+Here are some useful options:
+
+- `--rows N`: show N rows from the top, default: 5
+- `--columns "col1,col2"`: show only specified columns
+- `--col-range "1:10"`: show columns by position
+- `--col-first N`: show first N columns
+- `--col-last N`: show last N columns
+- `--no-row-numbers`: hide row numbers
+- `--output-html file.html`: save preview as an HTML file
+
+Here's an example where only the `name`, `age`, and `email` columns from `data.csv` are shown (and
+we limit this to the top 10 rows):
+
+```bash
+pb preview data.csv --columns "name,age,email" --rows 10
+```
+
+## `pb scan`: Column Summary and Profiling
+
+Use `pb scan` for a comprehensive column summary, including:
+
+- data types
+- missing value counts
+- unique value counts
+- summary statistics (mean, standard deviation, min, max, quartiles)
+
+```bash
+pb scan data.csv
+pb scan "data/*.parquet"
+pb scan "duckdb:///warehouse/analytics.ddb::customer_metrics"
+pb scan small_table
+```
+
+Here are the options:
+
+- `--columns "col1,col2"` (scan only specified columns)
+- `--output-html file.html` (save scan as HTML report)
+
+## `pb missing`: Missing Value Patterns
+
+Use `pb missing` to generate a missing values report, visualizing missingness across columns and row
+sectors:
+
+```bash
+pb missing data.csv
+pb missing "data/*.parquet"
+pb missing "duckdb:///warehouse/analytics.ddb::customer_metrics"
+pb missing small_table
+```
+
+There's an option here as well:
+
+- `--output-html file.html` (save missing values report as HTML)
+
+## Some Useful Tips on When and How to Use
+
+- use `pb info` and before running validations to confirm your data source can be loaded.
+- use `pb preview` to quickly understand what the data looks like.
+- use `pb missing` to visualize and diagnose missing data patterns.
+- use `pb scan` for a quick data profile and to spot outliers or data quality issues.

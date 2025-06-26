@@ -1,0 +1,172 @@
+---
+title: Data Validation and Automation
+jupyter: python3
+toc-expand: 2
+---
+
+Pointblank’s CLI makes it easy to validate your data directly from the terminal. This is ideal for
+quick checks, CI/CD pipelines, and automation workflows. The `pb run` command serves as a runner for
+validation scripts written with the Pointblank Python API, allowing you to execute more complex
+validation logic from the command line.
+
+## Supported Data Sources
+
+You can validate a wide variety of data sources using the CLI:
+
+- CSV files: single files, glob patterns
+- Parquet files: single files, directories, partitioned datasets
+- GitHub URLs: for CSV/Parquet files (standard or raw URLs)
+- database tables: via connection strings
+- built-in datasets: provided by Pointblank
+
+::: {.callout-info}
+
+## Quick Reference for the Data Validation Commands
+
+| Command         | Purpose                                              |
+|-----------------|------------------------------------------------------|
+| `pb validate`   | Run validation checks on your data                   |
+| `pb run`        | Run a Python validation script from the CLI          |
+| `pb make-template` | Generate a validation script template             |
+
+:::
+
+## `pb validate`: Run Validation Checks
+
+Use `pb validate` to perform one or more validation checks on your data source. Here's the basic
+usage pattern:
+
+```bash
+pb validate [DATA_SOURCE] --check [CHECK_TYPE] [OPTIONS]
+```
+
+Here are the supported checks and the required options in parentheses:
+
+- `rows-distinct`: check for duplicate rows (default)
+- `rows-complete`: check for missing values in any column
+- `col-exists`: check if a column exists (`--column`)
+- `col-vals-not-null`: check if a column has no null values (`--column`)
+- `col-vals-gt`: column values greater than a value (`--column`, `--value`)
+- `col-vals-ge`: column values greater than or equal to a value (`--column`, `--value`)
+- `col-vals-lt`: column values less than a value (`--column`, `--value`)
+- `col-vals-le`: column values less than or equal to a value (`--column`, `--value`)
+- `col-vals-in-set`: column values must be in a set (`--column`, `--set`)
+
+Here are a few examples:
+
+```bash
+# Check for duplicate rows (default)
+pb validate data.csv
+
+# Check if all values in 'age' are not null
+pb validate data.csv --check col-vals-not-null --column age
+
+# Check if all values in 'score' are greater than 50
+pb validate data.csv --check col-vals-gt --column score --value 50
+
+# Check if 'status' values are in a set
+pb validate data.csv --check col-vals-in-set --column status --set "active,inactive,pending"
+```
+
+Several consecutive checks can be performed in one command! To do this, use `--check` multiple times
+(along with the check type and its required options).
+
+```bash
+# Perform multiple checks in one command
+pb validate data.csv --check rows-distinct --check col-vals-not-null --column id
+```
+
+There are several useful options:
+
+- `--show-extract`: show failing rows if validation fails
+- `--write-extract TEXT: save failing rows to a directory as CSV
+- `--limit INTEGER`: limit the number of failing rows shown/saved (default: 10)
+- `--exit-code`: exit with non-zero code if validation fails (for CI/CD)
+- `--list-checks`: list all available validation checks
+
+## `pb run`: Run Python Validation Scripts
+
+Use `pb run` to execute a Python script containing Pointblank validation logic. This is useful for
+more complex validations or automation.
+
+```bash
+pb run validation_script.py
+```
+
+Here are the options:
+
+- `--data [DATA_SOURCE]`: override the data source in your script (available as `cli_data`)
+- `--output-html file.html`: save validation report as HTML
+- `--output-json file.json`: save validation summary as JSON
+- `--show-extract`: show failing rows for failed steps
+- `--write-extract TEXT`: save failing rows for each step as CSVs in a directory
+- `--limit INTEGER`: limit the number of failing rows shown/saved
+- `--fail-on [critical|error|warning|any]`: exit with error if any step meets/exceeds this severity
+
+Here's an example where we:
+
+- override the input data in the script
+- output the validation report table to a file
+- signal failure (i.e., exit with non-zero code) if any 'error' threshold is met
+
+```bash
+pb run my_validation.py --data data.csv --output-html report.html --fail-on error
+```
+
+To scaffold a .py file for this, use `pb make-template`.
+
+## `pb make-template`: Generate a Validation Script Template
+
+Use this command to create a starter Python script for Pointblank validation:
+
+```bash
+pb make-template my_validation.py
+```
+
+Edit the generated script to add your own data loading and validation rules, then run it with
+`pb run`.
+
+## Integration with CI/CD
+
+Validation through the CLI provide opportunities for automation. The following features lend
+themselves well to automated processes:
+
+- validation results are shown in a clear, color-coded table
+- `--show-extract` or `--write-extract` can be used to debug failing rows
+- the `--exit-code` or `--fail-on` options are ideal for CI/CD integration.
+
+
+Here's an example of how one might integrate data validation through the Pointblank CLI into a CI/CD
+pipeline:
+
+```yaml
+# Example GitHub Actions workflow
+name: Data Validation
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install pointblank
+      - name: Validate data quality
+        run: |
+          pb validate data/sales.csv --check rows-distinct --exit-code
+          pb validate data/sales.csv --check col-vals-not-null --column customer_id --exit-code
+          pb validate data/sales.csv --check col-vals-gt --column amount --value 0 --exit-code
+```
+
+## Some Useful Tips
+
+- use `pb validate --list-checks` to see all available checks and usage examples.
+- use `pb run` for advanced validation logic or when you need to chain multiple steps.
+- use `pb make-template` to quickly scaffold new validation scripts.
+
+For more CLI usage examples and real terminal output, see the
+[CLI Demos](../demos/cli-interactive/index.qmd).
