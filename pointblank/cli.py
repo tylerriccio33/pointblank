@@ -1078,10 +1078,10 @@ def info(data_source: str):
             row_count = pb.get_row_count(data)
             col_count = pb.get_column_count(data)
 
-            # Import the box style for consistent styling with scan table
+            # Import the box style
             from rich.box import SIMPLE_HEAD
 
-            # Create info table with same styling as scan table
+            # Create info table
             info_table = Table(
                 title="Data Source Information",
                 show_header=True,
@@ -1879,6 +1879,8 @@ def datasets():
     """
     List available built-in datasets.
     """
+    from rich.box import SIMPLE_HEAD
+
     datasets_info = [
         ("small_table", "13 rows × 8 columns", "Small demo dataset for testing"),
         ("game_revenue", "2,000 rows × 11 columns", "Game development company revenue data"),
@@ -1889,6 +1891,17 @@ def datasets():
     table = Table(
         title="Available Pointblank Datasets", show_header=True, header_style="bold magenta"
     )
+
+    # Create the datasets table
+    table = Table(
+        title="Available Pointblank Datasets",
+        show_header=True,
+        header_style="bold magenta",
+        box=SIMPLE_HEAD,
+        title_style="bold cyan",
+        title_justify="left",
+    )
+
     table.add_column("Dataset Name", style="cyan", no_wrap=True)
     table.add_column("Dimensions", style="green")
     table.add_column("Description", style="white")
@@ -1906,6 +1919,8 @@ def requirements():
     """
     Check installed dependencies and their availability.
     """
+    from rich.box import SIMPLE_HEAD
+
     dependencies = [
         ("polars", "Polars DataFrame support"),
         ("pandas", "Pandas DataFrame support"),
@@ -1914,7 +1929,16 @@ def requirements():
         ("pyarrow", "Parquet file support"),
     ]
 
-    table = Table(title="Dependency Status", show_header=True, header_style="bold magenta")
+    # Create requirements table
+    table = Table(
+        title="Dependency Status",
+        show_header=True,
+        header_style="bold magenta",
+        box=SIMPLE_HEAD,
+        title_style="bold cyan",
+        title_justify="left",
+    )
+
     table.add_column("Package", style="cyan", no_wrap=True)
     table.add_column("Status", style="white")
     table.add_column("Description", style="dim")
@@ -1974,6 +1998,7 @@ def _rich_print_scan_table(
         if total_rows is not None and total_columns is not None:
             title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
 
+        # Create the scan table
         scan_table = Table(
             title=title_text,
             show_header=True,
@@ -2217,9 +2242,9 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
             df = gt_table.data
 
         if df is not None:
-            # Create a Rich table with horizontal lines
             from rich.box import SIMPLE_HEAD
 
+            # Create the missing values table
             rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
 
             # Get column names
@@ -2549,7 +2574,7 @@ def _display_validation_result(
 
         table_title = f"Validation Result ({step_index + 1} of {total_checks}): {base_title}"
 
-    # Create the result table
+    # Create the validation results table
     result_table = Table(
         title=table_title,
         show_header=True,
