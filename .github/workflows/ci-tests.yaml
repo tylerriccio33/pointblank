@@ -30,7 +30,7 @@ jobs:
         run: uv pip install --system ".[dev]"
       - name: pytest unit tests
         run: |
-          make test
+          pytest -v
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
