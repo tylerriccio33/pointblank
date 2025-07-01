@@ -10,8 +10,6 @@ issues, and confirming that your data source is being read correctly. We also ma
 explore data in various formats and locations. Let's go through each of the commands for inspecting
 and exploring data.
 
-:::
-
 ## `pb info`: Inspecting Data Structure
 
 Use `pb info` to display basic information about your data source. Here's how this works with a
@@ -47,7 +45,6 @@ pb info https://github.com/posit-dev/pointblank/blob/main/data_raw/global_sales.
 And these input schemes work with all other commands that accept a `DATA_SOURCE`.
 :::
 
-
 ## `pb preview`: Previewing Data
 
 Use `pb preview` to view the first and last rows of your data. Let's try it out with the
@@ -55,23 +52,32 @@ Use `pb preview` to view the first and last rows of your data. Let's try it out 
 
 ![](/assets/pb-preview-worldcities-csv.png){width=100%}
 
+As can be seen, `pb preview` gives you a preview of the dataset as a table in the console. The
+dataset has 41K rows but we're electing to show only five rows from the head and from the tail.
 
-Here are some useful options:
+Let's go over some features of the table preview. First off, the table header provides information
+on the data source and the DataFrame library that handled the reading of the CSV. Below the column
+names are simplified representations of the data types (e.g., `<obj>` for object, `<f64>` for
+Float64). We provide row numbers (in gray) in the table stub to indicate the which of the rows are
+from the head or the tail (and a divider helps to distinguish these row groups). If you'd prefer
+to eliminate the row numbers, use the `--no-row-numbers` option:
 
-- `--rows N`: show N rows from the top, default: 5
-- `--columns "col1,col2"`: show only specified columns
-- `--col-range "1:10"`: show columns by position
-- `--col-first N`: show first N columns
-- `--col-last N`: show last N columns
-- `--no-row-numbers`: hide row numbers
-- `--output-html file.html`: save preview as an HTML file
+![](/assets/pb-preview-worldcities-csv-no-row-numbers.png){width=100%}
 
-Here's an example where only the `name`, `age`, and `email` columns from `data.csv` are shown (and
-we limit this to the top 10 rows):
+While `pb preview` keeps the row count down, the number of columns shown can be more than you might
+need. There are several ways to subset the preview table's columns and a good one (provided you
+know the column names) is to use the `--columns` option:
 
-```bash
-pb preview data.csv --columns "name,age,email" --rows 10
-```
+![](/assets/pb-preview-worldcities-csv-column-names.png){width=100%}
+
+You may want to view ranges of columns by index. This is convenient when you want to get a closer
+look at a few side-by-side columns and you don't want to bother with getting the set of column names
+exactly right. For this, we use the `--col-range` option:
+
+![](/assets/pb-preview-worldcities-csv-column-range.png){width=100%}
+
+And there are many more options that allow for quick iteration while previewing a table. Use
+`pb preview --help` to get a helpful listing.
 
 ## `pb scan`: Column Summary and Profiling
 
