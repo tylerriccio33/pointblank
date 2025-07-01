@@ -68,16 +68,26 @@ While `pb preview` purposefully displays only a few rows, the number of columns 
 than you might need. Furthermore, if a table has *a lot* of columns, you'll only see some of the
 first and some of the last columns. This is where column selection becomes useful and there are a
 few methods available for subsetting the preview table's columns. A good one (provided you know the
-column names) is to use the `--columns` option along with a comma-delimted set of column names:
+column names) is to use the `--columns` option along with a comma-delimted set of column names.
+Let's look at a preview of the included `game_revenue` dataset before subsetting the columns:
 
-![](/assets/pb-preview-worldcities-csv-column-names.png){width=100%}
+![](/assets/pb-preview-game_revenue-all-columns.png){width=100%}
 
-You may want to view ranges of columns by index. This is convenient when you want to get a closer
-look at a few side-by-side columns and you don't want to bother with getting the set of column names
-exactly right. For this, we use the `--col-range` option with the desired left/right column bounds
-separated by a colon:
+That's 11 columns and while the all columns are shown (none in the middle are truncated from view)
+we start to see some (necessary) instances of shortening via `…` in the column names and in the
+displayed values. Let's now use the `--columns` with a set of column names:
 
-![](/assets/pb-preview-worldcities-csv-column-range.png){width=100%}
+![](/assets/pb-preview-game_revenue-column-names.png){width=100%}
+
+Now, those few columns that are displayed no longer have to abbreviate their data values. This sort
+of selective display becomes more necessary as the width of the terminal is reduced.
+
+You may want to view ranges of columns by their indices. This is convenient when you want to get a
+closer look at a few side-by-side columns and you don't want to bother with getting the set of
+column names exactly right (i.e., for quick inspection). For this, we need to use the `--col-range`
+option with the desired left/right column bounds separated by a colon:
+
+![](/assets/pb-preview-game_revenue-column-range.png){width=100%}
 
 In the case that you want to save a table preview as an HTML table in a standalone file, you can add
 in the `--output-html` option (just add a path/filename with an .html extension).
