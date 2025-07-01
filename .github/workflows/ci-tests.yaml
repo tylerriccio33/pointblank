@@ -28,7 +28,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: pytest unit tests
         run: |
-          python -m pytest -v
+          make test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
