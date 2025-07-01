@@ -10,7 +10,7 @@ issues, and confirming that your data source is being read correctly. We also ma
 explore data in various formats and locations. Let's go through each of the commands for inspecting
 and exploring data.
 
-## `pb info`: Inspecting Data Structure
+## `pb info`: Inspecting the Data Structure
 
 Use `pb info` to display basic information about your data source. Here's how this works with a
 local CSV file:
@@ -85,7 +85,7 @@ in the `--output-html` option (just add a path/filename with an .html extension)
 And there are many more options that allow for quick iteration while previewing a table. Use
 `pb preview --help` to get a helpful listing.
 
-## `pb scan`: Column Summary and Profiling
+## `pb scan`: Getting Column Summaries
 
 We can use `pb scan` for fairly comprehensive summaries of column data, including:
 
@@ -111,7 +111,7 @@ There are two options for `pb scan`:
 
 Both of these are also in the `pb preview` command and they behave the same way here.
 
-## `pb missing`: Missing Value Patterns
+## `pb missing`: Reporting on Missing Values
 
 Use `pb missing` to generate a missing values report, visualizing missingness across columns and 10
 *row sectors*. Here's an example using `worldcities.csv`:
