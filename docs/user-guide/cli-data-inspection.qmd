@@ -4,61 +4,57 @@ jupyter: python3
 toc-expand: 2
 ---
 
-Pointblank’s CLI makes it easy to inspect, preview, and explore your data before running
-validations. This is useful for understanding your data’s structure, checking for obvious issues,
-and confirming that your data source is being read correctly.
-
-## Supported Data Sources
-
-You can inspect a wide variety of data sources using the CLI:
-
-- CSV files: single files, glob patterns
-- Parquet files: as single files, directories, or partitioned datasets
-- GitHub URLs: for CSV/Parquet files as standard or raw URLs
-- database tables: via connection strings
-- built-in datasets: these are provided by Pointblank
-
-::: {.callout-info}
-
-## Quick Reference for the Data Inspection Commands
-
-| Command         | Purpose                                      |
-|-----------------|----------------------------------------------|
-| `pb info`       | Show table type, dimensions, columns, types  |
-| `pb preview`    | Preview head/tail rows, select columns       |
-| `pb scan`       | Full column summary/profile (stats, NA, etc) |
-| `pb missing`    | Visualize missing value patterns             |
+Pointblank’s CLI (`pb`) makes it easy to view your data before running validations. It has several
+commands that are exceedingly useful for understanding your data’s structure, checking for obvious
+issues, and confirming that your data source is being read correctly. We also make it easy to
+explore data in various formats and locations. Let's go through each of the commands for inspecting
+and exploring data.
 
 :::
 
 ## `pb info`: Inspecting Data Structure
 
-Use `pb info` to display basic information about your data source:
+Use `pb info` to display basic information about your data source. Here's how this works with a
+local CSV file:
+
+![](/assets/pb-info-worldcities-csv.png){width=100%}
+
+This command shows the (1) table type (e.g., `pandas`, `polars`, etc.), (2) the number of rows and
+columns, and (3) the data source path or identifier.
+
+That example used a local CSV file. The same file is also present in Pointblank's GitHub repository
+(in the `data-raw` directory) and the CLI is able to load the data from there as well:
+
+![](/assets/pb-info-worldcities-github-csv.png){width=100%}
+
+The `pb info` command is useful before running validations to confirm your data source's dimensions,
+and, whether it can even be loaded.
+
+::: {.callout-info}
+
+You can inspect a wide variety of data sources using the CLI! Here are some examples with `pb info`:
 
 ```bash
-pb info data.csv
-pb info "data/*.parquet"
-pb info "duckdb:///warehouse/analytics.ddb::customer_metrics"
-pb info small_table
+pb info small_table         # built in dataset
+pb info worldcities.csv     # single CSV file
+pb info meteo.parquet       # single Parquet file
+pb info "*.parquet"         # several Parquet files
+pb info "data/*.parquet"    # partitioned Parquet files
+pb info "duckdb:///warehouse/analytics.ddb::customer_metrics" # DB table via connection string
+pb info https://github.com/posit-dev/pointblank/blob/main/data_raw/global_sales.csv # GitHub URL
 ```
 
-This command shows the
+And these input schemes work with all other commands that accept a `DATA_SOURCE`.
+:::
 
-- table type (e.g., pandas, polars, etc.)
-- number of rows and columns
-- data source path or identifier
 
 ## `pb preview`: Previewing Data
 
-Use `pb preview` to view the first and last rows of your data, with flexible column selection:
+Use `pb preview` to view the first and last rows of your data. Let's try it out with the
+`worldcities.csv` file:
 
-```bash
-pb preview data.csv
-pb preview "data/*.parquet"
-pb preview "https://github.com/user/repo/blob/main/data.csv"
-pb preview "duckdb:///path/to/db.ddb::table_name"
-pb preview small_table
-```
+![](/assets/pb-preview-worldcities-csv.png){width=100%}
+
 
 Here are some useful options:
 
