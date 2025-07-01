@@ -73,14 +73,17 @@ Let's look at a preview of the included `game_revenue` dataset before subsetting
 
 ![](/assets/pb-preview-game_revenue-all-columns.png){width=100%}
 
-That's 11 columns and while the all columns are shown (none in the middle are truncated from view)
-we start to see some (necessary) instances of shortening via `…` in the column names and in the
-displayed values. Let's now use the `--columns` with a set of column names:
+That's 11 columns in total and while the all columns *are* shown (i.e., none in the middle are
+truncated from view), we start to see some necessary instances of abbreviating via `…` within the
+column names and in the displayed values.
+
+Let's now use the `--columns` with a set of column names:
 
 ![](/assets/pb-preview-game_revenue-column-names.png){width=100%}
 
-Now, those few columns that are displayed no longer have to abbreviate their data values. This sort
-of selective display becomes more necessary as the width of the terminal is reduced.
+With that, the few columns that are displayed no longer have to abbreviate their data values. This
+is an important consideration since a selective display of column becomes more necessary if column
+content is large or if the width of the terminal (in terms of characters) cannot be increased.
 
 You may want to view ranges of columns by their indices. This is convenient when you want to get a
 closer look at a few side-by-side columns and you don't want to bother with getting the set of
