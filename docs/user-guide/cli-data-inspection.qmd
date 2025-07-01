@@ -81,21 +81,24 @@ And there are many more options that allow for quick iteration while previewing 
 
 ## `pb scan`: Column Summary and Profiling
 
-Use `pb scan` for a comprehensive column summary, including:
+We can use `pb scan` for fairly comprehensive summaries of column data, including:
 
 - data types
 - missing value counts
 - unique value counts
-- summary statistics (mean, standard deviation, min, max, quartiles)
+- summary statistics (mean, standard deviation, min, max, quartiles, and the interquartile range)
 
-```bash
-pb scan data.csv
-pb scan "data/*.parquet"
-pb scan "duckdb:///warehouse/analytics.ddb::customer_metrics"
-pb scan small_table
-```
+Let's use this on the `worldcities.csv` dataset:
 
-Here are the options:
+![](/assets/pb-preview-worldcities-csv.png){width=100%}
+
+Each row in the summary table represents a column in the input dataset. Just as in `pb preview` we
+get simplified dtypes (in the `Type` column). The `NA` and `UQ` indicate how many missing and unique
+values are in the column. The remaining columns are statistical measures and there's an important
+thing to note here: the values provided for any string-based columns (here, `city_name` and
+`country`) are derived from string lengths.
+
+There are two options for `pb scan`:
 
 - `--columns "col1,col2"` (scan only specified columns)
 - `--output-html file.html` (save scan as HTML report)
