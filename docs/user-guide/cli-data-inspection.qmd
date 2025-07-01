@@ -117,12 +117,22 @@ values are in the column. The remaining columns are statistical measures and the
 thing to note here: the values provided for any string-based columns (here, `city_name` and
 `country`) are derived from string lengths.
 
+When using `pb scan`, it's helpful to know that large numbers in the summary table are automatically
+abbreviated for readability, so you'll see values like `39.8k` or `38.0M` instead of long numbers
+that would require many more characters. For the best experience, try to use a terminal window
+that's at least 150 characters wide. This will help ensure that all column values are fully visible
+and not adversely abbreviated by the underlying table mechanism.
+
+If your table has many columns, that's not much of a problem for the reporting! Each column is
+represented as a row in the report, so you'll simply see more lines in the output (and you could
+always limit the number of columns reported).
+
 There are two options for `pb scan`:
 
 - `--columns "col1,col2"`: scan only specified columns
 - `--output-html "file.html"`: save scan as an HTML file
 
-Both of these are also in the `pb preview` command and they behave the same way here.
+Both of these options are also in the `pb preview` command and they behave the same way here.
 
 ## `pb missing`: Reporting on Missing Values
 
@@ -158,7 +168,14 @@ previous two commands discussed), we can write the missing values report to a st
 
 ## Wrapping Up
 
-- use `pb info` and before running validations to confirm your data source can be loaded.
-- use `pb preview` to quickly understand what the data looks like.
-- use `pb scan` for a quick data profile and to spot outliers or data quality issues.
-- use `pb missing` to visualize and diagnose missing data patterns.
+Pointblank’s CLI provides a set of commands that make it easy to inspect, understand, and diagnose
+your data before you move on to validation or analysis. Using these tools can help you catch issues
+early and gain confidence in your data sources.
+
+- use `pb info` and before running validations to confirm your data source can be loaded
+- use `pb preview` to quickly understand what the data looks like
+- use `pb scan` for a quick data profile and to spot outliers or data quality issues
+- use `pb missing` to visualize and diagnose missing data patterns
+
+By incorporating these commands into your workflow, you’ll be better equipped to work efficiently
+with your data (and avoid surprises down the line).
