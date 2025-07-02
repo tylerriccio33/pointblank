@@ -145,32 +145,61 @@ For more complex validation logic, use the `pb run` command. This lets you execu
 containing Pointblank validation steps, combining the flexibility of the Python API with the
 convenience of the CLI.
 
-Let’s scaffold a template script:
+You can always scaffold a template script using the `pb make-template` command:
 
 ```bash
 pb make-template my_validation.py
 ```
 
-Edit `my_validation.py` to add your own data loading and validation logic. Here’s a simple example:
+![](/assets/pb-make-template.png){width=100%}
+
+But for our example, we'll elect to make our own `worldcities_validation.py` file from scratch. It
+will:
+
+- use the `worldcities.csv` file
+- apply two thresholds (one for 'warning', another for 'error')
+- have six validation steps
+
+Here's what it looks like:
 
 ```python
 import pointblank as pb
 
 validation = (
-    pb.Validate("worldcities.csv")
-    .col_vals_not_null("city")
-    .col_vals_gt("population", 0)
+    pb.Validate(
+        data="worldcities.csv",
+        thresholds=pb.Thresholds(
+            warning=1,  # 1 failure
+            error=0.05,  # 5% of rows failing
+        ),
+    )
+    .col_schema_match(
+        schema=pb.Schema(
+            columns=[
+                ("city_name", "object"),
+                ("latitude", "float64"),
+                ("longitude", "float64"),
+                ("country", "object"),
+                ("population", "float64"),
+            ]
+        ),
+    )
+    .col_vals_not_null(columns="city_name")
+    .col_vals_not_null(columns="population")
+    .col_vals_gt(columns="population", value=0, na_pass=True)
+    .col_vals_between(columns="latitude", left=-90, right=90)
+    .col_vals_between(columns="longitude", left=-180, right=180)
     .interrogate()
 )
 ```
 
-Now, run your validation script from the terminal:
+Now, we'll run the .py script from the terminal:
 
 ```bash
-pb run my_validation.py
+pb run worldcities_validation.py
 ```
 
-![](/assets/pb-run-my-validation.png){width=100%}
+![](/assets/pb-run-worldcities_validation.png){width=100%}
 
 You’ll see a summary table that lists all of the steps and their results and you can include as many
 steps and as much logic as you need.
