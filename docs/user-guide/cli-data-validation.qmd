@@ -204,33 +204,56 @@ pb run worldcities_validation.py
 You’ll see a summary table that lists all of the steps and their results and you can include as many
 steps and as much logic as you need.
 
-### Overriding Data Sources and Output Options
+### Output Options
 
-You can override the data source in your script using the `--data` option—great for reusing scripts
-with different datasets:
-
-```bash
-pb run my_validation.py --data different_cities.csv
-```
-
-Save the validation report as HTML or JSON for sharing or automation:
+You could save the validation report as HTML or JSON (or both) for the purposes of sharing or
+for automation:
 
 ```bash
-pb run my_validation.py --output-html report.html --output-json report.json
+pb run worldcities_validation.py --output-html report.html --output-json report.json
 ```
 
-Use `--show-extract` or `--write-extract` to debug failing rows, just like with `pb validate`.
+![](/assets/pb-run-worldcities_validation-output.png){width=100%}
+
+There are also the options to produce extracts (subset of failing rows) with `--show-extract` or
+`--write-extract` (just like with `pb validate`). Let's do both in the following example:
+
+```bash
+pb run worldcities_validation.py --show-extract --write-extract worldcities_failures
+```
+
+![](/assets/pb-run-worldcities_validation-extracts.png){width=100%}
+
+This shows a preview of each extract for those validation steps where extracts were produced (steps
+2, 3, and 4). Individual CSV files with extracted rows for those steps were written to the
+`worldcities_failures` directory.
 
 ### Controlling Failure Behavior
 
-Use `--fail-on` to control when the command should exit with an error, based on the severity of
-validation failures:
+It's possible to use the `--fail-on` option to control when the command should exit with an error,
+based on the severity of validation failures. This is especially useful for automated workflows and
+CI/CD pipelines.
+
+Let's try that with our `worldcities_validation.py` validation, which we've seen exeeds the
+'warning' in steps 2, 3, and 4:
 
 ```bash
-pb run my_validation.py --fail-on error
+pb run worldcities_validation.py --fail-on warning
 ```
 
-This is especially useful for automated workflows and CI/CD pipelines.
+![](/assets/pb-run-worldcities_validation-fail-on-warning.png){width=100%}
+
+Notice the final line states `Exiting with error due to warning, error, or critical validation
+failures`. Because we applied `--fail-on warning`, any presence of `warning' (or higher levels such
+as 'error' or 'critical') will yield a non-zero exit code that should stop a pipeline process. We
+can prove this by running the following lines in the terminal
+
+```bash
+pb run worldcities_validation.py --fail-on warning > /dev/null 2>&1
+echo $?
+```
+
+which returns `1`.
 
 ## Wrapping Up
 
