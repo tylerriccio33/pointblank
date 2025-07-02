@@ -15,6 +15,10 @@ and exploring data.
 Use `pb info` to display basic information about your data source. Here's how this works with a
 local CSV file:
 
+```bash
+pb info worldcities.csv
+```
+
 ![](/assets/pb-info-worldcities-csv.png){width=100%}
 
 This command shows the (1) table type (e.g., `pandas`, `polars`, etc.), (2) the number of rows and
@@ -22,6 +26,10 @@ columns, and (3) the data source path or identifier.
 
 That example used a local CSV file. The same file is also present in Pointblank's GitHub repository
 (in the `data-raw` directory) and the CLI is able to load the data from there as well:
+
+```bash
+pb info https://github.com/posit-dev/pointblank/blob/main/data_raw/worldcities.csv
+```
 
 ![](/assets/pb-info-worldcities-github-csv.png){width=100%}
 
@@ -50,6 +58,10 @@ And these input schemes work with all other commands that accept a `DATA_SOURCE`
 Use `pb preview` to view the first and last rows of your data. Let's try it out with the
 `worldcities.csv` file:
 
+```bash
+pb preview worldcities.csv
+```
+
 ![](/assets/pb-preview-worldcities-csv.png){width=100%}
 
 As can be seen, `pb preview` gives you a preview of the dataset as a table in the console. The
@@ -62,6 +74,10 @@ names are simplified representations of the data types (e.g., `<obj>` for `objec
 from the head or the tail (and a divider helps to distinguish these row groups). If you'd prefer
 to eliminate the row numbers, use the `--no-row-numbers` option:
 
+```bash
+pb preview worldcities.csv --no-row-numbers
+```
+
 ![](/assets/pb-preview-worldcities-csv-no-row-numbers.png){width=100%}
 
 While `pb preview` purposefully displays only a few rows, the number of columns shown can be more
@@ -71,6 +87,10 @@ few methods available for subsetting the preview table's columns. A good one (pr
 column names) is to use the `--columns` option along with a comma-delimted set of column names.
 Let's look at a preview of the included `game_revenue` dataset before subsetting the columns:
 
+```bash
+pb preview game_revenue
+```
+
 ![](/assets/pb-preview-game_revenue-all-columns.png){width=100%}
 
 That's 11 columns in total and while the all columns *are* shown (i.e., none in the middle are
@@ -78,6 +98,10 @@ truncated from view), we start to see some necessary instances of abbreviating v
 column names and in the displayed values.
 
 Let's now use the `--columns` with a set of column names:
+
+```bash
+pb preview game_revenue -columns "player_id, item_type, item_name, start_day"
+```
 
 ![](/assets/pb-preview-game_revenue-column-names.png){width=100%}
 
@@ -89,6 +113,10 @@ You may want to view ranges of columns by their indices. This is convenient when
 closer look at a few side-by-side columns and you don't want to bother with getting the set of
 column names exactly right (i.e., for quick inspection). For this, we need to use the `--col-range`
 option with the desired left/right column bounds separated by a colon:
+
+```bash
+pb preview game_revenue —-col-range "3:6"
+```
 
 ![](/assets/pb-preview-game_revenue-column-range.png){width=100%}
 
@@ -108,6 +136,10 @@ We can use `pb scan` for fairly comprehensive summaries of column data, includin
 - summary statistics (mean, standard deviation, min, max, quartiles, and the interquartile range)
 
 Let's use this on the `worldcities.csv` dataset:
+
+```bash
+pb scan worldcities.csv
+```
 
 ![](/assets/pb-scan-worldcities-csv.png){width=100%}
 
@@ -138,6 +170,10 @@ Both of these options are also in the `pb preview` command and they behave the s
 
 Use `pb missing` to generate a missing values report, visualizing missingness across columns and 10
 *row sectors*. Here's an example using `worldcities.csv`:
+
+```bash
+pb missing worldcities.csv
+```
 
 ![](/assets/pb-missing-worldcities-csv.png){width=100%}
 
