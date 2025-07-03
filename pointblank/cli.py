@@ -961,10 +961,10 @@ def _display_validation_summary(validation: Any) -> None:
                 severity_color = "red"
             elif n_error > 0:
                 highest_severity = "error"
-                severity_color = "red"
+                severity_color = "yellow"
             elif n_warning > 0:
                 highest_severity = "warning"
-                severity_color = "yellow"
+                severity_color = "bright_black"  # gray
             elif n_all_passed == n_steps:
                 # All steps passed AND all steps had 100% pass rate
                 highest_severity = "all passed"
@@ -1166,7 +1166,12 @@ def _display_validation_summary(validation: Any) -> None:
                     )
                 )
             elif highest_severity in ["warning", "error", "critical"]:
-                color = "yellow" if highest_severity == "warning" else "red"
+                if highest_severity == "warning":
+                    color = "bright_black"  # gray
+                elif highest_severity == "error":
+                    color = "yellow"
+                else:  # critical
+                    color = "red"
                 console.print(
                     Panel(
                         f"[{color}]✗ Validation failed with {highest_severity} severity[/{color}]",
