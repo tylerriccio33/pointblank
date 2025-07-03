@@ -997,6 +997,7 @@ def _display_validation_summary(validation: Any) -> None:
                 steps_table.add_column("", style="dim")
                 steps_table.add_column("Step", style="white")
                 steps_table.add_column("Column", style="cyan")
+                steps_table.add_column("Values", style="yellow")
                 steps_table.add_column("Status", style="white")
                 steps_table.add_column("Passed/Total", style="green")
 
@@ -1012,10 +1013,50 @@ def _display_validation_summary(validation: Any) -> None:
                     elif step.warning:
                         severity = " [yellow](WARNING)[/yellow]"
 
+                    # Extract values information for the Values column
+                    values_str = "—"  # Default to em dash if no values
+
+                    # Handle different validation types
+                    if step.assertion_type == "col_schema_match":
+                        values_str = "—"  # Schema is too complex to display inline
+                    elif step.assertion_type == "col_vals_between":
+                        # For between validations, try to get left and right bounds
+                        if (
+                            hasattr(step, "left")
+                            and hasattr(step, "right")
+                            and step.left is not None
+                            and step.right is not None
+                        ):
+                            values_str = f"[{step.left}, {step.right}]"
+                        elif hasattr(step, "values") and step.values is not None:
+                            if isinstance(step.values, (list, tuple)) and len(step.values) >= 2:
+                                values_str = f"[{step.values[0]}, {step.values[1]}]"
+                            else:
+                                values_str = str(step.values)
+                    elif hasattr(step, "values") and step.values is not None:
+                        if isinstance(step.values, (list, tuple)):
+                            if len(step.values) <= 3:
+                                values_str = ", ".join(str(v) for v in step.values)
+                            else:
+                                values_str = f"{', '.join(str(v) for v in step.values[:3])}..."
+                        else:
+                            values_str = str(step.values)
+                    elif hasattr(step, "value") and step.value is not None:
+                        values_str = str(step.value)
+                    elif hasattr(step, "set") and step.set is not None:
+                        if isinstance(step.set, (list, tuple)):
+                            if len(step.set) <= 3:
+                                values_str = ", ".join(str(v) for v in step.set)
+                            else:
+                                values_str = f"{', '.join(str(v) for v in step.set[:3])}..."
+                        else:
+                            values_str = str(step.set)
+
                     steps_table.add_row(
                         str(step.i),
                         step.assertion_type,
                         str(step.column) if step.column else "—",
+                        values_str,
                         f"[{status_color}]{status_icon}[/{status_color}]{severity}",
                         f"{step.n_passed}/{step.n}",
                     )
