@@ -1001,7 +1001,9 @@ def _display_validation_summary(validation: Any) -> None:
                 steps_table.add_column("Units", style="blue")
                 steps_table.add_column("Pass", style="green")
                 steps_table.add_column("Fail", style="red")
-                steps_table.add_column("Status", style="white")
+                steps_table.add_column("W", style="bright_black")
+                steps_table.add_column("E", style="yellow")
+                steps_table.add_column("C", style="red")
 
                 def format_units(n: int) -> str:
                     """Format large numbers with K, M, B abbreviations for values above 10,000."""
@@ -1040,17 +1042,6 @@ def _display_validation_summary(validation: Any) -> None:
                     return f"{absolute_str}/{fraction_str}"
 
                 for step in info:
-                    status_icon = "✓" if step.all_passed else "✗"
-                    status_color = "green" if step.all_passed else "red"
-
-                    severity = ""
-                    if step.critical:
-                        severity = " [red](CRITICAL)[/red]"
-                    elif step.error:
-                        severity = " [red](ERROR)[/red]"
-                    elif step.warning:
-                        severity = " [yellow](WARNING)[/yellow]"
-
                     # Extract values information for the Values column
                     values_str = "—"  # Default to em dash if no values
 
@@ -1090,6 +1081,46 @@ def _display_validation_summary(validation: Any) -> None:
                         else:
                             values_str = str(step.set)
 
+                    # Determine threshold status for W, E, C columns
+                    # Check if thresholds are set and whether they were exceeded
+
+                    # Warning threshold
+                    if (
+                        hasattr(step, "thresholds")
+                        and step.thresholds
+                        and hasattr(step.thresholds, "warning")
+                        and step.thresholds.warning is not None
+                    ):
+                        w_status = (
+                            "[bright_black]●[/bright_black]"
+                            if step.warning
+                            else "[bright_black]○[/bright_black]"
+                        )
+                    else:
+                        w_status = "—"
+
+                    # Error threshold
+                    if (
+                        hasattr(step, "thresholds")
+                        and step.thresholds
+                        and hasattr(step.thresholds, "error")
+                        and step.thresholds.error is not None
+                    ):
+                        e_status = "[yellow]●[/yellow]" if step.error else "[yellow]○[/yellow]"
+                    else:
+                        e_status = "—"
+
+                    # Critical threshold
+                    if (
+                        hasattr(step, "thresholds")
+                        and step.thresholds
+                        and hasattr(step.thresholds, "critical")
+                        and step.thresholds.critical is not None
+                    ):
+                        c_status = "[red]●[/red]" if step.critical else "[red]○[/red]"
+                    else:
+                        c_status = "—"
+
                     steps_table.add_row(
                         str(step.i),
                         step.assertion_type,
@@ -1098,7 +1129,9 @@ def _display_validation_summary(validation: Any) -> None:
                         format_units(step.n),
                         format_pass_fail(step.n_passed, step.n),
                         format_pass_fail(step.n - step.n_passed, step.n),
-                        f"[{status_color}]{status_icon}[/{status_color}]{severity}",
+                        w_status,
+                        e_status,
+                        c_status,
                     )
 
                 console.print(steps_table)
