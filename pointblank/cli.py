@@ -998,8 +998,46 @@ def _display_validation_summary(validation: Any) -> None:
                 steps_table.add_column("Step", style="white")
                 steps_table.add_column("Column", style="cyan")
                 steps_table.add_column("Values", style="yellow")
+                steps_table.add_column("Units", style="blue")
+                steps_table.add_column("Pass", style="green")
+                steps_table.add_column("Fail", style="red")
                 steps_table.add_column("Status", style="white")
-                steps_table.add_column("Passed/Total", style="green")
+
+                def format_units(n: int) -> str:
+                    """Format large numbers with K, M, B abbreviations for values above 10,000."""
+                    if n >= 1000000000:  # Billions
+                        return f"{n / 1000000000:.1f}B"
+                    elif n >= 1000000:  # Millions
+                        return f"{n / 1000000:.1f}M"
+                    elif n >= 10000:  # Use K for 10,000 and above
+                        return f"{n / 1000:.0f}K"
+                    else:
+                        return str(n)
+
+                def format_pass_fail(passed: int, total: int) -> str:
+                    """Format pass/fail counts with abbreviated numbers and fractions."""
+                    if total == 0:
+                        return "0/0.00"
+
+                    # Calculate fraction
+                    fraction = passed / total
+
+                    # Format fraction with special handling for very small and very large values
+                    if fraction == 0.0:
+                        fraction_str = "0.00"
+                    elif fraction == 1.0:
+                        fraction_str = "1.00"
+                    elif fraction < 0.005:  # Less than 0.005 rounds to 0.00
+                        fraction_str = "<0.01"
+                    elif fraction > 0.995:  # Greater than 0.995 rounds to 1.00
+                        fraction_str = ">0.99"
+                    else:
+                        fraction_str = f"{fraction:.2f}"
+
+                    # Format absolute number with abbreviations
+                    absolute_str = format_units(passed)
+
+                    return f"{absolute_str}/{fraction_str}"
 
                 for step in info:
                     status_icon = "✓" if step.all_passed else "✗"
@@ -1057,8 +1095,10 @@ def _display_validation_summary(validation: Any) -> None:
                         step.assertion_type,
                         str(step.column) if step.column else "—",
                         values_str,
+                        format_units(step.n),
+                        format_pass_fail(step.n_passed, step.n),
+                        format_pass_fail(step.n - step.n_passed, step.n),
                         f"[{status_color}]{status_icon}[/{status_color}]{severity}",
-                        f"{step.n_passed}/{step.n}",
                     )
 
                 console.print(steps_table)
