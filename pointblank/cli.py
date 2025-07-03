@@ -933,14 +933,19 @@ def _rich_print_gt_table(
 
 
 def _display_validation_summary(validation: Any) -> None:
-    """Display a validation summary in a Rich table format."""
+    """Display a validation summary in a compact Rich table format."""
     try:
         # Try to get the summary from the validation report
         if hasattr(validation, "validation_info") and validation.validation_info is not None:
             # Use the validation_info to create a summary
             info = validation.validation_info
             n_steps = len(info)
-            n_passed = sum(1 for step in info if step.all_passed)
+
+            # Count steps based on their threshold status
+            n_passed = sum(
+                1 for step in info if not step.warning and not step.error and not step.critical
+            )
+            n_all_passed = sum(1 for step in info if step.all_passed)
             n_failed = n_steps - n_passed
 
             # Calculate severity counts
@@ -950,42 +955,47 @@ def _display_validation_summary(validation: Any) -> None:
 
             all_passed = n_failed == 0
 
-            # Determine highest severity
+            # Determine highest severity and its color
             if n_critical > 0:
                 highest_severity = "critical"
+                severity_color = "red"
             elif n_error > 0:
                 highest_severity = "error"
+                severity_color = "red"
             elif n_warning > 0:
                 highest_severity = "warning"
+                severity_color = "yellow"
             elif n_failed > 0:
-                highest_severity = "some failing"
+                highest_severity = "passed"
+                severity_color = "dim green"
             else:
                 highest_severity = "all passed"
+                severity_color = "bold green"
 
-            # Create a summary table
-            table = Table(title="Validation Summary", show_header=True, header_style="bold magenta")
-            table.add_column("Metric", style="cyan", no_wrap=True)
-            table.add_column("Value", style="green")
+            # Create compact summary header
+            # Format: Steps: 6 / P: 3 (3 AP) / W: 3 / E: 0 / C: 0 / 'warning'
+            summary_header = (
+                f"Steps: {n_steps} / P: {n_passed} ({n_all_passed} AP) / "
+                f"W: {n_warning} / E: {n_error} / C: {n_critical} / "
+                f"[{severity_color}]'{highest_severity}'[/{severity_color}]"
+            )
 
-            # Add summary statistics
-            table.add_row("Total Steps", str(n_steps))
-            table.add_row("Passing Steps", str(n_passed))
-            table.add_row("Failing Steps", str(n_failed))
-            table.add_row("Warning Steps", str(n_warning))
-            table.add_row("Error Steps", str(n_error))
-            table.add_row("Critical Steps", str(n_critical))
-            table.add_row("All Passed", str(all_passed))
-            table.add_row("Highest Severity", highest_severity)
-
-            console.print(table)
+            # Print the report title and summary
+            console.print()
+            console.print("[blue]Validation Report[/blue]")
+            console.print(f"[white]{summary_header}[/white]")
 
             # Display step details
             if n_steps > 0:
+                from rich.box import SIMPLE_HEAD
+
                 steps_table = Table(
-                    title="Validation Steps", show_header=True, header_style="bold cyan"
+                    show_header=True,
+                    header_style="bold cyan",
+                    box=SIMPLE_HEAD,
                 )
-                steps_table.add_column("Step", style="dim")
-                steps_table.add_column("Type", style="white")
+                steps_table.add_column("", style="dim")
+                steps_table.add_column("Step", style="white")
                 steps_table.add_column("Column", style="cyan")
                 steps_table.add_column("Status", style="white")
                 steps_table.add_column("Passed/Total", style="green")
@@ -1017,9 +1027,12 @@ def _display_validation_summary(validation: Any) -> None:
                 console.print(
                     Panel("[green]✓ All validations passed![/green]", border_style="green")
                 )
-            elif highest_severity == "some failing":
+            elif highest_severity == "passed":
                 console.print(
-                    Panel("[yellow]⚠ Some validations failed[/yellow]", border_style="yellow")
+                    Panel(
+                        "[dim green]⚠ Some steps had failing test units[/dim green]",
+                        border_style="dim green",
+                    )
                 )
             elif highest_severity in ["warning", "error", "critical"]:
                 color = "yellow" if highest_severity == "warning" else "red"
