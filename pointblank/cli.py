@@ -965,19 +965,21 @@ def _display_validation_summary(validation: Any) -> None:
             elif n_warning > 0:
                 highest_severity = "warning"
                 severity_color = "yellow"
-            elif n_failed > 0:
-                highest_severity = "passed"
-                severity_color = "dim green"
-            else:
+            elif n_all_passed == n_steps:
+                # All steps passed AND all steps had 100% pass rate
                 highest_severity = "all passed"
                 severity_color = "bold green"
+            else:
+                # Steps passed (no threshold exceedances) but some had failing test units
+                highest_severity = "passed"
+                severity_color = "green"
 
             # Create compact summary header
-            # Format: Steps: 6 / P: 3 (3 AP) / W: 3 / E: 0 / C: 0 / 'warning'
+            # Format: Steps: 6 / P: 3 (3 AP) / W: 3 / E: 0 / C: 0 / warning
             summary_header = (
                 f"Steps: {n_steps} / P: {n_passed} ({n_all_passed} AP) / "
                 f"W: {n_warning} / E: {n_error} / C: {n_critical} / "
-                f"[{severity_color}]'{highest_severity}'[/{severity_color}]"
+                f"[{severity_color}]{highest_severity}[/{severity_color}]"
             )
 
             # Print the report title and summary
@@ -1008,6 +1010,8 @@ def _display_validation_summary(validation: Any) -> None:
 
                 def format_units(n: int) -> str:
                     """Format large numbers with K, M, B abbreviations for values above 10,000."""
+                    if n is None:
+                        return "—"
                     if n >= 1000000000:  # Billions
                         return f"{n / 1000000000:.1f}B"
                     elif n >= 1000000:  # Millions
@@ -1019,8 +1023,8 @@ def _display_validation_summary(validation: Any) -> None:
 
                 def format_pass_fail(passed: int, total: int) -> str:
                     """Format pass/fail counts with abbreviated numbers and fractions."""
-                    if total == 0:
-                        return "0/0.00"
+                    if passed is None or total is None or total == 0:
+                        return "—/—"
 
                     # Calculate fraction
                     fraction = passed / total
