@@ -274,7 +274,7 @@ def _format_dtype_compact(dtype_str: str) -> str:
     elif "str" in dtype_str:
         return "str"
 
-    # Unknown or complex types - truncate if too long
+    # Unknown or complex types: truncate if too long
     elif len(dtype_str) > 8:
         return dtype_str[:8] + "…"
     else:
@@ -395,7 +395,7 @@ def _rich_print_scan_table(
             # Clean up HTML formatting from the raw data
             str_val = str(value)
 
-            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            # Handle multi-line values with <br> tags FIRST: take the first line (absolute number)
             if "<br>" in str_val:
                 str_val = str_val.split("<br>")[0].strip()
                 # For unique values, we want just the integer part
@@ -414,14 +414,14 @@ def _rich_print_scan_table(
                 # Clean up extra whitespace
                 str_val = re.sub(r"\s+", " ", str_val).strip()
 
-            # Handle values like "2<.01" - extract the first number
+            # Handle values like "2<.01": extract the first number
             if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
                 # Extract number before the < symbol
                 before_lt = str_val.split("<")[0].strip()
                 if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
                     str_val = before_lt
 
-            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            # Handle boolean unique values like "T0.62F0.38": extract the more readable format
             if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
                 # Extract T and F values
                 t_match = re.search(r"T(\d+\.\d+)", str_val)
@@ -451,7 +451,7 @@ def _rich_print_scan_table(
                     # Simple integers under 10000
                     return str(int(num_val))
                 elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
-                    # Likely dates in YYYYMMDD format - format as date-like
+                    # Likely dates in YYYYMMDD format: format as date-like
                     int_val = int(num_val)
                     if 19000101 <= int_val <= 29991231:  # Reasonable date range
                         str_date = str(int_val)
@@ -463,29 +463,29 @@ def _rich_print_scan_table(
                     # Otherwise treat as large number
                     return f"{num_val / 1000000:.1f}M"
                 elif abs(num_val) >= 1000000:
-                    # Large numbers - use scientific notation or M/k notation
+                    # Large numbers: use scientific notation or M/k notation
 
                     if abs(num_val) >= 1000000000:
                         return f"{num_val:.1e}"
                     else:
                         return f"{num_val / 1000000:.1f}M"
                 elif abs(num_val) >= 10000:
-                    # Numbers >= 10k - use compact notation
+                    # Numbers >= 10k: use compact notation
                     return f"{num_val / 1000:.1f}k"
                 elif abs(num_val) >= 100:
-                    # Numbers 100-9999 - show with minimal decimals
+                    # Numbers 100-9999: show with minimal decimals
                     return f"{num_val:.1f}"
                 elif abs(num_val) >= 10:
-                    # Numbers 10-99 - show with one decimal
+                    # Numbers 10-99: show with one decimal
                     return f"{num_val:.1f}"
                 elif abs(num_val) >= 1:
-                    # Numbers 1-9 - show with two decimals
+                    # Numbers 1-9: show with two decimals
                     return f"{num_val:.2f}"
                 elif abs(num_val) >= 0.01:
-                    # Small numbers - show with appropriate precision
+                    # Small numbers: show with appropriate precision
                     return f"{num_val:.2f}"
                 else:
-                    # Very small numbers - use scientific notation
+                    # Very small numbers: use scientific notation
 
                     return f"{num_val:.1e}"
 
@@ -493,7 +493,7 @@ def _rich_print_scan_table(
                 # Not a number, handle as string
                 pass
 
-            # Handle date/datetime strings - show abbreviated format
+            # Handle date/datetime strings: show abbreviated format
             if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
                 # Likely a date/datetime, show abbreviated
                 if len(str_val) > max_width:
@@ -1004,6 +1004,7 @@ def _display_validation_summary(validation: Any) -> None:
                 steps_table.add_column("W", style="bright_black")
                 steps_table.add_column("E", style="yellow")
                 steps_table.add_column("C", style="red")
+                steps_table.add_column("Ext", style="blue", justify="center")
 
                 def format_units(n: int) -> str:
                     """Format large numbers with K, M, B abbreviations for values above 10,000."""
@@ -1121,6 +1122,17 @@ def _display_validation_summary(validation: Any) -> None:
                     else:
                         c_status = "—"
 
+                    # Extract status, here we check if the step has any extract data
+                    if (
+                        hasattr(step, "extract")
+                        and step.extract is not None
+                        and hasattr(step.extract, "__len__")
+                        and len(step.extract) > 0
+                    ):
+                        ext_status = "[blue]✓[/blue]"
+                    else:
+                        ext_status = "[bright_black]—[/bright_black]"
+
                     steps_table.add_row(
                         str(step.i),
                         step.assertion_type,
@@ -1132,6 +1144,7 @@ def _display_validation_summary(validation: Any) -> None:
                         w_status,
                         e_status,
                         c_status,
+                        ext_status,
                     )
 
                 console.print(steps_table)
@@ -1170,7 +1183,7 @@ def _display_validation_summary(validation: Any) -> None:
 @click.version_option(version=pb.__version__, prog_name="pb")
 def cli():
     """
-    Pointblank CLI - Data validation and quality tools for data engineers.
+    Pointblank CLI: Data validation and quality tools for data engineers.
 
     Use this CLI to run validation scripts, preview tables, and generate reports
     directly from the command line.
@@ -1918,7 +1931,7 @@ def validate(
 
         # Display results based on whether we have single or multiple checks
         if len(checks_list) == 1:
-            # Single check - use current display format
+            # Single check: use current display format
             _display_validation_result(
                 validation,
                 checks_list,
@@ -1933,7 +1946,7 @@ def validate(
                 limit,
             )
         else:
-            # Multiple checks - use stacked display format
+            # Multiple checks: use stacked display format
             any_failed = False
             for i in range(len(checks_list)):
                 console.print()  # Add spacing between results
@@ -2197,7 +2210,7 @@ def _rich_print_scan_table(
             # Clean up HTML formatting from the raw data
             str_val = str(value)
 
-            # Handle multi-line values with <br> tags FIRST - take the first line (absolute number)
+            # Handle multi-line values with <br> tags FIRST: take the first line (absolute number)
             if "<br>" in str_val:
                 str_val = str_val.split("<br>")[0].strip()
                 # For unique values, we want just the integer part
@@ -2216,14 +2229,14 @@ def _rich_print_scan_table(
                 # Clean up extra whitespace
                 str_val = re.sub(r"\s+", " ", str_val).strip()
 
-            # Handle values like "2<.01" - extract the first number
+            # Handle values like "2<.01": extract the first number
             if "<" in str_val and not (str_val.startswith("<") and str_val.endswith(">")):
                 # Extract number before the < symbol
                 before_lt = str_val.split("<")[0].strip()
                 if before_lt and before_lt.replace(".", "").replace("-", "").isdigit():
                     str_val = before_lt
 
-            # Handle boolean unique values like "T0.62F0.38" - extract the more readable format
+            # Handle boolean unique values like "T0.62F0.38": extract the more readable format
             if re.match(r"^[TF]\d+\.\d+[TF]\d+\.\d+$", str_val):
                 # Extract T and F values
                 t_match = re.search(r"T(\d+\.\d+)", str_val)
@@ -2253,7 +2266,7 @@ def _rich_print_scan_table(
                     # Simple integers under 10000
                     return str(int(num_val))
                 elif abs(num_val) >= 10000000 and abs(num_val) < 100000000:
-                    # Likely dates in YYYYMMDD format - format as date-like
+                    # Likely dates in YYYYMMDD format: format as date-like
                     int_val = int(num_val)
                     if 19000101 <= int_val <= 29991231:  # Reasonable date range
                         str_date = str(int_val)
@@ -2265,29 +2278,29 @@ def _rich_print_scan_table(
                     # Otherwise treat as large number
                     return f"{num_val / 1000000:.1f}M"
                 elif abs(num_val) >= 1000000:
-                    # Large numbers - use scientific notation or M/k notation
+                    # Large numbers: use scientific notation or M/k notation
 
                     if abs(num_val) >= 1000000000:
                         return f"{num_val:.1e}"
                     else:
                         return f"{num_val / 1000000:.1f}M"
                 elif abs(num_val) >= 10000:
-                    # Numbers >= 10k - use compact notation
+                    # Numbers >= 10k: use compact notation
                     return f"{num_val / 1000:.1f}k"
                 elif abs(num_val) >= 100:
-                    # Numbers 100-9999 - show with minimal decimals
+                    # Numbers 100-9999: show with minimal decimals
                     return f"{num_val:.1f}"
                 elif abs(num_val) >= 10:
-                    # Numbers 10-99 - show with one decimal
+                    # Numbers 10-99: show with one decimal
                     return f"{num_val:.1f}"
                 elif abs(num_val) >= 1:
-                    # Numbers 1-9 - show with two decimals
+                    # Numbers 1-9: show with two decimals
                     return f"{num_val:.2f}"
                 elif abs(num_val) >= 0.01:
-                    # Small numbers - show with appropriate precision
+                    # Small numbers: show with appropriate precision
                     return f"{num_val:.2f}"
                 else:
-                    # Very small numbers - use scientific notation
+                    # Very small numbers: use scientific notation
 
                     return f"{num_val:.1e}"
 
@@ -2295,7 +2308,7 @@ def _rich_print_scan_table(
                 # Not a number, handle as string
                 pass
 
-            # Handle date/datetime strings - show abbreviated format
+            # Handle date/datetime strings: show abbreviated format
             if len(str_val) > 10 and any(char in str_val for char in ["-", "/", ":"]):
                 # Likely a date/datetime, show abbreviated
                 if len(str_val) > max_width:
@@ -2655,7 +2668,7 @@ def _display_validation_result(
 
     # Create friendly title for table
     if total_checks == 1:
-        # Single check - use original title format
+        # Single check: use original title format
         if check == "rows-distinct":
             table_title = "Validation Result: Rows Distinct"
         elif check == "col-vals-not-null":
@@ -2677,7 +2690,7 @@ def _display_validation_result(
         else:
             table_title = f"Validation Result: {check.replace('-', ' ').title()}"
     else:
-        # Multiple checks - add numbering
+        # Multiple checks: add numbering
         if check == "rows-distinct":
             base_title = "Rows Distinct"
         elif check == "col-vals-not-null":
@@ -2964,7 +2977,7 @@ def _show_extract_for_multi_check(
         console.print()
         console.print(extract_message)
 
-    # Special handling for col-exists check - no rows to show when column doesn't exist
+    # Special handling for col-exists check: no rows to show when column doesn't exist
     if check == "col-exists":
         if show_extract:
             console.print(f"[dim]The column '{column}' was not found in the dataset.[/dim]")
@@ -2975,7 +2988,7 @@ def _show_extract_for_multi_check(
             console.print("[yellow]Cannot save failing rows when column doesn't exist[/yellow]")
     else:
         try:
-            # Get failing rows extract - use step_index + 1 since extracts are 1-indexed
+            # Get failing rows extract: use step_index + 1 since extracts are 1-indexed
             failing_rows = validation.get_data_extracts(i=step_index + 1, frame=True)
 
             if failing_rows is not None and len(failing_rows) > 0:
@@ -3124,7 +3137,7 @@ def _show_extract_and_summary(
         if show_extract:
             console.print(extract_message)
 
-        # Special handling for col-exists check - no rows to show when column doesn't exist
+        # Special handling for col-exists check: no rows to show when column doesn't exist
         if check == "col-exists" and not step_passed:
             if show_extract:
                 console.print(f"[dim]The column '{column}' was not found in the dataset.[/dim]")
@@ -3135,7 +3148,7 @@ def _show_extract_and_summary(
                 console.print("[yellow]Cannot save failing rows when column doesn't exist[/yellow]")
         else:
             try:
-                # Get failing rows extract - use step_index + 1 since extracts are 1-indexed
+                # Get failing rows extract: use step_index + 1 since extracts are 1-indexed
                 failing_rows = validation.get_data_extracts(i=step_index + 1, frame=True)
 
                 if failing_rows is not None and len(failing_rows) > 0:
@@ -3675,11 +3688,11 @@ def run(
         if output_html:
             try:
                 if len(validations) == 1:
-                    # Single validation - save directly
+                    # Single validation: save directly
                     html_content = validations[0]._repr_html_()
                     Path(output_html).write_text(html_content, encoding="utf-8")
                 else:
-                    # Multiple validations - combine them
+                    # Multiple validations: combine them
                     html_parts = []
                     html_parts.append("<html><body>")
                     html_parts.append("<h1>Pointblank Validation Report</h1>")
@@ -3699,11 +3712,11 @@ def run(
         if output_json:
             try:
                 if len(validations) == 1:
-                    # Single validation - save directly
+                    # Single validation: save directly
                     json_report = validations[0].get_json_report()
                     Path(output_json).write_text(json_report, encoding="utf-8")
                 else:
-                    # Multiple validations - combine them
+                    # Multiple validations: combine them
                     import json
 
                     combined_report = {"validations": []}
