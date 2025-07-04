@@ -1076,7 +1076,7 @@ def _display_validation_summary(validation: Any) -> None:
                                 values_str = str(step.values)
                         else:
                             values_str = "—"
-                    elif step.assertion_type == "conjointly":
+                    elif step.assertion_type in ["col_vals_expr", "conjointly"]:
                         values_str = "COLUMN EXPR"
                     elif step.assertion_type == "specially":
                         values_str = "EXPR"
