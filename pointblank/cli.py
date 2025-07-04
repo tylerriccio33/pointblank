@@ -1169,13 +1169,18 @@ def _display_validation_summary(validation: Any) -> None:
             # Display status with appropriate color
             if highest_severity == "all passed":
                 console.print(
-                    Panel("[green]✓ All validations passed![/green]", border_style="green")
+                    Panel(
+                        "[green]✓ All validations passed![/green]",
+                        border_style="green",
+                        expand=False,
+                    )
                 )
             elif highest_severity == "passed":
                 console.print(
                     Panel(
                         "[dim green]⚠ Some steps had failing test units[/dim green]",
                         border_style="dim green",
+                        expand=False,
                     )
                 )
             elif highest_severity in ["warning", "error", "critical"]:
@@ -1189,6 +1194,7 @@ def _display_validation_summary(validation: Any) -> None:
                     Panel(
                         f"[{color}]✗ Validation failed with {highest_severity} severity[/{color}]",
                         border_style=color,
+                        expand=False,
                     )
                 )
         else:
@@ -2890,6 +2896,7 @@ def _display_validation_result(
                     Panel(
                         success_message,
                         border_style="green",
+                        expand=False,
                     )
                 )
             else:
@@ -2919,6 +2926,7 @@ def _display_validation_result(
                     Panel(
                         failure_message,
                         border_style="red",
+                        expand=False,
                     )
                 )
 
@@ -3285,7 +3293,7 @@ def _show_extract_and_summary(
                 f"[green]✓ Validation PASSED: {check} check passed for {data_source}[/green]"
             )
 
-        console.print(Panel(success_message, border_style="green"))
+        console.print(Panel(success_message, border_style="green", expand=False))
     else:
         if step_info:
             if check == "rows-distinct":
@@ -3313,7 +3321,7 @@ def _show_extract_and_summary(
             if not show_extract and check != "col-exists":
                 failure_message += "\n[bright_blue]💡 Tip:[/bright_blue] [cyan]Use --show-extract to see the failing rows[/cyan]"
 
-            console.print(Panel(failure_message, border_style="red"))
+            console.print(Panel(failure_message, border_style="red", expand=False))
         else:
             if check == "rows-distinct":
                 failure_message = (
@@ -3332,7 +3340,7 @@ def _show_extract_and_summary(
             if not show_extract:
                 failure_message += "\n[bright_blue]💡 Tip:[/bright_blue] [cyan]Use --show-extract to see the failing rows[/cyan]"
 
-            console.print(Panel(failure_message, border_style="red"))
+            console.print(Panel(failure_message, border_style="red", expand=False))
 
 
 @cli.command()
