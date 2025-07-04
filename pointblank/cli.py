@@ -2013,7 +2013,7 @@ def validate(
             console.print()
             console.print("[bold magenta]Common validation options:[/bold magenta]")
             console.print(
-                "  • [bold cyan]--check rows-complete[/bold cyan]        Check for rows with missing values"
+                "  • [bold cyan]--check rows-complete[/bold cyan]       Check for rows with missing values"
             )
             console.print(
                 "  • [bold cyan]--check col-vals-not-null[/bold cyan]   Check for null values in a column [bright_black](requires --column)[/bright_black]"
