@@ -1067,6 +1067,15 @@ def _display_validation_summary(validation: Any) -> None:
                                 values_str = f"[{step.values[0]}, {step.values[1]}]"
                             else:
                                 values_str = str(step.values)
+                    elif step.assertion_type in ["row_count_match", "col_count_match"]:
+                        # For count match validations, extract the 'count' value from the dictionary
+                        if hasattr(step, "values") and step.values is not None:
+                            if isinstance(step.values, dict) and "count" in step.values:
+                                values_str = str(step.values["count"])
+                            else:
+                                values_str = str(step.values)
+                        else:
+                            values_str = "—"
                     elif hasattr(step, "values") and step.values is not None:
                         if isinstance(step.values, (list, tuple)):
                             if len(step.values) <= 3:
