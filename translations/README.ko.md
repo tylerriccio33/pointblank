@@ -196,8 +196,6 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 pb validate small_table --check rows-distinct --exit-code
 ```
 
-자세한 내용은 [CLI 문서](https://posit-dev.github.io/pointblank/user-guide/cli.html)에서 확인하세요.
-
 ## Pointblank을 차별화하는 기능
 
 - **완전한 검증 워크플로우** - 단일 파이프라인에서 데이터 액세스부터 검증, 보고까지

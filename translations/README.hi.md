@@ -195,8 +195,6 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 pb validate small_table --check rows-distinct --exit-code
 ```
 
-हमारे [CLI डॉक्यूमेंटेशन](https://posit-dev.github.io/pointblank/user-guide/cli.html) में और जानें।
-
 ## विशेषताएं जो पॉइन्टब्लैंक को अलग बनाती हैं
 
 - **पूर्ण वैलिडेशन वर्कफ्लो** - डेटा एक्सेस से वैलिडेशन से रिपोर्टिंग तक एक ही पाइपलाइन में

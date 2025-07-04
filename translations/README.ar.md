@@ -204,8 +204,6 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 pb validate small_table --check rows-distinct --exit-code
 ```
 
-تعلم المزيد في [وثائق CLI](https://posit-dev.github.io/pointblank/user-guide/cli.html).
-
 ## التوثيق والأمثلة
 
 قم بزيارة [موقع التوثيق](https://posit-dev.github.io/pointblank) للحصول على:

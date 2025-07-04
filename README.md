@@ -196,8 +196,6 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 pb validate small_table --check rows-distinct --exit-code
 ```
 
-Learn more in our [CLI documentation](https://posit-dev.github.io/pointblank/user-guide/cli.html).
-
 ## Features That Set Pointblank Apart
 
 - **Complete validation workflow** - From data access to validation to reporting in a single pipeline

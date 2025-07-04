@@ -205,8 +205,6 @@ pb validate small_table --check col-vals-gt --column a --value 5 --show-extract
 pb validate small_table --check rows-distinct --exit-code
 ```
 
-在我们的 [CLI 文档](https://posit-dev.github.io/pointblank/user-guide/cli.html) 中了解更多。
-
 ## Pointblank 的突出特点
 
 - **完整的验证工作流** - 在单个管道中从数据访问到验证再到报告
