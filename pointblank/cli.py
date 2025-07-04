@@ -1076,6 +1076,10 @@ def _display_validation_summary(validation: Any) -> None:
                                 values_str = str(step.values)
                         else:
                             values_str = "—"
+                    elif step.assertion_type == "conjointly":
+                        values_str = "COLUMN EXPR"
+                    elif step.assertion_type == "specially":
+                        values_str = "EXPR"
                     elif hasattr(step, "values") and step.values is not None:
                         if isinstance(step.values, (list, tuple)):
                             if len(step.values) <= 3:
