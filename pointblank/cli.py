@@ -1626,7 +1626,7 @@ def missing(data_source: str, output_html: str | None):
 @click.argument("data_source", type=str)
 @click.option(
     "--check",
-    "checks",  # Changed to collect multiple values
+    "checks",
     type=click.Choice(
         [
             "rows-distinct",
@@ -1646,19 +1646,19 @@ def missing(data_source: str, output_html: str | None):
 @click.option("--list-checks", is_flag=True, help="List available validation checks and exit")
 @click.option(
     "--column",
-    "columns",  # Changed to collect multiple values
+    "columns",
     multiple=True,  # Allow multiple --column options
     help="Column name or integer position as #N (1-based index) for validation.",
 )
 @click.option(
     "--set",
-    "sets",  # Changed to collect multiple values
+    "sets",
     multiple=True,  # Allow multiple --set options
     help="Comma-separated allowed values for col-vals-in-set checks.",
 )
 @click.option(
     "--value",
-    "values",  # Changed to collect multiple values
+    "values",
     type=float,
     multiple=True,  # Allow multiple --value options
     help="Numeric value for comparison checks.",
@@ -1677,10 +1677,10 @@ def missing(data_source: str, output_html: str | None):
 def validate(
     ctx: click.Context,
     data_source: str,
-    checks: tuple[str, ...],  # Changed to tuple
-    columns: tuple[str, ...],  # Changed to tuple
-    sets: tuple[str, ...],  # Changed to tuple
-    values: tuple[float, ...],  # Changed to tuple
+    checks: tuple[str, ...],
+    columns: tuple[str, ...],
+    sets: tuple[str, ...],
+    values: tuple[float, ...],
     show_extract: bool,
     write_extract: str | None,
     limit: int,
