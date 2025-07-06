@@ -3379,6 +3379,9 @@ Example Pointblank validation script.
 
 This script demonstrates how to create validation rules for your data.
 Modify the data loading and validation rules below to match your requirements.
+
+When using 'pb run' with --data option, the CLI will automatically replace
+the data source in your validation object with the provided data.
 """
 
 import pointblank as pb
@@ -3422,11 +3425,6 @@ validation = (
     # Finalize the validation
     .interrogate()
 )
-
-# The validation object will be automatically used by the CLI
-# You can also access results programmatically:
-# print(f"All passed: {validation.all_passed()}")
-# print(f"Failed steps: {validation.n_failed()}")
 '''
 
     Path(output_file).write_text(example_script)
@@ -3434,7 +3432,7 @@ validation = (
     console.print("\nEdit the template to add your data loading and validation rules, then run:")
     console.print(f"[cyan]pb run {output_file}[/cyan]")
     console.print(
-        f"[cyan]pb run {output_file} --data your_data.csv[/cyan]  [dim]# Override data source[/dim]"
+        f"[cyan]pb run {output_file} --data your_data.csv[/cyan]  [dim]# Replace data source automatically[/dim]"
     )
 
 
