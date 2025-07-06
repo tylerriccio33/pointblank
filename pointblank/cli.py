@@ -3440,7 +3440,11 @@ validation = (
 
 @cli.command()
 @click.argument("validation_script", type=click.Path(exists=True))
-@click.option("--data", type=str, help="Optional data source to override script's data loading")
+@click.option(
+    "--data",
+    type=str,
+    help="Data source to replace in validation objects (single validation scripts only)",
+)
 @click.option("--output-html", type=click.Path(), help="Save HTML validation report to file")
 @click.option("--output-json", type=click.Path(), help="Save JSON validation summary to file")
 @click.option(
@@ -3475,8 +3479,9 @@ def run(
     VALIDATION_SCRIPT should be a Python file that defines validation logic.
     The script should load its own data and create validation objects.
 
-    If --data is provided, it will be available as a 'cli_data' variable in the script,
-    allowing you to optionally override your script's data loading.
+    If --data is provided, it will automatically replace the data source in your
+    validation objects. This works with scripts containing a single validation.
+    For scripts with multiple validations, use separate script files or remove --data.
 
     DATA can be:
 
