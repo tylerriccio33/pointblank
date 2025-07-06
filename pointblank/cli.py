@@ -3481,6 +3481,8 @@ def run(
     validation objects. This works with scripts containing a single validation.
     For scripts with multiple validations, use separate script files or remove --data.
 
+    To get started quickly, use 'pb make-template' to create a validation script template.
+
     DATA can be:
 
     \b
@@ -3493,6 +3495,7 @@ def run(
     Examples:
 
     \b
+    pb make-template my_validation.py  # Create a template first
     pb run validation_script.py
     pb run validation_script.py --data data.csv
     pb run validation_script.py --data small_table --output-html report.html
