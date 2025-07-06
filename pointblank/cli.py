@@ -1714,10 +1714,10 @@ def validate(
     - rows-complete: Check if all rows are complete (no missing values in any column)
     - col-exists: Check if a specific column exists in the dataset (requires --column)
     - col-vals-not-null: Check if all values in a column are not null/missing (requires --column)
-    - col-vals-gt: Check if all values in a column are greater than a threshold (requires --column and --value)
-    - col-vals-ge: Check if all values in a column are greater than or equal to a threshold (requires --column and --value)
-    - col-vals-lt: Check if all values in a column are less than a threshold (requires --column and --value)
-    - col-vals-le: Check if all values in a column are less than or equal to a threshold (requires --column and --value)
+    - col-vals-gt: Check if all values in a column are greater than a comparison value (requires --column and --value)
+    - col-vals-ge: Check if all values in a column are greater than or equal to a comparison value (requires --column and --value)
+    - col-vals-lt: Check if all values in a column are less than a comparison value (requires --column and --value)
+    - col-vals-le: Check if all values in a column are less than or equal to a comparison value (requires --column and --value)
     - col-vals-in-set: Check if all values in a column are in an allowed set (requires --column and --set)
 
     Examples:
@@ -1785,14 +1785,16 @@ def validate(
                 "[bold magenta]Value comparison checks [bright_black](require --column and --value)[/bright_black]:[/bold magenta]"
             )
             console.print(
-                "  • [bold cyan]col-vals-gt[/bold cyan]       Values greater than threshold"
+                "  • [bold cyan]col-vals-gt[/bold cyan]       Values greater than comparison value"
             )
             console.print(
-                "  • [bold cyan]col-vals-ge[/bold cyan]       Values greater than or equal to threshold"
+                "  • [bold cyan]col-vals-ge[/bold cyan]       Values greater than or equal to comparison value"
             )
-            console.print("  • [bold cyan]col-vals-lt[/bold cyan]       Values less than threshold")
             console.print(
-                "  • [bold cyan]col-vals-le[/bold cyan]       Values less than or equal to threshold"
+                "  • [bold cyan]col-vals-lt[/bold cyan]       Values less than comparison value"
+            )
+            console.print(
+                "  • [bold cyan]col-vals-le[/bold cyan]       Values less than or equal to comparison value"
             )
             console.print()
             console.print(
@@ -2786,7 +2788,7 @@ def _display_validation_result(
             operator = "<"
         elif check == "col-vals-le":
             operator = "<="
-        result_table.add_row("Threshold", f"{operator} {value}")
+        result_table.add_row("Comparison Value", f"{operator} {value}")
 
     # Get validation details
     if step_info:
