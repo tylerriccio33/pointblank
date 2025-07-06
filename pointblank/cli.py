@@ -1623,7 +1623,8 @@ def missing(data_source: str, output_html: str | None):
 
 
 @cli.command(name="validate")
-@click.argument("data_source", type=str)
+@click.argument("data_source", type=str, required=False)
+@click.option("--list-checks", is_flag=True, help="List available validation checks and exit")
 @click.option(
     "--check",
     "checks",
@@ -1644,7 +1645,6 @@ def missing(data_source: str, output_html: str | None):
     multiple=True,  # Allow multiple --check options
     help="Type of validation check to perform. Can be used multiple times for multiple checks.",
 )
-@click.option("--list-checks", is_flag=True, help="List available validation checks and exit")
 @click.option(
     "--column",
     "columns",
@@ -1677,7 +1677,7 @@ def missing(data_source: str, output_html: str | None):
 @click.pass_context
 def validate(
     ctx: click.Context,
-    data_source: str,
+    data_source: str | None,
     checks: tuple[str, ...],
     columns: tuple[str, ...],
     sets: tuple[str, ...],
@@ -1740,28 +1740,7 @@ def validate(
     pb validate data.csv --check col-vals-not-null --column email --check col-vals-gt --column age --value 18
     """
     try:
-        # Handle backward compatibility and parameter conversion
-        import sys
-
-        # Convert parameter tuples to lists, handling default case
-        if not checks:
-            # No --check options provided, use default
-            checks_list = ["rows-distinct"]
-            is_using_default_check = True
-        else:
-            checks_list = list(checks)
-            is_using_default_check = False
-
-        columns_list = list(columns) if columns else []
-        sets_list = list(sets) if sets else []
-        values_list = list(values) if values else []
-
-        # Map parameters to checks intelligently
-        mapped_columns, mapped_sets, mapped_values = _map_parameters_to_checks(
-            checks_list, columns_list, sets_list, values_list
-        )
-
-        # Handle --list-checks option
+        # Handle --list-checks option early (doesn't need data source)
         if list_checks:
             console.print("[bold bright_cyan]Available Validation Checks:[/bold bright_cyan]")
             console.print()
@@ -1805,18 +1784,46 @@ def validate(
             )
             console.print()
             console.print("[bold bright_yellow]Examples:[/bold bright_yellow]")
+            console.print("  [bright_blue]pb validate data.csv --check rows-distinct[/bright_blue]")
             console.print(
-                f"  [bright_blue]pb validate {data_source} --check rows-distinct[/bright_blue]"
+                "  [bright_blue]pb validate data.csv --check col-vals-not-null --column price[/bright_blue]"
             )
             console.print(
-                f"  [bright_blue]pb validate {data_source} --check col-vals-not-null --column price[/bright_blue]"
-            )
-            console.print(
-                f"  [bright_blue]pb validate {data_source} --check col-vals-gt --column age --value 18[/bright_blue]"
+                "  [bright_blue]pb validate data.csv --check col-vals-gt --column age --value 18[/bright_blue]"
             )
             import sys
 
             sys.exit(0)
+
+        # Check if data_source is provided (required for all operations except --list-checks)
+        if data_source is None:
+            console.print("[red]Error:[/red] DATA_SOURCE is required")
+            console.print("Use 'pb validate --help' for usage information")
+            console.print("Or use 'pb validate --list-checks' to see available validation types")
+            import sys
+
+            sys.exit(1)
+
+        # Handle backward compatibility and parameter conversion
+        import sys
+
+        # Convert parameter tuples to lists, handling default case
+        if not checks:
+            # No --check options provided, use default
+            checks_list = ["rows-distinct"]
+            is_using_default_check = True
+        else:
+            checks_list = list(checks)
+            is_using_default_check = False
+
+        columns_list = list(columns) if columns else []
+        sets_list = list(sets) if sets else []
+        values_list = list(values) if values else []
+
+        # Map parameters to checks intelligently
+        mapped_columns, mapped_sets, mapped_values = _map_parameters_to_checks(
+            checks_list, columns_list, sets_list, values_list
+        )
 
         # Validate required parameters for different check types
         # Check parameters for each check in the list using mapped parameters
