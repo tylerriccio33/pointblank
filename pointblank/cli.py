@@ -1670,7 +1670,7 @@ def missing(data_source: str, output_html: str | None):
     "--write-extract", type=str, help="Save failing rows to folder. Provide base name for folder."
 )
 @click.option(
-    "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
+    "--limit", default=500, help="Maximum number of failing rows to save to CSV (default: 500)"
 )
 @click.option("--exit-code", is_flag=True, help="Exit with non-zero code if validation fails")
 @click.pass_context
@@ -3023,11 +3023,12 @@ def _show_extract_for_multi_check(
 
             if failing_rows is not None and len(failing_rows) > 0:
                 if show_extract:
-                    # Limit the number of rows shown
-                    if len(failing_rows) > limit:
-                        display_rows = failing_rows.head(limit)
+                    # Always limit to 10 rows for display, regardless of limit option
+                    display_limit = 10
+                    if len(failing_rows) > display_limit:
+                        display_rows = failing_rows.head(display_limit)
                         console.print(
-                            f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                            f"[dim]Showing first {display_limit} of {len(failing_rows)} {row_type}[/dim]"
                         )
                     else:
                         display_rows = failing_rows
@@ -3038,9 +3039,9 @@ def _show_extract_for_multi_check(
 
                     preview_table = pb.preview(
                         data=display_rows,
-                        n_head=min(limit, len(display_rows)),
+                        n_head=min(display_limit, len(display_rows)),
                         n_tail=0,
-                        limit=limit,
+                        limit=display_limit,
                         show_row_numbers=True,
                     )
 
@@ -3062,7 +3063,7 @@ def _show_extract_for_multi_check(
                         filename = f"step_{step_index + 1:02d}_{safe_check_type}.csv"
                         filepath = output_folder / filename
 
-                        # Limit the output if needed
+                        # Use limit option for write_extract
                         write_rows = failing_rows
                         if len(failing_rows) > limit:
                             write_rows = failing_rows.head(limit)
@@ -3183,11 +3184,12 @@ def _show_extract_and_summary(
 
                 if failing_rows is not None and len(failing_rows) > 0:
                     if show_extract:
-                        # Limit the number of rows shown
-                        if len(failing_rows) > limit:
-                            display_rows = failing_rows.head(limit)
+                        # Always limit to 10 rows for display, regardless of limit option
+                        display_limit = 10
+                        if len(failing_rows) > display_limit:
+                            display_rows = failing_rows.head(display_limit)
                             console.print(
-                                f"[dim]Showing first {limit} of {len(failing_rows)} {row_type}[/dim]"
+                                f"[dim]Showing first {display_limit} of {len(failing_rows)} {row_type}[/dim]"
                             )
                         else:
                             display_rows = failing_rows
@@ -3198,9 +3200,9 @@ def _show_extract_and_summary(
 
                         preview_table = pb.preview(
                             data=display_rows,
-                            n_head=min(limit, len(display_rows)),
+                            n_head=min(display_limit, len(display_rows)),
                             n_tail=0,
-                            limit=limit,
+                            limit=display_limit,
                             show_row_numbers=True,
                         )
 
@@ -3222,7 +3224,7 @@ def _show_extract_and_summary(
                             filename = f"step_{step_index + 1:02d}_{safe_check_type}.csv"
                             filepath = output_folder / filename
 
-                            # Limit the output if needed
+                            # Use limit option for write_extract
                             write_rows = failing_rows
                             if len(failing_rows) > limit:
                                 write_rows = failing_rows.head(limit)
@@ -3439,7 +3441,7 @@ validation = (
     help="Save failing rows to folders (one CSV per step). Provide base name for folder.",
 )
 @click.option(
-    "--limit", "-l", default=10, help="Maximum number of failing rows to show/save (default: 10)"
+    "--limit", default=500, help="Maximum number of failing rows to save to CSV (default: 500)"
 )
 @click.option(
     "--fail-on",
@@ -3602,11 +3604,12 @@ def run(
                                     f"\n[cyan]Step {step_num}:[/cyan] {step_info.assertion_type}"
                                 )
 
-                                # Limit the number of rows shown
-                                if len(failing_rows) > limit:
-                                    display_rows = failing_rows.head(limit)
+                                # Always limit to 10 rows for display, regardless of limit option
+                                display_limit = 10
+                                if len(failing_rows) > display_limit:
+                                    display_rows = failing_rows.head(display_limit)
                                     console.print(
-                                        f"[dim]Showing first {limit} of {len(failing_rows)} failing rows[/dim]"
+                                        f"[dim]Showing first {display_limit} of {len(failing_rows)} failing rows[/dim]"
                                     )
                                 else:
                                     display_rows = failing_rows
@@ -3617,9 +3620,9 @@ def run(
                                 # Create a preview table using pointblank's preview function
                                 preview_table = pb.preview(
                                     data=display_rows,
-                                    n_head=min(limit, len(display_rows)),
+                                    n_head=min(display_limit, len(display_rows)),
                                     n_tail=0,
-                                    limit=limit,
+                                    limit=display_limit,
                                     show_row_numbers=True,
                                 )
 
@@ -3672,7 +3675,7 @@ def run(
                                     filename = f"step_{step_num:02d}_{safe_assertion_type}.csv"
                                     filepath = output_folder / filename
 
-                                    # Limit the output if needed
+                                    # Use limit for CSV output
                                     save_rows = failing_rows
                                     if hasattr(failing_rows, "head") and len(failing_rows) > limit:
                                         save_rows = failing_rows.head(limit)
@@ -3691,7 +3694,11 @@ def run(
                                         pd_data = pd.DataFrame(save_rows)
                                         pd_data.to_csv(str(filepath), index=False)
 
-                                    saved_files.append((filename, len(failing_rows)))
+                                    # Record the actual number of rows saved
+                                    rows_saved = (
+                                        len(save_rows) if hasattr(save_rows, "__len__") else limit
+                                    )
+                                    saved_files.append((filename, rows_saved))
 
                             except Exception as e:
                                 console.print(
