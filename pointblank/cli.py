@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import sys
 from pathlib import Path
 from typing import Any
@@ -3550,6 +3551,72 @@ def run(
                 )
 
         console.print(f"[green]✓[/green] Found {len(validations)} validation object(s)")
+
+        # Implement automatic data replacement for Validate objects if --data was provided
+        if cli_data is not None:
+            # Check if we have multiple validations (this is not supported)
+            if len(validations) > 1:
+                console.print(
+                    f"[red]Error: Found {len(validations)} validation objects in the script.[/red]"
+                )
+                console.print(
+                    "[yellow]The --data option replaces data in ALL validation objects,[/yellow]"
+                )
+                console.print(
+                    "[yellow]which may cause failures if validations expect different schemas.[/yellow]"
+                )
+                console.print("\n[cyan]Options:[/cyan]")
+                console.print("  1. Split your script into separate files with one validation each")
+                console.print(
+                    "  2. Remove the --data option to use each validation's original data"
+                )
+                sys.exit(1)
+
+            console.print(
+                f"[yellow]Replacing data in {len(validations)} validation object(s) with CLI data[/yellow]"
+            )
+
+            for idx, validation in enumerate(validations, 1):
+                # Check if it's a Validate object with data attribute
+                if hasattr(validation, "data") and hasattr(validation, "interrogate"):
+                    console.print("[cyan]Updating validation with new data source...[/cyan]")
+
+                    # Store the original validation_info as our "plan"
+                    original_validation_info = validation.validation_info.copy()
+
+                    # Replace the data
+                    validation.data = cli_data
+
+                    # Re-process the data (same as what happens in __post_init__)
+                    from pointblank.validate import _process_data
+
+                    validation.data = _process_data(validation.data)
+
+                    # Reset validation results but keep the plan
+                    validation.validation_info = []
+
+                    # Re-add each validation step from the original plan
+                    for val_info in original_validation_info:
+                        # Create a copy and reset any interrogation results
+                        new_val_info = copy.deepcopy(val_info)
+                        # Reset interrogation-specific attributes if they exist
+                        if hasattr(new_val_info, "n_passed"):
+                            new_val_info.n_passed = None
+                        if hasattr(new_val_info, "n_failed"):
+                            new_val_info.n_failed = None
+                        if hasattr(new_val_info, "all_passed"):
+                            new_val_info.all_passed = None
+                        if hasattr(new_val_info, "warning"):
+                            new_val_info.warning = None
+                        if hasattr(new_val_info, "error"):
+                            new_val_info.error = None
+                        if hasattr(new_val_info, "critical"):
+                            new_val_info.critical = None
+                        validation.validation_info.append(new_val_info)
+
+                    # Re-interrogate with the new data
+                    console.print("[cyan]Re-interrogating with new data...[/cyan]")
+                    validation.interrogate()
 
         # Process each validation
         overall_failed = False
