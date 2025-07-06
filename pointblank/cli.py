@@ -1640,6 +1640,7 @@ def missing(data_source: str, output_html: str | None):
             "col-vals-le",
         ]
     ),
+    metavar="CHECK_TYPE",
     multiple=True,  # Allow multiple --check options
     help="Type of validation check to perform. Can be used multiple times for multiple checks.",
 )
@@ -1702,11 +1703,11 @@ def validate(
     - Database connection string (e.g., duckdb:///path/to/db.ddb::table_name)
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
 
-    AVAILABLE CHECKS:
+    AVAILABLE CHECK_TYPES:
 
     Use --list-checks to see all available validation methods with examples.
 
-    The default check is 'rows-distinct' which checks for duplicate rows.
+    The default CHECK_TYPE is 'rows-distinct' which checks for duplicate rows.
 
     \b
     - rows-distinct: Check if all rows in the dataset are unique (no duplicates)
