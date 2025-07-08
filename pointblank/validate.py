@@ -13854,7 +13854,7 @@ def _prep_values_text(
     return values_str
 
 
-def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> tuple[str, str]:
+def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> list[tuple[str, str]]:
     """
     Obtain the segmentation categories from a table column.
 
