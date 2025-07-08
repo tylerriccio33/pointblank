@@ -13977,7 +13977,10 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
         data_tbl_nw = nw.from_native(data_tbl)
 
         # Filter the data table based on the column name and value
-        data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]) == segments_expr[1])
+        if segments_expr[1] is None:
+            data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]).is_null())
+        else:
+            data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]) == segments_expr[1])
 
         # Transform back to the original table type
         data_tbl = data_tbl_nw.to_native()
@@ -13986,7 +13989,10 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
         # If the table is an Ibis backend table, perform the filtering operation directly
 
         # Filter the data table based on the column name and value
-        data_tbl = data_tbl[data_tbl[segments_expr[0]] == segments_expr[1]]
+        if segments_expr[1] is None:
+            data_tbl = data_tbl[data_tbl[segments_expr[0]].isnull()]
+        else:
+            data_tbl = data_tbl[data_tbl[segments_expr[0]] == segments_expr[1]]
 
     return data_tbl
 
