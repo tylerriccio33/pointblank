@@ -13970,6 +13970,9 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
     # Get the table type
     tbl_type = _get_tbl_type(data=data_tbl)
 
+    # Unpack the segments expression tuple for more convenient and explicit variable names
+    column, value = segments_expr
+
     if tbl_type in ["pandas", "polars"]:
         # If the table is a Pandas or Polars DataFrame, transforming to a Narwhals table
         # and perform the filtering operation
@@ -13978,10 +13981,13 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
         data_tbl_nw = nw.from_native(data_tbl)
 
         # Filter the data table based on the column name and value
-        if segments_expr[1] is None:
-            data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]).is_null())
+        if value is None:
+            data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_null())
+        # Check if the value is a segment group
+        elif isinstance(value, (list, set, tuple)):
+            data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_in(value))
         else:
-            data_tbl_nw = data_tbl_nw.filter(nw.col(segments_expr[0]) == segments_expr[1])
+            data_tbl_nw = data_tbl_nw.filter(nw.col(column) == value)
 
         # Transform back to the original table type
         data_tbl = data_tbl_nw.to_native()
@@ -13990,10 +13996,12 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
         # If the table is an Ibis backend table, perform the filtering operation directly
 
         # Filter the data table based on the column name and value
-        if segments_expr[1] is None:
-            data_tbl = data_tbl[data_tbl[segments_expr[0]].isnull()]
+        if value is None:
+            data_tbl = data_tbl[data_tbl[column].isnull()]
+        elif isinstance(value, (list, set, tuple)):
+            data_tbl = data_tbl[data_tbl[column].isin(value)]
         else:
-            data_tbl = data_tbl[data_tbl[segments_expr[0]] == segments_expr[1]]
+            data_tbl = data_tbl[data_tbl[column] == value]
 
     return data_tbl
 
