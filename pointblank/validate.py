@@ -13893,8 +13893,8 @@ def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> list[tuple[str, 
     else:  # pragma: no cover
         raise ValueError(f"Unsupported table type: {tbl_type}")
 
-    # Ensure that the categories are sorted
-    seg_categories.sort()
+    # Ensure that the categories are sorted, and allow for None values
+    seg_categories.sort(key=lambda x: (x is None, x))
 
     # Place each category and each value in a list of tuples as: `(column, value)`
     seg_tuples = [(segments_expr, category) for category in seg_categories]
