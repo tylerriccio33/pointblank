@@ -13947,7 +13947,7 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
     return seg_tuples
 
 
-def _apply_segments(data_tbl: any, segments_expr: tuple[str, str]) -> any:
+def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
     """
     Apply the segments expression to the data table.
 
