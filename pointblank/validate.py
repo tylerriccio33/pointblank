@@ -13902,7 +13902,7 @@ def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> list[tuple[str, 
     return seg_tuples
 
 
-def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, str]]:
+def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
     """
     Normalize the segments expression to a list of tuples, given a single tuple.
 
@@ -13928,8 +13928,9 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, str]]:
 
     Returns
     -------
-    list[tuple[str, str]]
+    list[tuple[str, Any]]
         A list of tuples representing pairings of a column name and a value in the column.
+        Values can be any type, including None.
     """
     # Check if the first element is a string
     if isinstance(segments_expr[0], str):
