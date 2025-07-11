@@ -87,6 +87,7 @@ from pointblank._utils_check_args import (
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelectorNarwhals, col
 from pointblank.schema import Schema, _get_schema_validation_info
+from pointblank.segments import SegmentGroup
 from pointblank.thresholds import (
     Actions,
     FinalActions,
@@ -13937,8 +13938,10 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
 
     # Check if the first element is a string
     if isinstance(column, str):
+        if isinstance(value, SegmentGroup):
+            seg_tuples = [(column, value.segments)]
         # If the second element is a collection, expand into a list of tuples
-        if isinstance(value, (list, set, tuple)):
+        elif isinstance(value, (list, set, tuple)):
             seg_tuples = [(column, seg) for seg in value]
         # If the second element is not a list, create a single tuple
         else:
