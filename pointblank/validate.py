@@ -13932,14 +13932,17 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
         A list of tuples representing pairings of a column name and a value in the column.
         Values can be any type, including None.
     """
+    # Unpack the segments expression tuple for more convenient and explicit variable names
+    column, value = segments_expr
+
     # Check if the first element is a string
-    if isinstance(segments_expr[0], str):
-        # If the second element is a list, create a list of tuples
-        if isinstance(segments_expr[1], list):
-            seg_tuples = [(segments_expr[0], value) for value in segments_expr[1]]
+    if isinstance(column, str):
+        # If the second element is a collection, expand into a list of tuples
+        if isinstance(value, (list, set, tuple)):
+            seg_tuples = [(column, seg) for seg in value]
         # If the second element is not a list, create a single tuple
         else:
-            seg_tuples = [(segments_expr[0], segments_expr[1])]
+            seg_tuples = [(column, value)]
     # If the first element is not a string, raise an error
     else:  # pragma: no cover
         raise ValueError("The first element of the segments expression must be a string.")
