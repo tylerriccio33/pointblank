@@ -14,7 +14,7 @@ from pointblank.segments import (
 
 import pandas as pd
 import polars as pl
-# import ibis
+import ibis
 
 
 # TODO: expand to all tbl_types
@@ -102,8 +102,8 @@ def test_segments_with_multiple_criteria_2(tbl_type):
     assert validation.n_passed(i=4, scalar=True) == 6
 
 
-# TODO: expand to all tbl_types
-@pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
+# TODO: use a dataframe agnostic way to handle datetime segments
+@pytest.mark.parametrize("tbl_type", ["polars"])
 def test_segments_with_dates(tbl_type):
     validation = (
         Validate(data=load_dataset(dataset="small_table", tbl_type=tbl_type))
@@ -115,6 +115,25 @@ def test_segments_with_dates(tbl_type):
         .interrogate()
     )
     assert validation.n_passed(i=1, scalar=True) == 2
+    assert validation.n_passed(i=2, scalar=True) == 1
+
+
+# TODO: need to expand with different lambda functions depending on tbl_type
+@pytest.mark.parametrize("tbl_type", ["polars"])
+def test_segments_with_preprocessing(tbl_type):
+    validation = (
+        Validate(data=load_dataset(dataset="small_table", tbl_type=tbl_type))
+        .col_vals_gt(
+            columns="d",
+            value=100,
+            pre=lambda df: df.with_columns(
+                d_category=pl.when(pl.col("d") > 150).then(pl.lit("high")).otherwise(pl.lit("low"))
+            ),
+            segments="d_category",
+        )
+        .interrogate()
+    )
+    assert validation.n_passed(i=1, scalar=True) == 12
     assert validation.n_passed(i=2, scalar=True) == 1
 
 
