@@ -263,6 +263,10 @@ There are many ways to contribute to the ongoing development of Pointblank. Some
 Please read over the [contributing guidelines](https://github.com/posit-dev/pointblank/blob/main/CONTRIBUTING.md) for
 information on how to get started.
 
+## Pointblank for R
+
+There's also a version of Pointblank for R, which has been around since 2017 and is widely used in the R community. You can find it at https://github.com/rstudio/pointblank.
+
 ## Roadmap
 
 We're actively working on enhancing Pointblank with:
