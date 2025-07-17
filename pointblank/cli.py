@@ -1235,8 +1235,8 @@ def cli():
 
 
 @cli.command()
-@click.argument("data_source", type=str)
-def info(data_source: str):
+@click.argument("data_source", type=str, required=False)
+def info(data_source: str | None):
     """
     Display information about a data source.
 
@@ -1252,6 +1252,11 @@ def info(data_source: str):
     - Dataset name from pointblank (small_table, game_revenue, nycflights, global_sales)
     """
     try:
+        # Handle missing data_source with concise help
+        if data_source is None:
+            _show_concise_help("info", None)
+            return
+
         with console.status("[bold green]Loading data..."):
             # Load the data source using the centralized function
             data = _load_data_source(data_source)
@@ -1367,9 +1372,9 @@ def preview(
                     console.print("[red]Error:[/red] No data provided via pipe")
                     sys.exit(1)
             else:
-                console.print("[red]Error:[/red] DATA_SOURCE is required")
-                console.print("Use 'pb preview --help' for usage information")
-                sys.exit(1)
+                # Show concise help and exit
+                _show_concise_help("preview", None)
+                return
 
         with console.status("[bold green]Loading data..."):
             # Load the data source using the centralized function
@@ -1605,9 +1610,9 @@ def scan(
                     console.print("[red]Error:[/red] No data provided via pipe")
                     sys.exit(1)
             else:
-                console.print("[red]Error:[/red] DATA_SOURCE is required")
-                console.print("Use 'pb scan --help' for usage information")
-                sys.exit(1)
+                # Show concise help and exit
+                _show_concise_help("scan", None)
+                return
 
         with console.status("[bold green]Loading data..."):
             # Load the data source using the centralized function
@@ -1737,9 +1742,9 @@ def missing(data_source: str | None, output_html: str | None):
                     console.print("[red]Error:[/red] No data provided via pipe")
                     sys.exit(1)
             else:
-                console.print("[red]Error:[/red] DATA_SOURCE is required")
-                console.print("Use 'pb missing --help' for usage information")
-                sys.exit(1)
+                # Show concise help and exit
+                _show_concise_help("missing", None)
+                return
 
         with console.status("[bold green]Loading data..."):
             # Load the data source using the centralized function
@@ -1980,12 +1985,9 @@ def validate(
                     console.print("[red]Error:[/red] No data provided via pipe")
                     sys.exit(1)
             else:
-                console.print("[red]Error:[/red] DATA_SOURCE is required")
-                console.print("Use 'pb validate --help' for usage information")
-                console.print(
-                    "Or use 'pb validate --list-checks' to see available validation types"
-                )
-                sys.exit(1)
+                # Show concise help and exit
+                _show_concise_help("validate", None)
+                return
 
         # Handle backward compatibility and parameter conversion
         import sys
@@ -3583,8 +3585,8 @@ def _show_extract_and_summary(
 
 
 @cli.command()
-@click.argument("output_file", type=click.Path())
-def make_template(output_file: str):
+@click.argument("output_file", type=click.Path(), required=False)
+def make_template(output_file: str | None):
     """
     Create a validation script template.
 
@@ -3600,6 +3602,11 @@ def make_template(output_file: str):
     pb make-template my_validation.py
     pb make-template validation_template.py
     """
+    # Handle missing output_file with concise help
+    if output_file is None:
+        _show_concise_help("make-template", None)
+        return
+
     example_script = '''"""
 Example Pointblank validation script.
 
@@ -3663,7 +3670,7 @@ validation = (
 
 
 @cli.command()
-@click.argument("validation_script", type=click.Path(exists=True))
+@click.argument("validation_script", type=click.Path(exists=True), required=False)
 @click.option(
     "--data",
     type=str,
@@ -3688,7 +3695,7 @@ validation = (
     help="Exit with non-zero code when validation reaches this threshold level",
 )
 def run(
-    validation_script: str,
+    validation_script: str | None,
     data: str | None,
     output_html: str | None,
     output_json: str | None,
@@ -3729,6 +3736,11 @@ def run(
     pb run validation_script.py --write-extract extracts_folder --fail-on critical
     """
     try:
+        # Handle missing validation_script with concise help
+        if validation_script is None:
+            _show_concise_help("run", None)
+            return
+
         # Load optional data override if provided
         cli_data = None
         if data:
@@ -4275,12 +4287,9 @@ def pl(
                 # Data is being piped in
                 query_code = sys.stdin.read().strip()
             else:
-                # No input provided and stdin is a terminal
-                console.print("[red]Error:[/red] No Polars expression provided")
-                console.print(
-                    "Use: pb pl 'expression', pb pl --edit, pb pl --file query.py, or pipe input"
-                )
-                sys.exit(1)
+                # No input provided and stdin is a terminal - show concise help
+                _show_concise_help("pl", None)
+                return
 
         if not query_code or not query_code.strip():
             console.print("[red]Error:[/red] Empty query")
@@ -4758,3 +4767,141 @@ def _edit_with_vscode() -> str | None:
     finally:
         # Clean up
         Path(temp_file).unlink(missing_ok=True)
+
+
+def _show_concise_help(command_name: str, ctx: click.Context) -> None:
+    """Show concise help for a command when required arguments are missing."""
+
+    if command_name == "info":
+        console.print("[bold cyan]pb info[/bold cyan] - Display information about a data source")
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb info data.csv")
+        console.print("  pb info small_table")
+        console.print()
+        console.print("[dim]Shows table type, dimensions, column names, and data types[/dim]")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb info --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "preview":
+        console.print(
+            "[bold cyan]pb preview[/bold cyan] - Preview a data table showing head and tail rows"
+        )
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb preview data.csv")
+        console.print("  pb preview data.parquet --head 10 --tail 5")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --head N          Number of rows from the top (default: 5)")
+        console.print("  --tail N          Number of rows from the bottom (default: 5)")
+        console.print("  --columns LIST    Comma-separated list of columns to display")
+        console.print("  --output-html     Save HTML output to file")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb preview --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "scan":
+        console.print(
+            "[bold cyan]pb scan[/bold cyan] - Generate a comprehensive data profile report"
+        )
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb scan data.csv")
+        console.print("  pb scan data.parquet --output-html report.html")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --output-html     Save HTML scan report to file")
+        console.print("  --columns LIST    Comma-separated list of columns to scan")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb scan --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "missing":
+        console.print("[bold cyan]pb missing[/bold cyan] - Generate a missing values report")
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb missing data.csv")
+        console.print("  pb missing data.parquet --output-html missing_report.html")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --output-html     Save HTML output to file")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb missing --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "validate":
+        console.print("[bold cyan]pb validate[/bold cyan] - Perform data validation checks")
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb validate data.csv")
+        console.print("  pb validate data.csv --check col-vals-not-null --column email")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --check TYPE      Validation check type (default: rows-distinct)")
+        console.print("  --column COL      Column name for column-specific checks")
+        console.print("  --show-extract    Show failing rows if validation fails")
+        console.print("  --list-checks     List all available validation checks")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb validate --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "run":
+        console.print("[bold cyan]pb run[/bold cyan] - Run a Pointblank validation script")
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb run validation_script.py")
+        console.print("  pb run validation_script.py --data data.csv")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --data SOURCE     Replace data source in validation objects")
+        console.print("  --output-html     Save HTML validation report to file")
+        console.print("  --show-extract    Show failing rows if validation fails")
+        console.print("  --fail-on LEVEL   Exit with error on critical/error/warning/any")
+        console.print()
+        console.print("[dim]Use [bold]pb run --help[/bold] for complete options and examples[/dim]")
+
+    elif command_name == "make-template":
+        console.print(
+            "[bold cyan]pb make-template[/bold cyan] - Create a validation script template"
+        )
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb make-template my_validation.py")
+        console.print("  pb make-template validation_template.py")
+        console.print()
+        console.print("[dim]Creates a sample Python script with validation examples[/dim]")
+        console.print("[dim]Edit the template and run with [bold]pb run[/bold][/dim]")
+        console.print()
+        console.print(
+            "[dim]Use [bold]pb make-template --help[/bold] for complete options and examples[/dim]"
+        )
+
+    elif command_name == "pl":
+        console.print(
+            "[bold cyan]pb pl[/bold cyan] - Execute Polars expressions and display results"
+        )
+        console.print()
+        console.print("[bold yellow]Usage:[/bold yellow]")
+        console.print("  pb pl \"pl.read_csv('data.csv')\"")
+        console.print("  pb pl --edit")
+        console.print()
+        console.print("[bold yellow]Key Options:[/bold yellow]")
+        console.print("  --edit            Open editor for multi-line input")
+        console.print("  --file FILE       Read query from file")
+        console.print("  --output-format   Output format: preview, scan, missing, info")
+        console.print("  --pipe            Output for piping to other pb commands")
+        console.print()
+        console.print("[dim]Use [bold]pb pl --help[/bold] for complete options and examples[/dim]")
+
+    # Fix the exit call at the end
+    if ctx is not None:
+        ctx.exit(1)
+    else:
+        sys.exit(1)
