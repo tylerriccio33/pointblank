@@ -2574,8 +2574,8 @@ def _rich_print_missing_table_enhanced(
 
             footer_text = (
                 "[dim]Symbols: [green]●[/green] = no missing vals in sector, "
-                "[red]●[/red] = all vals completely missing in sector, "
-                "[cyan]x%[/cyan] = percentage of missing values[/dim]"
+                "[red]●[/red] = all vals completely missing, "
+                "[cyan]x%[/cyan] = percentage missing[/dim]"
             )
             console.print(footer_text)
 
