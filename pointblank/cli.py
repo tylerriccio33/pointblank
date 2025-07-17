@@ -1319,7 +1319,7 @@ def info(data_source: str | None):
 @click.option("--no-header", is_flag=True, help="Hide table header")
 @click.option("--output-html", type=click.Path(), help="Save HTML output to file")
 def preview(
-    data_source: str | None,  # Make it optional
+    data_source: str | None,
     columns: str | None,
     col_range: str | None,
     col_first: int | None,
