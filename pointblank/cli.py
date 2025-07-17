@@ -1228,8 +1228,18 @@ def cli():
     """
     Pointblank CLI: Data validation and quality tools for data engineers.
 
-    Use this CLI to run validation scripts, preview tables, and generate reports
-    directly from the command line.
+    Use this CLI to validate data quality, explore datasets, and generate comprehensive
+    reports for CSV, Parquet, and database sources. Ideal for data pipelines, ETL
+    validation, and exploratory data analysis from the command line.
+
+    Quick Examples:
+
+    \b
+      pb preview data.csv              Preview your data
+      pb scan data.csv                 Generate data profile
+      pb validate data.csv             Run basic validation
+
+    Use pb COMMAND --help for detailed help on any command.
     """
     pass
 
