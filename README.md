@@ -218,7 +218,7 @@ Click the following headings to see some video demonstrations of the CLI:
 <summary>Validating Data with the CLI</summary>
 
 <div align="center">
-<img src="https://posit-dev.github.io/pointblank/assets/vhs/essential-validations.gif" width="100%">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-essential-validations.gif" width="100%">
 </div>
 
 </details>
