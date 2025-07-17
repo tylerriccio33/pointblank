@@ -1222,7 +1222,8 @@ def _display_validation_summary(validation: Any) -> None:
 
 
 @click.group(cls=OrderedGroup)
-@click.version_option(version=pb.__version__, prog_name="pb")
+@click.version_option(pb.__version__, "-v", "--version", prog_name="pb")
+@click.help_option("-h", "--help")
 def cli():
     """
     Pointblank CLI: Data validation and quality tools for data engineers.
