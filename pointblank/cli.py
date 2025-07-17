@@ -571,9 +571,12 @@ def _rich_print_gt_table(
         gt_table: The GT table object to display
         preview_info: Optional dict with preview context info:
             - total_rows: Total rows in the dataset
+            - total_columns: Total columns in the dataset
             - head_rows: Number of head rows shown
             - tail_rows: Number of tail rows shown
             - is_complete: Whether the entire dataset is shown
+            - source_type: Type of data source (e.g., "External source: worldcities_new.csv")
+            - table_type: Type of table (e.g., "polars")
         show_summary: Whether to show the row count summary at the bottom
     """
     try:
@@ -605,6 +608,12 @@ def _rich_print_gt_table(
                 source_type = preview_info["source_type"]
                 table_type = preview_info["table_type"]
                 table_title = f"Data Preview / {source_type} / {table_type}"
+
+                # Add dimensions subtitle in gray if available
+                total_rows = preview_info.get("total_rows")
+                total_columns = preview_info.get("total_columns")
+                if total_rows is not None and total_columns is not None:
+                    table_title += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
 
             rich_table = Table(
                 title=table_title,
@@ -1790,7 +1799,38 @@ def missing(data_source: str | None, output_html: str | None):
             console.print(f"[green]✓[/green] Missing values report saved to: {output_html}")
         else:
             # Display in terminal with special missing values formatting
-            _rich_print_missing_table(gt_table, original_data)
+            # Create enhanced context info for missing table display
+            missing_info = {}
+            try:
+                # Determine source type and table type for enhanced preview title
+                if is_piped_data:
+                    if data_source.endswith(".parquet"):
+                        source_type = "Polars expression (serialized to Parquet) from `pb pl`"
+                    elif data_source.endswith(".csv"):
+                        source_type = "Polars expression (serialized to CSV) from `pb pl`"
+                    else:
+                        source_type = "Polars expression from `pb pl`"
+                elif data_source in ["small_table", "game_revenue", "nycflights", "global_sales"]:
+                    source_type = f"Pointblank dataset: {data_source}"
+                else:
+                    source_type = f"External source: {data_source}"
+
+                missing_info = {
+                    "source_type": source_type,
+                    "table_type": _get_tbl_type(original_data),
+                    "total_rows": pb.get_row_count(original_data),
+                    "total_columns": pb.get_column_count(original_data),
+                }
+            except Exception:
+                # Use defaults if metadata extraction fails
+                missing_info = {
+                    "source_type": f"Data source: {data_source}",
+                    "table_type": "unknown",
+                    "total_rows": None,
+                    "total_columns": None,
+                }
+
+            _rich_print_missing_table_enhanced(gt_table, original_data, missing_info)
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -2346,6 +2386,209 @@ def requirements():
     console.print("\n[dim]Install missing packages to enable additional functionality.[/dim]")
 
 
+def _rich_print_missing_table_enhanced(
+    gt_table: Any, original_data: Any = None, missing_info: dict = None
+) -> None:
+    """Convert a missing values GT table to Rich table with enhanced formatting and metadata.
+
+    Args:
+        gt_table: The GT table object for missing values
+        original_data: The original data source to extract column types
+        missing_info: Dict with metadata including source_type, table_type, total_rows, total_columns
+    """
+    try:
+        # Extract the underlying data from the GT table
+        df = None
+
+        if hasattr(gt_table, "_tbl_data") and gt_table._tbl_data is not None:
+            df = gt_table._tbl_data
+        elif hasattr(gt_table, "_data") and gt_table._data is not None:
+            df = gt_table._data
+        elif hasattr(gt_table, "data") and gt_table.data is not None:
+            df = gt_table.data
+
+        if df is not None:
+            from rich.box import SIMPLE_HEAD
+
+            # Extract metadata from missing_info or use defaults
+            source_type = "Data source"
+            table_type = "unknown"
+            total_rows = None
+            total_columns = None
+
+            if missing_info:
+                source_type = missing_info.get("source_type", "Data source")
+                table_type = missing_info.get("table_type", "unknown")
+                total_rows = missing_info.get("total_rows")
+                total_columns = missing_info.get("total_columns")
+
+            # Create enhanced title matching the scan table format
+            title_text = f"Missing Values / {source_type} / {table_type}"
+
+            # Add dimensions subtitle in gray if available
+            if total_rows is not None and total_columns is not None:
+                title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+            # Get column names
+            columns = []
+            try:
+                if hasattr(df, "columns"):
+                    columns = list(df.columns)
+                elif hasattr(df, "schema"):
+                    columns = list(df.schema.names)
+            except Exception as e:
+                console.print(f"[red]Error getting columns:[/red] {e}")
+                columns = []
+
+            if not columns:
+                columns = [f"Column {i + 1}" for i in range(10)]  # Fallback
+
+            # Get original data to extract column types
+            column_types = {}
+            if original_data is not None:
+                try:
+                    # Get column types from original data
+                    if hasattr(original_data, "columns"):
+                        original_columns = list(original_data.columns)
+                        column_types = _get_column_dtypes(original_data, original_columns)
+                except Exception as e:
+                    console.print(f"[red]Error getting column types:[/red] {e}")
+                    pass  # Use empty dict as fallback
+
+            # Add columns to Rich table with special formatting for missing values table
+            sector_columns = [col for col in columns if col != "columns" and col.isdigit()]
+
+            # Print the title first
+            console.print()
+            console.print(f"[bold cyan]{title_text}[/bold cyan]")
+
+            # Show the custom spanner header if we have sector columns
+            if sector_columns:
+                # Create a custom header line that shows the spanner
+                header_parts = []
+                header_parts.append(" " * 20)  # Space for Column header
+                header_parts.append(" " * 10)  # Space for Type header
+
+                # Left-align "Row Sectors" with the first numbered column
+                row_sectors_text = "Row Sectors"
+                header_parts.append(row_sectors_text)
+
+                # Print the custom spanner header
+                console.print("[dim]" + "  ".join(header_parts) + "[/dim]")
+
+                # Add a horizontal rule below the spanner
+                rule_parts = []
+                rule_parts.append(" " * 20)  # Space for Column header
+                rule_parts.append(" " * 10)  # Space for Type header
+
+                # Use a fixed width horizontal rule for "Row Sectors"
+                horizontal_rule = "─" * 20
+                rule_parts.append(horizontal_rule)
+
+                # Print the horizontal rule
+                console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
+
+            # Create the missing values table WITHOUT the title (since we printed it above)
+            rich_table = Table(
+                show_header=True,
+                header_style="bold magenta",
+                box=SIMPLE_HEAD,
+            )
+
+            # Two separate columns: Column name (20 chars) and Data type (10 chars)
+            rich_table.add_column("Column", style="cyan", no_wrap=True, width=20)
+            rich_table.add_column("Type", style="yellow", no_wrap=True, width=10)
+
+            # Sector columns: All same width, optimized for "100%" (4 chars + padding)
+            for sector in sector_columns:
+                rich_table.add_column(
+                    sector,
+                    style="cyan",
+                    justify="center",
+                    no_wrap=True,
+                    width=5,  # Fixed width optimized for percentage values
+                )
+
+            # Convert data to rows with special formatting
+            rows = []
+            try:
+                if hasattr(df, "to_dicts"):
+                    data_dict = df.to_dicts()
+                elif hasattr(df, "to_dict"):
+                    data_dict = df.to_dict("records")
+                else:
+                    data_dict = []
+
+                for i, row in enumerate(data_dict):
+                    try:
+                        # Each row should have: [column_name, data_type, sector1, sector2, ...]
+                        column_name = str(row.get("columns", ""))
+
+                        # Truncate column name to 20 characters with ellipsis if needed
+                        if len(column_name) > 20:
+                            truncated_name = column_name[:17] + "…"
+                        else:
+                            truncated_name = column_name
+
+                        # Get data type for this column
+                        if column_name in column_types:
+                            dtype = column_types[column_name]
+                            if len(dtype) > 10:
+                                truncated_dtype = dtype[:9] + "…"
+                            else:
+                                truncated_dtype = dtype
+                        else:
+                            truncated_dtype = "?"
+
+                        # Start building the row with column name and type
+                        formatted_row = [truncated_name, truncated_dtype]
+
+                        # Add sector values (formatted percentages)
+                        for sector in sector_columns:
+                            value = row.get(sector, 0.0)
+                            if isinstance(value, (int, float)):
+                                formatted_row.append(_format_missing_percentage(float(value)))
+                            else:
+                                formatted_row.append(str(value))
+
+                        rows.append(formatted_row)
+
+                    except Exception as e:
+                        console.print(f"[red]Error processing row {i}:[/red] {e}")
+                        continue
+
+            except Exception as e:
+                console.print(f"[red]Error extracting data:[/red] {e}")
+                rows = [["Error extracting data", "?", *["" for _ in sector_columns]]]
+
+            # Add rows to Rich table
+            for row in rows:
+                try:
+                    rich_table.add_row(*row)
+                except Exception as e:
+                    console.print(f"[red]Error adding row:[/red] {e}")
+                    break
+
+            # Print the Rich table (without title since we already printed it)
+            console.print(rich_table)
+
+            footer_text = (
+                "[dim]Symbols: [green]●[/green] = no missing vals in sector, "
+                "[red]●[/red] = all vals completely missing in sector, "
+                "[cyan]x%[/cyan] = percentage of missing values[/dim]"
+            )
+            console.print(footer_text)
+
+        else:
+            # Fallback to regular table display
+            _rich_print_gt_table(gt_table)
+
+    except Exception as e:
+        console.print(f"[red]Error rendering missing values table:[/red] {e}")
+        # Fallback to regular table display
+        _rich_print_gt_table(gt_table)
+
+
 def _rich_print_scan_table(
     scan_result: Any,
     data_source: str,
@@ -2635,8 +2878,36 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
         if df is not None:
             from rich.box import SIMPLE_HEAD
 
-            # Create the missing values table
-            rich_table = Table(show_header=True, header_style="bold magenta", box=SIMPLE_HEAD)
+            # Get metadata for enhanced missing table title
+            total_rows = None
+            total_columns = None
+            source_type = "Data source"
+            table_type = "unknown"
+
+            if original_data is not None:
+                try:
+                    total_rows = pb.get_row_count(original_data)
+                    total_columns = pb.get_column_count(original_data)
+                    table_type = _get_tbl_type(original_data)
+                except Exception:
+                    pass
+
+            # Create enhanced title matching the scan table format
+            title_text = f"Missing Values / {source_type} / {table_type}"
+
+            # Add dimensions subtitle in gray if available
+            if total_rows is not None and total_columns is not None:
+                title_text += f"\n[dim]{total_rows:,} rows / {total_columns} columns[/dim]"
+
+            # Create the missing values table with enhanced title
+            rich_table = Table(
+                title=title_text,
+                show_header=True,
+                header_style="bold magenta",
+                box=SIMPLE_HEAD,
+                title_style="bold cyan",
+                title_justify="left",
+            )
 
             # Get column names
             columns = []
@@ -2768,6 +3039,7 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
                 console.print("[dim]" + "  ".join(rule_parts) + "[/dim]")
 
             # Print the Rich table (will handle terminal width automatically)
+            console.print()
             console.print(rich_table)
             footer_text = (
                 "[dim]Symbols: [green]●[/green] = no missing values, "
