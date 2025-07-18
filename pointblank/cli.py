@@ -3042,10 +3042,9 @@ def _rich_print_missing_table(gt_table: Any, original_data: Any = None) -> None:
             console.print()
             console.print(rich_table)
             footer_text = (
-                "[dim]Symbols: [green]●[/green] = no missing values, "
-                "[red]●[/red] = completely missing, "
-                "<1% = less than 1% missing, "
-                ">99% = more than 99% missing[/dim]"
+                "[dim]Symbols: [green]●[/green] = no missing vals in sector, "
+                "[red]●[/red] = all vals completely missing, "
+                "[cyan]x%[/cyan] = percentage missing[/dim]"
             )
             console.print(footer_text)
 
