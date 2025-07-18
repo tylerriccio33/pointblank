@@ -223,6 +223,14 @@ Click the following headings to see some video demonstrations of the CLI:
 
 </details>
 <details>
+<summary>Using Polars in the CLI</summary>
+
+<div align="center">
+<img src="https://posit-dev.github.io/pointblank/assets/vhs/cli-using-polars.gif" width="100%">
+</div>
+
+</details>
+<details>
 <summary>Integrating Pointblank with CI/CD</summary>
 
 <div align="center">
