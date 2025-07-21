@@ -13990,7 +13990,7 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
         if value is None:
             data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_null())
         # Check if the value is a segment group
-        elif isinstance(value, (list, set, tuple)):
+        elif isinstance(value, list):
             data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_in(value))
         else:
             data_tbl_nw = data_tbl_nw.filter(nw.col(column) == value)
@@ -14004,7 +14004,7 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
         # Filter the data table based on the column name and value
         if value is None:
             data_tbl = data_tbl[data_tbl[column].isnull()]
-        elif isinstance(value, (list, set, tuple)):
+        elif isinstance(value, list):
             data_tbl = data_tbl[data_tbl[column].isin(value)]
         else:
             data_tbl = data_tbl[data_tbl[column] == value]
