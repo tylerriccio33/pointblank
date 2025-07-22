@@ -202,17 +202,15 @@ def test_yaml_error_handling():
     with pytest.raises(YAMLValidationError, match="Failed to load data source"):
         yaml_interrogate(yaml_content)
 
-    # Invalid threshold values
+    # Invalid threshold values (negative values are not allowed)
     yaml_content = """
     tbl: small_table
     thresholds:
-      warning: 1.5
+      warning: -1
     steps:
     - rows_distinct
     """
-    with pytest.raises(
-        YAMLValidationError, match="Threshold 'warning' must be a number between 0 and 1"
-    ):
+    with pytest.raises(YAMLValidationError, match="Threshold 'warning' must be non-negative"):
         yaml_interrogate(yaml_content)
 
 
@@ -327,7 +325,7 @@ def test_comprehensive_yaml_validation():
     tbl_name: Comprehensive Test
     thresholds:
       warning: 1
-      error: 0.10
+      error: 2
       critical: 0.15
     steps:
     - col_vals_lt:
