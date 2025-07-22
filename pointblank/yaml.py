@@ -24,13 +24,19 @@ class YAMLValidator:
         "col_vals_ge": "col_vals_ge",
         "col_vals_lt": "col_vals_lt",
         "col_vals_le": "col_vals_le",
+        "col_vals_eq": "col_vals_eq",
+        "col_vals_ne": "col_vals_ne",
         "col_vals_between": "col_vals_between",
+        "col_vals_outside": "col_vals_outside",
         "col_vals_regex": "col_vals_regex",
         "col_vals_in_set": "col_vals_in_set",
+        "col_vals_not_in_set": "col_vals_not_in_set",
         "col_vals_not_null": "col_vals_not_null",
         "col_vals_null": "col_vals_null",
         "rows_distinct": "rows_distinct",
         "rows_complete": "rows_complete",
+        "col_count_match": "col_count_match",
+        "row_count_match": "row_count_match",
     }
 
     def __init__(self):
@@ -217,9 +223,21 @@ class YAMLValidator:
                 f"Unknown validation method '{method_name}'. Available methods: {available_methods}"
             )
 
-        # Convert column specifications
+        # Convert `columns=` specification
         if "columns" in parameters:
             parameters["columns"] = self._parse_column_spec(parameters["columns"])
+
+        #
+        # Convert special parameter formats
+        #
+
+        # Convert `columns_subset=` if present (from `rows_[distinct|complete]()`)
+        if "columns_subset" in parameters:
+            parameters["columns_subset"] = self._parse_column_spec(parameters["columns_subset"])
+
+        # Handle `inclusive=` parameter for `col_vals_[inside|outside]()` (convert list to tuple)
+        if "inclusive" in parameters and isinstance(parameters["inclusive"], list):
+            parameters["inclusive"] = tuple(parameters["inclusive"])
 
         return self.validation_method_map[method_name], parameters
 
@@ -598,6 +616,9 @@ def validate_yaml(yaml: Union[str, Path]) -> None:
     """
     validator = YAMLValidator()
     config = validator.load_config(yaml)
+    return validator.execute_workflow(config)
+
+
 def yaml_to_python(yaml: Union[str, Path]) -> str:
     """Convert YAML validation configuration to equivalent Python code.
 
