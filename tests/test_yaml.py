@@ -1,7 +1,6 @@
-from unittest import result
 import pytest
-from pointblank import yaml_interrogate, validate_yaml
-from pointblank.yaml import YAMLValidationError, load_yaml_config
+from pointblank import yaml_interrogate, validate_yaml, yaml_to_python
+from pointblank.yaml import load_yaml_config, YAMLValidationError, YAMLValidator
 
 
 def test_yaml_interrogate_basic_workflow():
@@ -242,8 +241,6 @@ def test_step_parameter_validation():
 
 
 def test_yaml_column_parsing():
-    from pointblank.yaml import YAMLValidator
-
     validator = YAMLValidator()
 
     # Test various YAML list formats
@@ -392,7 +389,6 @@ def test_comprehensive_yaml_validation():
         assert result._get_highest_severity_level() == "critical"
 
     except Exception as e:
-        print(f"Error in comprehensive test: {e}")
         import traceback
 
         traceback.print_exc()
@@ -400,8 +396,6 @@ def test_comprehensive_yaml_validation():
 
 
 def test_yaml_to_python_comprehensive():
-    from pointblank import yaml_to_python
-
     yaml_content = """
     tbl: small_table
     tbl_name: Test Table
@@ -450,7 +444,6 @@ def test_yaml_to_python_comprehensive():
         assert python_code.endswith("\n```")
 
     except Exception as e:
-        print(f"Error in yaml_to_python test: {e}")
         raise
 
 
@@ -497,7 +490,6 @@ def test_yaml_briefs():
         assert result.validation_info[4].brief == "**Step** 5: {auto}"
 
     except Exception as e:
-        print(f"Error in brief test: {e}")
         import traceback
 
         traceback.print_exc()
@@ -505,8 +497,6 @@ def test_yaml_briefs():
 
 
 def test_yaml_to_python_with_briefs():
-    from pointblank import yaml_to_python
-
     yaml_content = """
     tbl: small_table
     tbl_name: Brief Example
@@ -548,13 +538,10 @@ def test_yaml_to_python_with_briefs():
         )
 
     except Exception as e:
-        print(f"Error in yaml_to_python briefs test: {e}")
         raise
 
 
 def test_python_expressions():
-    from pointblank.yaml import YAMLValidator
-
     # Test python: block syntax with simple expression
     yaml_content = """
 tbl:
@@ -570,7 +557,6 @@ steps:
         config = validator.load_config(yaml_content)
         validation_result = validator.execute_workflow(config)
     except Exception as e:
-        print(f"Error in python: block test: {e}")
         raise
 
     # Test python: block syntax with complex polars operations
@@ -588,7 +574,6 @@ steps:
         config = validator.load_config(yaml_content)
         validation_result = validator.execute_workflow(config)
     except Exception as e:
-        print(f"Error in complex python: block test: {e}")
         raise
 
     # Test security restrictions
@@ -611,15 +596,12 @@ steps:
         from pointblank.yaml import YAMLValidationError
 
         if isinstance(e, YAMLValidationError) and ("not allowed" in str(e) or "unsafe" in str(e)):
-            print("Security restrictions work: dangerous code blocked")
+            pass  # Expected - security restrictions work
         else:
-            print(f"Unexpected error in security test: {e}")
             raise
 
 
 def test_python_expressions_advanced():
-    from pointblank.yaml import YAMLValidator
-
     # Test python: block in validation step parameters
     yaml_content = """
 tbl: worldcities.csv
@@ -635,7 +617,163 @@ steps:
         validator = YAMLValidator()
         config = validator.load_config(yaml_content)
         validation_result = validator.execute_workflow(config)
-        print("python: block in parameters works")
     except Exception as e:
-        print(f"Error in parameter python: block test: {e}")
+        raise
+
+
+def test_complex_expression_validation_yaml():
+    # YAML configuration with complex polars expression
+    yaml_content = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "a": [1, 2, 1, 7, 8, 6],
+        "b": [0, 0, 0, 1, 1, 1],
+        "c": [0.5, 0.3, 0.8, 1.4, 1.9, 1.2],
+    })
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.when(pl.col("b") == 0).then(pl.col("a").is_between(0, 5)).when(pl.col("b") == 1).then(pl.col("a") > 5).otherwise(pl.lit(True))
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+
+        # Verify the validation ran successfully
+        assert validation_result is not None
+        assert len(validation_result.validation_info) == 1
+
+        # The validation should pass for this data
+        # a=1,2,1 when b=0 (should be between 0-5)
+        # a=7,8,6 when b=1 (should be > 5)
+        validation_info = validation_result.validation_info[0]
+        assert validation_info.n_passed == 6  # All rows should pass
+        assert validation_info.n_failed == 0  # No rows should fail
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_to_python_with_expressions():
+    # YAML configuration with complex expressions
+    yaml_content = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "a": [1, 2, 1, 7, 8, 6],
+        "b": [0, 0, 0, 1, 1, 1],
+        "c": [0.5, 0.3, 0.8, 1.4, 1.9, 1.2],
+    })
+tbl_name: "Expression Test Dataset"
+label: "Complex polars expression validation"
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.when(pl.col("b") == 0).then(pl.col("a").is_between(0, 5)).when(pl.col("b") == 1).then(pl.col("a") > 5).otherwise(pl.lit(True))
+"""
+
+    try:
+        # Test YAML to Python conversion
+        python_code = yaml_to_python(yaml_content)
+
+        # Verify the generated Python code contains expected elements
+        assert "pb.Validate(" in python_code
+        assert "col_vals_expr(" in python_code
+        assert "tbl_name=" in python_code
+        assert "label=" in python_code
+        assert "interrogate()" in python_code
+
+        # Test that the original YAML validation works
+        original_result = yaml_interrogate(yaml_content)
+        assert original_result is not None
+        assert len(original_result.validation_info) == 1
+        assert original_result.tbl_name == "Expression Test Dataset"
+        assert original_result.label == "Complex polars expression validation"
+
+        # Verify validation logic works correctly
+        validation_info = original_result.validation_info[0]
+        assert validation_info.n_passed == 6  # All 6 rows should pass the expression
+        assert validation_info.n_failed == 0  # No failures expected
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_expression_edge_cases():
+    # Test 1: Multiple python: blocks in different parameters
+    yaml_content1 = """
+tbl:
+  python: |
+    pl.DataFrame({"x": [1, 2, 3], "y": ["a", "b", "c"]})
+steps:
+  - col_vals_in_set:
+      columns:
+        python: |
+          ["x"]
+      set:
+        python: |
+          [1, 2, 3]
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content1)
+        result = validator.execute_workflow(config)
+        assert result is not None
+        assert len(result.validation_info) == 1
+    except Exception as e:
+        raise
+
+    # Test 2: Complex multiline expression with intermediate variables
+    yaml_content2 = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "value": [10, 20, 30, 40, 50],
+        "category": ["A", "B", "A", "B", "A"]
+    })
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          # Complex expression with intermediate calculation
+          avg_by_category = pl.col("value").mean().over("category")
+          pl.col("value") >= avg_by_category * 0.8
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content2)
+        result = validator.execute_workflow(config)
+        assert result is not None
+        assert len(result.validation_info) == 1
+    except Exception as e:
+        raise
+
+    # Test 3: Expression that uses both pandas and polars
+    yaml_content3 = """
+tbl:
+  python: |
+    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.col("nums") > 2
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content3)
+        result = validator.execute_workflow(config)
+        assert result is not None
+        validation_info = result.validation_info[0]
+        assert validation_info.n_passed == 3  # Values 3, 4, 5 should pass
+        assert validation_info.n_failed == 2  # Values 1, 2 should fail
+    except Exception as e:
         raise
