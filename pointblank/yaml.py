@@ -954,12 +954,21 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     validator = YAMLValidator()
     config = validator.load_config(yaml)
 
+    # Track whether we need to import Polars
+    needs_polars_import = False
+
     # Start building the Python code
     code_lines = []
 
-    # Add imports
-    code_lines.append("import pointblank as pb")
-    code_lines.append("")
+    # Add imports (we'll determine Polars import need during processing)
+    imports = ["import pointblank as pb"]
+
+    # Check if tbl uses Polars expressions
+    tbl_spec = config["tbl"]
+    if not isinstance(tbl_spec, str):
+        # This means it's a Python expression result, likely Polars
+        if hasattr(tbl_spec, "__module__") and "polars" in str(tbl_spec.__module__):
+            needs_polars_import = True
 
     # Build the chained validation call
     code_lines.append("(")
@@ -968,7 +977,6 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     validate_args = []
 
     # Add data loading as first argument
-    tbl_spec = config["tbl"]
     if isinstance(tbl_spec, str):
         if tbl_spec.endswith((".csv", ".parquet")):
             # File loading
@@ -1071,6 +1079,7 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                 # Handle complex objects (like polars expressions from python: blocks)
                 # For these, we'll use a placeholder since they can't be easily converted back
                 if hasattr(value, "__module__") and "polars" in str(value.__module__):
+                    needs_polars_import = True
                     param_parts.append(f"{key}=<polars_expression>")
                 else:
                     param_parts.append(f"{key}={value}")
@@ -1085,6 +1094,13 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     code_lines.append("    .interrogate()")
     code_lines.append(")")
 
+    # Add imports at the beginning
+    if needs_polars_import:
+        imports.append("import polars as pl")
+
+    # Build final code with imports
+    final_code_lines = imports + [""] + code_lines
+
     # Join all code lines and wrap in single markdown code block
-    python_code = "\n".join(code_lines)
+    python_code = "\n".join(final_code_lines)
     return f"```python\n{python_code}\n```"
