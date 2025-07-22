@@ -505,7 +505,6 @@ def test_yaml_briefs():
 
 
 def test_yaml_to_python_with_briefs():
-    """Test yaml_to_python function with brief parameters."""
     from pointblank import yaml_to_python
 
     yaml_content = """
@@ -548,8 +547,95 @@ def test_yaml_to_python_with_briefs():
             in python_code
         )
 
-        print("✓ yaml_to_python correctly generated brief parameters")
-
     except Exception as e:
         print(f"Error in yaml_to_python briefs test: {e}")
+        raise
+
+
+def test_python_expressions():
+    from pointblank.yaml import YAMLValidator
+
+    # Test python: block syntax with simple expression
+    yaml_content = """
+tbl:
+  python: |
+    "worldcities.csv"
+steps:
+  - col_vals_not_null:
+      columns: country
+    """
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+    except Exception as e:
+        print(f"Error in python: block test: {e}")
+        raise
+
+    # Test python: block syntax with complex polars operations
+    yaml_content = """
+tbl:
+  python: |
+    pl.scan_csv("worldcities.csv").head(5)
+steps:
+  - row_count_match:
+      count: 5
+    """
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+    except Exception as e:
+        print(f"Error in complex python: block test: {e}")
+        raise
+
+    # Test security restrictions
+    yaml_content = """
+tbl:
+  python: |
+    import os
+    os.system("echo test")
+steps:
+  - col_vals_not_null:
+      columns: country
+    """
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+        raise AssertionError("Security restrictions not working")
+    except Exception as e:
+        from pointblank.yaml import YAMLValidationError
+
+        if isinstance(e, YAMLValidationError) and ("not allowed" in str(e) or "unsafe" in str(e)):
+            print("Security restrictions work: dangerous code blocked")
+        else:
+            print(f"Unexpected error in security test: {e}")
+            raise
+
+
+def test_python_expressions_advanced():
+    from pointblank.yaml import YAMLValidator
+
+    # Test python: block in validation step parameters
+    yaml_content = """
+tbl: worldcities.csv
+steps:
+  - col_vals_in_set:
+      columns: country
+      set:
+        python: |
+          ['USA', 'Canada', 'Mexico']
+    """
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+        print("python: block in parameters works")
+    except Exception as e:
+        print(f"Error in parameter python: block test: {e}")
         raise
