@@ -1,3 +1,4 @@
+from unittest import result
 import pytest
 from pointblank import yaml_interrogate, validate_yaml
 from pointblank.yaml import YAMLValidationError, load_yaml_config
@@ -452,4 +453,105 @@ def test_yaml_to_python_comprehensive():
 
     except Exception as e:
         print(f"Error in yaml_to_python test: {e}")
+        raise
+
+
+def test_yaml_briefs():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: Brief Test
+    brief: "**Global Brief**: {auto}"
+    lang: en
+    steps:
+    - col_vals_eq:
+        columns: [a]
+        value: 3
+    - col_vals_lt:
+        columns: [c]
+        value: 5
+        brief: false
+    - col_vals_gt:
+        columns: [d]
+        value: 100
+        brief: true
+    - col_vals_le:
+        columns: [a]
+        value: 7
+        brief: "This is a custom local brief for the assertion"
+    - col_vals_ge:
+        columns: [d]
+        value: 500
+        na_pass: true
+        brief: "**Step** {step}: {auto}"
+    """
+
+    try:
+        result = yaml_interrogate(yaml_content)
+        assert result is not None
+        assert len(result.validation_info) == 5
+        assert result.tbl_name == "Brief Test"
+
+        # Check brief values at every step
+        assert result.validation_info[0].brief == "**Global Brief**: {auto}"
+        assert result.validation_info[1].brief is None
+        assert result.validation_info[2].brief == "{auto}"
+        assert result.validation_info[3].brief == "This is a custom local brief for the assertion"
+        assert result.validation_info[4].brief == "**Step** 5: {auto}"
+
+    except Exception as e:
+        print(f"Error in brief test: {e}")
+        import traceback
+
+        traceback.print_exc()
+        raise
+
+
+def test_yaml_to_python_with_briefs():
+    """Test yaml_to_python function with brief parameters."""
+    from pointblank import yaml_to_python
+
+    yaml_content = """
+    tbl: small_table
+    tbl_name: Brief Example
+    brief: "**Global Brief**: {auto}"
+    lang: el
+    thresholds:
+      warning: 0.236
+      error: 0.6
+    steps:
+    - col_vals_eq:
+        columns: [a]
+        value: 3
+    - col_vals_lt:
+        columns: [c]
+        value: 5
+        brief: false
+    - col_vals_gt:
+        columns: [d]
+        value: 100
+        brief: true
+    - col_vals_le:
+        columns: [a]
+        value: 7
+        brief: "This is a custom local brief for the assertion"
+    """
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+
+        # Check that the generated code contains expected elements
+        assert "import pointblank as pb" in python_code
+        assert 'brief="**Global Brief**: {auto}"' in python_code
+        assert 'lang="el"' in python_code
+        assert '.col_vals_lt(columns="c", value=5, brief=False)' in python_code
+        assert '.col_vals_gt(columns="d", value=100, brief=True)' in python_code
+        assert (
+            '.col_vals_le(columns="a", value=7, brief="This is a custom local brief for the assertion")'
+            in python_code
+        )
+
+        print("✓ yaml_to_python correctly generated brief parameters")
+
+    except Exception as e:
+        print(f"Error in yaml_to_python briefs test: {e}")
         raise
