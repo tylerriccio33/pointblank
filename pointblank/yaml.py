@@ -276,6 +276,10 @@ class YAMLValidator:
         if "locale" in config:
             validate_kwargs["locale"] = config["locale"]
 
+        # Set global brief if provided
+        if "brief" in config:
+            validate_kwargs["brief"] = config["brief"]
+
         validation = Validate(data, **validate_kwargs)
 
         # Add validation steps
@@ -744,11 +748,11 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     if "tbl_name" in config:
         validate_args.append(f'tbl_name="{config["tbl_name"]}"')
 
-    # Add label if present
+    # Add `label=` if present
     if "label" in config:
         validate_args.append(f'label="{config["label"]}"')
 
-    # Add thresholds if present - format as pb.Thresholds() for idiomatic style
+    # Add `thresholds=` if present: format as `pb.Thresholds()` for an idiomatic style
     if "thresholds" in config:
         thresholds_dict = config["thresholds"]
         threshold_params = []
@@ -765,12 +769,19 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     if "locale" in config:
         validate_args.append(f'locale="{config["locale"]}"')
 
-    # Create the pb.Validate() call
+    # Add global brief if present
+    if "brief" in config:
+        if isinstance(config["brief"], bool):
+            validate_args.append(f"brief={str(config['brief'])}")
+        else:
+            validate_args.append(f'brief="{config["brief"]}"')
+
+    # Create the `pb.Validate()` call
     if len(validate_args) == 1:
         # Single argument fits on one line
         code_lines.append(f"    pb.Validate({validate_args[0]})")
     else:
-        # Multiple arguments - format each on its own line
+        # Multiple arguments: format each on its own line
         code_lines.append("    pb.Validate(")
         for i, arg in enumerate(validate_args):
             if i == len(validate_args) - 1:
@@ -797,16 +808,22 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                         param_parts.append(f"{key}={columns_str}")
                 else:
                     param_parts.append(f'{key}="{value}"')
+            elif key == "brief":
+                # Handle brief parameter: can be a boolean or a string
+                if isinstance(value, bool):
+                    param_parts.append(f"brief={str(value)}")
+                else:
+                    param_parts.append(f'brief="{value}"')
             elif isinstance(value, str):
                 param_parts.append(f'{key}="{value}"')
             elif isinstance(value, bool):
                 param_parts.append(f"{key}={str(value)}")
             elif isinstance(value, tuple):
-                # Handle tuples like inclusive=(False, True)
+                # Handle tuples like `inclusive=(False, True)`
                 tuple_str = "(" + ", ".join([str(item) for item in value]) + ")"
                 param_parts.append(f"{key}={tuple_str}")
             elif isinstance(value, list):
-                # Handle lists/tuples (like 'set' parameter)
+                # Handle lists/tuples (like `set=` parameter)
                 if all(isinstance(item, str) for item in value):
                     list_str = "[" + ", ".join([f'"{item}"' for item in value]) + "]"
                 else:
@@ -821,7 +838,7 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
         else:
             code_lines.append(f"    .{method_name}()")
 
-    # Add interrogation
+    # Add interrogation method call
     code_lines.append("    .interrogate()")
     code_lines.append(")")
 
