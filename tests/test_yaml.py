@@ -318,3 +318,138 @@ def test_yaml_workflow_results_consistency():
         yaml_result.validation_info[0].assertion_type
         == programmatic_result.validation_info[0].assertion_type
     )
+
+
+def test_comprehensive_yaml_validation():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: Comprehensive Test
+    thresholds:
+      warning: 1
+      error: 0.10
+      critical: 0.15
+    steps:
+    - col_vals_lt:
+        columns: [c]
+        value: 0
+    - col_vals_eq:
+        columns: [a]
+        value: 3
+    - col_vals_ne:
+        columns: [c]
+        value: 10
+    - col_vals_le:
+        columns: [a]
+        value: 7
+    - col_vals_ge:
+        columns: [d]
+        value: 500
+        na_pass: true
+    - col_vals_between:
+        columns: [c]
+        left: 0
+        right: 5
+        na_pass: true
+    - col_vals_outside:
+        columns: [a]
+        left: 0
+        right: 9
+        inclusive: [false, true]
+    - col_vals_eq:
+        columns: [a]
+        value: 1
+    - col_vals_in_set:
+        columns: [f]
+        set: [lows, mids, highs]
+    - col_vals_not_in_set:
+        columns: [f]
+        set: [low, mid, high]
+    - col_vals_null:
+        columns: [c]
+    - col_vals_not_null:
+        columns: [c]
+    - col_vals_regex:
+        columns: [f]
+        pattern: '[0-9]-[a-z]{3}-[0-9]{3}'
+    - col_exists:
+        columns: [z]
+    - rows_distinct
+    - rows_distinct:
+        columns_subset: [a, b, c]
+    - col_count_match:
+        count: 14
+    - row_count_match:
+        count: 20
+    """
+
+    try:
+        result = yaml_interrogate(yaml_content)
+        assert result is not None
+        # This should create 18 validation steps
+        assert len(result.validation_info) == 18
+        # The validation should execute without errors
+        assert hasattr(result, "validation_info")
+        # Verify that the highest severity level is 'critical'
+        assert result._get_highest_severity_level() == "critical"
+
+    except Exception as e:
+        print(f"Error in comprehensive test: {e}")
+        import traceback
+
+        traceback.print_exc()
+        raise
+
+
+def test_yaml_to_python_comprehensive():
+    from pointblank import yaml_to_python
+
+    yaml_content = """
+    tbl: small_table
+    tbl_name: Test Table
+    thresholds:
+      warning: 0.1
+      error: 0.25
+    steps:
+    - col_vals_eq:
+        columns: [a]
+        value: 3
+    - col_vals_outside:
+        columns: [a]
+        left: 0
+        right: 9
+        inclusive: [false, true]
+    - col_vals_in_set:
+        columns: [f]
+        set: [low, mid, high]
+    - rows_distinct:
+        columns_subset: [a, b, c]
+    - col_count_match:
+        count: 6
+    """
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+
+        # Check that the generated code contains expected elements
+        assert "import pointblank as pb" in python_code
+        assert "pb.Validate(" in python_code
+        assert 'data=pb.load_dataset("small_table")' in python_code
+        assert 'tbl_name="Test Table"' in python_code
+        assert "pb.Thresholds(warning=0.1, error=0.25)" in python_code
+        assert '.col_vals_eq(columns="a", value=3)' in python_code
+        assert (
+            '.col_vals_outside(columns="a", left=0, right=9, inclusive=(False, True))'
+            in python_code
+        )
+        assert '.col_vals_in_set(columns="f", set=["low", "mid", "high"])' in python_code
+        assert '.rows_distinct(columns_subset=["a", "b", "c"])' in python_code
+        assert ".col_count_match(count=6)" in python_code
+        assert ".interrogate()" in python_code
+
+        # Check that it starts and ends with the right markers
+        assert python_code.startswith("```python\n")
+        assert python_code.endswith("\n```")
+
+    except Exception as e:
+        print(f"Error in yaml_to_python test: {e}")
+        raise
