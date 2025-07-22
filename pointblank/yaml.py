@@ -598,3 +598,212 @@ def validate_yaml(yaml: Union[str, Path]) -> None:
     """
     validator = YAMLValidator()
     config = validator.load_config(yaml)
+def yaml_to_python(yaml: Union[str, Path]) -> str:
+    """Convert YAML validation configuration to equivalent Python code.
+
+    This function takes a YAML validation configuration and generates the equivalent Python code
+    that would produce the same validation workflow. This is useful for documentation, code
+    generation, or learning how to translate YAML workflows into programmatic workflows.
+
+    The generated Python code includes all necessary imports, data loading, validation steps,
+    and interrogation execution, formatted as executable Python code.
+
+    Parameters
+    ----------
+    yaml
+        YAML configuration as string or file path. Can be: (1) a YAML string containing the
+        validation configuration, or (2) a Path object or string path to a YAML file.
+
+    Returns
+    -------
+    str
+        A formatted Python code string enclosed in markdown code blocks that replicates the YAML
+        workflow. The code includes import statements, data loading, validation method calls, and
+        interrogation execution.
+
+    Raises
+    ------
+    YAMLValidationError
+        If the YAML is invalid, malformed, or contains unknown validation methods.
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+    ```
+
+    Convert a basic YAML configuration to Python code:
+
+    ```{python}
+    import pointblank as pb
+
+    # Define a YAML validation workflow
+    yaml_config = '''
+    tbl: small_table
+    tbl_name: Data Quality Check
+    steps:
+    - col_vals_not_null:
+        columns: [a, b]
+    - col_vals_gt:
+        columns: [c]
+        value: 0
+    '''
+
+    # Generate equivalent Python code
+    python_code = pb.yaml_to_python(yaml_config)
+    print(python_code)
+    ```
+
+    The generated Python code shows exactly how to replicate the YAML workflow programmatically.
+    This is particularly useful when transitioning from YAML-based workflows to code-based
+    workflows, or when generating documentation that shows both YAML and Python approaches.
+
+    For more complex workflows with thresholds and metadata:
+
+    ```{python}
+    # Advanced YAML configuration
+    yaml_config = '''
+    tbl: small_table
+    tbl_name: Advanced Validation
+    label: Production data check
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - col_vals_between:
+        columns: [c]
+        left: 1
+        right: 10
+    - col_vals_regex:
+        columns: [b]
+        pattern: '[0-9]-[a-z]{3}-[0-9]{3}'
+    '''
+
+    # Generate the equivalent Python code
+    python_code = pb.yaml_to_python(yaml_config)
+    print(python_code)
+    ```
+
+    The generated code includes all configuration parameters, thresholds, and maintains the exact
+    same validation logic as the original YAML workflow.
+
+    This function is also useful for educational purposes, helping users understand how YAML
+    configurations map to the underlying Python API calls.
+    """
+    # Load and validate the YAML configuration
+    validator = YAMLValidator()
+    config = validator.load_config(yaml)
+
+    # Start building the Python code
+    code_lines = []
+
+    # Add imports
+    code_lines.append("import pointblank as pb")
+    code_lines.append("")
+
+    # Build the chained validation call
+    code_lines.append("(")
+
+    # Build validation initialization arguments
+    validate_args = []
+
+    # Add data loading as first argument
+    tbl_spec = config["tbl"]
+    if tbl_spec.endswith((".csv", ".parquet")):
+        # File loading
+        validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+    else:
+        # Dataset loading
+        validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+
+    # Add table name if present
+    if "tbl_name" in config:
+        validate_args.append(f'tbl_name="{config["tbl_name"]}"')
+
+    # Add label if present
+    if "label" in config:
+        validate_args.append(f'label="{config["label"]}"')
+
+    # Add thresholds if present - format as pb.Thresholds() for idiomatic style
+    if "thresholds" in config:
+        thresholds_dict = config["thresholds"]
+        threshold_params = []
+        for key, value in thresholds_dict.items():
+            threshold_params.append(f"{key}={value}")
+        thresholds_str = "pb.Thresholds(" + ", ".join(threshold_params) + ")"
+        validate_args.append(f"thresholds={thresholds_str}")
+
+    # Add language if present
+    if "lang" in config:
+        validate_args.append(f'lang="{config["lang"]}"')
+
+    # Add locale if present
+    if "locale" in config:
+        validate_args.append(f'locale="{config["locale"]}"')
+
+    # Create the pb.Validate() call
+    if len(validate_args) == 1:
+        # Single argument fits on one line
+        code_lines.append(f"    pb.Validate({validate_args[0]})")
+    else:
+        # Multiple arguments - format each on its own line
+        code_lines.append("    pb.Validate(")
+        for i, arg in enumerate(validate_args):
+            if i == len(validate_args) - 1:
+                code_lines.append(f"        {arg},")
+            else:
+                code_lines.append(f"        {arg},")
+        code_lines.append("    )")
+
+    # Add validation steps as chained method calls
+    for step_config in config["steps"]:
+        method_name, parameters = validator._parse_validation_step(step_config)
+
+        # Format parameters
+        param_parts = []
+        for key, value in parameters.items():
+            if key in ["columns", "columns_subset"]:
+                if isinstance(value, list):
+                    if len(value) == 1:
+                        # Single column as string
+                        param_parts.append(f'{key}="{value[0]}"')
+                    else:
+                        # Multiple columns as list
+                        columns_str = "[" + ", ".join([f'"{col}"' for col in value]) + "]"
+                        param_parts.append(f"{key}={columns_str}")
+                else:
+                    param_parts.append(f'{key}="{value}"')
+            elif isinstance(value, str):
+                param_parts.append(f'{key}="{value}"')
+            elif isinstance(value, bool):
+                param_parts.append(f"{key}={str(value)}")
+            elif isinstance(value, tuple):
+                # Handle tuples like inclusive=(False, True)
+                tuple_str = "(" + ", ".join([str(item) for item in value]) + ")"
+                param_parts.append(f"{key}={tuple_str}")
+            elif isinstance(value, list):
+                # Handle lists/tuples (like 'set' parameter)
+                if all(isinstance(item, str) for item in value):
+                    list_str = "[" + ", ".join([f'"{item}"' for item in value]) + "]"
+                else:
+                    list_str = str(list(value))
+                param_parts.append(f"{key}={list_str}")
+            else:
+                param_parts.append(f"{key}={value}")
+
+        if param_parts:
+            params_str = ", ".join(param_parts)
+            code_lines.append(f"    .{method_name}({params_str})")
+        else:
+            code_lines.append(f"    .{method_name}()")
+
+    # Add interrogation
+    code_lines.append("    .interrogate()")
+    code_lines.append(")")
+
+    # Join all code lines and wrap in single markdown code block
+    python_code = "\n".join(code_lines)
+    return f"```python\n{python_code}\n```"
