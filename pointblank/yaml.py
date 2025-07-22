@@ -956,12 +956,18 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
 
     # Add data loading as first argument
     tbl_spec = config["tbl"]
-    if tbl_spec.endswith((".csv", ".parquet")):
-        # File loading
-        validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+    if isinstance(tbl_spec, str):
+        if tbl_spec.endswith((".csv", ".parquet")):
+            # File loading
+            validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+        else:
+            # Dataset loading
+            validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
     else:
-        # Dataset loading
-        validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+        # tbl_spec is not a string (e.g., it was a python: expression)
+        # In this case, we can't easily convert it back to Python code
+        # So we'll use a placeholder that indicates it was generated from python: expression
+        validate_args.append("data=<python_expression_result>")  # Placeholder
 
     # Add table name if present
     if "tbl_name" in config:
@@ -1049,7 +1055,12 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                     list_str = str(list(value))
                 param_parts.append(f"{key}={list_str}")
             else:
-                param_parts.append(f"{key}={value}")
+                # Handle complex objects (like polars expressions from python: blocks)
+                # For these, we'll use a placeholder since they can't be easily converted back
+                if hasattr(value, "__module__") and "polars" in str(value.__module__):
+                    param_parts.append(f"{key}=<polars_expression>")
+                else:
+                    param_parts.append(f"{key}={value}")
 
         if param_parts:
             params_str = ", ".join(param_parts)
