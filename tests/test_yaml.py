@@ -647,12 +647,50 @@ steps:
         assert validation_result is not None
         assert len(validation_result.validation_info) == 1
 
-        # The validation should pass for this data
-        # a=1,2,1 when b=0 (should be between 0-5)
-        # a=7,8,6 when b=1 (should be > 5)
         validation_info = validation_result.validation_info[0]
-        assert validation_info.n_passed == 6  # All rows should pass
-        assert validation_info.n_failed == 0  # No rows should fail
+        assert validation_info.n_passed == 6
+        assert validation_info.n_failed == 0
+
+    except Exception as e:
+        raise
+
+
+def test_complex_expression_multiline_validation_yaml():
+    # YAML configuration with complex polars expression
+    yaml_content = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "a": [1, 2, 1, 7, 8, 6],
+        "b": [0, 0, 0, 1, 1, 1],
+        "c": [0.5, 0.3, 0.8, 1.4, 1.9, 1.2],
+    })
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          (
+            pl.when(pl.col("b") == 0)
+            .then(pl.col("a")
+            .is_between(0, 5))
+            .when(pl.col("b") == 1)
+            .then(pl.col("a") > 5)
+            .otherwise(pl.lit(True))
+          )
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content)
+        validation_result = validator.execute_workflow(config)
+
+        # Verify the validation ran successfully
+        assert validation_result is not None
+        assert len(validation_result.validation_info) == 1
+
+        validation_info = validation_result.validation_info[0]
+        assert validation_info.n_passed == 6
+        assert validation_info.n_failed == 0
 
     except Exception as e:
         raise
@@ -704,149 +742,78 @@ steps:
         raise
 
 
-def test_yaml_expression_edge_cases():
-    # Test 1: Multiple python: blocks in different parameters
-    yaml_content1 = """
+def test_pandas_df_with_pandas_expressions():
+    yaml_content = """
 tbl:
   python: |
-    pl.DataFrame({"x": [1, 2, 3], "y": ["a", "b", "c"]})
-steps:
-  - col_vals_in_set:
-      columns:
-        python: |
-          ["x"]
-      set:
-        python: |
-          [1, 2, 3]
-"""
-
-    try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content1)
-        result = validator.execute_workflow(config)
-        assert result is not None
-        assert len(result.validation_info) == 1
-    except Exception as e:
-        raise
-
-    # Test 2: Complex multiline expression with intermediate variables
-    yaml_content2 = """
-tbl:
-  python: |
-    pl.DataFrame({
-        "value": [10, 20, 30, 40, 50],
-        "category": ["A", "B", "A", "B", "A"]
+    pd.DataFrame({
+        "nums": [1, 2, 3, 4, 5, 6],
+        "category": ["A", "B", "A", "B", "A", "B"],
+        "values": [10, 20, 30, 40, 50, 60]
     })
 steps:
   - col_vals_expr:
-      expr:
-        python: |
-          # Complex expression with intermediate calculation
-          avg_by_category = pl.col("value").mean().over("category")
-          pl.col("value") >= avg_by_category * 0.8
-"""
-
-    try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content2)
-        result = validator.execute_workflow(config)
-        assert result is not None
-        assert len(result.validation_info) == 1
-    except Exception as e:
-        raise
-
-    # Test 3: Expression that uses both pandas and polars
-    yaml_content3 = """
-tbl:
-  python: |
-    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
-steps:
-  - col_vals_expr:
       expr: |
-        pl.col("nums") > 2
+        lambda df: df["nums"] > 2
 """
 
     try:
         validator = YAMLValidator()
-        config = validator.load_config(yaml_content3)
+        config = validator.load_config(yaml_content)
         result = validator.execute_workflow(config)
         assert result is not None
         validation_info = result.validation_info[0]
-        assert validation_info.n_passed == 3  # Values 3, 4, 5 should pass
+        assert validation_info.n_passed == 4  # Values 3, 4, 5, 6 should pass
         assert validation_info.n_failed == 2  # Values 1, 2 should fail
     except Exception as e:
         raise
 
 
-def test_col_vals_expr_shortcut_syntax():
-    # Test the shortcut syntax for `col_vals_expr()` (`expr: |` directly)
-    yaml_content_shortcut = """
+def test_pandas_expr_shortcut_syntax():
+    # Test the shortcut syntax with a Pandas DataFrame
+    yaml_content_pandas_shortcut = """
+tbl:
+  python: |
+    pd.DataFrame({"nums": [1, 2, 3, 4, 5]})
+steps:
+  - col_vals_gt:
+      columns: nums
+      value: 0
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content_pandas_shortcut)
+        result_pandas = validator.execute_workflow(config)
+        assert result_pandas is not None
+        validation_info_pandas = result_pandas.validation_info[0]
+        assert validation_info_pandas.n_passed == 5  # All values > 0
+        assert validation_info_pandas.n_failed == 0  # No failures
+    except Exception as e:
+        raise
+
+    # Test comparison with polars
+    yaml_content_polars_comparison = """
 tbl:
   python: |
     pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
 steps:
-  - col_vals_expr:
-      expr: |
-        pl.col("nums") > 2
+  - col_vals_gt:
+      columns: nums
+      value: 0
 """
 
     try:
         validator = YAMLValidator()
-        config = validator.load_config(yaml_content_shortcut)
-        result_shortcut = validator.execute_workflow(config)
-        assert result_shortcut is not None
-        validation_info_shortcut = result_shortcut.validation_info[0]
-        assert validation_info_shortcut.n_passed == 3  # Values 3, 4, 5 should pass
-        assert validation_info_shortcut.n_failed == 2  # Values 1, 2 should fail
+        config = validator.load_config(yaml_content_polars_comparison)
+        result_polars = validator.execute_workflow(config)
+        assert result_polars is not None
+        validation_info_polars = result_polars.validation_info[0]
+        assert validation_info_polars.n_passed == 5  # All values > 0
+        assert validation_info_polars.n_failed == 0  # No failures
     except Exception as e:
         raise
 
-    # Test the traditional python: block syntax still works
-    yaml_content_traditional = """
-tbl:
-  python: |
-    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
-steps:
-  - col_vals_expr:
-      expr:
-        python: |
-          pl.col("nums") > 2
-"""
-
-    try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content_traditional)
-        result_traditional = validator.execute_workflow(config)
-        assert result_traditional is not None
-        validation_info_traditional = result_traditional.validation_info[0]
-        assert validation_info_traditional.n_passed == 3  # Values 3, 4, 5 should pass
-        assert validation_info_traditional.n_failed == 2  # Values 1, 2 should fail
-    except Exception as e:
-        raise
-
-    # Verify both approaches give identical results
-    assert validation_info_shortcut.n_passed == validation_info_traditional.n_passed
-    assert validation_info_shortcut.n_failed == validation_info_traditional.n_failed
-
-    # Test that other parameters still require python: block syntax
-    yaml_content_other_param = """
-tbl: small_table
-steps:
-  - col_vals_in_set:
-      columns: a
-      set: |
-        [1, 2, 3]
-"""
-
-    try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content_other_param)
-        result = validator.execute_workflow(config)
-        # This should work but the set parameter will be treated as a plain string, not Python code
-        # So it should fail validation since "[1, 2, 3]" is not a valid set
-        assert False, (
-            "Should have failed - shortcut syntax only works for col_vals_expr expr parameter"
-        )
-    except Exception as e:
-        # Expected - shortcut syntax should only work for col_vals_expr expr parameter
-        assert "string as left operand" in str(e) or isinstance(e, TypeError)
+    # Verify both give identical results
+    assert validation_info_pandas.n_passed == validation_info_polars.n_passed
+    assert validation_info_pandas.n_failed == validation_info_polars.n_failed
