@@ -762,9 +762,8 @@ tbl:
     pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
 steps:
   - col_vals_expr:
-      expr:
-        python: |
-          pl.col("nums") > 2
+      expr: |
+        pl.col("nums") > 2
 """
 
     try:
@@ -777,3 +776,77 @@ steps:
         assert validation_info.n_failed == 2  # Values 1, 2 should fail
     except Exception as e:
         raise
+
+
+def test_col_vals_expr_shortcut_syntax():
+    # Test the shortcut syntax for `col_vals_expr()` (`expr: |` directly)
+    yaml_content_shortcut = """
+tbl:
+  python: |
+    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
+steps:
+  - col_vals_expr:
+      expr: |
+        pl.col("nums") > 2
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content_shortcut)
+        result_shortcut = validator.execute_workflow(config)
+        assert result_shortcut is not None
+        validation_info_shortcut = result_shortcut.validation_info[0]
+        assert validation_info_shortcut.n_passed == 3  # Values 3, 4, 5 should pass
+        assert validation_info_shortcut.n_failed == 2  # Values 1, 2 should fail
+    except Exception as e:
+        raise
+
+    # Test the traditional python: block syntax still works
+    yaml_content_traditional = """
+tbl:
+  python: |
+    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.col("nums") > 2
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content_traditional)
+        result_traditional = validator.execute_workflow(config)
+        assert result_traditional is not None
+        validation_info_traditional = result_traditional.validation_info[0]
+        assert validation_info_traditional.n_passed == 3  # Values 3, 4, 5 should pass
+        assert validation_info_traditional.n_failed == 2  # Values 1, 2 should fail
+    except Exception as e:
+        raise
+
+    # Verify both approaches give identical results
+    assert validation_info_shortcut.n_passed == validation_info_traditional.n_passed
+    assert validation_info_shortcut.n_failed == validation_info_traditional.n_failed
+
+    # Test that other parameters still require python: block syntax
+    yaml_content_other_param = """
+tbl: small_table
+steps:
+  - col_vals_in_set:
+      columns: a
+      set: |
+        [1, 2, 3]
+"""
+
+    try:
+        validator = YAMLValidator()
+        config = validator.load_config(yaml_content_other_param)
+        result = validator.execute_workflow(config)
+        # This should work but the set parameter will be treated as a plain string, not Python code
+        # So it should fail validation since "[1, 2, 3]" is not a valid set
+        assert False, (
+            "Should have failed - shortcut syntax only works for col_vals_expr expr parameter"
+        )
+    except Exception as e:
+        # Expected - shortcut syntax should only work for col_vals_expr expr parameter
+        assert "string as left operand" in str(e) or isinstance(e, TypeError)
