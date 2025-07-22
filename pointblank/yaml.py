@@ -17,18 +17,24 @@ class YAMLValidationError(Exception):
 def _safe_eval_python_code(code: str) -> Any:
     """Safely evaluate Python code with restricted namespace.
 
-    This function provides a controlled environment for executing Python code
-    embedded in YAML configurations. It includes common libraries and functions
-    while restricting access to dangerous operations.
+    This function provides a controlled environment for executing Python code embedded in YAML
+    configurations. It includes common libraries and functions while restricting access to
+    dangerous operations.
 
-    Args:
-        code: The Python code to evaluate
+    Parameters
+    ----------
+    code
+        The Python code to evaluate.
 
-    Returns:
-        The result of evaluating the Python code
+    Returns
+    -------
+    Any
+        The result of evaluating the Python code.
 
-    Raises:
-        YAMLValidationError: If the code execution fails or contains unsafe operations
+    Raises
+    ------
+    YAMLValidationError
+        If the code execution fails or contains unsafe operations.
     """
     import ast
     import re
@@ -136,18 +142,23 @@ def _process_python_expressions(value: Any) -> Any:
       import polars as pl
       pl.scan_csv("data.csv").head(10)
 
-    Args:
-        value: The value to process, can be any YAML type
+    Parameters
+    ----------
+    value
+        The value to process, can be any YAML type.
 
-    Returns:
-        The processed value with Python expressions evaluated
+    Returns
+    -------
+    Any
+        The processed value with Python expressions evaluated.
 
-    Examples:
-        >>> _process_python_expressions({"python": "pl.scan_csv('data.csv').head(10)"})
-        # Returns the result of the Python expression
+    Examples
+    --------
+    >>> _process_python_expressions({"python": "pl.scan_csv('data.csv').head(10)"})
+    # Returns the result of the Python expression
 
-        >>> _process_python_expressions({"python": "import polars as pl\\npl.scan_csv('data.csv')"})
-        # Returns the result of multiline Python code
+    >>> _process_python_expressions({"python": "import polars as pl\\npl.scan_csv('data.csv')"})
+    # Returns the result of multiline Python code
     """
     if isinstance(value, dict):
         # Handle python: block syntax
@@ -200,14 +211,20 @@ class YAMLValidator:
     def load_config(self, source: Union[str, Path]) -> dict:
         """Load and validate YAML configuration.
 
-        Args:
-            source: YAML string or Path to YAML file
+        Parameters
+        ----------
+        source
+            YAML string or Path to YAML file.
 
-        Returns:
-            Parsed and validated configuration dictionary
+        Returns
+        -------
+        dict
+            Parsed and validated configuration dictionary.
 
-        Raises:
-            YAMLValidationError: If the YAML is invalid or malformed
+        Raises
+        ------
+        YAMLValidationError
+            If the YAML is invalid or malformed.
         """
         try:
             if isinstance(source, (str, Path)):
@@ -248,11 +265,15 @@ class YAMLValidator:
     def _validate_schema(self, config: dict) -> None:
         """Validate the YAML configuration schema.
 
-        Args:
-            config: Configuration dictionary to validate
+        Parameters
+        ----------
+        config
+            Configuration dictionary to validate.
 
-        Raises:
-            YAMLValidationError: If the schema is invalid
+        Raises
+        ------
+        YAMLValidationError
+            If the schema is invalid.
         """
         # Check required fields
         if "tbl" not in config:
@@ -333,11 +354,15 @@ class YAMLValidator:
 
         Handles standard YAML syntax for columns.
 
-        Args:
-            columns_expr: Column specification (list, or string)
+        Parameters
+        ----------
+        columns_expr
+            Column specification (list, or string).
 
-        Returns:
-            List of column names
+        Returns
+        -------
+        list[str]
+            List of column names.
         """
         if isinstance(columns_expr, list):
             return [str(col) for col in columns_expr]
@@ -352,14 +377,20 @@ class YAMLValidator:
     def _parse_validation_step(self, step_config: Union[str, dict]) -> tuple[str, dict]:
         """Parse a single validation step from YAML configuration.
 
-        Args:
-            step_config: Step configuration (string for parameterless steps, dict for others)
+        Parameters
+        ----------
+        step_config
+            Step configuration (string for parameterless steps, dict for others).
 
-        Returns:
-            Tuple of (method_name, parameters)
+        Returns
+        -------
+        tuple[str, dict]
+            Tuple of (method_name, parameters).
 
-        Raises:
-            YAMLValidationError: If step configuration is invalid
+        Raises
+        ------
+        YAMLValidationError
+            If step configuration is invalid.
         """
         if isinstance(step_config, str):
             # Simple step with no parameters (e.g., "rows_distinct")
@@ -415,11 +446,15 @@ class YAMLValidator:
     def build_validation(self, config: dict) -> Validate:
         """Convert YAML config to Validate object.
 
-        Args:
-            config: Validated configuration dictionary
+        Parameters
+        ----------
+        config
+            Validated configuration dictionary.
 
-        Returns:
-            Validate object with configured validation steps
+        Returns
+        -------
+        Validate
+            Validate object with configured validation steps.
         """
         # Load data source
         data = self._load_data_source(config["tbl"])
@@ -468,11 +503,15 @@ class YAMLValidator:
     def execute_workflow(self, config: dict) -> Validate:
         """Execute a complete YAML validation workflow.
 
-        Args:
-            config: Validated configuration dictionary
+        Parameters
+        ----------
+        config
+            Validated configuration dictionary.
 
-        Returns:
-            Interrogated Validate object with results
+        Returns
+        -------
+        Validate
+            Interrogated Validate object with results.
         """
         # Build the validation plan
         validation = self.build_validation(config)
@@ -618,14 +657,20 @@ def yaml_interrogate(yaml: Union[str, Path]) -> Validate:
 def load_yaml_config(file_path: Union[str, Path]) -> dict:
     """Load YAML configuration from file or string.
 
-    Args:
-        file_path: Path to YAML file or YAML content string
+    Parameters
+    ----------
+    file_path
+        Path to YAML file or YAML content string
 
-    Returns:
+    Returns
+    -------
+    dict
         Parsed configuration dictionary
 
-    Raises:
-        YAMLValidationError: If the file cannot be loaded or is invalid
+    Raises
+    ------
+    YAMLValidationError
+        If the file cannot be loaded or is invalid
     """
     validator = YAMLValidator()
     return validator.load_config(file_path)
@@ -635,9 +680,9 @@ def validate_yaml(yaml: Union[str, Path]) -> None:
     """Validate YAML configuration against the expected structure.
 
     This function validates that a YAML configuration conforms to the expected structure for
-    validation workflows. It checks for required fields, proper data types, and valid validation
-    method names. This is useful for validating configurations before execution or for building
-    configuration editors and validators.
+    validation workflows. It checks for required fields, proper data types, and valid
+    validation method names. This is useful for validating configurations before execution or
+    for building configuration editors and validators.
 
     The function performs comprehensive validation including:
 
@@ -653,10 +698,11 @@ def validate_yaml(yaml: Union[str, Path]) -> None:
         YAML configuration as string or file path. Can be: (1) a YAML string containing the
         validation configuration, or (2) a Path object or string path to a YAML file.
 
-    Raises:
+    Raises
+    ------
     YAMLValidationError
-        If the YAML is invalid, malformed, or execution fails. This includes syntax errors, missing
-        required fields, unknown validation methods, or data loading failures.
+        If the YAML is invalid, malformed, or execution fails. This includes syntax errors,
+        missing required fields, unknown validation methods, or data loading failures.
 
     Examples
     --------
@@ -786,12 +832,14 @@ def validate_yaml(yaml: Union[str, Path]) -> None:
     source ('tbl') exists or is accessible. Data source validation occurs during execution with
     `yaml_interrogate()`.
 
-    See Also:
-        - `yaml_interrogate()`: execute YAML-based validation workflows
+    See Also
+    --------
+    yaml_interrogate : execute YAML-based validation workflows
     """
     validator = YAMLValidator()
     config = validator.load_config(yaml)
-    return validator.execute_workflow(config)
+    # Only validate, don't execute the workflow
+    return None
 
 
 def yaml_to_python(yaml: Union[str, Path]) -> str:
