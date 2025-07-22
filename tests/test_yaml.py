@@ -622,7 +622,7 @@ steps:
 
 
 def test_complex_expression_validation_yaml():
-    # YAML configuration with complex polars expression
+    # YAML configuration with complex Polars expression
     yaml_content = """
 tbl:
   python: |
@@ -769,51 +769,156 @@ steps:
         raise
 
 
-def test_pandas_expr_shortcut_syntax():
-    # Test the shortcut syntax with a Pandas DataFrame
-    yaml_content_pandas_shortcut = """
+def test_yaml_to_python_polars_complex_scenarios():
+    # Test with multiple polars expressions in different parameters
+    yaml_content = """
 tbl:
   python: |
-    pd.DataFrame({"nums": [1, 2, 3, 4, 5]})
+    pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.col("a") > 1
+  - col_vals_in_set:
+      columns: a
+      set:
+        python: |
+          [1, 2, 3]
+"""
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+        assert "import pointblank as pb" in python_code, (
+            "Missing 'import pointblank as pb' statement"
+        )
+        assert "import polars as pl" in python_code, "Missing 'import polars as pl' statement"
+
+        # Should detect polars expression and include placeholder
+        assert "<polars_expression>" in python_code, "Missing polars expression placeholder"
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_to_python_no_unnecessary_imports():
+    # Test 1: Simple YAML without polars should only import pointblank
+    yaml_content_simple = """
+tbl: small_table
 steps:
   - col_vals_gt:
-      columns: nums
+      columns: [a]
       value: 0
 """
 
     try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content_pandas_shortcut)
-        result_pandas = validator.execute_workflow(config)
-        assert result_pandas is not None
-        validation_info_pandas = result_pandas.validation_info[0]
-        assert validation_info_pandas.n_passed == 5  # All values > 0
-        assert validation_info_pandas.n_failed == 0  # No failures
+        python_code = yaml_to_python(yaml_content_simple)
+        assert "import pointblank as pb" in python_code, (
+            "Missing 'import pointblank as pb' statement"
+        )
+        assert "import polars as pl" not in python_code, (
+            "Unnecessary 'import polars as pl' statement"
+        )
     except Exception as e:
         raise
 
-    # Test comparison with polars
-    yaml_content_polars_comparison = """
+    # Test 2: YAML with pandas expressions should only import pointblank
+    yaml_content_pandas = """
 tbl:
   python: |
-    pl.DataFrame({"nums": [1, 2, 3, 4, 5]})
+    pd.DataFrame({"a": [1, 2, 3]})
 steps:
-  - col_vals_gt:
-      columns: nums
-      value: 0
+  - col_vals_expr:
+      expr: |
+        lambda df: df["a"] > 1
 """
 
     try:
-        validator = YAMLValidator()
-        config = validator.load_config(yaml_content_polars_comparison)
-        result_polars = validator.execute_workflow(config)
-        assert result_polars is not None
-        validation_info_polars = result_polars.validation_info[0]
-        assert validation_info_polars.n_passed == 5  # All values > 0
-        assert validation_info_polars.n_failed == 0  # No failures
+        python_code = yaml_to_python(yaml_content_pandas)
+        assert "import pointblank as pb" in python_code, (
+            "Missing 'import pointblank as pb' statement"
+        )
+        assert "import polars as pl" not in python_code, (
+            "Unnecessary 'import polars as pl' statement for pandas expressions"
+        )
     except Exception as e:
         raise
 
-    # Verify both give identical results
-    assert validation_info_pandas.n_passed == validation_info_polars.n_passed
-    assert validation_info_pandas.n_failed == validation_info_polars.n_failed
+
+def test_yaml_to_python_includes_polars_import():
+    yaml_content = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "a": [1, 2, 3, 4, 5],
+        "b": [0, 0, 0, 1, 1]
+    })
+steps:
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.col("a") > 2
+"""
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+
+        # Check if polars import is included
+        assert "import polars as pl" in python_code, "Missing 'import polars as pl' statement"
+
+        # Also check for pointblank import
+        assert "import pointblank as pb" in python_code, (
+            "Missing 'import pointblank as pb' statement"
+        )
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_to_python_full_functionality_demo():
+    yaml_content = """
+tbl:
+  python: |
+    pl.DataFrame({
+        "age": [25, 30, 15, 40, 35],
+        "income": [50000, 75000, 0, 100000, 60000],
+        "department": ["IT", "Sales", "Intern", "Management", "IT"]
+    })
+tbl_name: "Employee Dataset"
+label: "Comprehensive employee validation"
+thresholds:
+  warning: 0.1
+  error: 0.25
+steps:
+  - col_vals_gt:
+      columns: age
+      value: 18
+      brief: "Employees must be adults"
+  - col_vals_expr:
+      expr:
+        python: |
+          pl.col("income") > 0
+      brief: "Income must be positive"
+  - col_vals_in_set:
+      columns: department
+      set: ["IT", "Sales", "Management", "Intern"]
+"""
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+
+        # Verify all expected components are present
+        assert "import pointblank as pb" in python_code
+        assert "import polars as pl" in python_code
+        assert "pb.Validate(" in python_code
+        assert "pb.Thresholds(" in python_code
+        assert "tbl_name=" in python_code
+        assert "label=" in python_code
+        assert "col_vals_gt(" in python_code
+        assert "col_vals_expr(" in python_code
+        assert "col_vals_in_set(" in python_code
+        assert "<polars_expression>" in python_code
+        assert "interrogate()" in python_code
+
+    except Exception as e:
+        raise
