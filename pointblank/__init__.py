@@ -43,6 +43,7 @@ from pointblank.validate import (
 from pointblank.yaml import (
     validate_yaml,
     yaml_interrogate,
+    yaml_to_python,
 )
 
 __all__ = [
@@ -79,4 +80,5 @@ __all__ = [
     # YAML functionality
     "yaml_interrogate",
     "validate_yaml",
+    "yaml_to_python",
 ]
