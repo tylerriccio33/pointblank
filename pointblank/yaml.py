@@ -125,8 +125,11 @@ class YAMLValidator:
                         f"Invalid threshold key: {key}. Must be 'warning', 'error', or 'critical'"
                     )
 
-                if not isinstance(value, (int, float)) or not (0 <= value <= 1):
-                    raise YAMLValidationError(f"Threshold '{key}' must be a number between 0 and 1")
+                if not isinstance(value, (int, float)):
+                    raise YAMLValidationError(f"Threshold '{key}' must be a number")
+
+                if value < 0:
+                    raise YAMLValidationError(f"Threshold '{key}' must be non-negative")
 
     def _load_data_source(self, tbl_spec: str) -> Any:
         """Load data source based on table specification.
