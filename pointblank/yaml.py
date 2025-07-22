@@ -142,6 +142,13 @@ def _process_python_expressions(value: Any) -> Any:
       import polars as pl
       pl.scan_csv("data.csv").head(10)
 
+    Note: col_vals_expr() also supports a shortcut syntax where the expr parameter
+    can be written directly without the python: wrapper:
+
+    col_vals_expr:
+      expr: |
+        pl.col("column") > 0
+
     Parameters
     ----------
     value
@@ -422,7 +429,13 @@ class YAMLValidator:
         # Process Python expressions in all parameters
         processed_parameters = {}
         for key, value in parameters.items():
-            processed_parameters[key] = _process_python_expressions(value)
+            # Special case: col_vals_expr's expr parameter can use shortcut syntax
+            if method_name == "col_vals_expr" and key == "expr" and isinstance(value, str):
+                # Treat string directly as Python code (shortcut syntax)
+                processed_parameters[key] = _safe_eval_python_code(value)
+            else:
+                # Normal processing (requires python: block syntax)
+                processed_parameters[key] = _process_python_expressions(value)
         parameters = processed_parameters
 
         # Convert `columns=` specification
