@@ -429,8 +429,12 @@ class YAMLValidator:
         # Process Python expressions in all parameters
         processed_parameters = {}
         for key, value in parameters.items():
-            # Special case: col_vals_expr's expr parameter can use shortcut syntax
+            # Special case: `col_vals_expr()`'s `expr=` parameter can use shortcut syntax
             if method_name == "col_vals_expr" and key == "expr" and isinstance(value, str):
+                # Treat string directly as Python code (shortcut syntax)
+                processed_parameters[key] = _safe_eval_python_code(value)
+            # Special case: `pre=` parameter can use shortcut syntax (like `expr=`)
+            elif key == "pre" and isinstance(value, str):
                 # Treat string directly as Python code (shortcut syntax)
                 processed_parameters[key] = _safe_eval_python_code(value)
             else:
@@ -991,7 +995,12 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
             else:
                 for key, value in obj.items():
                     new_path = f"{path}.{key}" if path else key
-                    expressions.update(extract_python_expressions(value, new_path))
+                    # Special handling for `expr=` and `pre=` parameters that
+                    # can use shortcut syntax
+                    if key in ["expr", "pre"] and isinstance(value, str):
+                        expressions[new_path] = value.strip()
+                    else:
+                        expressions.update(extract_python_expressions(value, new_path))
         elif isinstance(obj, list):
             for i, item in enumerate(obj):
                 new_path = f"{path}[{i}]"
