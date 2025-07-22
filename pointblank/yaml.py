@@ -14,6 +14,159 @@ class YAMLValidationError(Exception):
     pass
 
 
+def _safe_eval_python_code(code: str) -> Any:
+    """Safely evaluate Python code with restricted namespace.
+
+    This function provides a controlled environment for executing Python code
+    embedded in YAML configurations. It includes common libraries and functions
+    while restricting access to dangerous operations.
+
+    Args:
+        code: The Python code to evaluate
+
+    Returns:
+        The result of evaluating the Python code
+
+    Raises:
+        YAMLValidationError: If the code execution fails or contains unsafe operations
+    """
+    import ast
+    import re
+    from pathlib import Path
+
+    from pointblank._utils import _is_lib_present
+
+    # Create a safe namespace with commonly needed imports
+    safe_namespace = {
+        "Path": Path,  # pathlib.Path
+        "__builtins__": {
+            # Allow basic built-in functions
+            "len": len,
+            "str": str,
+            "int": int,
+            "float": float,
+            "bool": bool,
+            "list": list,
+            "dict": dict,
+            "tuple": tuple,
+            "set": set,
+            "range": range,
+            "enumerate": enumerate,
+            "zip": zip,
+            "sum": sum,
+            "min": min,
+            "max": max,
+            "abs": abs,
+            "round": round,
+        },
+    }
+
+    # Add polars if available
+    if _is_lib_present("polars"):
+        import polars as pl
+
+        safe_namespace["pl"] = pl
+
+    # Add pandas if available
+    if _is_lib_present("pandas"):
+        import pandas as pd
+
+        safe_namespace["pd"] = pd
+
+    # Check for dangerous patterns
+    dangerous_patterns = [
+        r"import\s+os",
+        r"import\s+sys",
+        r"import\s+subprocess",
+        r"__import__",
+        r"exec\s*\(",
+        r"eval\s*\(",
+        r"open\s*\(",
+        r"file\s*\(",
+        r"input\s*\(",
+        r"raw_input\s*\(",
+    ]
+
+    for pattern in dangerous_patterns:
+        if re.search(pattern, code, re.IGNORECASE):
+            raise YAMLValidationError(
+                f"Potentially unsafe Python code detected: '{code}'. "
+                f"Pattern '{pattern}' is not allowed."
+            )
+
+    try:
+        # First try to parse as expression for simple cases
+        try:
+            parsed = ast.parse(code, mode="eval")
+            return eval(compile(parsed, "<string>", "eval"), safe_namespace)
+        except SyntaxError:
+            # If that fails, try as a statement (for more complex code)
+            # For multi-statement code, we need to capture the result of the last expression
+            parsed = ast.parse(code, mode="exec")
+
+            # Check if the last node is an expression
+            if parsed.body and isinstance(parsed.body[-1], ast.Expr):
+                # Split the last expression from the statements
+                statements = parsed.body[:-1]
+                last_expr = parsed.body[-1].value
+
+                # Execute the statements first
+                if statements:
+                    statements_module = ast.Module(body=statements, type_ignores=[])
+                    exec(compile(statements_module, "<string>", "exec"), safe_namespace)
+
+                # Then evaluate the last expression and return its value
+                expr_module = ast.Expression(body=last_expr)
+                return eval(compile(expr_module, "<string>", "eval"), safe_namespace)
+            else:
+                # No expression at the end, just execute statements
+                exec(compile(parsed, "<string>", "exec"), safe_namespace)
+                return None
+
+    except Exception as e:
+        raise YAMLValidationError(f"Error executing Python code '{code}': {e}")
+
+
+def _process_python_expressions(value: Any) -> Any:
+    """Process Python code snippets embedded in YAML values.
+
+    This function supports the python: block syntax for embedding Python code:
+
+    python: |
+      import polars as pl
+      pl.scan_csv("data.csv").head(10)
+
+    Args:
+        value: The value to process, can be any YAML type
+
+    Returns:
+        The processed value with Python expressions evaluated
+
+    Examples:
+        >>> _process_python_expressions({"python": "pl.scan_csv('data.csv').head(10)"})
+        # Returns the result of the Python expression
+
+        >>> _process_python_expressions({"python": "import polars as pl\\npl.scan_csv('data.csv')"})
+        # Returns the result of multiline Python code
+    """
+    if isinstance(value, dict):
+        # Handle python: block syntax
+        if "python" in value and len(value) == 1:
+            code = value["python"]
+            return _safe_eval_python_code(code)
+
+        # Recursively process dictionary values
+        return {k: _process_python_expressions(v) for k, v in value.items()}
+
+    elif isinstance(value, list):
+        # Recursively process list items
+        return [_process_python_expressions(item) for item in value]
+
+    else:
+        # Return primitive types unchanged
+        return value
+
+
 class YAMLValidator:
     """Validates YAML configuration and converts to Validate objects."""
 
@@ -33,6 +186,7 @@ class YAMLValidator:
         "col_vals_not_in_set": "col_vals_not_in_set",
         "col_vals_not_null": "col_vals_not_null",
         "col_vals_null": "col_vals_null",
+        "col_vals_expr": "col_vals_expr",
         "rows_distinct": "rows_distinct",
         "rows_complete": "rows_complete",
         "col_count_match": "col_count_match",
@@ -138,7 +292,8 @@ class YAMLValidator:
         ----------
         tbl_spec
             Data source specification. Can be (1) a dataset name for `load_dataset()`, (2) a CSV file
-            path (relative or absolute), or (3) a Parquet file path (relative or absolute).
+            path (relative or absolute), (3) a Parquet file path (relative or absolute), or (4) a
+            Python code snippet to be executed for dynamic data loading.
 
         Returns
         -------
@@ -152,14 +307,21 @@ class YAMLValidator:
         from pointblank.validate import _process_data
 
         try:
+            # First, try to process as Python expression
+            processed_tbl_spec = _process_python_expressions(tbl_spec)
+
+            # If processing returned a different object (not a string), use it directly
+            if processed_tbl_spec is not tbl_spec or not isinstance(processed_tbl_spec, str):
+                return processed_tbl_spec
+
             # Use the centralized data processing pipeline from validate.py
             # This handles CSV files, Parquet files, and other data sources
-            processed_data = _process_data(tbl_spec)
+            processed_data = _process_data(processed_tbl_spec)
 
             # If _process_data returns the original string unchanged,
             # then it's not a file path, so try load_dataset
-            if processed_data is tbl_spec and isinstance(tbl_spec, str):
-                return load_dataset(tbl_spec)
+            if processed_data is processed_tbl_spec and isinstance(processed_tbl_spec, str):
+                return load_dataset(processed_tbl_spec)
             else:
                 return processed_data
 
@@ -225,6 +387,12 @@ class YAMLValidator:
             raise YAMLValidationError(
                 f"Unknown validation method '{method_name}'. Available methods: {available_methods}"
             )
+
+        # Process Python expressions in all parameters
+        processed_parameters = {}
+        for key, value in parameters.items():
+            processed_parameters[key] = _process_python_expressions(value)
+        parameters = processed_parameters
 
         # Convert `columns=` specification
         if "columns" in parameters:
