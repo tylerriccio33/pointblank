@@ -794,9 +794,6 @@ steps:
         )
         assert "import polars as pl" in python_code, "Missing 'import polars as pl' statement"
 
-        # Should detect polars expression and include placeholder
-        assert "<polars_expression>" in python_code, "Missing polars expression placeholder"
-
     except Exception as e:
         raise
 
@@ -875,6 +872,40 @@ steps:
         raise
 
 
+def test_yaml_to_python_includes_pandas_import():
+    yaml_content = """
+tbl:
+  python: |
+    pd.DataFrame({
+        "a": [1, 2, 3, 4, 5],
+        "b": [0, 0, 0, 1, 1]
+    })
+steps:
+  - col_vals_expr:
+      expr: |
+        lambda df: df["a"] > 2
+"""
+
+    try:
+        python_code = yaml_to_python(yaml_content)
+
+        # Check if pandas import is included
+        assert "import pandas as pd" in python_code, "Missing 'import pandas as pd' statement"
+
+        # Also check for pointblank import
+        assert "import pointblank as pb" in python_code, (
+            "Missing 'import pointblank as pb' statement"
+        )
+
+        # Should not include polars import
+        assert "import polars as pl" not in python_code, (
+            "Unnecessary 'import polars as pl' statement"
+        )
+
+    except Exception as e:
+        raise
+
+
 def test_yaml_to_python_full_functionality_demo():
     yaml_content = """
 tbl:
@@ -917,8 +948,14 @@ steps:
         assert "col_vals_gt(" in python_code
         assert "col_vals_expr(" in python_code
         assert "col_vals_in_set(" in python_code
-        assert "<polars_expression>" in python_code
         assert "interrogate()" in python_code
+
+        # Verify that the Python expressions are preserved in the generated code
+        assert "pl.DataFrame({" in python_code
+        assert '"age": [25, 30, 15, 40, 35]' in python_code
+        assert '"income": [50000, 75000, 0, 100000, 60000]' in python_code
+        assert '"department": ["IT", "Sales", "Intern", "Management", "IT"]' in python_code
+        assert 'pl.col("income") > 0' in python_code
 
     except Exception as e:
         raise

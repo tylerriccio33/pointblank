@@ -950,25 +950,69 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     This function is also useful for educational purposes, helping users understand how YAML
     configurations map to the underlying Python API calls.
     """
+    # First, parse the raw YAML to detect Polars/Pandas expressions in the source code
+    if isinstance(yaml, Path):
+        yaml_content = yaml.read_text()
+    elif isinstance(yaml, str):
+        # Check if it's a file path (single line, reasonable length, no newlines)
+        if len(yaml) < 260 and "\n" not in yaml and Path(yaml).exists():
+            yaml_content = Path(yaml).read_text()
+        else:
+            yaml_content = yaml
+    else:
+        yaml_content = str(yaml)
+
+    # Track whether we need to import Polars and Pandas by analyzing the raw YAML content
+    needs_polars_import = False
+    needs_pandas_import = False
+
+    # Check for polars/pandas patterns in the raw YAML content
+    if "pd." in yaml_content or "pandas" in yaml_content:
+        needs_pandas_import = True
+    if "pl." in yaml_content or "polars" in yaml_content:
+        needs_polars_import = True
+
+    # Parse the raw YAML to extract original Python expressions before they get processed
+    import yaml as yaml_module
+
+    raw_config = yaml_module.safe_load(yaml_content)
+
+    # Extract the original tbl python expression if it exists
+    original_tbl_expression = None
+    if isinstance(raw_config.get("tbl"), dict) and "python" in raw_config["tbl"]:
+        original_tbl_expression = raw_config["tbl"]["python"].strip()
+
+    # Define function for recursively extract original Python expressions from step parameters
+    def extract_python_expressions(obj, path=""):
+        expressions = {}
+        if isinstance(obj, dict):
+            if "python" in obj and len(obj) == 1:
+                expressions[path] = obj["python"].strip()
+            else:
+                for key, value in obj.items():
+                    new_path = f"{path}.{key}" if path else key
+                    expressions.update(extract_python_expressions(value, new_path))
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                new_path = f"{path}[{i}]"
+                expressions.update(extract_python_expressions(item, new_path))
+        return expressions
+
+    step_expressions = {}
+    if "steps" in raw_config:
+        for i, step in enumerate(raw_config["steps"]):
+            if isinstance(step, dict):
+                step_expressions.update(extract_python_expressions(step, f"steps[{i}]"))
+
     # Load and validate the YAML configuration
     validator = YAMLValidator()
     config = validator.load_config(yaml)
 
-    # Track whether we need to import Polars
-    needs_polars_import = False
-
     # Start building the Python code
     code_lines = []
 
-    # Add imports (we'll determine Polars import need during processing)
+    # Add imports (we'll determine Polars/Pandas import need during processing)
     imports = ["import pointblank as pb"]
-
-    # Check if tbl uses Polars expressions
-    tbl_spec = config["tbl"]
-    if not isinstance(tbl_spec, str):
-        # This means it's a Python expression result, likely Polars
-        if hasattr(tbl_spec, "__module__") and "polars" in str(tbl_spec.__module__):
-            needs_polars_import = True
 
     # Build the chained validation call
     code_lines.append("(")
@@ -977,6 +1021,7 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     validate_args = []
 
     # Add data loading as first argument
+    tbl_spec = config["tbl"]
     if isinstance(tbl_spec, str):
         if tbl_spec.endswith((".csv", ".parquet")):
             # File loading
@@ -985,10 +1030,12 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
             # Dataset loading
             validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
     else:
-        # tbl_spec is not a string (e.g., it was a python: expression)
-        # In this case, we can't easily convert it back to Python code
-        # So we'll use a placeholder that indicates it was generated from python: expression
-        validate_args.append("data=<python_expression_result>")  # Placeholder
+        # Use the original Python expression if we extracted it
+        if original_tbl_expression:
+            validate_args.append(f"data={original_tbl_expression}")
+        else:
+            # Fallback to placeholder if we couldn't extract the original expression
+            validate_args.append("data=<python_expression_result>")
 
     # Add table name if present
     if "tbl_name" in config:
@@ -1037,13 +1084,18 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
         code_lines.append("    )")
 
     # Add validation steps as chained method calls
-    for step_config in config["steps"]:
+    for step_index, step_config in enumerate(config["steps"]):
         method_name, parameters = validator._parse_validation_step(step_config)
 
         # Format parameters
         param_parts = []
         for key, value in parameters.items():
-            if key in ["columns", "columns_subset"]:
+            # Check if we have an original expression for this parameter
+            expression_path = f"steps[{step_index}].{list(step_config.keys())[0]}.{key}"
+            if expression_path in step_expressions:
+                # Use the original Python expression
+                param_parts.append(f"{key}={step_expressions[expression_path]}")
+            elif key in ["columns", "columns_subset"]:
                 if isinstance(value, list):
                     if len(value) == 1:
                         # Single column as string
@@ -1076,13 +1128,9 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                     list_str = str(list(value))
                 param_parts.append(f"{key}={list_str}")
             else:
-                # Handle complex objects (like polars expressions from python: blocks)
+                # Handle complex objects (like polars/pandas expressions from python: blocks)
                 # For these, we'll use a placeholder since they can't be easily converted back
-                if hasattr(value, "__module__") and "polars" in str(value.__module__):
-                    needs_polars_import = True
-                    param_parts.append(f"{key}=<polars_expression>")
-                else:
-                    param_parts.append(f"{key}={value}")
+                param_parts.append(f"{key}={value}")
 
         if param_parts:
             params_str = ", ".join(param_parts)
@@ -1097,6 +1145,8 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     # Add imports at the beginning
     if needs_polars_import:
         imports.append("import polars as pl")
+    if needs_pandas_import:
+        imports.append("import pandas as pd")
 
     # Build final code with imports
     final_code_lines = imports + [""] + code_lines
