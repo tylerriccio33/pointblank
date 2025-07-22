@@ -125,19 +125,35 @@ class YAMLValidator:
     def _load_data_source(self, tbl_spec: str) -> Any:
         """Load data source based on table specification.
 
-        Args:
-            tbl_spec: Data source specification
+        Parameters
+        ----------
+        tbl_spec
+            Data source specification. Can be (1) a dataset name for `load_dataset()`, (2) a CSV file
+            path (relative or absolute), or (3) a Parquet file path (relative or absolute).
 
-        Returns:
-            Loaded data object
+        Returns
+        -------
+            Loaded data object.
 
-        Raises:
-            YAMLValidationError: If data source cannot be loaded
+        Raises
+        ------
+        YAMLValidationError
+            If data source cannot be loaded.
         """
+        from pointblank.validate import _process_data
+
         try:
-            # For now, assume it's a dataset name that can be loaded with load_dataset
-            # In the future, this will expand to support file paths, URLs, etc.
-            return load_dataset(tbl_spec)
+            # Use the centralized data processing pipeline from validate.py
+            # This handles CSV files, Parquet files, and other data sources
+            processed_data = _process_data(tbl_spec)
+
+            # If _process_data returns the original string unchanged,
+            # then it's not a file path, so try load_dataset
+            if processed_data is tbl_spec and isinstance(tbl_spec, str):
+                return load_dataset(tbl_spec)
+            else:
+                return processed_data
+
         except Exception as e:
             raise YAMLValidationError(f"Failed to load data source '{tbl_spec}': {e}")
 
