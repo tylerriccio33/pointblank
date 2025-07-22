@@ -999,12 +999,78 @@ steps:
     try:
         # Test 1: YAML parsing and interrogation
         result = yaml_interrogate(yaml_content)
-        assert result is not None, "yaml_interrogate failed"
-        # Note: col_vals_not_null with multiple columns creates separate steps
-        assert len(result.validation_info) >= 3, (
-            f"Expected at least 3 validation steps, got {len(result.validation_info)}"
+        assert result is not None
+        assert len(result.validation_info) >= 3
+        assert result.label == "NYC Flights Freshness Validation"
+
+        # Test 2: YAML to Python conversion
+        python_code = yaml_to_python(yaml_content)
+
+        # Test 3: Verify round-trip preservation
+
+        # Check that necessary imports are included
+        assert "import pointblank as pb" in python_code
+        assert "import polars as pl" in python_code
+
+        # Check that the pre= expressions are preserved
+        assert "lambda df:" in python_code
+        assert 'pl.col("year") == 2013' in python_code
+        assert 'pl.col("month") <= 12' in python_code
+        assert 'pl.col("month") == 12' in python_code
+        assert 'pl.col("day") >= 25' in python_code
+        assert "df.filter(" in python_code
+
+        # Check that other elements are preserved
+        assert 'label="NYC Flights Freshness Validation"' in python_code
+        assert ".col_vals_eq(" in python_code
+        assert ".col_vals_lt(" in python_code
+        assert ".col_vals_not_null(" in python_code
+        assert "value=2013" in python_code
+        assert "value=32" in python_code
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_pre_parameter_shortcut_syntax():
+    yaml_content = """
+tbl: nycflights
+label: NYC Flights Freshness Validation
+steps:
+  - col_vals_eq:
+      columns: year
+      value: 2013
+      brief: "Check year is current"
+  - col_vals_lt:
+      columns: day
+      value: 32
+      pre: |
+        lambda df: (
+            df.filter(
+                (pl.col("year") == 2013) &
+                (pl.col("month") <= 12)
+            )
         )
-        assert result.label == "NYC Flights Freshness Validation", "Label not preserved"
+      brief: "Check no invalid future dates"
+  - col_vals_not_null:
+      columns: [dep_time, arr_time]
+      pre: |
+        lambda df: (
+            df.filter(
+                (pl.col("year") == 2013) &
+                (pl.col("month") == 12) &
+                (pl.col("day") >= 25)
+            )
+        )
+      brief: "Check recent flights have complete timing data"
+"""
+
+    try:
+        # Test 1: YAML parsing and interrogation
+        result = yaml_interrogate(yaml_content)
+        assert result is not None
+        assert len(result.validation_info) >= 3
+        assert result.label == "NYC Flights Freshness Validation"
 
         # Test 2: YAML to Python conversion
         python_code = yaml_to_python(yaml_content)
