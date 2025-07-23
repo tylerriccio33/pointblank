@@ -1099,3 +1099,273 @@ steps:
 
     except Exception as e:
         raise
+
+
+def test_yaml_actions_support():
+    # Test actions at global level
+    yaml_content = """
+tbl: small_table
+label: Actions Test
+thresholds:
+  warning: 1
+actions:
+  warning: "Warning: Step {step} failed with value {val}"
+  error: "Error occurred in column {col}"
+  highest_only: true
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    try:
+        # Test 1: YAML parsing and interrogation should work
+        result = yaml_interrogate(yaml_content)
+        assert result is not None
+        assert len(result.validation_info) >= 1
+
+        # Test 2: YAML to Python conversion should preserve actions
+        python_code = yaml_to_python(yaml_content)
+
+        # Check that actions are included in generated code
+        assert "pb.Actions(" in python_code
+        assert "warning=" in python_code
+        assert "highest_only=" in python_code
+
+    except Exception as e:
+        raise
+
+    # Test actions at step level
+    yaml_step_actions = """
+tbl: small_table
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+      thresholds:
+        warning: 1
+      actions:
+        warning: "Step-level warning for {col}"
+        error: "Step-level error"
+"""
+
+    try:
+        # Test step-level actions
+        result2 = yaml_interrogate(yaml_step_actions)
+        assert result2 is not None
+
+        python_code2 = yaml_to_python(yaml_step_actions)
+        assert "actions=pb.Actions(" in python_code2
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_actions_with_callables():
+    import io
+    import contextlib
+
+    yaml_content = """
+tbl: small_table
+thresholds:
+  warning: 1
+actions:
+  warning:
+    python: |
+      lambda: print("Custom warning action executed")
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    try:
+        # Capture stdout to verify print statements
+        captured_output = io.StringIO()
+
+        with contextlib.redirect_stdout(captured_output):
+            # Test callable actions
+            result = yaml_interrogate(yaml_content)
+            assert result is not None
+
+        # Verify the action was executed and printed the expected message
+        output_text = captured_output.getvalue()
+        assert "Custom warning action executed" in output_text
+
+        python_code = yaml_to_python(yaml_content)
+        assert "pb.Actions(" in python_code
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_actions_comprehensive_demo():
+    import io
+    import contextlib
+
+    yaml_content = """
+tbl: small_table
+label: Comprehensive Actions Demo
+thresholds:
+  warning: 0.1
+  error: 0.2
+  critical: 0.3
+actions:
+  warning: "Global warning: {LEVEL} threshold exceeded in step {step}"
+  critical: "Global critical alert for {type} validation"
+  highest_only: false
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+      brief: "Check that a > 1000"
+      thresholds:
+        warning: 1
+      actions:
+        warning: "[{LEVEL}: {TYPE}]: Step {step} has a problem with the value {val} in column {col} ({time})"
+  - col_vals_in_set:
+      columns: a
+      set: [1, 2, 3]
+      brief: "Check that a is in valid set"
+"""
+
+    try:
+        # Capture stdout to verify action outputs
+        captured_output = io.StringIO()
+
+        with contextlib.redirect_stdout(captured_output):
+            # Test execution
+            result = yaml_interrogate(yaml_content)
+
+        # Verify actions were executed and templated correctly
+        output_text = captured_output.getvalue()
+
+        # Check for step-level action with templating
+        assert "[WARNING: COL_VALS_GT]" in output_text
+        assert "Step 1 has a problem" in output_text
+        assert "column a" in output_text
+
+        # Check for global action
+        assert "Global critical alert for col_vals_in_set validation" in output_text
+
+        # Test code generation
+        python_code = yaml_to_python(yaml_content)
+
+        # Verify actions are preserved
+        assert "pb.Actions(" in python_code
+        assert "warning=" in python_code
+        assert "highest_only=False" in python_code
+
+    except Exception as e:
+        raise
+
+
+def test_yaml_actions_output_verification():
+    import io
+    import contextlib
+
+    # Test 1: String template actions
+    yaml_content_templates = """
+tbl: small_table
+thresholds:
+  warning: 1
+actions:
+  warning: "Template test: Step {step} failed on column {col} with value {val}"
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    captured_output = io.StringIO()
+    with contextlib.redirect_stdout(captured_output):
+        result = yaml_interrogate(yaml_content_templates)
+
+    output_text = captured_output.getvalue()
+    assert "Template test: Step 1 failed on column a" in output_text
+    assert "with value" in output_text  # Value will be dynamic but should contain this phrase
+
+    # Test 2: Callable actions
+    yaml_content_callable = """
+tbl: small_table
+thresholds:
+  error: 1
+actions:
+  error:
+    python: |
+      lambda: print("ERROR: Callable action triggered!")
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    captured_output2 = io.StringIO()
+    with contextlib.redirect_stdout(captured_output2):
+        result2 = yaml_interrogate(yaml_content_callable)
+
+    output_text2 = captured_output2.getvalue()
+    assert "ERROR: Callable action triggered!" in output_text2
+
+    # Test 3: Multiple action levels
+    yaml_content_multi = """
+tbl: small_table
+thresholds:
+  warning: 0.5
+  error: 1
+actions:
+  warning: "WARN: {LEVEL} - {TYPE}"
+  error: "ERR: {LEVEL} - {TYPE}"
+  highest_only: false
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    captured_output3 = io.StringIO()
+    with contextlib.redirect_stdout(captured_output3):
+        result3 = yaml_interrogate(yaml_content_multi)
+
+    output_text3 = captured_output3.getvalue()
+    # Should see both warning and error since highest_only is false
+    assert "WARN: WARNING - COL_VALS_GT" in output_text3
+    assert "ERR: ERROR - COL_VALS_GT" in output_text3
+
+
+def test_yaml_actions_print_capture_demo():
+    import io
+    import contextlib
+
+    yaml_content = """
+tbl: small_table
+thresholds:
+  warning: 1
+actions:
+  warning: "[CAPTURED]: This is a warning from step {step} on column {col}"
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    # Capture the output
+    captured_output = io.StringIO()
+    with contextlib.redirect_stdout(captured_output):
+        result = yaml_interrogate(yaml_content)
+
+    # Get the captured text
+    output_text = captured_output.getvalue()
+
+    # Verify specific content
+    expected_text = "[CAPTURED]: This is a warning from step 1 on column a"
+    assert expected_text in output_text
+
+    print("✅ Actions print output successfully captured and verified!")
+
+    # Also verify the validation executed correctly
+    assert result is not None
+    assert len(result.validation_info) == 1
+    validation_info = result.validation_info[0]
+    assert validation_info.assertion_type == "col_vals_gt"
+    assert validation_info.n_failed > 0  # Should fail since a values are not > 1000
