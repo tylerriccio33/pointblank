@@ -1420,3 +1420,269 @@ steps:
     assert "actions=pb.Actions(" in step_python_code
     assert 'warning=lambda: print("Step-level action")' in step_python_code
     assert "warning={'python':" not in step_python_code
+
+
+def test_col_schema_match_yaml_basic():
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]
+              - [b, "String"]
+              - [f, "String"]
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_schema_match"
+    assert result.validation_info[0].all_passed is True
+
+
+def test_col_schema_match_yaml_comprehensive():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Schema Validation Test"
+    label: "Testing schema validation with various options"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]
+              - [b, "String"]
+              - [d, "Float64"]
+              - [e, "Boolean"]
+              - [f, "String"]
+          complete: false
+          in_order: false
+          brief: "Partial schema validation"
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]
+              - [f, "String"]
+          complete: false
+          brief: "Minimal schema check"
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 2
+    assert result.tbl_name == "Schema Validation Test"
+    assert result.label == "Testing schema validation with various options"
+
+    # Check first validation step
+    first_step = result.validation_info[0]
+    assert first_step.assertion_type == "col_schema_match"
+    assert first_step.brief == "Partial schema validation"
+
+    # Check second validation step
+    second_step = result.validation_info[1]
+    assert second_step.assertion_type == "col_schema_match"
+    assert second_step.brief == "Minimal schema check"
+
+
+def test_col_schema_match_yaml_column_names_only():
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - ["a"]
+              - ["b"]
+              - ["f"]
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_schema_match"
+    # Should pass because column names exist regardless of types
+    assert result.validation_info[0].all_passed is True
+
+
+def test_col_schema_match_yaml_scalar_column_names():
+    """Test using scalar strings for column names (cleaner syntax)."""
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - a
+              - b
+              - f
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_schema_match"
+    # Should pass because column names exist regardless of types
+    assert result.validation_info[0].all_passed is True
+
+
+def test_col_schema_match_yaml_mixed_formats():
+    """Test mixing scalar strings and list formats."""
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]  # With type
+              - b             # Scalar string
+              - [f]           # List format
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_schema_match"
+    assert result.validation_info[0].all_passed is True
+
+
+def test_col_schema_match_yaml_validation_options():
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]
+              - [f, "String"]
+          complete: false
+          in_order: false
+          case_sensitive_colnames: false
+          case_sensitive_dtypes: false
+          full_match_dtypes: false
+          brief: "Flexible schema validation"
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    step_info = result.validation_info[0]
+    assert step_info.assertion_type == "col_schema_match"
+    assert step_info.brief == "Flexible schema validation"
+    assert step_info.all_passed is True
+
+
+def test_col_schema_match_yaml_with_actions():
+    yaml_content = """
+    tbl: small_table
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    actions:
+      warning: "Schema mismatch warning for {TYPE}"
+      error:
+        python: |
+          lambda: print("Schema validation failed!")
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "Int64"]
+              - [b, "String"]
+              - [wrong_column, "String"]  # This will cause a failure
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    # The validation should fail due to wrong_column not existing
+    assert result.validation_info[0].all_passed is False
+
+
+def test_col_schema_match_yaml_failure_case():
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [a, "String"]  # Wrong type - should be Int64
+              - [b, "Int64"]   # Wrong type - should be String
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    # Should fail due to type mismatches
+    assert result.validation_info[0].all_passed is False
+    assert result.validation_info[0].n_failed > 0
+
+
+def test_col_schema_match_yaml_error_cases():
+    # Test missing columns field
+    with pytest.raises(YAMLValidationError) as exc_info:
+        yaml_content = """
+        tbl: small_table
+        steps:
+          - col_schema_match:
+              schema:
+                invalid_field: "test"
+        """
+        yaml_interrogate(yaml_content)
+    assert "Schema specification must contain 'columns' field" in str(exc_info.value)
+
+    # Test invalid column specification
+    with pytest.raises(YAMLValidationError) as exc_info:
+        yaml_content = """
+        tbl: small_table
+        steps:
+          - col_schema_match:
+              schema:
+                columns:
+                  - [a, b, c, d]  # Too many elements
+        """
+        yaml_interrogate(yaml_content)
+    assert "Column specification must have 1-2 elements" in str(exc_info.value)
+
+    # Test invalid schema type
+    with pytest.raises(YAMLValidationError) as exc_info:
+        yaml_content = """
+        tbl: small_table
+        steps:
+          - col_schema_match:
+              schema: "invalid_string"
+        """
+        yaml_interrogate(yaml_content)
+    assert "Schema specification must be a dictionary" in str(exc_info.value)
+
+
+def test_col_schema_match_yaml_complete_mode():
+    yaml_content = """
+    tbl: small_table
+    steps:
+      - col_schema_match:
+          schema:
+            columns:
+              - [date_time, "Datetime(time_unit='us', time_zone=None)"]
+              - [date, "Date"]
+              - [a, "Int64"]
+              - [b, "String"]
+              - [c, "Int64"]
+              - [d, "Float64"]
+              - [e, "Boolean"]
+              - [f, "String"]
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    # Should pass with exact schema match
+    assert result.validation_info[0].all_passed is True
