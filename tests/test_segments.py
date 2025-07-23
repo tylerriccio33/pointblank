@@ -1,3 +1,4 @@
+from hypothesis import given, strategies as st
 import pytest
 
 from pointblank.validate import (
@@ -8,13 +9,37 @@ from pointblank.validate import (
     _apply_segments,
 )
 from pointblank.segments import (
-    SegmentGroup,
+    Segment,
     seg_group,
 )
 
 import pandas as pd
 import polars as pl
 import ibis
+
+
+def test_segment_class_fails_not_list():
+    with pytest.raises(TypeError, match="Segments must be lists"):
+        Segment((1, 2, 3))
+
+
+def test_segment_class_fails_not_nested_lists():
+    with pytest.raises(TypeError, match="Sub-segments must be lists."):
+        Segment([1, 2, 3])
+
+
+def test_segment_class():
+    seg1 = Segment([[1, 2, 3]])
+    seg2 = Segment([[1, 2, 3], [4, 5]])
+    assert seg1.segments == [[1, 2, 3]]
+    assert seg2.segments == [[1, 2, 3], [4, 5]]
+
+
+def test_seg_group():
+    seg1 = seg_group([1, 2, 3])
+    seg2 = seg_group([[1, 2, 3], [4, 5]])
+    assert seg1 == Segment([[1, 2, 3]])
+    assert seg2 == Segment([[1, 2, 3], [4, 5]])
 
 
 # TODO: expand to all tbl_types
@@ -154,14 +179,31 @@ def test_segments_with_null_values(tbl_type):
 
 # TODO: expand to all tbl_types
 @pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
-def test_segments_with_seg_group_function(tbl_type):
+def test_segments_with_seg_group(tbl_type):
     validation = (
         Validate(data=load_dataset(dataset="small_table", tbl_type=tbl_type))
         .col_vals_gt(
             columns="d",
             value=100,
-            segments=("f", seg_group("low", "high")),
+            segments=("f", seg_group(["low", "high"])),
         )
         .interrogate()
     )
     assert validation.n_passed(i=1, scalar=True) == 11
+
+
+# TODO: expand to all tbl_types
+@pytest.mark.parametrize("tbl_type", ["pandas", "polars"])
+def test_segments_with_multiple_seg_groups(tbl_type):
+    validation = (
+        Validate(data=load_dataset(dataset="small_table", tbl_type=tbl_type))
+        .col_vals_gt(
+            columns="d",
+            value=100,
+            segments=("a", seg_group([[1, 2, 3], [4], [7, 8]])),
+        )
+        .interrogate()
+    )
+    assert validation.n_passed(i=1, scalar=True) == 7
+    assert validation.n_passed(i=2, scalar=True) == 3
+    assert validation.n_passed(i=3, scalar=True) == 2
