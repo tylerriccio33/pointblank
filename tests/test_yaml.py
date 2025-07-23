@@ -542,14 +542,14 @@ def test_yaml_to_python_with_briefs():
 
 
 def test_python_expressions():
-    # Test python: block syntax with simple expression
+    # Test python: block syntax with simple dataset loading
     yaml_content = """
 tbl:
   python: |
-    "worldcities.csv"
+    pb.load_dataset("small_table")
 steps:
   - col_vals_not_null:
-      columns: country
+      columns: a
     """
 
     try:
@@ -563,7 +563,7 @@ steps:
     yaml_content = """
 tbl:
   python: |
-    pl.scan_csv("worldcities.csv").head(5)
+    pb.load_dataset("game_revenue").head(5)
 steps:
   - row_count_match:
       count: 5
@@ -604,13 +604,13 @@ steps:
 def test_python_expressions_advanced():
     # Test python: block in validation step parameters
     yaml_content = """
-tbl: worldcities.csv
+tbl: game_revenue
 steps:
   - col_vals_in_set:
-      columns: country
+      columns: player_id
       set:
         python: |
-          ['USA', 'Canada', 'Mexico']
+          ['Pl_01', 'Pl_02', 'Pl_03']
     """
 
     try:
