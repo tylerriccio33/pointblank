@@ -723,7 +723,7 @@ def yaml_interrogate(yaml: Union[str, Path]) -> Validate:
     # Advanced YAML configuration with thresholds and metadata
     yaml_config = '''
     tbl: small_table
-    tbl_name: `small_table_demo`
+    tbl_name: small_table_demo
     label: Comprehensive data validation
     thresholds:
       warning: 0.1
