@@ -5,6 +5,7 @@ from typing import Any, Union
 
 import yaml
 
+from pointblank.thresholds import Actions
 from pointblank.validate import Validate, load_dataset
 
 
@@ -64,8 +65,14 @@ def _safe_eval_python_code(code: str) -> Any:
             "max": max,
             "abs": abs,
             "round": round,
+            "print": print,
         },
     }
+
+    # Add pointblank itself to the namespace
+    import pointblank as pb
+
+    safe_namespace["pb"] = pb
 
     # Add polars if available
     if _is_lib_present("polars"):
@@ -313,6 +320,30 @@ class YAMLValidator:
                 if value < 0:
                     raise YAMLValidationError(f"Threshold '{key}' must be non-negative")
 
+        # Validate actions if present
+        if "actions" in config:
+            actions = config["actions"]
+            if not isinstance(actions, dict):
+                raise YAMLValidationError("'actions' must be a dictionary")
+
+            for key, value in actions.items():
+                if key not in ["warning", "error", "critical", "default", "highest_only"]:
+                    raise YAMLValidationError(
+                        f"Invalid action key: {key}. Must be 'warning', 'error', 'critical', "
+                        f"'default', or 'highest_only'"
+                    )
+
+                if key == "highest_only":
+                    if not isinstance(value, bool):
+                        raise YAMLValidationError(f"Action '{key}' must be a boolean")
+                else:
+                    # Action values can be strings or have python: block syntax for callables
+                    if not isinstance(value, (str, dict, list)):
+                        raise YAMLValidationError(
+                            f"Action '{key}' must be a string, dictionary (for python: block), "
+                            f"or list of strings/dictionaries"
+                        )
+
     def _load_data_source(self, tbl_spec: str) -> Any:
         """Load data source based on table specification.
 
@@ -454,6 +485,11 @@ class YAMLValidator:
         if "columns_subset" in parameters:
             parameters["columns_subset"] = self._parse_column_spec(parameters["columns_subset"])
 
+        # Convert `actions=` if present (ensure it's an Actions object)
+        if "actions" in parameters:
+            if isinstance(parameters["actions"], dict):
+                parameters["actions"] = Actions(**parameters["actions"])
+
         # Handle `inclusive=` parameter for `col_vals_[inside|outside]()` (convert list to tuple)
         if "inclusive" in parameters and isinstance(parameters["inclusive"], list):
             parameters["inclusive"] = tuple(parameters["inclusive"])
@@ -490,6 +526,13 @@ class YAMLValidator:
         # Set thresholds if provided
         if "thresholds" in config:
             validate_kwargs["thresholds"] = config["thresholds"]
+
+        # Set actions if provided
+        if "actions" in config:
+            # Process actions - handle python: block syntax for callables
+            processed_actions = _process_python_expressions(config["actions"])
+            # Convert to Actions object
+            validate_kwargs["actions"] = Actions(**processed_actions)
 
         # Set language if provided
         if "lang" in config:
@@ -1063,6 +1106,21 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
         thresholds_str = "pb.Thresholds(" + ", ".join(threshold_params) + ")"
         validate_args.append(f"thresholds={thresholds_str}")
 
+    # Add `actions=` if present: format as `pb.Actions()` for an idiomatic style
+    if "actions" in config:
+        actions_dict = config["actions"]
+        action_params = []
+        for key, value in actions_dict.items():
+            if key == "highest_only":
+                action_params.append(f"{key}={value}")
+            elif isinstance(value, str):
+                action_params.append(f'{key}="{value}"')
+            else:
+                # For callables or complex expressions, use placeholder
+                action_params.append(f"{key}={value}")
+        actions_str = "pb.Actions(" + ", ".join(action_params) + ")"
+        validate_args.append(f"actions={actions_str}")
+
     # Add language if present
     if "lang" in config:
         validate_args.append(f'lang="{config["lang"]}"')
@@ -1116,11 +1174,59 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                 else:
                     param_parts.append(f'{key}="{value}"')
             elif key == "brief":
-                # Handle brief parameter: can be a boolean or a string
+                # Handle `brief=` parameter: can be a boolean or a string
                 if isinstance(value, bool):
                     param_parts.append(f"brief={str(value)}")
                 else:
                     param_parts.append(f'brief="{value}"')
+            elif key == "actions":
+                # Handle actions parameter: format as `pb.Actions()`
+                if isinstance(value, Actions):
+                    # Already an `Actions` object, format its attributes
+                    action_params = []
+                    if value.warning is not None:
+                        if isinstance(value.warning, list) and len(value.warning) == 1:
+                            action_params.append(f'warning="{value.warning[0]}"')
+                        else:
+                            action_params.append(f"warning={value.warning}")
+                    if value.error is not None:
+                        if isinstance(value.error, list) and len(value.error) == 1:
+                            action_params.append(f'error="{value.error[0]}"')
+                        else:
+                            action_params.append(f"error={value.error}")
+                    if value.critical is not None:
+                        if isinstance(value.critical, list) and len(value.critical) == 1:
+                            action_params.append(f'critical="{value.critical[0]}"')
+                        else:
+                            action_params.append(f"critical={value.critical}")
+                    if hasattr(value, "highest_only") and value.highest_only is not True:
+                        action_params.append(f"highest_only={value.highest_only}")
+                    actions_str = "pb.Actions(" + ", ".join(action_params) + ")"
+                    param_parts.append(f"actions={actions_str}")
+                elif isinstance(value, dict):
+                    action_params = []
+                    for action_key, action_value in value.items():
+                        if action_key == "highest_only":
+                            action_params.append(f"{action_key}={action_value}")
+                        elif isinstance(action_value, str):
+                            action_params.append(f'{action_key}="{action_value}"')
+                        else:
+                            # For callables or complex expressions
+                            action_params.append(f"{action_key}={action_value}")
+                    actions_str = "pb.Actions(" + ", ".join(action_params) + ")"
+                    param_parts.append(f"actions={actions_str}")
+                else:
+                    param_parts.append(f"actions={value}")
+            elif key == "thresholds":
+                # Handle thresholds parameter: format as `pb.Thresholds()`
+                if isinstance(value, dict):
+                    threshold_params = []
+                    for threshold_key, threshold_value in value.items():
+                        threshold_params.append(f"{threshold_key}={threshold_value}")
+                    thresholds_str = "pb.Thresholds(" + ", ".join(threshold_params) + ")"
+                    param_parts.append(f"thresholds={thresholds_str}")
+                else:
+                    param_parts.append(f"thresholds={value}")
             elif isinstance(value, str):
                 param_parts.append(f'{key}="{value}"')
             elif isinstance(value, bool):
