@@ -216,6 +216,7 @@ class YAMLValidator:
         "rows_complete": "rows_complete",
         "col_count_match": "col_count_match",
         "row_count_match": "row_count_match",
+        "col_schema_match": "col_schema_match",
     }
 
     def __init__(self):
@@ -412,6 +413,75 @@ class YAMLValidator:
         # Fallback: convert to string
         return [str(columns_expr)]
 
+    def _parse_schema_spec(self, schema_spec: Any) -> Any:
+        """Parse schema specification from YAML.
+
+        Converts dictionary-based schema definitions into Schema objects.
+
+        Column specifications support multiple formats:
+        - Scalar strings: "column_name" (name only, no type checking)
+        - Lists with name and type: ["column_name", "data_type"]
+        - Lists with name only: ["column_name"] (equivalent to scalar)
+
+        Parameters
+        ----------
+        schema_spec
+            Schema specification as a dictionary with 'columns' field.
+
+        Returns
+        -------
+        Schema
+            A Schema object created from the specification.
+
+        Raises
+        ------
+        YAMLValidationError
+            If schema specification is invalid.
+        """
+        from pointblank.schema import Schema
+
+        # Handle dictionary specification only
+        if isinstance(schema_spec, dict):
+            if "columns" in schema_spec:
+                # Convert columns list to a `Schema` object
+                columns_spec = schema_spec["columns"]
+
+                if not isinstance(columns_spec, list):
+                    raise YAMLValidationError(
+                        "Schema 'columns' must be a list of column specifications"
+                    )
+
+                # Convert YAML column specs to `Schema` format
+                schema_columns = []
+                for col_spec in columns_spec:
+                    if isinstance(col_spec, list):
+                        if len(col_spec) == 1:
+                            # Column name only: ["column_name"]
+                            schema_columns.append((col_spec[0],))
+                        elif len(col_spec) == 2:
+                            # Column name and type: ["column_name", "type"]
+                            schema_columns.append((col_spec[0], col_spec[1]))
+                        else:
+                            raise YAMLValidationError(
+                                f"Column specification must have 1-2 elements, got: {col_spec}"
+                            )
+                    elif isinstance(col_spec, str):
+                        # Just column name as string
+                        schema_columns.append((col_spec,))
+                    else:
+                        raise YAMLValidationError(
+                            f"Invalid column specification type: {type(col_spec)}"
+                        )
+
+                # Create Schema object
+                return Schema(columns=schema_columns)
+            else:
+                raise YAMLValidationError("Schema specification must contain 'columns' field")
+        else:
+            raise YAMLValidationError(
+                f"Schema specification must be a dictionary, got: {type(schema_spec)}"
+            )
+
     def _parse_validation_step(self, step_config: Union[str, dict]) -> tuple[str, dict]:
         """Parse a single validation step from YAML configuration.
 
@@ -484,6 +554,10 @@ class YAMLValidator:
         # Convert `columns_subset=` if present (from `rows_[distinct|complete]()`)
         if "columns_subset" in parameters:
             parameters["columns_subset"] = self._parse_column_spec(parameters["columns_subset"])
+
+        # Convert `schema=` if present (for `col_schema_match()`)
+        if "schema" in parameters and method_name == "col_schema_match":
+            parameters["schema"] = self._parse_schema_spec(parameters["schema"])
 
         # Convert `actions=` if present (ensure it's an Actions object)
         if "actions" in parameters:
