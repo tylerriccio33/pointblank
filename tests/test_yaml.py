@@ -1369,3 +1369,54 @@ steps:
     validation_info = result.validation_info[0]
     assert validation_info.assertion_type == "col_vals_gt"
     assert validation_info.n_failed > 0  # Should fail since a values are not > 1000
+
+
+def test_yaml_to_python_actions_formatting():
+    # Test global actions with callable
+    yaml_content = """
+tbl: small_table
+thresholds:
+  warning: 1
+actions:
+  warning:
+    python: |
+      lambda: print("Custom warning action executed")
+  error: "Error template {step}"
+  highest_only: false
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+"""
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the callable is properly formatted (not as a dict)
+    assert "actions=pb.Actions(" in python_code
+    assert 'warning=lambda: print("Custom warning action executed")' in python_code
+    assert 'error="Error template {step}"' in python_code
+    assert "highest_only=False" in python_code
+
+    # Ensure no dict format is present
+    assert "warning={'python':" not in python_code
+    assert "warning={'python': 'lambda:" not in python_code
+
+    # Test step-level actions with callable
+    yaml_step_content = """
+tbl: small_table
+steps:
+  - col_vals_gt:
+      columns: a
+      value: 1000
+      actions:
+        warning:
+          python: |
+            lambda: print("Step-level action")
+"""
+
+    step_python_code = yaml_to_python(yaml_step_content)
+
+    # Verify step-level callable formatting
+    assert "actions=pb.Actions(" in step_python_code
+    assert 'warning=lambda: print("Step-level action")' in step_python_code
+    assert "warning={'python':" not in step_python_code
