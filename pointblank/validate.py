@@ -87,7 +87,7 @@ from pointblank._utils_check_args import (
 from pointblank._utils_html import _create_table_dims_html, _create_table_type_html
 from pointblank.column import Column, ColumnLiteral, ColumnSelector, ColumnSelectorNarwhals, col
 from pointblank.schema import Schema, _get_schema_validation_info
-from pointblank.segments import SegmentGroup
+from pointblank.segments import Segment
 from pointblank.thresholds import (
     Actions,
     FinalActions,
@@ -13938,7 +13938,7 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
 
     # Check if the first element is a string
     if isinstance(column, str):
-        if isinstance(value, SegmentGroup):
+        if isinstance(value, Segment):
             seg_tuples = [(column, value.segments)]
         # If the second element is a collection, expand into a list of tuples
         elif isinstance(value, (list, set, tuple)):
@@ -13977,7 +13977,7 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
     tbl_type = _get_tbl_type(data=data_tbl)
 
     # Unpack the segments expression tuple for more convenient and explicit variable names
-    column, value = segments_expr
+    column, segment = segments_expr
 
     if tbl_type in ["pandas", "polars"]:
         # If the table is a Pandas or Polars DataFrame, transforming to a Narwhals table
@@ -13986,14 +13986,14 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
         # Transform to Narwhals table if a DataFrame
         data_tbl_nw = nw.from_native(data_tbl)
 
-        # Filter the data table based on the column name and value
-        if value is None:
+        # Filter the data table based on the column name and segment
+        if segment is None:
             data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_null())
-        # Check if the value is a segment group
-        elif isinstance(value, list):
-            data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_in(value))
+        # Check if the segment is a segment group
+        elif isinstance(segment, list):
+            data_tbl_nw = data_tbl_nw.filter(nw.col(column).is_in(segment))
         else:
-            data_tbl_nw = data_tbl_nw.filter(nw.col(column) == value)
+            data_tbl_nw = data_tbl_nw.filter(nw.col(column) == segment)
 
         # Transform back to the original table type
         data_tbl = data_tbl_nw.to_native()
@@ -14001,13 +14001,13 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
     elif tbl_type in IBIS_BACKENDS:
         # If the table is an Ibis backend table, perform the filtering operation directly
 
-        # Filter the data table based on the column name and value
-        if value is None:
+        # Filter the data table based on the column name and segment
+        if segment is None:
             data_tbl = data_tbl[data_tbl[column].isnull()]
-        elif isinstance(value, list):
-            data_tbl = data_tbl[data_tbl[column].isin(value)]
+        elif isinstance(segment, list):
+            data_tbl = data_tbl[data_tbl[column].isin(segment)]
         else:
-            data_tbl = data_tbl[data_tbl[column] == value]
+            data_tbl = data_tbl[data_tbl[column] == segment]
 
     return data_tbl
 
