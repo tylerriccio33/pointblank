@@ -3958,7 +3958,7 @@ steps:
   # Check string patterns (uncomment and modify as needed)
   # - col_vals_regex:
   #     columns: email
-  #     pattern: "^[\\\\w\\\\.-]+@[\\\\w\\\\.-]+\\\\.[a-zA-Z]{2,}$"
+  #     pattern: "^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$"
 
   # Check for unique values (uncomment and modify as needed)
   # - col_vals_unique:
