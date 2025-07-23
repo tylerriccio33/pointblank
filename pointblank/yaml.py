@@ -1029,6 +1029,13 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     if isinstance(raw_config.get("tbl"), dict) and "python" in raw_config["tbl"]:
         original_tbl_expression = raw_config["tbl"]["python"].strip()
 
+    # Extract original Actions expressions if they exist
+    original_actions_expressions = {}
+    if "actions" in raw_config:
+        for key, value in raw_config["actions"].items():
+            if isinstance(value, dict) and "python" in value:
+                original_actions_expressions[key] = value["python"].strip()
+
     # Define function for recursively extract original Python expressions from step parameters
     def extract_python_expressions(obj, path=""):
         expressions = {}
@@ -1042,6 +1049,13 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                     # can use shortcut syntax
                     if key in ["expr", "pre"] and isinstance(value, str):
                         expressions[new_path] = value.strip()
+                    # Special handling for actions that might contain python: expressions
+                    elif key == "actions" and isinstance(value, dict):
+                        for action_key, action_value in value.items():
+                            if isinstance(action_value, dict) and "python" in action_value:
+                                expressions[f"{new_path}.{action_key}"] = action_value[
+                                    "python"
+                                ].strip()
                     else:
                         expressions.update(extract_python_expressions(value, new_path))
         elif isinstance(obj, list):
@@ -1113,6 +1127,9 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
         for key, value in actions_dict.items():
             if key == "highest_only":
                 action_params.append(f"{key}={value}")
+            elif key in original_actions_expressions:
+                # Use the original Python expression for callables
+                action_params.append(f"{key}={original_actions_expressions[key]}")
             elif isinstance(value, str):
                 action_params.append(f'{key}="{value}"')
             else:
@@ -1184,35 +1201,59 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                 if isinstance(value, Actions):
                     # Already an `Actions` object, format its attributes
                     action_params = []
+
+                    # Check for original expressions for each action level
+                    step_action_base = f"steps[{step_index}].{list(step_config.keys())[0]}.actions"
+
                     if value.warning is not None:
-                        if isinstance(value.warning, list) and len(value.warning) == 1:
+                        warning_expr_path = f"{step_action_base}.warning"
+                        if warning_expr_path in step_expressions:
+                            action_params.append(f"warning={step_expressions[warning_expr_path]}")
+                        elif isinstance(value.warning, list) and len(value.warning) == 1:
                             action_params.append(f'warning="{value.warning[0]}"')
                         else:
                             action_params.append(f"warning={value.warning}")
+
                     if value.error is not None:
-                        if isinstance(value.error, list) and len(value.error) == 1:
+                        error_expr_path = f"{step_action_base}.error"
+                        if error_expr_path in step_expressions:
+                            action_params.append(f"error={step_expressions[error_expr_path]}")
+                        elif isinstance(value.error, list) and len(value.error) == 1:
                             action_params.append(f'error="{value.error[0]}"')
                         else:
                             action_params.append(f"error={value.error}")
+
                     if value.critical is not None:
-                        if isinstance(value.critical, list) and len(value.critical) == 1:
+                        critical_expr_path = f"{step_action_base}.critical"
+                        if critical_expr_path in step_expressions:
+                            action_params.append(f"critical={step_expressions[critical_expr_path]}")
+                        elif isinstance(value.critical, list) and len(value.critical) == 1:
                             action_params.append(f'critical="{value.critical[0]}"')
                         else:
                             action_params.append(f"critical={value.critical}")
+
                     if hasattr(value, "highest_only") and value.highest_only is not True:
                         action_params.append(f"highest_only={value.highest_only}")
                     actions_str = "pb.Actions(" + ", ".join(action_params) + ")"
                     param_parts.append(f"actions={actions_str}")
                 elif isinstance(value, dict):
                     action_params = []
+                    step_action_base = f"steps[{step_index}].{list(step_config.keys())[0]}.actions"
                     for action_key, action_value in value.items():
                         if action_key == "highest_only":
                             action_params.append(f"{action_key}={action_value}")
-                        elif isinstance(action_value, str):
-                            action_params.append(f'{action_key}="{action_value}"')
                         else:
-                            # For callables or complex expressions
-                            action_params.append(f"{action_key}={action_value}")
+                            # Check if we have an original expression for this action
+                            action_expr_path = f"{step_action_base}.{action_key}"
+                            if action_expr_path in step_expressions:
+                                action_params.append(
+                                    f"{action_key}={step_expressions[action_expr_path]}"
+                                )
+                            elif isinstance(action_value, str):
+                                action_params.append(f'{action_key}="{action_value}"')
+                            else:
+                                # For callables or complex expressions
+                                action_params.append(f"{action_key}={action_value}")
                     actions_str = "pb.Actions(" + ", ".join(action_params) + ")"
                     param_parts.append(f"actions={actions_str}")
                 else:
