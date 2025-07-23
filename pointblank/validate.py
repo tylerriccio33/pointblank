@@ -13934,18 +13934,18 @@ def _seg_expr_from_tuple(segments_expr: tuple) -> list[tuple[str, Any]]:
         Values can be any type, including None.
     """
     # Unpack the segments expression tuple for more convenient and explicit variable names
-    column, value = segments_expr
+    column, segment = segments_expr
 
     # Check if the first element is a string
     if isinstance(column, str):
-        if isinstance(value, Segment):
-            seg_tuples = [(column, value.segments)]
+        if isinstance(segment, Segment):
+            seg_tuples = [(column, seg) for seg in segment.segments]
         # If the second element is a collection, expand into a list of tuples
-        elif isinstance(value, (list, set, tuple)):
-            seg_tuples = [(column, seg) for seg in value]
+        elif isinstance(segment, (list, set, tuple)):
+            seg_tuples = [(column, seg) for seg in segment]
         # If the second element is not a list, create a single tuple
         else:
-            seg_tuples = [(column, value)]
+            seg_tuples = [(column, segment)]
     # If the first element is not a string, raise an error
     else:  # pragma: no cover
         raise ValueError("The first element of the segments expression must be a string.")
