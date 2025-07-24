@@ -1869,3 +1869,42 @@ def test_yaml_df_library_parameter():
     assert result_pandas is not None
     assert len(result_pandas.validation_info) == 1
     assert result_pandas.validation_info[0].all_passed is True
+
+
+def test_yaml_df_library_ignored_with_python_expression():
+    # Test case 1: Python expression should ignore df_library in execution
+    yaml_content_python_expr = """
+    tbl:
+      python: |
+        pb.load_dataset("small_table", tbl_type="polars")
+    df_library: pandas  # Should be ignored
+    steps:
+    - col_vals_not_null:
+        columns: [a]
+    """
+
+    # Should execute successfully (if df_library was incorrectly applied, might cause issues)
+    result = yaml_interrogate(yaml_content_python_expr)
+    assert result is not None
+    assert len(result.validation_info) == 1
+
+    # Test case 2: yaml_to_python should generate correct code ignoring df_library
+    python_code = yaml_to_python(yaml_content_python_expr)
+
+    # Should use the original Python expression, not apply df_library
+    assert 'tbl_type="polars"' in python_code, "Should preserve original Python expression"
+    assert 'tbl_type="pandas"' not in python_code, (
+        "Should not apply df_library to Python expressions"
+    )
+
+    # Test case 3: Compare with regular dataset that should use df_library
+    yaml_content_regular = """
+    tbl: small_table
+    df_library: pandas
+    steps:
+    - col_vals_not_null:
+        columns: [a]
+    """
+
+    python_code_regular = yaml_to_python(yaml_content_regular)
+    assert 'tbl_type="pandas"' in python_code_regular, "Regular datasets should use df_library"
