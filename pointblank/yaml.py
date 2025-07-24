@@ -1256,7 +1256,11 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
     # Add data loading as first argument
     tbl_spec = config["tbl"]
     df_library = config.get("df_library", "polars")
-    if isinstance(tbl_spec, str):
+
+    # Use the original Python expression if we extracted it (df_library is ignored in this case)
+    if original_tbl_expression:
+        validate_args.append(f"data={original_tbl_expression}")
+    elif isinstance(tbl_spec, str):
         if tbl_spec.endswith((".csv", ".parquet")):
             # File loading
             validate_args.append(f'data=pb.load_dataset("{tbl_spec}", tbl_type="{df_library}")')
@@ -1264,12 +1268,8 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
             # Dataset loading
             validate_args.append(f'data=pb.load_dataset("{tbl_spec}", tbl_type="{df_library}")')
     else:
-        # Use the original Python expression if we extracted it
-        if original_tbl_expression:
-            validate_args.append(f"data={original_tbl_expression}")
-        else:
-            # Fallback to placeholder if we couldn't extract the original expression
-            validate_args.append("data=<python_expression_result>")
+        # Fallback to placeholder if we couldn't extract the original expression
+        validate_args.append("data=<python_expression_result>")
 
     # Add table name if present
     if "tbl_name" in config:
