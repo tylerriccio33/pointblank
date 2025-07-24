@@ -386,13 +386,10 @@ Template variables available for action strings:
 
 ```yaml
 - conjointly:
-    steps:                             # REQUIRED: List of validation steps
-      - col_vals_gt:
-          columns: value
-          value: 0
-      - col_vals_lt:
-          columns: value
-          value: 100
+    expressions:                       # REQUIRED: List of lambda expressions
+      - "lambda df: df['d'] > df['a']"
+      - "lambda df: df['a'] > 0"
+      - "lambda df: df['a'] + df['d'] < 12000"
     thresholds:                        # OPTIONAL: Step-level thresholds
       warning: 0.1
     actions:                           # OPTIONAL: Step-level actions
@@ -404,9 +401,8 @@ Template variables available for action strings:
 
 ```yaml
 - specially:
-    fn:                                # REQUIRED: Custom validation function
-      python: |
-        lambda df: custom_validation_logic(df)
+    expr:                              # REQUIRED: Custom validation function
+      "lambda df: df.select(pl.col('a') + pl.col('d') > 0)"
     thresholds:                        # OPTIONAL: Step-level thresholds
       warning: 0.1
     actions:                           # OPTIONAL: Step-level actions
