@@ -30,6 +30,7 @@ Here's a simple example validating the built-in `small_table` dataset:
 
 ```yaml
 tbl: small_table
+df_library: polars                     # Optional: specify DataFrame library
 tbl_name: "Small Table Validation"
 label: "Basic data quality checks"
 steps:
@@ -50,6 +51,7 @@ from pathlib import Path
 # Save the YAML configuration to a file
 yaml_content = """
 tbl: small_table
+df_library: polars
 tbl_name: "Small Table Validation"
 label: "Basic data quality checks"
 steps:
@@ -75,16 +77,54 @@ with files is the recommended approach for production workflows.
 ## Data Sources in YAML
 
 The `tbl` field supports various data source types, making it easy to work with different kinds of
-data:
+data. You can also control the DataFrame library used for loading data with the `df_library` parameter.
+
+### DataFrame Library Selection
+
+By default, Pointblank loads data as Polars DataFrames, but you can specify alternative libraries:
+
+```yaml
+# Load as Polars DataFrame (default)
+tbl: small_table
+df_library: polars
+
+# Load as Pandas DataFrame
+tbl: small_table
+df_library: pandas
+
+# Load as DuckDB table (via Ibis)
+tbl: small_table
+df_library: duckdb
+```
+
+This is particularly useful when using validation expressions that require specific DataFrame APIs:
+
+```yaml
+# Using Pandas-specific operations
+tbl: small_table
+df_library: pandas
+steps:
+  - specially:
+      expr: "lambda df: df.assign(total=df['a'] + df['d'])"
+
+# Using Polars-specific operations
+tbl: small_table
+df_library: polars
+steps:
+  - specially:
+      expr: "lambda df: df.select(pl.col('a') + pl.col('d') > 0)"
+```
 
 ### File-based Sources
 
 ```yaml
-# CSV files
+# CSV files (respects df_library setting)
 tbl: "data/customers.csv"
+df_library: pandas
 
 # Parquet files
 tbl: "warehouse/sales.parquet"
+df_library: polars
 
 # Multiple files with patterns
 tbl: "logs/*.parquet"
