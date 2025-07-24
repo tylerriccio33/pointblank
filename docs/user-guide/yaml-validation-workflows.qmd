@@ -22,9 +22,9 @@ custom functions might be better suited for the Python API.
 
 A YAML validation workflow consists of a few key components:
 
-- **`tbl`**: specifies the data source (file path, dataset name, or Python expression)
-- **`steps`**: defines the validation checks to perform
-- **Optional metadata**: table name, label, thresholds, actions, and other configuration
+- `tbl`: specifies the data source (file path, dataset name, or Python expression)
+- `steps`: defines the validation checks to perform
+- Optional metadata: table name, label, thresholds, actions, and other configuration
 
 Here's a simple example validating the built-in `small_table` dataset:
 
@@ -77,7 +77,8 @@ with files is the recommended approach for production workflows.
 ## Data Sources in YAML
 
 The `tbl` field supports various data source types, making it easy to work with different kinds of
-data. You can also control the DataFrame library used for loading data with the `df_library` parameter.
+data. You can also control the DataFrame library used for loading data with the `df_library`
+parameter.
 
 ### DataFrame Library Selection
 
@@ -361,16 +362,16 @@ actions:
       lambda: print("ALERT: Critical data validation failed!")
   critical:
     python: |
-      lambda: (
-          __import__('requests').post(
-              'https://alerts.company.com/webhook',
-              json={'message': 'Critical validation failure', 'severity': 'high'}
-          )
-      )
+      lambda: print("CRITICAL: Validation failure - manual intervention required!")
 steps:
   - col_vals_not_null:
       columns: [transaction_id, amount]
 ```
+
+Note: The Python environment in YAML actions is restricted for security. You can use built-in
+functions like `print()`, basic operations, and available DataFrame libraries, but cannot import
+external modules like `requests` or `logging`. For external notifications, consider using string
+template actions or handling alerts in your application code after the validation completes.
 
 ### Step-level Actions
 
@@ -639,9 +640,7 @@ actions:
   error: "Quality degradation detected: Step {step} failed for {n_failed}/{n} rows"
   critical:
     python: |
-      lambda: __import__('logging').getLogger().critical(
-          "CRITICAL: Data quality failure detected - immediate attention required"
-      )
+      lambda: print("CRITICAL: Data quality failure detected - immediate attention required")
   highest_only: false
 
 steps:
