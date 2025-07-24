@@ -58,7 +58,8 @@ tbl:
 
 ### DataFrame Library (`df_library`)
 
-The `df_library` key controls which DataFrame library is used to load data sources. This parameter affects both built-in datasets and file loading:
+The `df_library` key controls which DataFrame library is used to load data sources. This parameter
+affects both built-in datasets and file loading:
 
 ```yaml
 # Use Polars DataFrames (default)
@@ -98,10 +99,12 @@ steps:
 ```
 
 The `df_library` parameter is particularly useful when:
-- Using validation expressions that require specific DataFrame APIs (e.g., Pandas `.assign()`, Polars `.select()`)
-- Integrating with existing pipelines that use a specific DataFrame library
-- Optimizing performance for different data sizes and operations
-- Ensuring compatibility with downstream processing steps
+
+- using validation expressions that require specific DataFrame APIs (e.g., Pandas `.assign()`,
+Polars `.select()`)
+- integrating with existing pipelines that use a specific DataFrame library
+- optimizing performance for different data sizes and operations
+- ensuring compatibility with downstream processing steps
 
 ### Global Thresholds
 
@@ -119,7 +122,9 @@ thresholds:
 
 ### Global Actions
 
-Actions define responses when thresholds are exceeded. When supplying a string to a severity level (warning, error, critical), you can use template variables that will be automatically substituted with contextual information:
+Actions define responses when thresholds are exceeded. When supplying a string to a severity level
+('warning', 'error', 'critical'), you can use template variables that will be automatically
+substituted with contextual information:
 
 ```yaml
 actions:
@@ -545,10 +550,14 @@ expr:
 actions:
   error:
     python: |
-      lambda: send_alert("Validation failed")
+      lambda: print("VALIDATION ERROR: Critical data quality issue detected!")
 ```
 
-You can also use the shortcut syntax for simple lambda expressions:
+Note: The Python environment in YAML is restricted for security. Only built-in functions (`print`,
+`len`, `str`, etc.), `Path` from pathlib, and available DataFrame libraries (`pl`, `pd`) are
+accessible. You cannot import additional modules like `requests`, `logging`, or custom libraries.
+
+You can also use the shortcut syntax for lambda expressions:
 
 ```yaml
 # Shortcut syntax (equivalent to python: block)
@@ -556,51 +565,93 @@ pre: |
   lambda df: df.filter(pl.col("status") == "active")
 ```
 
+### Restricted Python Environment
+
+For security reasons, the Python environment in YAML configurations is restricted to a safe subset
+of functionality. The available namespace includes:
+
+Built-in functions:
+
+- basic types: `str`, `int`, `float`, `bool`, `list`, `dict`, `tuple`, `set`
+- math functions: `sum`, `min`, `max`, `abs`, `round`, `len`
+- iteration: `range`, `enumerate`, `zip`
+- output: `print`
+
+Available modules:
+
+- `Path` from pathlib for file path operations
+- `pb` (`pointblank`) for dataset loading and validation functions
+- `pl` (`polars`) if available on the system
+- `pd` (`pandas`) if available on the system
+
+Restrictions:
+
+- cannot import external libraries (`requests`, `logging`, `os`, `sys`, etc.)
+- cannot use `__import__`, `exec`, `eval`, or other dynamic execution functions
+- file operations are limited to `Path` functionality
+
+**Examples of valid callable actions:**
+
+```yaml
+# Simple output with built-in functions
+actions:
+  warning:
+    python: |
+      lambda: print(f"WARNING: {sum([1, 2, 3])} validation issues detected")
+
+# Using available variables and string formatting
+actions:
+  error:
+    python: |
+      lambda: print("ERROR: Data validation failed at " + str(len("validation")))
+
+# Multiple statements in lambda (using parentheses)
+actions:
+  critical:
+    python: |
+      lambda: (
+          print("CRITICAL ALERT:"),
+          print("Immediate attention required"),
+          print("Contact data team")
+      )[-1]  # Return the last value
+```
+
+For complex alerting, logging, or external system integration, use string template actions instead
+of callable actions, and handle the external communication in your application code after validation
+completes.
+
 ## Best Practices
 
 ### Organization
 
-- Use descriptive `tbl_name` and `label` values
-- Add `brief` descriptions for complex validations
-- Group related validations logically
-- Use consistent indentation and formatting
+- use descriptive `tbl_name` and `label` values
+- add `brief` descriptions for complex validations
+- group related validations logically
+- use consistent indentation and formatting
 
 ### Performance
 
-- Apply `pre` filters early to reduce data volume
-- Order validations from fast to slow
-- Use `columns_subset` for row-based validations when appropriate
-- Consider data source location (local vs. remote)
-- Choose `df_library` based on data size and operations:
+- apply `pre` filters early to reduce data volume
+- order validations from fast to slow
+- use `columns_subset` for row-based validations when appropriate
+- consider data source location (local vs. remote)
+- choose `df_library` based on data size and operations:
   - `polars`: fastest for large datasets and analytical operations
   - `pandas`: best for complex transformations and data science workflows
   - `duckdb`: optimal for analytical queries on very large datasets
 
 ### Maintainability
 
-- Store YAML files in version control
-- Use template variables in actions and briefs
-- Document expected failures with comments
-- Test configurations with `validate_yaml()` before deployment
-- Specify `df_library` explicitly when using library-specific validation expressions
-- Keep DataFrame library choice consistent within related validation workflows
+- store YAML files in version control
+- use template variables in actions and briefs
+- document expected failures with comments
+- test configurations with `validate_yaml()` before deployment
+- specify `df_library` explicitly when using library-specific validation expressions
+- keep DataFrame library choice consistent within related validation workflows
 
 ### Error Handling
 
-- Set appropriate thresholds based on data patterns
-- Use actions for monitoring and alerting
-- Start with conservative thresholds and adjust
-- Consider using `highest_only: false` for comprehensive reporting
-
-## Error Messages
-
-Common YAML validation errors and their solutions:
-
-- "YAML must contain 'tbl' field": add required `tbl` key
-- "YAML must contain 'steps' field": add required `steps` list
-- "Unknown validation method": check method name spelling
-- "Threshold must be non-negative": use positive threshold values
-- "Failed to load data source": verify data file path/dataset name
-- "Invalid YAML syntax": check YAML formatting and indentation
-
-Use `validate_yaml()` to catch configuration errors before execution.
+- set appropriate thresholds based on data patterns
+- use actions for monitoring and alerting
+- start with conservative thresholds and adjust
+- consider using `highest_only: false` for comprehensive reporting
