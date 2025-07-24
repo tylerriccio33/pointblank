@@ -1839,7 +1839,6 @@ def test_yaml_conjointly_expression_col_syntax():
 
 
 def test_yaml_df_library_parameter():
-    """Test that df_library parameter controls DataFrame format."""
     # Test with Polars (default)
     yaml_content_polars = """
     tbl: small_table
