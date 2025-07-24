@@ -15,6 +15,7 @@ configurations.
 
 ```yaml
 tbl: data_source                       # REQUIRED: Data source specification
+df_library: "polars"                   # OPTIONAL: DataFrame library ("polars", "pandas", "duckdb")
 tbl_name: "Custom Table Name"          # OPTIONAL: Human-readable table name
 label: "Validation Description"        # OPTIONAL: Description for the validation workflow
 lang: "en"                             # OPTIONAL: Language code (default: "en")
@@ -54,6 +55,53 @@ tbl:
   python: |
     pl.scan_csv("data.csv").filter(pl.col("date") >= "2024-01-01")
 ```
+
+### DataFrame Library (`df_library`)
+
+The `df_library` key controls which DataFrame library is used to load data sources. This parameter affects both built-in datasets and file loading:
+
+```yaml
+# Use Polars DataFrames (default)
+df_library: polars
+
+# Use Pandas DataFrames
+df_library: pandas
+
+# Use DuckDB tables (via Ibis)
+df_library: duckdb
+```
+
+Examples with different libraries:
+
+```yaml
+# Load built-in dataset as Pandas DataFrame
+tbl: small_table
+df_library: pandas
+steps:
+  - specially:
+      expr: "lambda df: df.assign(validation_result=df['a'] > 0)"
+
+# Load CSV file as Polars DataFrame
+tbl: "data/sales.csv"
+df_library: polars
+steps:
+  - col_vals_gt:
+      columns: amount
+      value: 0
+
+# Load dataset as DuckDB table
+tbl: nycflights
+df_library: duckdb
+steps:
+  - row_count_match:
+      count: 336776
+```
+
+The `df_library` parameter is particularly useful when:
+- Using validation expressions that require specific DataFrame APIs (e.g., Pandas `.assign()`, Polars `.select()`)
+- Integrating with existing pipelines that use a specific DataFrame library
+- Optimizing performance for different data sizes and operations
+- Ensuring compatibility with downstream processing steps
 
 ### Global Thresholds
 
@@ -410,6 +458,21 @@ Template variables available for action strings:
     brief: "Custom validation"         # OPTIONAL: Step description
 ```
 
+Alternative syntax with Python expressions:
+
+```yaml
+- specially:
+    expr:
+      python: |
+        lambda df: df.select(pl.col('amount') > 0)
+```
+
+For Pandas DataFrames (when using `df_library: pandas`):
+
+```yaml
+- specially:
+    expr: "lambda df: df.assign(is_valid=df['a'] + df['d'] > 0)"
+
 ## Column Selection Patterns
 
 All validation methods that accept a `columns` parameter support these selection patterns:
@@ -508,6 +571,10 @@ pre: |
 - Order validations from fast to slow
 - Use `columns_subset` for row-based validations when appropriate
 - Consider data source location (local vs. remote)
+- Choose `df_library` based on data size and operations:
+  - `polars`: fastest for large datasets and analytical operations
+  - `pandas`: best for complex transformations and data science workflows
+  - `duckdb`: optimal for analytical queries on very large datasets
 
 ### Maintainability
 
@@ -515,6 +582,8 @@ pre: |
 - Use template variables in actions and briefs
 - Document expected failures with comments
 - Test configurations with `validate_yaml()` before deployment
+- Specify `df_library` explicitly when using library-specific validation expressions
+- Keep DataFrame library choice consistent within related validation workflows
 
 ### Error Handling
 
