@@ -101,12 +101,13 @@ tbl: nycflights
 
 ### Python Expressions for Complex Sources
 
-For more complex data loading, use the `python:` block syntax. This syntax can be used with several parameters throughout your YAML configuration:
+For more complex data loading, use the `python:` block syntax. This syntax can be used with several
+parameters throughout your YAML configuration:
 
-- **`tbl`**: For complex data source loading (as shown below)
-- **`expr`**: For custom validation expressions in `col_vals_expr`
-- **`pre`**: For data preprocessing before validation steps
-- **`actions`**: For callable action functions ('warning', 'error', 'critical', and 'default')
+- `tbl`: For complex data source loading (as shown below)
+- `expr`: For custom validation expressions in `col_vals_expr`
+- `pre`: For data preprocessing before validation steps
+- `actions`: For callable action functions (`warning`, `error`, `critical`, and `default`)
 
 ```yaml
 # Load data with custom Polars operations
@@ -173,13 +174,15 @@ steps:
 
 ### Schema Validations
 
-Schema validation ensures your data has the expected structure and column types. YAML uses a simple dictionary format to define schemas for the `col_schema_match` validation method.
+Schema validation ensures your data has the expected structure and column types. The
+`col_schema_match` validation method uses a `schema` key that contains a `columns` list, where each
+item in the list can specify a column name alone or a column name with its expected data type.
 
-Each column can be specified as:
+Each `column` entry can be specified as:
 
 - `column_name`: column name as a scalar string (structure validation, no type checking)
-- `[column_name, "data_type"]`: column name with type validation
-- `[column_name]`: column name in a list (equivalent to scalar, for consistency)
+- `[column_name, "data_type"]`: column name with type validation (as a list with two elements)
+- `[column_name]`: column name in a single-item list (equivalent to scalar, for consistency)
 
 ```yaml
 tbl: customer_data.csv
@@ -216,11 +219,11 @@ steps:
         columns:
           - [id, "int64"]
           - name
-      complete: false              # Allow extra columns
-      in_order: false              # Column order doesn't matter
-      case_sensitive_colnames: false    # Case-insensitive column names
-      case_sensitive_dtypes: false      # Case-insensitive type names
-      full_match_dtypes: false          # Allow partial type matching
+      complete: false                  # Allow extra columns
+      in_order: false                  # Column order doesn't matter
+      case_sensitive_colnames: false   # Case-insensitive column names
+      case_sensitive_dtypes: false     # Case-insensitive type names
+      full_match_dtypes: false         # Allow partial type matching
       brief: "Flexible schema validation"
 ```
 
