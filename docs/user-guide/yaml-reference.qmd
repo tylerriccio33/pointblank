@@ -1,0 +1,541 @@
+---
+title: YAML Reference
+jupyter: python3
+toc-expand: 2
+html-table-processing: none
+---
+
+This reference provides a comprehensive guide to all YAML keys and parameters supported by
+Pointblank's YAML validation workflows. Use this document as a quick lookup when building validation
+configurations.
+
+## Global Configuration Keys
+
+### Top-level Structure
+
+```yaml
+tbl: data_source                       # REQUIRED: Data source specification
+tbl_name: "Custom Table Name"          # OPTIONAL: Human-readable table name
+label: "Validation Description"        # OPTIONAL: Description for the validation workflow
+lang: "en"                             # OPTIONAL: Language code (default: "en")
+locale: "en"                           # OPTIONAL: Locale setting (default: "en")
+brief: "Global brief: {auto}"          # OPTIONAL: Global brief template
+thresholds:                            # OPTIONAL: Global failure thresholds
+  warning: 0.1
+  error: 0.2
+  critical: 0.3
+actions:                               # OPTIONAL: Global failure actions
+  warning: "Warning message template"
+  error: "Error message template"
+  critical: "Critical message template"
+  highest_only: false
+steps:                                 # REQUIRED: List of validation steps
+  - validation_method_name
+  - validation_method_name:
+      parameter: value
+```
+
+### Data Source (`tbl`)
+
+The `tbl` key specifies the data source and supports multiple formats:
+
+```yaml
+# File paths
+tbl: "data/file.csv"
+tbl: "data/file.parquet"
+
+# Built-in datasets
+tbl: small_table
+tbl: game_revenue
+tbl: nycflights
+
+# Python expressions for complex data loading
+tbl:
+  python: |
+    pl.scan_csv("data.csv").filter(pl.col("date") >= "2024-01-01")
+```
+
+### Global Thresholds
+
+Thresholds define when validation failures trigger different severity levels:
+
+```yaml
+thresholds:
+  warning: 0.05    # 5% failure rate triggers warning
+  error: 0.10      # 10% failure rate triggers error
+  critical: 0.15   # 15% failure rate triggers critical
+```
+
+- values: numbers between 0 and 1 (percentages) or integers (row counts)
+- levels: `warning`, `error`, `critical`
+
+### Global Actions
+
+Actions define responses when thresholds are exceeded. When supplying a string to a severity level (warning, error, critical), you can use template variables that will be automatically substituted with contextual information:
+
+```yaml
+actions:
+  warning: "Warning: {n_failed} failures in step {step}"
+  error:
+    python: |
+      lambda: print("Error detected!")
+  critical: "Critical failure at {time}"
+  highest_only: false        # Execute all applicable actions vs. only highest severity
+```
+
+Template variables available for action strings:
+
+- `{step}`: current validation step number
+- `{col}`: column name(s) being validated
+- `{val}`: validation value or threshold
+- `{n_failed}`: number of failing records
+- `{n}`: total number of records
+- `{type}`: validation method type
+- `{level}`: severity level ('warning'/'error'/'critical')
+- `{time}`: timestamp of validation
+
+## Validation Methods Reference
+
+### Column Value Validations
+
+#### Comparison Methods
+
+`col_vals_gt`: are column data greater than a fixed value or data in another column?
+
+```yaml
+- col_vals_gt:
+    columns: [column_name]             # REQUIRED: Column(s) to validate
+    value: 100                         # REQUIRED: Comparison value
+    na_pass: true                      # OPTIONAL: Pass NULL values (default: false)
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Values must be > 100"      # OPTIONAL: Step description
+```
+
+`col_vals_lt`: are column data less than a fixed value or data in another column?
+
+```yaml
+- col_vals_lt:
+    columns: [column_name]
+    value: 100
+    na_pass: true
+    # ... (same parameters as col_vals_gt)
+```
+
+`col_vals_ge`: are column data greater than or equal to a fixed value or data in another column?
+
+```yaml
+- col_vals_ge:
+    columns: [column_name]
+    value: 100
+    na_pass: true
+    # ... (same parameters as col_vals_gt)
+```
+
+`col_vals_le`: are column data less than or equal to a fixed value or data in another column?
+
+```yaml
+- col_vals_le:
+    columns: [column_name]
+    value: 100
+    na_pass: true
+    # ... (same parameters as col_vals_gt)
+```
+
+`col_vals_eq`: are column data equal to a fixed value or data in another column?
+
+```yaml
+- col_vals_eq:
+    columns: [column_name]
+    value: "expected_value"
+    na_pass: true
+    # ... (same parameters as col_vals_gt)
+```
+
+`col_vals_ne`: are column data not equal to a fixed value or data in another column?
+
+```yaml
+- col_vals_ne:
+    columns: [column_name]
+    value: "forbidden_value"
+    na_pass: true
+    # ... (same parameters as col_vals_gt)
+```
+
+#### Range Methods
+
+`col_vals_between`: are column data between two specified values (inclusive)?
+
+```yaml
+- col_vals_between:
+    columns: [column_name]             # REQUIRED: Column(s) to validate
+    left: 0                            # REQUIRED: Lower bound
+    right: 100                         # REQUIRED: Upper bound
+    inclusive: [true, true]            # OPTIONAL: Include bounds [left, right]
+    na_pass: false                     # OPTIONAL: Pass NULL values
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Values between 0 and 100"  # OPTIONAL: Step description
+```
+
+`col_vals_outside`: are column data outside of two specified values?
+
+```yaml
+- col_vals_outside:
+    columns: [column_name]
+    left: 0
+    right: 100
+    inclusive: [false, false]          # OPTIONAL: Exclude bounds [left, right]
+    na_pass: false
+    # ... (same parameters as col_vals_between)
+```
+
+#### Set Membership Methods
+
+`col_vals_in_set`: are column data part of a specified set of values?
+
+```yaml
+- col_vals_in_set:
+    columns: [column_name]             # REQUIRED: Column(s) to validate
+    set: [value1, value2, value3]      # REQUIRED: Allowed values
+    na_pass: false                     # OPTIONAL: Pass NULL values
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Values in allowed set"     # OPTIONAL: Step description
+```
+
+`col_vals_not_in_set`: are column data not part of a specified set of values?
+
+```yaml
+- col_vals_not_in_set:
+    columns: [column_name]
+    set: [forbidden1, forbidden2]      # REQUIRED: Forbidden values
+    na_pass: false
+    # ... (same parameters as col_vals_in_set)
+```
+
+#### NULL Value Methods
+
+`col_vals_null`: are column data null (missing)?
+
+```yaml
+- col_vals_null:
+    columns: [column_name]             # REQUIRED: Column(s) to validate
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Values must be NULL"       # OPTIONAL: Step description
+```
+
+`col_vals_not_null`: are column data not null (not missing)?
+
+```yaml
+- col_vals_not_null:
+    columns: [column_name]
+    # ... (same parameters as col_vals_null)
+```
+
+#### Pattern Matching Methods
+
+`col_vals_regex`: do string-based column data match a regular expression?
+```yaml
+- col_vals_regex:
+    columns: [column_name]             # REQUIRED: Column(s) to validate
+    pattern: "^[A-Z]{2,3}$"            # REQUIRED: Regular expression pattern
+    na_pass: false                     # OPTIONAL: Pass NULL values
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Values match pattern"      # OPTIONAL: Step description
+```
+
+#### Custom Expression Methods
+
+`col_vals_expr`: do column data agree with a predicate expression?
+
+```yaml
+- col_vals_expr:
+    expr:                              # REQUIRED: Custom validation expression
+      python: |
+        pl.when(pl.col("status") == "active")
+        .then(pl.col("value") > 0)
+        .otherwise(pl.lit(True))
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Custom validation rule"    # OPTIONAL: Step description
+```
+
+### Row-based Validations
+
+`rows_distinct`: are row data distinct?
+
+```yaml
+- rows_distinct                        # Simple form
+
+- rows_distinct:                       # With parameters
+    columns_subset: [col1, col2]       # OPTIONAL: Check subset of columns
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "No duplicate rows"         # OPTIONAL: Step description
+```
+
+`rows_complete`: are row data complete?
+
+```yaml
+- rows_complete                        # Simple form
+
+- rows_complete:                       # With parameters
+    columns_subset: [col1, col2]       # OPTIONAL: Check subset of columns
+    pre: |                             # OPTIONAL: Data preprocessing
+      lambda df: df.filter(condition)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Complete rows only"        # OPTIONAL: Step description
+```
+
+### Structure Validations
+
+`col_exists`: does column exist in the table?
+
+```yaml
+- col_exists:
+    columns: [col1, col2, col3]        # REQUIRED: Column(s) that must exist
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Required columns exist"    # OPTIONAL: Step description
+```
+
+`col_schema_match`: does the table have expected column names and data types?
+
+```yaml
+- col_schema_match:
+    schema:                            # REQUIRED: Expected schema
+      columns:
+        - [column_name, "data_type"]   # Column with type validation
+        - column_name                  # Column name only (no type check)
+        - [column_name]                # Alternative syntax
+    complete: true                     # OPTIONAL: Require exact column set
+    in_order: true                     # OPTIONAL: Require exact column order
+    case_sensitive_colnames: true      # OPTIONAL: Case-sensitive column names
+    case_sensitive_dtypes: true        # OPTIONAL: Case-sensitive data types
+    full_match_dtypes: true            # OPTIONAL: Exact type matching
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Schema validation"         # OPTIONAL: Step description
+```
+
+`row_count_match`: does the table have n rows?
+
+```yaml
+- row_count_match:
+    count: 1000                        # REQUIRED: Expected row count
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Expected row count"        # OPTIONAL: Step description
+```
+
+`col_count_match`: does the table have n columns?
+
+```yaml
+- col_count_match:
+    count: 10                          # REQUIRED: Expected column count
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Expected column count"     # OPTIONAL: Step description
+```
+
+### Special Validation Methods
+
+`conjointly`: are multiple validations having a joint dependency?
+
+```yaml
+- conjointly:
+    steps:                             # REQUIRED: List of validation steps
+      - col_vals_gt:
+          columns: value
+          value: 0
+      - col_vals_lt:
+          columns: value
+          value: 100
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "All conditions must pass"  # OPTIONAL: Step description
+```
+
+`specially`: do table data pass a custom validation function?
+
+```yaml
+- specially:
+    fn:                                # REQUIRED: Custom validation function
+      python: |
+        lambda df: custom_validation_logic(df)
+    thresholds:                        # OPTIONAL: Step-level thresholds
+      warning: 0.1
+    actions:                           # OPTIONAL: Step-level actions
+      warning: "Custom message"
+    brief: "Custom validation"         # OPTIONAL: Step description
+```
+
+## Column Selection Patterns
+
+All validation methods that accept a `columns` parameter support these selection patterns:
+
+```yaml
+# Single column
+columns: column_name
+
+# Multiple columns as list
+columns: [col1, col2, col3]
+
+# Column selector functions (when used in Python expressions)
+columns:
+  python: |
+    starts_with("prefix_")
+
+# Examples of common patterns
+columns: [customer_id, order_id]     # Specific columns
+columns: user_email                  # Single column
+```
+
+## Parameter Details
+
+### Common Parameters
+
+These parameters are available for most validation methods:
+
+- `columns`: column selection (string, list, or selector expression)
+- `na_pass`: whether to pass NULL/missing values (boolean, default: false)
+- `pre`: data preprocessing function (Python lambda expression)
+- `thresholds`: step-level failure thresholds (dict)
+- `actions`: step-level failure actions (dict)
+- `brief`: step description (string, boolean, or template)
+
+### Brief Parameter Options
+
+The `brief` parameter supports several formats:
+
+```yaml
+brief: "Custom description"          # Custom text
+brief: true                         # Auto-generated description
+brief: false                        # No description
+brief: "Step {step}: {auto}"        # Template with auto-generated text
+brief: "Column '{col}' validation"  # Template with variables
+```
+
+template variables: `{step}`, `{col}`, `{value}`, `{set}`, `{pattern}`, `{auto}`
+
+### Python Expressions
+
+Several parameters support Python expressions using the `python:` block syntax:
+
+```yaml
+# Data source loading
+tbl:
+  python: |
+    pl.scan_csv("data.csv").filter(pl.col("active") == True)
+
+# Preprocessing
+pre:
+  python: |
+    lambda df: df.filter(pl.col("date") >= "2024-01-01")
+
+# Custom expressions
+expr:
+  python: |
+    pl.col("value").is_between(0, 100)
+
+# Callable actions
+actions:
+  error:
+    python: |
+      lambda: send_alert("Validation failed")
+```
+
+You can also use the shortcut syntax for simple lambda expressions:
+
+```yaml
+# Shortcut syntax (equivalent to python: block)
+pre: |
+  lambda df: df.filter(pl.col("status") == "active")
+```
+
+## Best Practices
+
+### Organization
+
+- Use descriptive `tbl_name` and `label` values
+- Add `brief` descriptions for complex validations
+- Group related validations logically
+- Use consistent indentation and formatting
+
+### Performance
+
+- Apply `pre` filters early to reduce data volume
+- Order validations from fast to slow
+- Use `columns_subset` for row-based validations when appropriate
+- Consider data source location (local vs. remote)
+
+### Maintainability
+
+- Store YAML files in version control
+- Use template variables in actions and briefs
+- Document expected failures with comments
+- Test configurations with `validate_yaml()` before deployment
+
+### Error Handling
+
+- Set appropriate thresholds based on data patterns
+- Use actions for monitoring and alerting
+- Start with conservative thresholds and adjust
+- Consider using `highest_only: false` for comprehensive reporting
+
+## Error Messages
+
+Common YAML validation errors and their solutions:
+
+- "YAML must contain 'tbl' field": add required `tbl` key
+- "YAML must contain 'steps' field": add required `steps` list
+- "Unknown validation method": check method name spelling
+- "Threshold must be non-negative": use positive threshold values
+- "Failed to load data source": verify data file path/dataset name
+- "Invalid YAML syntax": check YAML formatting and indentation
+
+Use `validate_yaml()` to catch configuration errors before execution.
