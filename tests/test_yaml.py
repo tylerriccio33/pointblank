@@ -1907,3 +1907,156 @@ def test_yaml_df_library_ignored_with_python_expression():
 
     python_code_regular = yaml_to_python(yaml_content_regular)
     assert 'tbl_type="pandas"' in python_code_regular, "Regular datasets should use df_library"
+
+
+def test_yaml_to_python_conjointly_validation():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Conjointly Test"
+    label: "Test conjointly conversion"
+    steps:
+    - conjointly:
+        expressions:
+          - "lambda df: df['d'] > df['a']"
+          - "lambda df: df['a'] > 0"
+          - "lambda df: df['a'] + df['d'] < 12000"
+        brief: "All conditions must pass jointly"
+        thresholds:
+          warning: 0.1
+          error: 0.2
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Conjointly Test"' in python_code
+    assert 'label="Test conjointly conversion"' in python_code
+    assert ".conjointly(" in python_code
+    assert "expressions=[" in python_code
+    assert "\"lambda df: df['d'] > df['a']\"" in python_code
+    assert "\"lambda df: df['a'] > 0\"" in python_code
+    assert "\"lambda df: df['a'] + df['d'] < 12000\"" in python_code
+    assert 'brief="All conditions must pass jointly"' in python_code
+    assert "thresholds=pb.Thresholds(warning=0.1, error=0.2)" in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_specially_validation():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Specially Test"
+    steps:
+    - specially:
+        expr: "lambda df: df.select(pl.col('a') + pl.col('d') > 0)"
+        brief: "Custom validation function"
+        thresholds:
+          warning: 0.1
+        actions:
+          warning: "Custom warning for {TYPE}"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "import polars as pl" in python_code  # Should include polars import due to pl.col usage
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Specially Test"' in python_code
+    assert ".specially(" in python_code
+    assert "expr=lambda df: df.select(pl.col('a') + pl.col('d') > 0)" in python_code
+    assert 'brief="Custom validation function"' in python_code
+    assert "thresholds=pb.Thresholds(warning=0.1)" in python_code
+    assert 'actions=pb.Actions(warning="Custom warning for {TYPE}")' in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_specially_pandas_syntax():
+    yaml_content = """
+    tbl: small_table
+    df_library: pandas
+    tbl_name: "Specially Pandas Test"
+    steps:
+    - specially:
+        expr: "lambda df: df.assign(validation_result=df['a'] + df['d'] > 0)"
+        brief: "Pandas-style custom validation"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "import pandas as pd" in python_code  # Should include pandas import due to df_library
+    assert "pb.Validate(" in python_code
+    assert 'data=pb.load_dataset("small_table", tbl_type="pandas")' in python_code
+    assert 'tbl_name="Specially Pandas Test"' in python_code
+    assert ".specially(" in python_code
+    assert "expr=lambda df: df.assign(validation_result=df['a'] + df['d'] > 0)" in python_code
+    assert 'brief="Pandas-style custom validation"' in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_conjointly_and_specially_combined():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Combined Test"
+    label: "Combined conjointly and specially test"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - conjointly:
+        expressions:
+          - "lambda df: df['a'] > 0"
+          - "lambda df: df['d'] > 0"
+        brief: "Basic positive value checks"
+    - specially:
+        expr: "lambda df: df.select(pl.col('a') + pl.col('d') < 20000)"
+        brief: "Sum validation check"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "import polars as pl" in python_code  # Should include polars import due to pl.col usage
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Combined Test"' in python_code
+    assert 'label="Combined conjointly and specially test"' in python_code
+    assert "pb.Thresholds(warning=0.1, error=0.2)" in python_code
+
+    # Check conjointly method
+    assert ".conjointly(" in python_code
+    assert "expressions=[" in python_code
+    assert "\"lambda df: df['a'] > 0\"" in python_code
+    assert "\"lambda df: df['d'] > 0\"" in python_code
+    assert 'brief="Basic positive value checks"' in python_code
+
+    # Check specially method
+    assert ".specially(" in python_code
+    assert "expr=lambda df: df.select(pl.col('a') + pl.col('d') < 20000)" in python_code
+    assert 'brief="Sum validation check"' in python_code
+
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_specially_with_python_block():
+    yaml_content = """
+    tbl: small_table
+    steps:
+    - specially:
+        expr:
+          python: |
+            lambda df: df.select(pl.col('amount') > 0)
+        brief: "Python block expression"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "import polars as pl" in python_code
+    assert ".specially(" in python_code
+    assert "expr=lambda df: df.select(pl.col('amount') > 0)" in python_code
+    assert 'brief="Python block expression"' in python_code
