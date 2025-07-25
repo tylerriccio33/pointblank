@@ -1337,16 +1337,65 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
 
     # Add validation steps as chained method calls
     for step_index, step_config in enumerate(config["steps"]):
+        # Get original expressions BEFORE parsing (to preserve strings)
+        original_expressions = {}
+        step_method = list(step_config.keys())[
+            0
+        ]  # Get the method name (conjointly, specially, etc.)
+        step_params = step_config[step_method]
+
+        if (
+            step_method == "conjointly"
+            and isinstance(step_params, dict)
+            and "expressions" in step_params
+        ):
+            original_expressions["expressions"] = step_params["expressions"]
+
+        if step_method == "specially" and isinstance(step_params, dict) and "expr" in step_params:
+            if isinstance(step_params["expr"], dict) and "python" in step_params["expr"]:
+                original_expressions["expr"] = step_params["expr"]["python"].strip()
+            elif isinstance(step_params["expr"], str):
+                original_expressions["expr"] = step_params["expr"]
+
         method_name, parameters = validator._parse_validation_step(step_config)
+
+        # Apply the original expressions to override the converted lambda functions
+        if method_name == "conjointly" and "expressions" in original_expressions:
+            # Remove the internal parameter and add expressions as a proper parameter
+            if "_conjointly_expressions" in parameters:
+                parameters.pop("_conjointly_expressions")
+            parameters["expressions"] = original_expressions["expressions"]
+
+        if method_name == "specially" and "expr" in original_expressions:
+            parameters["expr"] = original_expressions["expr"]
 
         # Format parameters
         param_parts = []
         for key, value in parameters.items():
             # Check if we have an original expression for this parameter
             expression_path = f"steps[{step_index}].{list(step_config.keys())[0]}.{key}"
-            if expression_path in step_expressions:
+
+            # Skip using step_expressions for specially/conjointly parameters that we handle specially
+            if (
+                expression_path in step_expressions
+                and not (method_name == "specially" and key == "expr")
+                and not (method_name == "conjointly" and key == "expressions")
+            ):
                 # Use the original Python expression
                 param_parts.append(f"{key}={step_expressions[expression_path]}")
+            elif key == "expressions" and method_name == "conjointly":
+                # Handle conjointly expressions list
+                if isinstance(value, list):
+                    expressions_str = "[" + ", ".join([f'"{expr}"' for expr in value]) + "]"
+                    param_parts.append(f"expressions={expressions_str}")
+                else:
+                    param_parts.append(f"expressions={value}")
+            elif key == "expr" and method_name == "specially":
+                # Handle specially expr parameter - should be unquoted lambda expression
+                if isinstance(value, str):
+                    param_parts.append(f"expr={value}")
+                else:
+                    param_parts.append(f"expr={value}")
             elif key in ["columns", "columns_subset"]:
                 if isinstance(value, list):
                     if len(value) == 1:
