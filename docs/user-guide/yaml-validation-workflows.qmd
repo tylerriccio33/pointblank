@@ -22,14 +22,15 @@ custom functions might be better suited for the Python API.
 
 A YAML validation workflow consists of a few key components:
 
-- **`tbl`**: specifies the data source (file path, dataset name, or Python expression)
-- **`steps`**: defines the validation checks to perform
-- **Optional metadata**: table name, label, thresholds, actions, and other configuration
+- `tbl`: specifies the data source (file path, dataset name, or Python expression)
+- `steps`: defines the validation checks to perform
+- Optional metadata: table name, label, thresholds, actions, and other configuration
 
 Here's a simple example validating the built-in `small_table` dataset:
 
 ```yaml
 tbl: small_table
+df_library: polars                     # Optional: specify DataFrame library
 tbl_name: "Small Table Validation"
 label: "Basic data quality checks"
 steps:
@@ -50,6 +51,7 @@ from pathlib import Path
 # Save the YAML configuration to a file
 yaml_content = """
 tbl: small_table
+df_library: polars
 tbl_name: "Small Table Validation"
 label: "Basic data quality checks"
 steps:
@@ -75,16 +77,55 @@ with files is the recommended approach for production workflows.
 ## Data Sources in YAML
 
 The `tbl` field supports various data source types, making it easy to work with different kinds of
-data:
+data. You can also control the DataFrame library used for loading data with the `df_library`
+parameter.
+
+### DataFrame Library Selection
+
+By default, Pointblank loads data as Polars DataFrames, but you can specify alternative libraries:
+
+```yaml
+# Load as Polars DataFrame (default)
+tbl: small_table
+df_library: polars
+
+# Load as Pandas DataFrame
+tbl: small_table
+df_library: pandas
+
+# Load as DuckDB table (via Ibis)
+tbl: small_table
+df_library: duckdb
+```
+
+This is particularly useful when using validation expressions that require specific DataFrame APIs:
+
+```yaml
+# Using Pandas-specific operations
+tbl: small_table
+df_library: pandas
+steps:
+  - specially:
+      expr: "lambda df: df.assign(total=df['a'] + df['d'])"
+
+# Using Polars-specific operations
+tbl: small_table
+df_library: polars
+steps:
+  - specially:
+      expr: "lambda df: df.select(pl.col('a') + pl.col('d') > 0)"
+```
 
 ### File-based Sources
 
 ```yaml
-# CSV files
+# CSV files (respects df_library setting)
 tbl: "data/customers.csv"
+df_library: pandas
 
 # Parquet files
 tbl: "warehouse/sales.parquet"
+df_library: polars
 
 # Multiple files with patterns
 tbl: "logs/*.parquet"
@@ -101,12 +142,13 @@ tbl: nycflights
 
 ### Python Expressions for Complex Sources
 
-For more complex data loading, use the `python:` block syntax. This syntax can be used with several parameters throughout your YAML configuration:
+For more complex data loading, use the `python:` block syntax. This syntax can be used with several
+parameters throughout your YAML configuration:
 
-- **`tbl`**: For complex data source loading (as shown below)
-- **`expr`**: For custom validation expressions in `col_vals_expr`
-- **`pre`**: For data preprocessing before validation steps
-- **`actions`**: For callable action functions ('warning', 'error', 'critical', and 'default')
+- `tbl`: For complex data source loading (as shown below)
+- `expr`: For custom validation expressions in `col_vals_expr`
+- `pre`: For data preprocessing before validation steps
+- `actions`: For callable action functions (`warning`, `error`, `critical`, and `default`)
 
 ```yaml
 # Load data with custom Polars operations
@@ -173,13 +215,15 @@ steps:
 
 ### Schema Validations
 
-Schema validation ensures your data has the expected structure and column types. YAML uses a simple dictionary format to define schemas for the `col_schema_match` validation method.
+Schema validation ensures your data has the expected structure and column types. The
+`col_schema_match` validation method uses a `schema` key that contains a `columns` list, where each
+item in the list can specify a column name alone or a column name with its expected data type.
 
-Each column can be specified as:
+Each `column` entry can be specified as:
 
 - `column_name`: column name as a scalar string (structure validation, no type checking)
-- `[column_name, "data_type"]`: column name with type validation
-- `[column_name]`: column name in a list (equivalent to scalar, for consistency)
+- `[column_name, "data_type"]`: column name with type validation (as a list with two elements)
+- `[column_name]`: column name in a single-item list (equivalent to scalar, for consistency)
 
 ```yaml
 tbl: customer_data.csv
@@ -216,11 +260,11 @@ steps:
         columns:
           - [id, "int64"]
           - name
-      complete: false              # Allow extra columns
-      in_order: false              # Column order doesn't matter
-      case_sensitive_colnames: false    # Case-insensitive column names
-      case_sensitive_dtypes: false      # Case-insensitive type names
-      full_match_dtypes: false          # Allow partial type matching
+      complete: false                  # Allow extra columns
+      in_order: false                  # Column order doesn't matter
+      case_sensitive_colnames: false   # Case-insensitive column names
+      case_sensitive_dtypes: false     # Case-insensitive type names
+      full_match_dtypes: false         # Allow partial type matching
       brief: "Flexible schema validation"
 ```
 
@@ -318,16 +362,16 @@ actions:
       lambda: print("ALERT: Critical data validation failed!")
   critical:
     python: |
-      lambda: (
-          __import__('requests').post(
-              'https://alerts.company.com/webhook',
-              json={'message': 'Critical validation failure', 'severity': 'high'}
-          )
-      )
+      lambda: print("CRITICAL: Validation failure - manual intervention required!")
 steps:
   - col_vals_not_null:
       columns: [transaction_id, amount]
 ```
+
+Note: The Python environment in YAML actions is restricted for security. You can use built-in
+functions like `print()`, basic operations, and available DataFrame libraries, but cannot import
+external modules like `requests` or `logging`. For external notifications, consider using string
+template actions or handling alerts in your application code after the validation completes.
 
 ### Step-level Actions
 
@@ -596,9 +640,7 @@ actions:
   error: "Quality degradation detected: Step {step} failed for {n_failed}/{n} rows"
   critical:
     python: |
-      lambda: __import__('logging').getLogger().critical(
-          "CRITICAL: Data quality failure detected - immediate attention required"
-      )
+      lambda: print("CRITICAL: Data quality failure detected - immediate attention required")
   highest_only: false
 
 steps:

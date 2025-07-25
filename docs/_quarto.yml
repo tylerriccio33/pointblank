@@ -79,7 +79,10 @@ website:
             - user-guide/schema-validation.qmd
             - user-guide/assertions.qmd
             - user-guide/draft-validation.qmd
+        - section: "YAML"
+          contents:
             - user-guide/yaml-validation-workflows.qmd
+            - user-guide/yaml-reference.qmd
         - section: "Post Interrogation"
           contents:
             - user-guide/step-reports.qmd

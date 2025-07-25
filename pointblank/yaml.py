@@ -5,6 +5,7 @@ from typing import Any, Union
 
 import yaml
 
+from pointblank._utils import _is_lib_present
 from pointblank.thresholds import Actions
 from pointblank.validate import Validate, load_dataset
 
@@ -217,6 +218,8 @@ class YAMLValidator:
         "col_count_match": "col_count_match",
         "row_count_match": "row_count_match",
         "col_schema_match": "col_schema_match",
+        "conjointly": "conjointly",
+        "specially": "specially",
     }
 
     def __init__(self):
@@ -345,7 +348,7 @@ class YAMLValidator:
                             f"or list of strings/dictionaries"
                         )
 
-    def _load_data_source(self, tbl_spec: str) -> Any:
+    def _load_data_source(self, tbl_spec: str, df_library: str = "polars") -> Any:
         """Load data source based on table specification.
 
         Parameters
@@ -354,6 +357,8 @@ class YAMLValidator:
             Data source specification. Can be (1) a dataset name for `load_dataset()`, (2) a CSV file
             path (relative or absolute), (3) a Parquet file path (relative or absolute), or (4) a
             Python code snippet to be executed for dynamic data loading.
+        df_library
+            DataFrame library to use for loading datasets and CSV files. Options: "polars", "pandas", "duckdb".
 
         Returns
         -------
@@ -374,19 +379,78 @@ class YAMLValidator:
             if processed_tbl_spec is not tbl_spec or not isinstance(processed_tbl_spec, str):
                 return processed_tbl_spec
 
+            # Check if it's a CSV file and handle with specified library
+            if isinstance(processed_tbl_spec, str) and processed_tbl_spec.endswith(".csv"):
+                return self._load_csv_file(processed_tbl_spec, df_library)
+
             # Use the centralized data processing pipeline from validate.py
-            # This handles CSV files, Parquet files, and other data sources
+            # This handles Parquet files and other data sources
             processed_data = _process_data(processed_tbl_spec)
 
             # If _process_data returns the original string unchanged,
-            # then it's not a file path, so try load_dataset
+            # then it's not a file path, so try load_dataset with specified library
             if processed_data is processed_tbl_spec and isinstance(processed_tbl_spec, str):
-                return load_dataset(processed_tbl_spec)
+                return load_dataset(processed_tbl_spec, tbl_type=df_library)
             else:
                 return processed_data
 
         except Exception as e:
             raise YAMLValidationError(f"Failed to load data source '{tbl_spec}': {e}")
+
+    def _load_csv_file(self, file_path: str, df_library: str) -> Any:
+        """Load CSV file using the specified DataFrame library.
+
+        Parameters
+        ----------
+        file_path
+            Path to the CSV file.
+        df_library
+            DataFrame library to use: "polars", "pandas", or "duckdb".
+
+        Returns
+        -------
+            Loaded DataFrame object.
+
+        Raises
+        ------
+        YAMLValidationError
+            If CSV file cannot be loaded or library is not available.
+        """
+        import os
+
+        if not os.path.exists(file_path):
+            raise YAMLValidationError(f"CSV file not found: {file_path}")
+
+        try:
+            if df_library == "polars":
+                if not _is_lib_present("polars"):
+                    raise YAMLValidationError("Polars library is not available")
+                import polars as pl
+
+                return pl.read_csv(file_path)
+
+            elif df_library == "pandas":
+                if not _is_lib_present("pandas"):
+                    raise YAMLValidationError("Pandas library is not available")
+                import pandas as pd
+
+                return pd.read_csv(file_path)
+
+            elif df_library == "duckdb":
+                # For DuckDB, we'll use the existing _process_data since it handles DuckDB
+                from pointblank.validate import _process_data
+
+                return _process_data(file_path)
+
+            else:
+                raise YAMLValidationError(
+                    f"Unsupported df_library: {df_library}. Use 'polars', 'pandas', or 'duckdb'"
+                )
+
+        except Exception as e:
+            raise YAMLValidationError(
+                f"Failed to load CSV file '{file_path}' with {df_library}: {e}"
+            )
 
     def _parse_column_spec(self, columns_expr: Any) -> list[str]:
         """Parse column specification from YAML.
@@ -559,6 +623,29 @@ class YAMLValidator:
         if "schema" in parameters and method_name == "col_schema_match":
             parameters["schema"] = self._parse_schema_spec(parameters["schema"])
 
+        # Handle `conjointly()` expressions: convert list to separate positional arguments
+        if method_name == "conjointly" and "expressions" in parameters:
+            expressions = parameters.pop("expressions")  # Remove from parameters
+            if isinstance(expressions, list):
+                # Convert string expressions to lambda functions
+                lambda_expressions = []
+                for expr in expressions:
+                    if isinstance(expr, str):
+                        lambda_expressions.append(_safe_eval_python_code(expr))
+                    else:
+                        lambda_expressions.append(expr)
+                # Pass expressions as positional arguments (stored as special key)
+                parameters["_conjointly_expressions"] = lambda_expressions
+            else:
+                raise YAMLValidationError("conjointly 'expressions' must be a list")
+
+        # Handle `specially()` expr parameter: support shortcut syntax
+        if method_name == "specially" and "expr" in parameters:
+            expr_value = parameters["expr"]
+            if isinstance(expr_value, str):
+                # Treat string directly as Python code (shortcut syntax)
+                parameters["expr"] = _safe_eval_python_code(expr_value)
+
         # Convert `actions=` if present (ensure it's an Actions object)
         if "actions" in parameters:
             if isinstance(parameters["actions"], dict):
@@ -583,8 +670,9 @@ class YAMLValidator:
         Validate
             Validate object with configured validation steps.
         """
-        # Load data source
-        data = self._load_data_source(config["tbl"])
+        # Load data source with specified library
+        df_library = config.get("df_library", "polars")
+        data = self._load_data_source(config["tbl"], df_library)
 
         # Create Validate object
         validate_kwargs = {}
@@ -603,7 +691,7 @@ class YAMLValidator:
 
         # Set actions if provided
         if "actions" in config:
-            # Process actions - handle python: block syntax for callables
+            # Process actions: handle `python:` block syntax for callables
             processed_actions = _process_python_expressions(config["actions"])
             # Convert to Actions object
             validate_kwargs["actions"] = Actions(**processed_actions)
@@ -629,8 +717,13 @@ class YAMLValidator:
             # Get the method from the validation object
             method = getattr(validation, method_name)
 
-            # Call the method with parameters
-            validation = method(**parameters)
+            # Special handling for conjointly: pass expressions as positional arguments
+            if method_name == "conjointly" and "_conjointly_expressions" in parameters:
+                expressions = parameters.pop("_conjointly_expressions")
+                validation = method(*expressions, **parameters)
+            else:
+                # Call the method with parameters
+                validation = method(**parameters)
 
         return validation
 
@@ -1162,20 +1255,21 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
 
     # Add data loading as first argument
     tbl_spec = config["tbl"]
-    if isinstance(tbl_spec, str):
+    df_library = config.get("df_library", "polars")
+
+    # Use the original Python expression if we extracted it (df_library is ignored in this case)
+    if original_tbl_expression:
+        validate_args.append(f"data={original_tbl_expression}")
+    elif isinstance(tbl_spec, str):
         if tbl_spec.endswith((".csv", ".parquet")):
             # File loading
-            validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+            validate_args.append(f'data=pb.load_dataset("{tbl_spec}", tbl_type="{df_library}")')
         else:
             # Dataset loading
-            validate_args.append(f'data=pb.load_dataset("{tbl_spec}")')
+            validate_args.append(f'data=pb.load_dataset("{tbl_spec}", tbl_type="{df_library}")')
     else:
-        # Use the original Python expression if we extracted it
-        if original_tbl_expression:
-            validate_args.append(f"data={original_tbl_expression}")
-        else:
-            # Fallback to placeholder if we couldn't extract the original expression
-            validate_args.append("data=<python_expression_result>")
+        # Fallback to placeholder if we couldn't extract the original expression
+        validate_args.append("data=<python_expression_result>")
 
     # Add table name if present
     if "tbl_name" in config:
@@ -1243,16 +1337,65 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
 
     # Add validation steps as chained method calls
     for step_index, step_config in enumerate(config["steps"]):
+        # Get original expressions before parsing
+        original_expressions = {}
+        step_method = list(step_config.keys())[
+            0
+        ]  # Get the method name (conjointly, specially, etc.)
+        step_params = step_config[step_method]
+
+        if (
+            step_method == "conjointly"
+            and isinstance(step_params, dict)
+            and "expressions" in step_params
+        ):
+            original_expressions["expressions"] = step_params["expressions"]
+
+        if step_method == "specially" and isinstance(step_params, dict) and "expr" in step_params:
+            if isinstance(step_params["expr"], dict) and "python" in step_params["expr"]:
+                original_expressions["expr"] = step_params["expr"]["python"].strip()
+            elif isinstance(step_params["expr"], str):
+                original_expressions["expr"] = step_params["expr"]
+
         method_name, parameters = validator._parse_validation_step(step_config)
+
+        # Apply the original expressions to override the converted lambda functions
+        if method_name == "conjointly" and "expressions" in original_expressions:
+            # Remove the internal parameter and add expressions as a proper parameter
+            if "_conjointly_expressions" in parameters:
+                parameters.pop("_conjointly_expressions")
+            parameters["expressions"] = original_expressions["expressions"]
+
+        if method_name == "specially" and "expr" in original_expressions:
+            parameters["expr"] = original_expressions["expr"]
 
         # Format parameters
         param_parts = []
         for key, value in parameters.items():
             # Check if we have an original expression for this parameter
             expression_path = f"steps[{step_index}].{list(step_config.keys())[0]}.{key}"
-            if expression_path in step_expressions:
+
+            # Skip using step_expressions for specially/conjointly parameters that we handle specially
+            if (
+                expression_path in step_expressions
+                and not (method_name == "specially" and key == "expr")
+                and not (method_name == "conjointly" and key == "expressions")
+            ):
                 # Use the original Python expression
                 param_parts.append(f"{key}={step_expressions[expression_path]}")
+            elif key == "expressions" and method_name == "conjointly":
+                # Handle conjointly expressions list
+                if isinstance(value, list):
+                    expressions_str = "[" + ", ".join([f'"{expr}"' for expr in value]) + "]"
+                    param_parts.append(f"expressions={expressions_str}")
+                else:
+                    param_parts.append(f"expressions={value}")
+            elif key == "expr" and method_name == "specially":
+                # Handle specially expr parameter: should be unquoted lambda expression
+                if isinstance(value, str):
+                    param_parts.append(f"expr={value}")
+                else:
+                    param_parts.append(f"expr={value}")
             elif key in ["columns", "columns_subset"]:
                 if isinstance(value, list):
                     if len(value) == 1:
