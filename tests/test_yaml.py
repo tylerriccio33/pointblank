@@ -2060,3 +2060,258 @@ def test_yaml_to_python_specially_with_python_block():
     assert ".specially(" in python_code
     assert "expr=lambda df: df.select(pl.col('amount') > 0)" in python_code
     assert 'brief="Python block expression"' in python_code
+
+
+def test_yaml_col_count_match_basic():
+    yaml_content = """
+    tbl: small_table
+    steps:
+    - col_count_match:
+        count: 8
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_count_match"
+    assert result.validation_info[0].all_passed is True
+
+
+def test_yaml_col_count_match_with_options():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Column Count Test"
+    label: "Testing column count validation"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - col_count_match:
+        count: 8
+        brief: "Check exact column count"
+        thresholds:
+          warning: 0.05
+        actions:
+          warning: "Column count mismatch in {col}"
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.tbl_name == "Column Count Test"
+    assert result.label == "Testing column count validation"
+
+    validation_info = result.validation_info[0]
+    assert validation_info.assertion_type == "col_count_match"
+    assert validation_info.brief == "Check exact column count"
+    assert validation_info.all_passed is True
+
+
+def test_yaml_col_count_match_failure():
+    yaml_content = """
+    tbl: small_table
+    steps:
+    - col_count_match:
+        count: 100  # Wrong count - should fail
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_count_match"
+    assert result.validation_info[0].all_passed is False
+    assert result.validation_info[0].n_failed > 0
+
+
+def test_yaml_row_count_match_basic():
+    yaml_content = """
+    tbl: small_table
+    steps:
+    - row_count_match:
+        count: 13
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "row_count_match"
+    assert result.validation_info[0].all_passed is True
+
+
+def test_yaml_row_count_match_with_options():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Row Count Test"
+    label: "Testing row count validation"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - row_count_match:
+        count: 13
+        brief: "Check exact row count"
+        thresholds:
+          error: 0.15
+        actions:
+          error: "Row count mismatch - expected {val} rows"
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.tbl_name == "Row Count Test"
+    assert result.label == "Testing row count validation"
+
+    validation_info = result.validation_info[0]
+    assert validation_info.assertion_type == "row_count_match"
+    assert validation_info.brief == "Check exact row count"
+    assert validation_info.all_passed is True
+
+
+def test_yaml_row_count_match_failure():
+    yaml_content = """
+    tbl: small_table
+    steps:
+    - row_count_match:
+        count: 1000  # Wrong count - should fail
+    """
+
+    result = yaml_interrogate(yaml_content)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "row_count_match"
+    assert result.validation_info[0].all_passed is False
+    assert result.validation_info[0].n_failed > 0
+
+
+def test_yaml_to_python_col_count_match():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Column Count Validation"
+    label: "Testing column count conversion"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - col_count_match:
+        count: 8
+        brief: "Verify 8 columns present"
+        thresholds:
+          warning: 0.05
+        actions:
+          warning: "Column count warning for table"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Column Count Validation"' in python_code
+    assert 'label="Testing column count conversion"' in python_code
+    assert "pb.Thresholds(warning=0.1, error=0.2)" in python_code
+    assert ".col_count_match(" in python_code
+    assert "count=8" in python_code
+    assert 'brief="Verify 8 columns present"' in python_code
+    assert "thresholds=pb.Thresholds(warning=0.05)" in python_code
+    assert 'actions=pb.Actions(warning="Column count warning for table")' in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_row_count_match():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Row Count Validation"
+    label: "Testing row count conversion"
+    thresholds:
+      warning: 0.1
+      error: 0.2
+    steps:
+    - row_count_match:
+        count: 13
+        brief: "Verify 13 rows present"
+        thresholds:
+          error: 0.15
+        actions:
+          error: "Row count error for dataset"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Row Count Validation"' in python_code
+    assert 'label="Testing row count conversion"' in python_code
+    assert "pb.Thresholds(warning=0.1, error=0.2)" in python_code
+    assert ".row_count_match(" in python_code
+    assert "count=13" in python_code
+    assert 'brief="Verify 13 rows present"' in python_code
+    assert "thresholds=pb.Thresholds(error=0.15)" in python_code
+    assert 'actions=pb.Actions(error="Row count error for dataset")' in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_to_python_count_matches_combined():
+    yaml_content = """
+    tbl: small_table
+    tbl_name: "Combined Count Tests"
+    label: "Testing both count validation methods"
+    thresholds:
+      warning: 0.1
+    steps:
+    - col_count_match:
+        count: 8
+        brief: "Check column count"
+    - row_count_match:
+        count: 13
+        brief: "Check row count"
+    """
+
+    python_code = yaml_to_python(yaml_content)
+
+    # Verify the generated code contains expected elements
+    assert "import pointblank as pb" in python_code
+    assert "pb.Validate(" in python_code
+    assert 'tbl_name="Combined Count Tests"' in python_code
+    assert 'label="Testing both count validation methods"' in python_code
+    assert "pb.Thresholds(warning=0.1)" in python_code
+
+    # Check both methods are present
+    assert ".col_count_match(" in python_code
+    assert ".row_count_match(" in python_code
+    assert "count=8" in python_code
+    assert "count=13" in python_code
+    assert 'brief="Check column count"' in python_code
+    assert 'brief="Check row count"' in python_code
+    assert ".interrogate()" in python_code
+
+
+def test_yaml_count_matches_with_different_datasets():
+    # Test `col_count_match()` with the `game_revenue` dataset
+    yaml_content_game = """
+    tbl: game_revenue
+    steps:
+    - col_count_match:
+        count: 11  # game_revenue has 11 columns
+    """
+
+    result = yaml_interrogate(yaml_content_game)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "col_count_match"
+    assert result.validation_info[0].all_passed is True
+
+    # Test `row_count_match()` with the `small_table` dataset
+    yaml_content_small = """
+    tbl: small_table
+    steps:
+    - row_count_match:
+        count: 13  # small_table has 13 rows
+    """
+
+    result = yaml_interrogate(yaml_content_small)
+    assert result is not None
+    assert len(result.validation_info) == 1
+    assert result.validation_info[0].assertion_type == "row_count_match"
+    assert result.validation_info[0].all_passed is True
