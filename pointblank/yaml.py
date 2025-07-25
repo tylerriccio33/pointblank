@@ -623,7 +623,7 @@ class YAMLValidator:
         if "schema" in parameters and method_name == "col_schema_match":
             parameters["schema"] = self._parse_schema_spec(parameters["schema"])
 
-        # Handle `conjointly()` expressions - convert list to separate positional arguments
+        # Handle `conjointly()` expressions: convert list to separate positional arguments
         if method_name == "conjointly" and "expressions" in parameters:
             expressions = parameters.pop("expressions")  # Remove from parameters
             if isinstance(expressions, list):
@@ -639,7 +639,7 @@ class YAMLValidator:
             else:
                 raise YAMLValidationError("conjointly 'expressions' must be a list")
 
-        # Handle `specially()` expr parameter - support shortcut syntax
+        # Handle `specially()` expr parameter: support shortcut syntax
         if method_name == "specially" and "expr" in parameters:
             expr_value = parameters["expr"]
             if isinstance(expr_value, str):
@@ -691,7 +691,7 @@ class YAMLValidator:
 
         # Set actions if provided
         if "actions" in config:
-            # Process actions - handle python: block syntax for callables
+            # Process actions: handle `python:` block syntax for callables
             processed_actions = _process_python_expressions(config["actions"])
             # Convert to Actions object
             validate_kwargs["actions"] = Actions(**processed_actions)
@@ -717,7 +717,7 @@ class YAMLValidator:
             # Get the method from the validation object
             method = getattr(validation, method_name)
 
-            # Special handling for conjointly - pass expressions as positional arguments
+            # Special handling for conjointly: pass expressions as positional arguments
             if method_name == "conjointly" and "_conjointly_expressions" in parameters:
                 expressions = parameters.pop("_conjointly_expressions")
                 validation = method(*expressions, **parameters)
@@ -1337,7 +1337,7 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
 
     # Add validation steps as chained method calls
     for step_index, step_config in enumerate(config["steps"]):
-        # Get original expressions BEFORE parsing (to preserve strings)
+        # Get original expressions before parsing
         original_expressions = {}
         step_method = list(step_config.keys())[
             0
@@ -1391,7 +1391,7 @@ def yaml_to_python(yaml: Union[str, Path]) -> str:
                 else:
                     param_parts.append(f"expressions={value}")
             elif key == "expr" and method_name == "specially":
-                # Handle specially expr parameter - should be unquoted lambda expression
+                # Handle specially expr parameter: should be unquoted lambda expression
                 if isinstance(value, str):
                     param_parts.append(f"expr={value}")
                 else:
