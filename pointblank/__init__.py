@@ -41,6 +41,11 @@ from pointblank.validate import (
     missing_vals_tbl,
     preview,
 )
+from pointblank.yaml import (
+    validate_yaml,
+    yaml_interrogate,
+    yaml_to_python,
+)
 
 __all__ = [
     "assistant",
@@ -74,4 +79,8 @@ __all__ = [
     "get_row_count",
     "seg_group",
     "send_slack_notification",
+    # YAML functionality
+    "yaml_interrogate",
+    "validate_yaml",
+    "yaml_to_python",
 ]
