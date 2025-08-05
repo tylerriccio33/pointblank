@@ -175,6 +175,11 @@ quartodoc:
         - name: first_n
         - name: last_n
         - name: expr_col
+    - title: Segment Groups
+      desc: >
+        Combine multiple values into a single segment using `seg_*()` helper functions.
+      contents:
+        - name: seg_group
     - title: Interrogation and Reporting
       desc: >
         The validation plan is put into action when `interrogate()` is called. The workflow for
