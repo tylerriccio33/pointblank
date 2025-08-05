@@ -16,7 +16,6 @@ class Segment:
 
     segments: list[list[Any]]
 
-    # TODO: Convert into two _ functions
     def __post_init__(self) -> None:
         # Check that segments is a list of lists
         if not isinstance(self.segments, list):
@@ -49,11 +48,11 @@ def seg_group(values: list[Any]) -> Segment:
     This would create two validation steps, one for each of the regions. If you wanted to group
     these two regions into a single segment, you could use the `seg_group()` function like this:
 
-    `segments=("region", seg_group(["North", "South"]))`
+    `segments=("region", pb.seg_group(["North", "South"]))`
 
     You could create a second segment for "East" and "West" regions like this:
 
-    `segments=("region", seg_group(["North", "South"], ["East", "West"]))`
+    `segments=("region", pb.seg_group(["North", "South"], ["East", "West"]))`
 
     There will be a validation step created for every segment. Note that if there aren't any
     segments created using `seg_group()` (or any other segment expression), the validation step will
@@ -70,6 +69,90 @@ def seg_group(values: list[Any]) -> Segment:
     -------
     Segment
         A `Segment` object, which can be used to combine values into a segment.
+
+    Examples
+    --------
+    ```{python}
+    #| echo: false
+    #| output: false
+    import pointblank as pb
+    pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+    ```
+
+    Let's say we're analyzing sales from our local bookstore, and want to check the number of books
+    sold for the month exceeds a certain threshold. We could pass in the argument
+    `segments="genre"`, which would return a segment for each unique genre in the datasets. We could
+    also pass in `segments=("genre", ["Fantasy", "Science Fiction"])`, to only create segments for
+    those two genres. However, if we wanted to group these two genres into a single segment, we
+    could use the `seg_group()` function.
+
+    ```{python}
+    import pointblank as pb
+    import polars as pl
+
+    tbl = pl.DataFrame(
+        {
+            "title": [
+                "The Hobbit",
+                "Harry Potter and the Sorcerer's Stone",
+                "The Lord of the Rings",
+                "A Game of Thrones",
+                "The Name of the Wind",
+                "The Girl with the Dragon Tattoo",
+                "The Da Vinci Code",
+                "The Hitchhiker's Guide to the Galaxy",
+                "The Martian",
+                "Brave New World"
+            ],
+            "genre": [
+                "Fantasy",
+                "Fantasy",
+                "Fantasy",
+                "Fantasy",
+                "Fantasy",
+                "Mystery",
+                "Mystery",
+                "Science Fiction",
+                "Science Fiction",
+                "Science Fiction",
+            ],
+            "units_sold": [875, 932, 756, 623, 445, 389, 678, 534, 712, 598],
+        }
+    )
+
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns="units_sold",
+            value=500,
+            segments=("genre", pb.seg_group(["Fantasy", "Science Fiction"]))
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
+    What's more, we can create multiple segments, combining the genres in different ways.
+
+    ```{python}
+    validation = (
+        pb.Validate(data=tbl)
+        .col_vals_gt(
+            columns="units_sold",
+            value=500,
+            segments=("genre", pb.seg_group([
+                ["Fantasy", "Science Fiction"],
+                ["Fantasy", "Mystery"],
+                ["Mystery", "Science Fiction"]
+            ]))
+        )
+        .interrogate()
+    )
+
+    validation
+    ```
+
     """
     if isinstance(values, list):
         if all(isinstance(v, list) for v in values):
@@ -78,18 +161,3 @@ def seg_group(values: list[Any]) -> Segment:
             return Segment([values])
     else:
         raise ValueError("Must input a list of values for a segment.")
-
-
-# TODO:
-def seg_expr() -> Segment:
-    pass
-
-
-# TODO:
-def seg_quartile() -> Segment:
-    pass
-
-
-# TODO:
-def seg_range() -> Segment:
-    pass
