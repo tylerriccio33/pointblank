@@ -52,7 +52,7 @@ def seg_group(values: list[Any]) -> Segment:
 
     You could create a second segment for "East" and "West" regions like this:
 
-    `segments=("region", pb.seg_group(["North", "South"], ["East", "West"]))`
+    `segments=("region", pb.seg_group([["North", "South"], ["East", "West"]]))`
 
     There will be a validation step created for every segment. Note that if there aren't any
     segments created using `seg_group()` (or any other segment expression), the validation step will
