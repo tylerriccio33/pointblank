@@ -4659,7 +4659,7 @@ def pl(
 
     \b
     Piping to other pb commands
-    pb pl "pl.read_csv('data.csv').filter(pl.col('age') > 25)" --pipe | pb validate --check rows-distinct
+    pb pl "pl.read_csv('data.csv').head(20)" --pipe | pb validate --check rows-distinct
     pb pl --edit --pipe | pb preview --head 10
     pb pl --edit --pipe | pb scan --output-html report.html
     pb pl --edit --pipe | pb missing --output-html missing_report.html
