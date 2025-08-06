@@ -1423,22 +1423,28 @@ def _generate_display_table(
     # Determine if the table is a DataFrame or an Ibis table
     tbl_type = _get_tbl_type(data=data)
     ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
-    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type
+    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type or "pyspark" in tbl_type
 
     # Select the DataFrame library to use for displaying the Ibis table
     df_lib_gt = _select_df_lib(preference="polars")
     df_lib_name_gt = df_lib_gt.__name__
 
-    # If the table is a DataFrame (Pandas or Polars), set `df_lib_name_gt` to the name of the
-    # library (e.g., "polars" or "pandas")
+    # If the table is a DataFrame (Pandas, Polars, or PySpark), set `df_lib_name_gt` to the name of the
+    # library (e.g., "polars", "pandas", or "pyspark")
     if pl_pb_tbl:
-        df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
+        if "polars" in tbl_type:
+            df_lib_name_gt = "polars"
+        elif "pandas" in tbl_type:
+            df_lib_name_gt = "pandas"
+        elif "pyspark" in tbl_type:
+            df_lib_name_gt = "pyspark"
 
-        # Handle imports of Polars or Pandas here
+        # Handle imports of Polars, Pandas, or PySpark here
         if df_lib_name_gt == "polars":
             import polars as pl
-        else:
+        elif df_lib_name_gt == "pandas":
             import pandas as pd
+        # Note: PySpark import is handled as needed, typically already imported in user's environment
 
     # Get the initial column count for the table
     n_columns = len(data.columns)
@@ -1869,22 +1875,28 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     # Determine if the table is a DataFrame or an Ibis table
     tbl_type = _get_tbl_type(data=data)
     ibis_tbl = "ibis.expr.types.relations.Table" in str(type(data))
-    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type
+    pl_pb_tbl = "polars" in tbl_type or "pandas" in tbl_type or "pyspark" in tbl_type
 
     # Select the DataFrame library to use for displaying the Ibis table
     df_lib_gt = _select_df_lib(preference="polars")
     df_lib_name_gt = df_lib_gt.__name__
 
-    # If the table is a DataFrame (Pandas or Polars), set `df_lib_name_gt` to the name of the
-    # library (e.g., "polars" or "pandas")
+    # If the table is a DataFrame (Pandas, Polars, or PySpark), set `df_lib_name_gt` to the name of the
+    # library (e.g., "polars", "pandas", or "pyspark")
     if pl_pb_tbl:
-        df_lib_name_gt = "polars" if "polars" in tbl_type else "pandas"
+        if "polars" in tbl_type:
+            df_lib_name_gt = "polars"
+        elif "pandas" in tbl_type:
+            df_lib_name_gt = "pandas"
+        elif "pyspark" in tbl_type:
+            df_lib_name_gt = "pyspark"
 
-        # Handle imports of Polars or Pandas here
+        # Handle imports of Polars, Pandas, or PySpark here
         if df_lib_name_gt == "polars":
             import polars as pl
-        else:
+        elif df_lib_name_gt == "pandas":
             import pandas as pd
+        # Note: PySpark import is handled as needed, typically already imported in user's environment
 
     # From an Ibis table:
     # - get the row count
@@ -2468,6 +2480,9 @@ def get_column_count(data: FrameT | Any) -> int:
     elif "pandas" in str(type(data)):
         return data.shape[1]
 
+    elif "pyspark" in str(type(data)):
+        return len(data.columns)
+
     elif "narwhals" in str(type(data)):
         return len(data.columns)
 
@@ -2646,6 +2661,9 @@ def get_row_count(data: FrameT | Any) -> int:
 
     elif "pandas" in str(type(data)):
         return data.shape[0]
+
+    elif "pyspark" in str(type(data)):
+        return data.count()
 
     elif "narwhals" in str(type(data)):
         return data.shape[0]
@@ -9984,12 +10002,22 @@ class Validate:
                 and tbl_type not in IBIS_BACKENDS
             ):
                 # Add row numbers to the results table
-                validation_extract_nw = (
-                    nw.from_native(results_tbl)
-                    .with_row_index(name="_row_num_")
-                    .filter(nw.col("pb_is_good_") == False)  # noqa
-                    .drop("pb_is_good_")
-                )
+                validation_extract_nw = nw.from_native(results_tbl)
+
+                # Handle LazyFrame row indexing which requires order_by parameter
+                try:
+                    # Try without order_by first (for DataFrames)
+                    validation_extract_nw = validation_extract_nw.with_row_index(name="_row_num_")
+                except TypeError:
+                    # LazyFrames require order_by parameter - use first column for ordering
+                    first_col = validation_extract_nw.columns[0]
+                    validation_extract_nw = validation_extract_nw.with_row_index(
+                        name="_row_num_", order_by=first_col
+                    )
+
+                validation_extract_nw = validation_extract_nw.filter(
+                    nw.col("pb_is_good_") == False
+                ).drop("pb_is_good_")  # noqa
 
                 # Add 1 to the row numbers to make them 1-indexed
                 validation_extract_nw = validation_extract_nw.with_columns(nw.col("_row_num_") + 1)
@@ -10003,7 +10031,18 @@ class Validate:
                     validation_extract_nw = validation_extract_nw.sample(fraction=sample_frac)
 
                 # Ensure a limit is set on the number of rows to extract
-                if len(validation_extract_nw) > extract_limit:
+                try:
+                    # For DataFrames, use len()
+                    extract_length = len(validation_extract_nw)
+                except TypeError:
+                    # For LazyFrames, collect to get length (or use a reasonable default)
+                    try:
+                        extract_length = len(validation_extract_nw.collect())
+                    except Exception:
+                        # If collection fails, apply limit anyway as a safety measure
+                        extract_length = extract_limit + 1  # Force limiting
+
+                if extract_length > extract_limit:
                     validation_extract_nw = validation_extract_nw.head(extract_limit)
 
                 # If a 'rows_distinct' validation step, then the extract should have the
@@ -11657,7 +11696,16 @@ class Validate:
         # TODO: add argument for user to specify the index column name
         index_name = "pb_index_"
 
-        data_nw = nw.from_native(self.data).with_row_index(name=index_name)
+        data_nw = nw.from_native(self.data)
+
+        # Handle LazyFrame row indexing which requires order_by parameter
+        try:
+            # Try without order_by first (for DataFrames)
+            data_nw = data_nw.with_row_index(name=index_name)
+        except TypeError:
+            # LazyFrames require order_by parameter - use first column for ordering
+            first_col = data_nw.columns[0]
+            data_nw = data_nw.with_row_index(name=index_name, order_by=first_col)
 
         # Get all validation step result tables and join together the `pb_is_good_` columns
         # ensuring that the columns are named uniquely (e.g., `pb_is_good_1`, `pb_is_good_2`, ...)
@@ -11666,7 +11714,13 @@ class Validate:
             results_tbl = nw.from_native(validation.tbl_checked)
 
             # Add row numbers to the results table
-            results_tbl = results_tbl.with_row_index(name=index_name)
+            try:
+                # Try without order_by first (for DataFrames)
+                results_tbl = results_tbl.with_row_index(name=index_name)
+            except TypeError:
+                # LazyFrames require order_by parameter - use first column for ordering
+                first_col = results_tbl.columns[0]
+                results_tbl = results_tbl.with_row_index(name=index_name, order_by=first_col)
 
             # Add numerical suffix to the `pb_is_good_` column to make it unique
             results_tbl = results_tbl.select([index_name, "pb_is_good_"]).rename(
@@ -13882,14 +13936,19 @@ def _seg_expr_from_string(data_tbl: any, segments_expr: str) -> list[tuple[str, 
     list[tuple[str, str]]
         A list of tuples representing pairings of a column name and a value in the column.
     """
+    import narwhals as nw
+
     # Determine if the table is a DataFrame or a DB table
     tbl_type = _get_tbl_type(data=data_tbl)
 
     # Obtain the segmentation categories from the table column given as `segments_expr`
-    if tbl_type == "polars":
-        seg_categories = data_tbl[segments_expr].unique().to_list()
-    elif tbl_type == "pandas":
-        seg_categories = data_tbl[segments_expr].unique().tolist()
+    if tbl_type in ["polars", "pandas", "pyspark"]:
+        # Use Narwhals for supported DataFrame types
+        data_nw = nw.from_native(data_tbl)
+        unique_vals = data_nw.select(nw.col(segments_expr)).unique()
+
+        # Convert to list of values
+        seg_categories = unique_vals[segments_expr].to_list()
     elif tbl_type in IBIS_BACKENDS:
         distinct_col_vals = data_tbl.select(segments_expr).distinct()
         seg_categories = distinct_col_vals[segments_expr].to_list()
@@ -13981,8 +14040,8 @@ def _apply_segments(data_tbl: any, segments_expr: tuple[str, Any]) -> any:
     # Unpack the segments expression tuple for more convenient and explicit variable names
     column, segment = segments_expr
 
-    if tbl_type in ["pandas", "polars"]:
-        # If the table is a Pandas or Polars DataFrame, transforming to a Narwhals table
+    if tbl_type in ["pandas", "polars", "pyspark"]:
+        # If the table is a Pandas, Polars, or PySpark DataFrame, transforming to a Narwhals table
         # and perform the filtering operation
 
         # Transform to Narwhals table if a DataFrame

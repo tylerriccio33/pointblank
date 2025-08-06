@@ -23,6 +23,74 @@ if TYPE_CHECKING:
     from pointblank._typing import AbsoluteTolBounds
 
 
+def _safe_modify_datetime_compare_val(data_frame: Any, column: str, compare_val: Any) -> Any:
+    """
+    Safely modify datetime comparison values for LazyFrame compatibility.
+
+    This function handles the case where we can't directly slice LazyFrames
+    to get column dtypes for datetime conversion.
+    """
+    try:
+        # First try to get column dtype from schema for LazyFrames
+        column_dtype = None
+
+        if hasattr(data_frame, "collect_schema"):
+            schema = data_frame.collect_schema()
+            column_dtype = schema.get(column)
+        elif hasattr(data_frame, "schema"):
+            schema = data_frame.schema
+            column_dtype = schema.get(column)
+
+        # If we got a dtype from schema, use it
+        if column_dtype is not None:
+            # Create a mock column object for _modify_datetime_compare_val
+            class MockColumn:
+                def __init__(self, dtype):
+                    self.dtype = dtype
+
+            mock_column = MockColumn(column_dtype)
+            return _modify_datetime_compare_val(tgt_column=mock_column, compare_val=compare_val)
+
+        # Fallback: try collecting a small sample if possible
+        try:
+            sample = data_frame.head(1).collect()
+            if hasattr(sample, "dtypes") and column in sample.columns:
+                # For pandas-like dtypes
+                column_dtype = sample.dtypes[column] if hasattr(sample, "dtypes") else None
+                if column_dtype:
+
+                    class MockColumn:
+                        def __init__(self, dtype):
+                            self.dtype = dtype
+
+                    mock_column = MockColumn(column_dtype)
+                    return _modify_datetime_compare_val(
+                        tgt_column=mock_column, compare_val=compare_val
+                    )
+        except Exception:
+            pass
+
+        # Final fallback: try direct access (for eager DataFrames)
+        try:
+            if hasattr(data_frame, "dtypes") and column in data_frame.columns:
+                column_dtype = data_frame.dtypes[column]
+
+                class MockColumn:
+                    def __init__(self, dtype):
+                        self.dtype = dtype
+
+                mock_column = MockColumn(column_dtype)
+                return _modify_datetime_compare_val(tgt_column=mock_column, compare_val=compare_val)
+        except Exception:
+            pass
+
+    except Exception:
+        pass
+
+    # If all else fails, return the original compare_val
+    return compare_val
+
+
 @dataclass
 class Interrogator:
     """
@@ -136,9 +204,7 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        compare_expr = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=compare_expr
-        )
+        compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, compare_expr)
 
         return (
             self.x.with_columns(
@@ -211,9 +277,7 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        compare_expr = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=compare_expr
-        )
+        compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, compare_expr)
 
         return (
             self.x.with_columns(
@@ -329,9 +393,7 @@ class Interrogator:
         else:
             compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-            compare_expr = _modify_datetime_compare_val(
-                tgt_column=self.x[self.column], compare_val=compare_expr
-            )
+            compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, compare_expr)
 
             tbl = self.x.with_columns(
                 pb_is_good_1=nw.col(self.column).is_null() & self.na_pass,
@@ -421,9 +483,7 @@ class Interrogator:
                 ).to_native()
 
             else:
-                compare_expr = _modify_datetime_compare_val(
-                    tgt_column=self.x[self.column], compare_val=self.compare
-                )
+                compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, self.compare)
 
                 return self.x.with_columns(
                     pb_is_good_=nw.col(self.column) != nw.lit(compare_expr),
@@ -544,9 +604,7 @@ class Interrogator:
             if ref_col_has_null_vals:
                 # Create individual cases for Pandas and Polars
 
-                compare_expr = _modify_datetime_compare_val(
-                    tgt_column=self.x[self.column], compare_val=self.compare
-                )
+                compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, self.compare)
 
                 if is_pandas_dataframe(self.x.to_native()):
                     tbl = self.x.with_columns(
@@ -629,9 +687,7 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        compare_expr = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=compare_expr
-        )
+        compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, compare_expr)
 
         tbl = (
             self.x.with_columns(
@@ -702,9 +758,7 @@ class Interrogator:
 
         compare_expr = _get_compare_expr_nw(compare=self.compare)
 
-        compare_expr = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=compare_expr
-        )
+        compare_expr = _safe_modify_datetime_compare_val(self.x, self.column, compare_expr)
 
         return (
             self.x.with_columns(
@@ -834,10 +888,8 @@ class Interrogator:
         low_val = _get_compare_expr_nw(compare=self.low)
         high_val = _get_compare_expr_nw(compare=self.high)
 
-        low_val = _modify_datetime_compare_val(tgt_column=self.x[self.column], compare_val=low_val)
-        high_val = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=high_val
-        )
+        low_val = _safe_modify_datetime_compare_val(self.x, self.column, low_val)
+        high_val = _safe_modify_datetime_compare_val(self.x, self.column, high_val)
 
         tbl = self.x.with_columns(
             pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
@@ -1026,10 +1078,8 @@ class Interrogator:
         low_val = _get_compare_expr_nw(compare=self.low)
         high_val = _get_compare_expr_nw(compare=self.high)
 
-        low_val = _modify_datetime_compare_val(tgt_column=self.x[self.column], compare_val=low_val)
-        high_val = _modify_datetime_compare_val(
-            tgt_column=self.x[self.column], compare_val=high_val
-        )
+        low_val = _safe_modify_datetime_compare_val(self.x, self.column, low_val)
+        high_val = _safe_modify_datetime_compare_val(self.x, self.column, high_val)
 
         tbl = self.x.with_columns(
             pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
