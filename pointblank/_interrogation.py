@@ -2433,7 +2433,22 @@ def _get_compare_expr_nw(compare: Any) -> Any:
 
 
 def _column_has_null_values(table: FrameT, column: str) -> bool:
-    null_count = (table.select(column).null_count())[column][0]
+    try:
+        # Try the standard null_count() method
+        null_count = (table.select(column).null_count())[column][0]
+    except AttributeError:
+        # For LazyFrames, collect first then get null count
+        try:
+            collected = table.select(column).collect()
+            null_count = (collected.null_count())[column][0]
+        except Exception:
+            # Fallback: check if any values are null
+            try:
+                result = table.select(nw.col(column).is_null().sum().alias("null_count")).collect()
+                null_count = result["null_count"][0]
+            except Exception:
+                # Last resort: return False (assume no nulls)
+                return False
 
     if null_count is None or null_count == 0:
         return False

@@ -12339,8 +12339,12 @@ class Validate:
             # Transform to Narwhals DataFrame
             extract_nw = nw.from_native(extract)
 
-            # Get the number of rows in the extract
-            n_rows = len(extract_nw)
+            # Get the number of rows in the extract (safe for LazyFrames)
+            try:
+                n_rows = len(extract_nw)
+            except TypeError:
+                # For LazyFrames, collect() first to get length
+                n_rows = len(extract_nw.collect()) if hasattr(extract_nw, "collect") else 0
 
             # If the number of rows is zero, then produce an em dash then go to the next iteration
             if n_rows == 0:

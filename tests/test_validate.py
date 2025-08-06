@@ -22,6 +22,29 @@ import pandas as pd
 import polars as pl
 import ibis
 
+# PySpark import with environment setup for Mac compatibility
+try:
+    import os
+
+    # Set Java home for Mac compatibility if not already set
+    if "JAVA_HOME" not in os.environ:
+        os.environ["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home"
+
+    from pyspark.sql import SparkSession
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        StringType,
+        IntegerType,
+        DoubleType,
+        DateType,
+    )
+    import pyspark.sql.functions as F
+
+    PYSPARK_AVAILABLE = True
+except ImportError:
+    PYSPARK_AVAILABLE = False
+
 
 import great_tables as GT
 import narwhals as nw
@@ -81,6 +104,22 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Any
 
+
+# PySpark helper functions
+def get_spark_session():
+    """Get or create a Spark session for testing."""
+    if not PYSPARK_AVAILABLE:
+        pytest.skip("PySpark not available")
+
+    return (
+        SparkSession.builder.appName("PointblankTests")
+        .master("local[1]")
+        .config("spark.ui.enabled", "false")
+        .config("spark.sql.execution.arrow.pyspark.enabled", "false")
+        .getOrCreate()
+    )
+
+
 TEST_DATA_DIR = Path("tests") / "tbl_files"
 
 TBL_LIST = [
@@ -91,6 +130,10 @@ TBL_LIST = [
     "tbl_sqlite",
 ]
 
+# Add PySpark to lists if available
+if PYSPARK_AVAILABLE:
+    TBL_LIST.append("tbl_pyspark")
+
 TBL_MISSING_LIST = [
     "tbl_missing_pd",
     "tbl_missing_pl",
@@ -98,6 +141,9 @@ TBL_MISSING_LIST = [
     "tbl_missing_duckdb",
     "tbl_missing_sqlite",
 ]
+
+if PYSPARK_AVAILABLE:
+    TBL_MISSING_LIST.append("tbl_missing_pyspark")
 
 TBL_DATES_TIMES_TEXT_LIST = [
     "tbl_dates_times_text_pd",
@@ -107,11 +153,17 @@ TBL_DATES_TIMES_TEXT_LIST = [
     "tbl_dates_times_text_sqlite",
 ]
 
+if PYSPARK_AVAILABLE:
+    TBL_DATES_TIMES_TEXT_LIST.append("tbl_dates_times_text_pyspark")
+
 TBL_TRUE_DATES_TIMES_LIST = [
     "tbl_true_dates_times_pd",
     "tbl_true_dates_times_pl",
     "tbl_true_dates_times_duckdb",
 ]
+
+if PYSPARK_AVAILABLE:
+    TBL_TRUE_DATES_TIMES_LIST.append("tbl_true_dates_times_pyspark")
 
 
 @pytest.fixture
@@ -328,6 +380,74 @@ def tbl_schema_tests():
             "c": [1.1, 2.2, 3.3, 4.4],
         }
     )
+
+
+# PySpark fixtures
+@pytest.fixture
+def tbl_pyspark():
+    """Basic PySpark DataFrame fixture matching tbl_pd structure."""
+    if not PYSPARK_AVAILABLE:
+        pytest.skip("PySpark not available")
+
+    spark = get_spark_session()
+    data = [(1, 4, 8), (2, 5, 8), (3, 6, 8), (4, 7, 8)]
+    columns = ["x", "y", "z"]
+    return spark.createDataFrame(data, columns)
+
+
+@pytest.fixture
+def tbl_missing_pyspark():
+    """PySpark DataFrame fixture with missing values matching tbl_missing_pd structure."""
+    if not PYSPARK_AVAILABLE:
+        pytest.skip("PySpark not available")
+
+    spark = get_spark_session()
+    data = [(1, 4, 8), (2, None, None), (None, 6, 8), (4, 7, 8)]
+    columns = ["x", "y", "z"]
+    return spark.createDataFrame(data, columns)
+
+
+@pytest.fixture
+def tbl_dates_times_text_pyspark():
+    """PySpark DataFrame fixture with dates, times, and text matching tbl_dates_times_text_pd structure."""
+    if not PYSPARK_AVAILABLE:
+        pytest.skip("PySpark not available")
+
+    spark = get_spark_session()
+    data = [
+        ("2021-01-01", "2021-01-01 00:00:00", None),
+        ("2021-02-01", None, "5-egh-163"),
+        (None, "2021-02-01 00:00:00", "8-kdg-938"),
+    ]
+    columns = ["date", "dttm", "text"]
+    return spark.createDataFrame(data, columns)
+
+
+@pytest.fixture
+def tbl_true_dates_times_pyspark():
+    """PySpark DataFrame fixture with proper datetime types matching tbl_true_dates_times_pd structure."""
+    if not PYSPARK_AVAILABLE:
+        pytest.skip("PySpark not available")
+
+    spark = get_spark_session()
+
+    # Create DataFrame with string dates/times first
+    data = [
+        ("2021-01-01", "2021-02-01", "2021-01-01 02:30:00", "2021-02-01 03:30:00"),
+        ("2021-02-01", "2021-03-01", "2021-02-01 02:30:00", "2021-03-01 03:30:00"),
+    ]
+    columns = ["date_1", "date_2", "dttm_1", "dttm_2"]
+    df = spark.createDataFrame(data, columns)
+
+    # Convert to proper date and datetime types
+    df = (
+        df.withColumn("date_1", F.to_date(F.col("date_1"), "yyyy-MM-dd"))
+        .withColumn("date_2", F.to_date(F.col("date_2"), "yyyy-MM-dd"))
+        .withColumn("dttm_1", F.to_timestamp(F.col("dttm_1"), "yyyy-MM-dd HH:mm:ss"))
+        .withColumn("dttm_2", F.to_timestamp(F.col("dttm_2"), "yyyy-MM-dd HH:mm:ss"))
+    )
+
+    return df
 
 
 def test_normalize_reporting_language():
