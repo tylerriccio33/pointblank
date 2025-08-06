@@ -619,6 +619,10 @@ def _get_api_text() -> str:
         "expr_col",
     ]
 
+    segments_exported = [
+        "seg_group",
+    ]
+
     interrogation_exported = [
         "Validate.interrogate",
         "Validate.get_tabular_report",
@@ -648,6 +652,12 @@ def _get_api_text() -> str:
         "assistant",
         "load_dataset",
         "get_data_path",
+        "connect_to_table",
+    ]
+
+    yaml_exported = [
+        "yaml_interrogate",
+        "validate_yaml",
     ]
 
     utility_exported = [
@@ -679,6 +689,10 @@ many steps). Furthermore, the `col()` function can be used to declare a comparis
 for the `value=` argument in many `col_vals_*()` methods) when you can't use a fixed value
 for comparison."""
 
+    segments_desc = (
+        """Combine multiple values into a single segment using `seg_*()` helper functions."""
+    )
+
     interrogation_desc = """The validation plan is put into action when `interrogate()` is called.
 The workflow for performing a comprehensive validation is then: (1) `Validate()`, (2) adding
 validation steps, (3) `interrogate()`. After interrogation of the data, we can view a validation
@@ -693,6 +707,11 @@ summary of a table, `missing_vals_tbl()` to see where there are missing values i
 datasets included in the package can be accessed via the `load_dataset()` function. Finally, the
 `config()` utility lets us set global configuration parameters. Want to chat with an assistant? Use
 the `assistant()` function to get help with Pointblank."""
+
+    yaml_desc = """The *YAML* group contains functions that allow for the use of YAML to orchestrate
+validation workflows. The `yaml_interrogate()` function can be used to run a validation workflow from
+YAML strings or files. The `validate_yaml()` function checks if the YAML configuration
+passes its own validity checks."""
 
     utility_desc = """The Utility Functions group contains functions that are useful for accessing
 metadata about the target data. Use `get_column_count()` or `get_row_count()` to get the number of
@@ -718,11 +737,17 @@ table information, and timing details."""
     api_text += f"""\n## The Column Selection family\n\n{column_selection_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=column_selection_exported)
 
+    api_text += f"""\n## The Segments family\n\n{segments_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=segments_exported)
+
     api_text += f"""\n## The Interrogation and Reporting family\n\n{interrogation_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=interrogation_exported)
 
     api_text += f"""\n## The Inspection and Assistance family\n\n{inspect_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=inspect_exported)
+
+    api_text += f"""\n## The YAML family\n\n{yaml_desc}\n\n"""
+    api_text += get_api_details(module=pointblank, exported_list=yaml_exported)
 
     api_text += f"""\n## The Utility Functions family\n\n{utility_desc}\n\n"""
     api_text += get_api_details(module=pointblank, exported_list=utility_exported)
