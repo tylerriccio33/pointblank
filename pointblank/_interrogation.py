@@ -2158,6 +2158,8 @@ class ConjointlyValidation:
             return self._get_pandas_results()
         elif "duckdb" in self.tbl_type or "ibis" in self.tbl_type:
             return self._get_ibis_results()
+        elif "pyspark" in self.tbl_type:
+            return self._get_pyspark_results()
         else:  # pragma: no cover
             raise NotImplementedError(f"Support for {self.tbl_type} is not yet implemented")
 
