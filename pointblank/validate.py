@@ -10016,7 +10016,7 @@ class Validate:
                     )
 
                 validation_extract_nw = validation_extract_nw.filter(
-                    nw.col("pb_is_good_") == False
+                    ~nw.col("pb_is_good_")
                 ).drop("pb_is_good_")  # noqa
 
                 # Add 1 to the row numbers to make them 1-indexed
