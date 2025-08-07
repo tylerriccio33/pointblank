@@ -1397,7 +1397,10 @@ def _generate_display_table(
     row_number_list: list[int] | None = None,
 ) -> GT:
     # Make a copy of the data to avoid modifying the original
-    data = copy.deepcopy(data)
+    # Note: PySpark DataFrames cannot be deep copied due to SparkContext serialization issues
+    tbl_type = _get_tbl_type(data=data)
+    if "pyspark" not in tbl_type:
+        data = copy.deepcopy(data)
 
     # Does the data table already have a leading row number column?
     if "_row_num_" in data.columns:
@@ -1443,6 +1446,9 @@ def _generate_display_table(
         if df_lib_name_gt == "polars":
             import polars as pl
         elif df_lib_name_gt == "pandas":
+            import pandas as pd
+        elif df_lib_name_gt == "pyspark":
+            # Import pandas for conversion since Great Tables needs pandas DataFrame
             import pandas as pd
         # Note: PySpark import is handled as needed, typically already imported in user's environment
 
@@ -1554,6 +1560,42 @@ def _generate_display_table(
                     range(n_rows - n_tail + 1, n_rows + 1)
                 )
 
+        if tbl_type == "pyspark":
+            n_rows = data.count()
+
+            # If n_head + n_tail is greater than the row count, display the entire table
+            if n_head + n_tail >= n_rows:
+                full_dataset = True
+                # Convert to pandas for Great Tables compatibility
+                data = data.toPandas()
+
+                row_number_list = range(1, n_rows + 1)
+            else:
+                # Get head and tail samples, then convert to pandas
+                head_data = data.limit(n_head).toPandas()
+
+                # PySpark tail() returns a list of Row objects, need to convert to DataFrame
+                tail_rows = data.tail(n_tail)
+                if tail_rows:
+                    # Convert list of Row objects back to DataFrame, then to pandas
+                    tail_df = data.sparkSession.createDataFrame(tail_rows, data.schema)
+                    tail_data = tail_df.toPandas()
+                else:
+                    # If no tail data, create empty DataFrame with same schema
+                    import pandas as pd
+
+                    tail_data = pd.DataFrame(columns=head_data.columns)
+
+                data = pd.concat([head_data, tail_data])
+
+                row_number_list = list(range(1, n_head + 1)) + list(
+                    range(n_rows - n_tail + 1, n_rows + 1)
+                )
+
+        # For PySpark, update schema after conversion to pandas
+        if tbl_type == "pyspark":
+            tbl_schema = Schema(tbl=data)
+
     # From the table schema, get a list of tuples containing column names and data types
     col_dtype_dict = tbl_schema.columns
 
@@ -1573,6 +1615,23 @@ def _generate_display_table(
     # This is used to highlight these values in the table
     if df_lib_name_gt == "polars":
         none_values = {k: data[k].is_null().to_list() for k in col_names}
+    elif df_lib_name_gt == "pyspark":
+        # For PySpark, check if data has been converted to pandas already
+        if hasattr(data, "isnull"):
+            # Data has been converted to pandas
+            none_values = {k: data[k].isnull() for k in col_names}
+        else:
+            # Data is still a PySpark DataFrame - use narwhals
+            import narwhals as nw
+
+            df_nw = nw.from_native(data)
+            none_values = {}
+            for col in col_names:
+                # Get null mask, collect to pandas, then convert to list
+                null_mask = (
+                    df_nw.select(nw.col(col).is_null()).collect().to_pandas().iloc[:, 0].tolist()
+                )
+                none_values[col] = null_mask
     else:
         none_values = {k: data[k].isnull() for k in col_names}
 
@@ -1586,7 +1645,13 @@ def _generate_display_table(
 
     for column in col_dtype_dict.keys():
         # Select a single column of values
-        data_col = data[[column]] if df_lib_name_gt == "pandas" else data.select([column])
+        if df_lib_name_gt == "pandas":
+            data_col = data[[column]]
+        elif df_lib_name_gt == "pyspark":
+            # PySpark data should have been converted to pandas by now
+            data_col = data[[column]]
+        else:
+            data_col = data.select([column])
 
         # Using Great Tables, render the columns and get the list of values as formatted strings
         built_gt = GT(data=data_col).fmt_markdown(columns=column)._build_data(context="html")
@@ -1663,6 +1728,10 @@ def _generate_display_table(
                 data = data.insert_column(0, row_number_series)
 
             if df_lib_name_gt == "pandas":
+                data.insert(0, "_row_num_", row_number_list)
+
+            if df_lib_name_gt == "pyspark":
+                # For PySpark converted to pandas, use pandas method
                 data.insert(0, "_row_num_", row_number_list)
 
         # Get the highest number in the `row_number_list` and calculate a width that will
@@ -1858,7 +1927,10 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     data = _process_data(data)
 
     # Make a copy of the data to avoid modifying the original
-    data = copy.deepcopy(data)
+    # Note: PySpark DataFrames cannot be deep copied due to SparkContext serialization issues
+    tbl_type = _get_tbl_type(data=data)
+    if "pyspark" not in tbl_type:
+        data = copy.deepcopy(data)
 
     # Get the number of rows in the table
     n_rows = get_row_count(data)
@@ -2059,6 +2131,77 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
             # Get a dictionary of counts of missing values in each column
             missing_val_counts = {col: data[col].isnull().sum() for col in data.columns}
+
+        if "pyspark" in tbl_type:
+            from pyspark.sql.functions import col as pyspark_col
+
+            # PySpark implementation for missing values calculation
+            missing_vals = {}
+            for col_name in data.columns:
+                col_missing_props = []
+
+                # Calculate missing value proportions for each sector
+                for i in range(len(cut_points)):
+                    start_row = cut_points[i - 1] if i > 0 else 0
+                    end_row = cut_points[i]
+                    sector_size = end_row - start_row
+
+                    if sector_size > 0:
+                        # Use row_number() to filter rows by range
+                        from pyspark.sql.functions import row_number
+                        from pyspark.sql.window import Window
+
+                        window = Window.orderBy(
+                            pyspark_col(data.columns[0])
+                        )  # Order by first column
+                        sector_data = data.withColumn("row_num", row_number().over(window)).filter(
+                            (pyspark_col("row_num") > start_row)
+                            & (pyspark_col("row_num") <= end_row)
+                        )
+
+                        # Count nulls in this sector
+                        null_count = sector_data.filter(pyspark_col(col_name).isNull()).count()
+                        missing_prop = (null_count / sector_size) * 100
+                        col_missing_props.append(missing_prop)
+                    else:
+                        col_missing_props.append(0)
+
+                # Handle the final sector (after last cut point)
+                if n_rows > cut_points[-1]:
+                    start_row = cut_points[-1]
+                    end_row = n_rows
+                    sector_size = end_row - start_row
+
+                    from pyspark.sql.functions import row_number
+                    from pyspark.sql.window import Window
+
+                    window = Window.orderBy(pyspark_col(data.columns[0]))
+                    sector_data = data.withColumn("row_num", row_number().over(window)).filter(
+                        pyspark_col("row_num") > start_row
+                    )
+
+                    null_count = sector_data.filter(pyspark_col(col_name).isNull()).count()
+                    missing_prop = (null_count / sector_size) * 100
+                    col_missing_props.append(missing_prop)
+                else:
+                    col_missing_props.append(0)
+
+                missing_vals[col_name] = col_missing_props
+
+            # Pivot the `missing_vals` dictionary to create a table with the missing value proportions
+            missing_vals = {
+                "columns": list(missing_vals.keys()),
+                **{
+                    str(i + 1): [missing_vals[col][i] for col in missing_vals.keys()]
+                    for i in range(len(cut_points) + 1)
+                },
+            }
+
+            # Get a dictionary of counts of missing values in each column
+            missing_val_counts = {}
+            for col_name in data.columns:
+                null_count = data.filter(pyspark_col(col_name).isNull()).count()
+                missing_val_counts[col_name] = null_count
 
     # From `missing_vals`, create the DataFrame with the missing value proportions
     if df_lib_name_gt == "polars":
