@@ -3469,8 +3469,76 @@ def test_validation_info_string_representation():
     assert "col" in str_repr
 
 
+def test_validation_info_string_representation_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"col": [1, 2, 3]})
+
+    validation = Validate(tbl).col_vals_gt(columns="col", value=0).interrogate()
+
+    val_info = validation.validation_info[0]
+
+    # Should have meaningful string representation
+    str_repr = str(val_info)
+    assert "col_vals_gt" in str_repr
+    assert "col" in str_repr
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_info_string_representation_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame([(1,), (2,), (3,)], ["col"])
+
+    validation = Validate(tbl).col_vals_gt(columns="col", value=0).interrogate()
+
+    val_info = validation.validation_info[0]
+
+    # Should have meaningful string representation
+    str_repr = str(val_info)
+    assert "col_vals_gt" in str_repr
+    assert "col" in str_repr
+
+
 def test_validation_with_mixed_na_pass_values():
     tbl = pl.DataFrame({"col1": [1, 2, None, 4], "col2": [None, 2, 3, 4]})
+
+    validation = (
+        Validate(tbl)
+        .col_vals_gt(columns="col1", value=0, na_pass=True)  # Should pass NULL
+        .col_vals_gt(columns="col2", value=0, na_pass=False)  # Should fail NULL
+        .interrogate()
+    )
+
+    # First validation should pass all (including NULL)
+    assert validation.n_passed(i=1, scalar=True) == 4
+
+    # Second validation should fail the NULL value
+    assert validation.n_failed(i=2, scalar=True) == 1
+
+
+def test_validation_with_mixed_na_pass_values_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"col1": [1, 2, None, 4], "col2": [None, 2, 3, 4]})
+
+    validation = (
+        Validate(tbl)
+        .col_vals_gt(columns="col1", value=0, na_pass=True)  # Should pass NULL
+        .col_vals_gt(columns="col2", value=0, na_pass=False)  # Should fail NULL
+        .interrogate()
+    )
+
+    # First validation should pass all (including NULL)
+    assert validation.n_passed(i=1, scalar=True) == 4
+
+    # Second validation should fail the NULL value
+    assert validation.n_failed(i=2, scalar=True) == 1
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_mixed_na_pass_values_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame([(1, None), (2, 2), (None, 3), (4, 4)], ["col1", "col2"])
 
     validation = (
         Validate(tbl)
