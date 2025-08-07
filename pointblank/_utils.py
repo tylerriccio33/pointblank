@@ -66,11 +66,13 @@ def _get_tbl_type(data: FrameT | Any) -> str:
         except Exception as e:
             raise TypeError("The `data` object is not a DataFrame or Ibis Table.") from e
 
-        # Detect through regex if the table is a polars or pandas DataFrame
+        # Detect through regex if the table is a polars, pandas, or Spark DataFrame
         if re.search(r"polars", df_ns_str, re.IGNORECASE):
             return "polars"
         elif re.search(r"pandas", df_ns_str, re.IGNORECASE):
             return "pandas"
+        elif re.search(r"pyspark", df_ns_str, re.IGNORECASE):
+            return "pyspark"
 
     # If ibis is present, then get the table's backend name
     ibis_present = _is_lib_present(lib_name="ibis")
@@ -164,7 +166,7 @@ def _check_any_df_lib(method_used: str) -> None:
 def _is_value_a_df(value: Any) -> bool:
     try:
         ns = nw.get_native_namespace(value)
-        if "polars" in str(ns) or "pandas" in str(ns):
+        if "polars" in str(ns) or "pandas" in str(ns) or "pyspark" in str(ns):
             return True
         else:  # pragma: no cover
             return False
