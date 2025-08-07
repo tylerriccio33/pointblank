@@ -166,7 +166,7 @@ def _check_any_df_lib(method_used: str) -> None:
 def _is_value_a_df(value: Any) -> bool:
     try:
         ns = nw.get_native_namespace(value)
-        if "polars" in str(ns) or "pandas" in str(ns):
+        if "polars" in str(ns) or "pandas" in str(ns) or "pyspark" in str(ns):
             return True
         else:  # pragma: no cover
             return False

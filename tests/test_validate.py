@@ -595,7 +595,7 @@ def test_col_vals_all_passing(request, tbl_fixture):
 
     v = Validate(tbl).col_vals_gt(columns="x", value=0).interrogate()
 
-    if tbl_fixture not in ["tbl_parquet", "tbl_duckdb", "tbl_sqlite"]:
+    if tbl_fixture not in ["tbl_parquet", "tbl_duckdb", "tbl_sqlite", "tbl_pyspark"]:
         assert v.data.shape == (4, 3)
         assert str(v.data["x"].dtype).lower() == "int64"
         assert str(v.data["y"].dtype).lower() == "int64"
@@ -6935,7 +6935,11 @@ def test_interrogate_first_n(request, tbl_fixture):
 
         # Expect that the extracts table has 2 entries out of 3 failures
         assert validation.n_failed(i=1, scalar=True) == 3
-        assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).rows()) == 2
+        extract_df = nw.from_native(validation.get_data_extracts(i=1, frame=True))
+        # For LazyFrames, need to collect first, then get length
+        if hasattr(extract_df, "collect"):
+            extract_df = extract_df.collect()
+        assert len(extract_df) == 2
         assert len(nw.from_native(validation.get_data_extracts(i=1, frame=True)).columns) == 4
 
 

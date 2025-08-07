@@ -642,6 +642,25 @@ class Interrogator:
 
                     return tbl
 
+                else:
+                    # Generic case for other DataFrame types (PySpark, etc.)
+                    # Use similar logic to Polars but handle potential differences
+                    tbl = self.x.with_columns(
+                        pb_is_good_1=nw.col(self.column).is_null(),  # val is Null in Column
+                        pb_is_good_2=nw.lit(self.na_pass),  # Pass if any Null in val or compare
+                    )
+
+                    tbl = tbl.with_columns(pb_is_good_3=nw.col(self.column) != nw.lit(compare_expr))
+
+                    tbl = tbl.with_columns(
+                        pb_is_good_=(
+                            (nw.col("pb_is_good_1") & nw.col("pb_is_good_2"))
+                            | (nw.col("pb_is_good_3") & ~nw.col("pb_is_good_1"))
+                        )
+                    )
+
+                    return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
+
     def ge(self) -> FrameT | Any:
         # Ibis backends ---------------------------------------------
 
@@ -1259,14 +1278,15 @@ class Interrogator:
         else:
             columns_subset = self.columns_subset
 
-        # Create a subset of the table with only the columns of interest
-        subset_tbl = tbl.select(columns_subset)
+        # Create a count of duplicates using group_by approach like Ibis backend
+        # Group by the columns of interest and count occurrences
+        count_tbl = tbl.group_by(columns_subset).agg(nw.len().alias("pb_count_"))
 
-        # Check for duplicates in the subset table, creating a series of booleans
-        pb_is_good_series = subset_tbl.is_duplicated()
+        # Join back to original table to get count for each row
+        tbl = tbl.join(count_tbl, on=columns_subset, how="left")
 
-        # Add the series to the input table
-        tbl = tbl.with_columns(pb_is_good_=~pb_is_good_series)
+        # Passing rows will have the value `1` (no duplicates, so True), otherwise False applies
+        tbl = tbl.with_columns(pb_is_good_=nw.col("pb_count_") == 1).drop("pb_count_")
 
         return tbl.to_native()
 
@@ -2409,12 +2429,21 @@ class NumberOfTestUnits:
     column: str
 
     def get_test_units(self, tbl_type: str) -> int:
-        if tbl_type == "pandas" or tbl_type == "polars":
+        if (
+            tbl_type == "pandas"
+            or tbl_type == "polars"
+            or tbl_type == "pyspark"
+            or tbl_type == "local"
+        ):
             # Convert the DataFrame to a format that narwhals can work with and:
             #  - check if the column exists
             dfn = _column_test_prep(
                 df=self.df, column=self.column, allowed_types=None, check_exists=False
             )
+
+            # Handle LazyFrames which don't have len()
+            if hasattr(dfn, "collect"):
+                dfn = dfn.collect()
 
             return len(dfn)
 
@@ -2479,7 +2508,7 @@ def _check_nulls_across_columns_nw(table, columns_subset):
 
     # Build the expression by combining each column's `is_null()` with OR operations
     null_expr = functools.reduce(
-        lambda acc, col: acc | table[col].is_null() if acc is not None else table[col].is_null(),
+        lambda acc, col: acc | nw.col(col).is_null() if acc is not None else nw.col(col).is_null(),
         column_names,
         None,
     )

@@ -10026,9 +10026,38 @@ class Validate:
                 if get_first_n is not None:
                     validation_extract_nw = validation_extract_nw.head(get_first_n)
                 elif sample_n is not None:
-                    validation_extract_nw = validation_extract_nw.sample(n=sample_n)
+                    # Narwhals LazyFrame doesn't have sample method, use head after shuffling
+                    try:
+                        validation_extract_nw = validation_extract_nw.sample(n=sample_n)
+                    except AttributeError:
+                        # For LazyFrames without sample method, collect first then sample
+                        validation_extract_native = validation_extract_nw.collect().to_native()
+                        if hasattr(validation_extract_native, "sample"):
+                            # PySpark DataFrame has sample method
+                            validation_extract_native = validation_extract_native.sample(
+                                fraction=min(1.0, sample_n / validation_extract_native.count())
+                            ).limit(sample_n)
+                            validation_extract_nw = nw.from_native(validation_extract_native)
+                        else:
+                            # Fallback: just take first n rows after collecting
+                            validation_extract_nw = validation_extract_nw.collect().head(sample_n)
                 elif sample_frac is not None:
-                    validation_extract_nw = validation_extract_nw.sample(fraction=sample_frac)
+                    try:
+                        validation_extract_nw = validation_extract_nw.sample(fraction=sample_frac)
+                    except AttributeError:
+                        # For LazyFrames without sample method, collect first then sample
+                        validation_extract_native = validation_extract_nw.collect().to_native()
+                        if hasattr(validation_extract_native, "sample"):
+                            # PySpark DataFrame has sample method
+                            validation_extract_native = validation_extract_native.sample(
+                                fraction=sample_frac
+                            )
+                            validation_extract_nw = nw.from_native(validation_extract_native)
+                        else:
+                            # Fallback: use fraction to calculate head size
+                            collected = validation_extract_nw.collect()
+                            sample_size = max(1, int(len(collected) * sample_frac))
+                            validation_extract_nw = collected.head(sample_size)
 
                 # Ensure a limit is set on the number of rows to extract
                 try:
@@ -10070,7 +10099,10 @@ class Validate:
                         .drop("group_min_row")
                     )
 
-                # Ensure that the extract is set to its native format
+                # Ensure that the extract is collected and set to its native format
+                # For LazyFrames (like PySpark), we need to collect before converting to native
+                if hasattr(validation_extract_nw, "collect"):
+                    validation_extract_nw = validation_extract_nw.collect()
                 validation.extract = nw.to_native(validation_extract_nw)
 
             # Get the end time for this step
@@ -12351,7 +12383,9 @@ class Validate:
                 extract_upd.append("&mdash;")
                 continue
 
-            # Write the CSV text
+            # Write the CSV text (ensure LazyFrames are collected first)
+            if hasattr(extract_nw, "collect"):
+                extract_nw = extract_nw.collect()
             csv_text = extract_nw.write_csv()
 
             # Use Base64 encoding to encode the CSV text
