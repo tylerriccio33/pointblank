@@ -3745,6 +3745,100 @@ def test_date_time_validation_with_string_conversion():
     assert validation_datetime.all_passed()
 
 
+def test_date_time_validation_with_string_conversion_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {
+            "date_str": ["2023-01-01", "2023-06-15", "2023-12-31"],
+            "datetime_str": ["2023-01-01 10:30:00", "2023-06-15 14:45:30", "2023-12-31 23:59:59"],
+        }
+    )
+    # Convert string columns to datetime
+    tbl["date_col"] = pd.to_datetime(tbl["date_str"]).dt.date
+    tbl["datetime_col"] = pd.to_datetime(tbl["datetime_str"])
+
+    # Test date comparisons with actual date columns
+    validation_date = (
+        Validate(tbl)
+        .col_vals_gt(columns="date_col", value=datetime.date(2023, 1, 1))
+        .col_vals_lt(columns="date_col", value=datetime.date(2024, 1, 1))
+        .interrogate()
+    )
+
+    # Should handle date comparisons
+    assert validation_date.n_passed(i=1, scalar=True) == 2  # Two dates after 2023-01-01
+    assert validation_date.n_passed(i=2, scalar=True) == 3  # All dates before 2024-01-01
+
+    # Test datetime comparisons with actual datetime columns
+    validation_datetime = (
+        Validate(tbl)
+        .col_vals_between(
+            columns="datetime_col",
+            left=datetime.datetime(2023, 1, 1, 0, 0, 0),
+            right=datetime.datetime(2023, 12, 31, 23, 59, 59),
+        )
+        .interrogate()
+    )
+
+    assert validation_datetime.all_passed()
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_date_time_validation_with_string_conversion_pyspark():
+    from pyspark.sql import functions as F
+    from pyspark.sql.types import StructType, StructField, StringType
+
+    spark = get_spark_session()
+
+    # Create DataFrame with string date/datetime columns
+    schema = StructType(
+        [
+            StructField("date_str", StringType(), True),
+            StructField("datetime_str", StringType(), True),
+        ]
+    )
+
+    data = [
+        ("2023-01-01", "2023-01-01 10:30:00"),
+        ("2023-06-15", "2023-06-15 14:45:30"),
+        ("2023-12-31", "2023-12-31 23:59:59"),
+    ]
+
+    tbl = spark.createDataFrame(data, schema)
+
+    # Convert string columns to date/timestamp
+    tbl = tbl.withColumn("date_col", F.to_date(F.col("date_str"), "yyyy-MM-dd"))
+    tbl = tbl.withColumn(
+        "datetime_col", F.to_timestamp(F.col("datetime_str"), "yyyy-MM-dd HH:mm:ss")
+    )
+
+    # Test date comparisons with actual date columns
+    validation_date = (
+        Validate(tbl)
+        .col_vals_gt(columns="date_col", value=datetime.date(2023, 1, 1))
+        .col_vals_lt(columns="date_col", value=datetime.date(2024, 1, 1))
+        .interrogate()
+    )
+
+    # Should handle date comparisons
+    assert validation_date.n_passed(i=1, scalar=True) == 2  # Two dates after 2023-01-01
+    assert validation_date.n_passed(i=2, scalar=True) == 3  # All dates before 2024-01-01
+
+    # Test datetime comparisons with actual datetime columns
+    validation_datetime = (
+        Validate(tbl)
+        .col_vals_between(
+            columns="datetime_col",
+            left=datetime.datetime(2023, 1, 1, 0, 0, 0),
+            right=datetime.datetime(2023, 12, 31, 23, 59, 59),
+        )
+        .interrogate()
+    )
+
+    assert validation_datetime.all_passed()
+
+
 def test_validation_with_custom_actions():
     captured_metadata = []
 
