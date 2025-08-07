@@ -1195,6 +1195,7 @@ def preview(
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -1202,7 +1203,6 @@ def preview(
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -1798,6 +1798,7 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -1805,7 +1806,6 @@ def missing_vals_tbl(data: FrameT | Any) -> GT:
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -2346,6 +2346,7 @@ def get_column_count(data: FrameT | Any) -> int:
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -2353,7 +2354,6 @@ def get_column_count(data: FrameT | Any) -> int:
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -2517,6 +2517,7 @@ def get_row_count(data: FrameT | Any) -> int:
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -2524,7 +2525,6 @@ def get_row_count(data: FrameT | Any) -> int:
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -3117,6 +3117,7 @@ class Validate:
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -3124,7 +3125,6 @@ class Validate:
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)

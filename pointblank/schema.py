@@ -61,10 +61,15 @@ class Schema:
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
