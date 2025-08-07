@@ -2319,6 +2319,53 @@ class ConjointlyValidation:
         results_tbl = self.data_tbl.mutate(pb_is_good_=ibis.literal(True))
         return results_tbl
 
+    def _get_pyspark_results(self):
+        """Process expressions for PySpark DataFrames."""
+        from pyspark.sql import functions as F
+
+        pyspark_columns = []
+
+        for expr_fn in self.expressions:
+            try:
+                # First try direct evaluation with PySpark DataFrame
+                expr_result = expr_fn(self.data_tbl)
+
+                # Check if it's a PySpark Column
+                if hasattr(expr_result, "_jc"):  # PySpark Column has _jc attribute
+                    pyspark_columns.append(expr_result)
+                else:
+                    raise TypeError(
+                        f"Expression returned {type(expr_result)}, expected PySpark Column"
+                    )
+
+            except Exception as e:
+                try:
+                    # Try as a ColumnExpression (for pb.expr_col style)
+                    col_expr = expr_fn(None)
+
+                    if hasattr(col_expr, "to_pyspark_expr"):
+                        # Convert to PySpark expression
+                        pyspark_expr = col_expr.to_pyspark_expr(self.data_tbl)
+                        pyspark_columns.append(pyspark_expr)
+                    else:
+                        raise TypeError(f"Cannot convert {type(col_expr)} to PySpark Column")
+                except Exception as nested_e:
+                    print(f"Error evaluating PySpark expression: {e} -> {nested_e}")
+
+        # Combine results with AND logic
+        if pyspark_columns:
+            final_result = pyspark_columns[0]
+            for col in pyspark_columns[1:]:
+                final_result = final_result & col
+
+            # Create results table with boolean column
+            results_tbl = self.data_tbl.withColumn("pb_is_good_", final_result)
+            return results_tbl
+
+        # Default case
+        results_tbl = self.data_tbl.withColumn("pb_is_good_", F.lit(True))
+        return results_tbl
+
 
 class SpeciallyValidation:
     def __init__(self, data_tbl, expression, threshold, tbl_type):
