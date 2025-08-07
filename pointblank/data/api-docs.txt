@@ -111,6 +111,7 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -118,7 +119,6 @@ Validate(data: 'FrameT | Any', tbl_name: 'str | None' = None, label: 'str | None
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -950,10 +950,15 @@ Definition of a schema object.
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
 
     The table types marked with an asterisk need to be prepared as Ibis tables (with type of
@@ -9085,6 +9090,7 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -9092,7 +9098,6 @@ preview(data: 'FrameT | Any', columns_subset: 'str | list[str] | Column | None' 
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -9319,6 +9324,7 @@ missing_vals_tbl(data: 'FrameT | Any') -> 'GT'
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -9326,7 +9332,6 @@ missing_vals_tbl(data: 'FrameT | Any') -> 'GT'
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -9486,10 +9491,15 @@ assistant(model: 'str', data: 'FrameT | Any | None' = None, tbl_name: 'str | Non
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
     - SQLite table (`"sqlite"`)*
+    - Microsoft SQL Server table (`"mssql"`)*
+    - Snowflake table (`"snowflake"`)*
+    - Databricks table (`"databricks"`)*
+    - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
     - Parquet files (string path, `pathlib.Path` object, glob pattern, directory with `.parquet`
@@ -9500,6 +9510,10 @@ assistant(model: 'str', data: 'FrameT | Any | None' = None, tbl_name: 'str | Non
     `ibis.expr.types.relations.Table`). Furthermore, using `assistant()` with these types of tables
     requires the Ibis library (`v9.5.0` or above) to be installed. If the input table is a Polars or
     Pandas DataFrame, the availability of Ibis is not needed.
+
+    To use a CSV file, ensure that a string or `pathlib.Path` object with a `.csv` extension is
+    provided. The file will be automatically detected and loaded using the best available DataFrame
+    library. The loading preference is Polars first, then Pandas as a fallback.
     
 
 load_dataset(dataset: "Literal['small_table', 'game_revenue', 'nycflights', 'global_sales']" = 'small_table', tbl_type: "Literal['polars', 'pandas', 'duckdb']" = 'polars') -> 'FrameT | Any'
@@ -10097,6 +10111,7 @@ get_column_count(data: 'FrameT | Any') -> 'int'
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -10104,7 +10119,6 @@ get_column_count(data: 'FrameT | Any') -> 'int'
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
@@ -10212,6 +10226,7 @@ get_row_count(data: 'FrameT | Any') -> 'int'
 
     - Polars DataFrame (`"polars"`)
     - Pandas DataFrame (`"pandas"`)
+    - PySpark table (`"pyspark"`)
     - DuckDB table (`"duckdb"`)*
     - MySQL table (`"mysql"`)*
     - PostgreSQL table (`"postgresql"`)*
@@ -10219,7 +10234,6 @@ get_row_count(data: 'FrameT | Any') -> 'int'
     - Microsoft SQL Server table (`"mssql"`)*
     - Snowflake table (`"snowflake"`)*
     - Databricks table (`"databricks"`)*
-    - PySpark table (`"pyspark"`)*
     - BigQuery table (`"bigquery"`)*
     - Parquet table (`"parquet"`)*
     - CSV files (string path or `pathlib.Path` object with `.csv` extension)
