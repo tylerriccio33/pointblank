@@ -3153,8 +3153,93 @@ def test_validation_report_with_unicode_content():
     assert report is not None
 
 
+def test_validation_report_with_unicode_content_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {
+            "名前": ["太郎", "花子", "一郎"],  # Japanese names
+            "値": [1, 2, 3],  # Japanese for "value"
+            "émojis": ["😀", "😂", "🎉"],  # Emoji!
+        }
+    )
+
+    validation = (
+        Validate(tbl, tbl_name="ユニコードテーブル")  # Unicode table name
+        .col_exists(["名前", "値", "émojis"])
+        .col_vals_not_null(["名前"])
+        .interrogate()
+    )
+
+    # Should handle unicode content properly
+    assert validation.all_passed()
+
+    # Should be able to generate report with unicode content
+    report = validation.get_tabular_report()
+    assert report is not None
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_report_with_unicode_content_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame(
+        [("太郎", 1, "😀"), ("花子", 2, "😂"), ("一郎", 3, "🎉")], ["名前", "値", "émojis"]
+    )
+
+    validation = (
+        Validate(tbl, tbl_name="ユニコードテーブル")  # Unicode table name
+        .col_exists(["名前", "値", "émojis"])
+        .col_vals_not_null(["名前"])
+        .interrogate()
+    )
+
+    # Should handle unicode content properly
+    assert validation.all_passed()
+
+    # Should be able to generate report with unicode content
+    report = validation.get_tabular_report()
+    assert report is not None
+
+
 def test_row_count_match_with_tolerance():
     tbl = pl.DataFrame({"col": range(100)})  # 100 rows
+
+    # Test exact match
+    validation_exact = Validate(tbl).row_count_match(count=100).interrogate()
+    assert validation_exact.all_passed()
+
+    # Test with tolerance
+    validation_tolerance = Validate(tbl).row_count_match(count=95, tol=5).interrogate()
+    assert validation_tolerance.all_passed()
+
+    # Test exceeding tolerance
+    validation_fail = Validate(tbl).row_count_match(count=80, tol=5).interrogate()
+    assert not validation_fail.all_passed()
+
+
+def test_row_count_match_with_tolerance_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"col": range(100)})  # 100 rows
+
+    # Test exact match
+    validation_exact = Validate(tbl).row_count_match(count=100).interrogate()
+    assert validation_exact.all_passed()
+
+    # Test with tolerance
+    validation_tolerance = Validate(tbl).row_count_match(count=95, tol=5).interrogate()
+    assert validation_tolerance.all_passed()
+
+    # Test exceeding tolerance
+    validation_fail = Validate(tbl).row_count_match(count=80, tol=5).interrogate()
+    assert not validation_fail.all_passed()
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_row_count_match_with_tolerance_pyspark():
+    spark = get_spark_session()
+    # Create 100 rows
+    tbl = spark.range(100).toDF("col")
 
     # Test exact match
     validation_exact = Validate(tbl).row_count_match(count=100).interrogate()
@@ -3217,6 +3302,145 @@ def test_validation_with_all_validation_types():
         .col_count_match(count=9)  # Updated to match new column count
         # Expression validation
         .col_vals_expr(expr=pl.col("age") > 20)
+        # Conjoint validation
+        .conjointly(lambda df: df["age"] > 20, lambda df: df["score"] > 50)
+        # Special validation
+        .specially(expr=lambda: [True, True])
+        .interrogate()
+    )
+
+    # Most validations should pass
+    passed_count = sum(1 for info in validation.validation_info if info.all_passed)
+    total_count = len(validation.validation_info)
+
+    # At least 90% should pass
+    assert passed_count / total_count >= 0.9
+
+
+def test_validation_with_all_validation_types_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "age": [25, 30, 35, 28, 32],
+            "email": [
+                "alice@test.com",
+                "bob@test.com",
+                "charlie@test.com",
+                "diana@test.com",
+                "eve@test.com",
+            ],
+            "score": [85.5, 92.0, 78.5, 88.0, 91.5],
+            "active": [True, True, False, True, True],
+            "category": ["A", "B", "A", "C", "B"],
+            "created_date": ["2023-01-01", "2023-01-02", "2023-01-03", "2023-01-04", "2023-01-05"],
+            "optional_field": [
+                None,
+                "value1",
+                None,
+                "value2",
+                None,
+            ],  # Column with nulls for testing
+        }
+    )
+
+    validation = (
+        Validate(tbl, label="Comprehensive validation test")
+        # Column value validations
+        .col_vals_gt(columns="age", value=18)
+        .col_vals_lt(columns="age", value=65)
+        .col_vals_between(columns="score", left=0, right=100)
+        .col_vals_in_set(columns="category", set=["A", "B", "C"])
+        .col_vals_not_in_set(columns="category", set=["D", "E"])
+        .col_vals_regex(columns="email", pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+        .col_vals_not_null(["id", "name", "email"])
+        .col_vals_null(columns="optional_field")  # Test null validation on column with actual nulls
+        # Column existence
+        .col_exists(["id", "name", "age", "email"])
+        # Row-level validations
+        .rows_distinct()
+        .rows_complete()
+        # Table-level validations
+        .row_count_match(count=5)
+        .col_count_match(count=9)  # Updated to match new column count
+        # Expression validation
+        .col_vals_expr(expr=tbl["age"] > 20)  # Use pandas-style expression
+        # Conjoint validation
+        .conjointly(lambda df: df["age"] > 20, lambda df: df["score"] > 50)
+        # Special validation
+        .specially(expr=lambda: [True, True])
+        .interrogate()
+    )
+
+    # Most validations should pass
+    passed_count = sum(1 for info in validation.validation_info if info.all_passed)
+    total_count = len(validation.validation_info)
+
+    # At least 90% should pass
+    assert passed_count / total_count >= 0.9
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_all_validation_types_pyspark():
+    import pyspark.sql.functions as F
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        IntegerType,
+        StringType,
+        DoubleType,
+        BooleanType,
+    )
+
+    spark = get_spark_session()
+
+    # Create the schema first
+    schema = StructType(
+        [
+            StructField("id", IntegerType(), True),
+            StructField("name", StringType(), True),
+            StructField("age", IntegerType(), True),
+            StructField("email", StringType(), True),
+            StructField("score", DoubleType(), True),
+            StructField("active", BooleanType(), True),
+            StructField("category", StringType(), True),
+            StructField("created_date", StringType(), True),
+            StructField("optional_field", StringType(), True),
+        ]
+    )
+
+    tbl = spark.createDataFrame(
+        [
+            (1, "Alice", 25, "alice@test.com", 85.5, True, "A", "2023-01-01", None),
+            (2, "Bob", 30, "bob@test.com", 92.0, True, "B", "2023-01-02", "value1"),
+            (3, "Charlie", 35, "charlie@test.com", 78.5, False, "A", "2023-01-03", None),
+            (4, "Diana", 28, "diana@test.com", 88.0, True, "C", "2023-01-04", "value2"),
+            (5, "Eve", 32, "eve@test.com", 91.5, True, "B", "2023-01-05", None),
+        ],
+        schema,
+    )
+
+    validation = (
+        Validate(tbl, label="Comprehensive validation test")
+        # Column value validations
+        .col_vals_gt(columns="age", value=18)
+        .col_vals_lt(columns="age", value=65)
+        .col_vals_between(columns="score", left=0, right=100)
+        .col_vals_in_set(columns="category", set=["A", "B", "C"])
+        .col_vals_not_in_set(columns="category", set=["D", "E"])
+        .col_vals_regex(columns="email", pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+        .col_vals_not_null(["id", "name", "email"])
+        .col_vals_null(columns="optional_field")  # Test null validation on column with actual nulls
+        # Column existence
+        .col_exists(["id", "name", "age", "email"])
+        # Row-level validations
+        .rows_distinct()
+        .rows_complete()
+        # Table-level validations
+        .row_count_match(count=5)
+        .col_count_match(count=9)  # Updated to match new column count
         # Conjoint validation
         .conjointly(lambda df: df["age"] > 20, lambda df: df["score"] > 50)
         # Special validation
