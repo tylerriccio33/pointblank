@@ -2437,6 +2437,52 @@ def test_validation_with_preprocessing_with_fn_pl(tbl_pl):
     assert v.n_passed()[2] == 4
 
 
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_preprocessing_pyspark(tbl_pyspark):
+    import pyspark.sql.functions as F
+
+    v = (
+        Validate(tbl_pyspark)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda df: df.withColumn("z", F.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_preprocessing_pyspark_use_nw(tbl_pyspark):
+    v = (
+        Validate(tbl_pyspark)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=lambda dfn: dfn.with_columns(z=nw.col("z") * 2))
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_preprocessing_with_fn_pyspark(tbl_pyspark):
+    import pyspark.sql.functions as F
+
+    def multiply_z_by_two(df):
+        return df.withColumn("z", F.col("z") * 2)
+
+    v = (
+        Validate(tbl_pyspark)
+        .col_vals_eq(columns="z", value=8)
+        .col_vals_eq(columns="z", value=16, pre=multiply_z_by_two)
+        .interrogate()
+    )
+
+    assert v.n_passed()[1] == 4
+    assert v.n_passed()[2] == 4
+
+
 @pytest.mark.parametrize("tbl_fixture", TBL_MISSING_LIST)
 def test_col_vals_gt(request, tbl_fixture):
     pl.DataFrame({"x": [1, 2, None, 4], "y": [4, None, 6, 7], "z": [8, None, 8, 8]})
@@ -2803,6 +2849,246 @@ def test_col_vals_outside_with_datetime_bounds():
                 datetime.datetime(2023, 12, 1),
             ]
         }
+    )
+
+    # Values outside the middle of the year
+    validation = (
+        Validate(tbl)
+        .col_vals_outside(
+            columns="timestamp",
+            left=datetime.datetime(2023, 4, 1),
+            right=datetime.datetime(2023, 8, 1),
+        )
+        .interrogate()
+    )
+
+    # First and third values should be outside the range
+    assert validation.n_passed(i=1, scalar=True) == 2
+
+
+def test_validation_with_segments_and_pre_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {"category": ["A", "A", "B", "B"], "value": [10, 20, 30, 40], "multiplier": [2, 3, 4, 5]}
+    )
+
+    # Pre function that creates a new column
+    def add_computed_col(df):
+        return df.assign(computed=df["value"] * df["multiplier"])
+
+    validation = (
+        Validate(tbl)
+        .col_vals_gt(
+            columns="computed",
+            value=50,
+            pre=add_computed_col,
+            segments=[("category", "A"), ("category", "B")],
+        )
+        .interrogate()
+    )
+
+    # Should have run validation for both segments
+    assert len(validation.validation_info) == 2
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_with_segments_and_pre_pyspark():
+    import pyspark.sql.functions as F
+
+    spark = get_spark_session()
+    tbl = spark.createDataFrame(
+        [("A", 10, 2), ("A", 20, 3), ("B", 30, 4), ("B", 40, 5)],
+        ["category", "value", "multiplier"],
+    )
+
+    # Pre function that creates a new column
+    def add_computed_col(df):
+        return df.withColumn("computed", F.col("value") * F.col("multiplier"))
+
+    validation = (
+        Validate(tbl)
+        .col_vals_gt(
+            columns="computed",
+            value=50,
+            pre=add_computed_col,
+            segments=[("category", "A"), ("category", "B")],
+        )
+        .interrogate()
+    )
+
+    # Should have run validation for both segments
+    assert len(validation.validation_info) == 2
+
+
+def test_validation_error_handling_in_pre_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"values": [1, 2, 3]})
+
+    def failing_pre(df):
+        raise ValueError("Pre function failed")
+
+    validation = Validate(tbl).col_vals_gt(columns="values", value=0, pre=failing_pre).interrogate()
+
+    # Should handle the error gracefully
+    assert len(validation.validation_info) == 1
+    # The step should be marked as having an eval_error
+    assert validation.validation_info[0].eval_error is True
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_validation_error_handling_in_pre_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame([(1,), (2,), (3,)], ["values"])
+
+    def failing_pre(df):
+        raise ValueError("Pre function failed")
+
+    validation = Validate(tbl).col_vals_gt(columns="values", value=0, pre=failing_pre).interrogate()
+
+    # Should handle the error gracefully
+    assert len(validation.validation_info) == 1
+    # The step should be marked as having an eval_error
+    assert validation.validation_info[0].eval_error is True
+
+
+def test_conjointly_with_empty_expressions_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+
+    # Test with minimal expressions
+    validation = Validate(tbl).conjointly(lambda df: df["a"] > 0).interrogate()
+
+    # Should pass as all values in 'a' are > 0
+    assert validation.all_passed()
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_conjointly_with_empty_expressions_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame([(1, 4), (2, 5), (3, 6)], ["a", "b"])
+
+    # Test with minimal expressions
+    validation = Validate(tbl).conjointly(lambda df: df["a"] > 0).interrogate()
+
+    # Should pass as all values in 'a' are > 0
+    assert validation.all_passed()
+
+
+def test_specially_with_complex_return_values_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame({"values": [1, 2, 3, 4, 5]})
+
+    # Function returning list of mixed boolean/non-boolean (should fail)
+    def mixed_return():
+        return [True, False, "not_boolean"]
+
+    with pytest.raises(TypeError):
+        Validate(tbl).specially(expr=mixed_return).interrogate()
+
+    # Function returning single non-boolean (should fail)
+    def non_boolean_return():
+        return "not_boolean"
+
+    with pytest.raises(TypeError):
+        Validate(tbl).specially(expr=non_boolean_return).interrogate()
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_specially_with_complex_return_values_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame([(1,), (2,), (3,), (4,), (5,)], ["values"])
+
+    # Function returning list of mixed boolean/non-boolean (should fail)
+    def mixed_return():
+        return [True, False, "not_boolean"]
+
+    with pytest.raises(TypeError):
+        Validate(tbl).specially(expr=mixed_return).interrogate()
+
+    # Function returning single non-boolean (should fail)
+    def non_boolean_return():
+        return "not_boolean"
+
+    with pytest.raises(TypeError):
+        Validate(tbl).specially(expr=non_boolean_return).interrogate()
+
+
+def test_col_vals_between_with_column_references_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {"value": [5, 10, 15, 20], "lower": [1, 8, 12, 18], "upper": [10, 15, 20, 25]}
+    )
+
+    validation = (
+        Validate(tbl)
+        .col_vals_between(columns="value", left=col("lower"), right=col("upper"))
+        .interrogate()
+    )
+
+    # All values should be within their respective bounds
+    assert validation.all_passed()
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_col_vals_between_with_column_references_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame(
+        [(5, 1, 10), (10, 8, 15), (15, 12, 20), (20, 18, 25)], ["value", "lower", "upper"]
+    )
+
+    validation = (
+        Validate(tbl)
+        .col_vals_between(columns="value", left=col("lower"), right=col("upper"))
+        .interrogate()
+    )
+
+    # All values should be within their respective bounds
+    assert validation.all_passed()
+
+
+def test_col_vals_outside_with_datetime_bounds_pandas():
+    import pandas as pd
+
+    tbl = pd.DataFrame(
+        {
+            "timestamp": [
+                datetime.datetime(2023, 1, 1),
+                datetime.datetime(2023, 6, 1),
+                datetime.datetime(2023, 12, 1),
+            ]
+        }
+    )
+
+    # Values outside the middle of the year
+    validation = (
+        Validate(tbl)
+        .col_vals_outside(
+            columns="timestamp",
+            left=datetime.datetime(2023, 4, 1),
+            right=datetime.datetime(2023, 8, 1),
+        )
+        .interrogate()
+    )
+
+    # First and third values should be outside the range
+    assert validation.n_passed(i=1, scalar=True) == 2
+
+
+@pytest.mark.skipif(not PYSPARK_AVAILABLE, reason="PySpark not available")
+def test_col_vals_outside_with_datetime_bounds_pyspark():
+    spark = get_spark_session()
+    tbl = spark.createDataFrame(
+        [
+            (datetime.datetime(2023, 1, 1),),
+            (datetime.datetime(2023, 6, 1),),
+            (datetime.datetime(2023, 12, 1),),
+        ],
+        ["timestamp"],
     )
 
     # Values outside the middle of the year
