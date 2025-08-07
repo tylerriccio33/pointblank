@@ -50,7 +50,7 @@ requires-python = ">=3.10"
 [project.optional-dependencies]
 pd = ["pandas>=2.2.3"]
 pl = ["polars>=1.24.0"]
-pyspark = ["pyspark>=3.5.6"]
+pyspark = ["pyspark==3.5.6"]
 generate = [
     "chatlas>=0.3.0",
     "anthropic[bedrock]>=0.45.2",
@@ -72,7 +72,7 @@ docs = [
     "quartodoc>=0.8.1; python_version >= '3.9'",
     "pandas>=2.2.3",
     "polars>=1.17.1",
-    "pyspark>=3.5.6",
+    "pyspark==3.5.6",
 ]
 
 [dependency-groups]
@@ -90,7 +90,7 @@ dev = [
     "pre-commit==2.15.0",
     "pyarrow",
     "pyarrow-stubs>=19.4",
-    "pyspark>=3.5.6",
+    "pyspark==3.5.6",
     "pytest>=3",
     "pytest-cov",
     "pytest-randomly>=3.16.0",
