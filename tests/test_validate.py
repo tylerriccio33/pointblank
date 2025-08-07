@@ -22,13 +22,24 @@ import pandas as pd
 import polars as pl
 import ibis
 
-# PySpark import with environment setup for Mac compatibility
+# PySpark import with environment setup for cross-platform compatibility
 try:
     import os
 
-    # Set Java home for Mac compatibility if not already set
+    # Set Java home for compatibility if not already set
     if "JAVA_HOME" not in os.environ:
-        os.environ["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home"
+        # Try common Java locations across platforms
+        java_paths = [
+            "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home",  # macOS
+            "/usr/lib/jvm/java-11-openjdk-amd64",  # Ubuntu/Debian
+            "/usr/lib/jvm/java-11-openjdk",  # CentOS/RHEL
+            "/usr/lib/jvm/default-java",  # Generic Ubuntu
+        ]
+
+        for java_path in java_paths:
+            if os.path.exists(java_path):
+                os.environ["JAVA_HOME"] = java_path
+                break
 
     from pyspark.sql import SparkSession
     from pyspark.sql.types import (
@@ -111,11 +122,23 @@ def get_spark_session():
     if not PYSPARK_AVAILABLE:
         pytest.skip("PySpark not available")
 
+    # Allow skipping PySpark tests in CI if needed
+    if os.environ.get("SKIP_PYSPARK_TESTS", "").lower() in ("true", "1", "yes"):
+        pytest.skip("PySpark tests disabled via SKIP_PYSPARK_TESTS environment variable")
+
     return (
         SparkSession.builder.appName("PointblankTests")
-        .master("local[1]")
+        .master("local[1]")  # Use single thread for CI stability
         .config("spark.ui.enabled", "false")
         .config("spark.sql.execution.arrow.pyspark.enabled", "false")
+        .config(
+            "spark.sql.adaptive.enabled", "false"
+        )  # Disable adaptive query execution for deterministic tests
+        .config("spark.sql.adaptive.coalescePartitions.enabled", "false")
+        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .config("spark.driver.memory", "1g")  # Limit memory usage for CI
+        .config("spark.driver.maxResultSize", "512m")
+        .config("spark.sql.shuffle.partitions", "2")  # Reduce partitions for small test data
         .getOrCreate()
     )
 
