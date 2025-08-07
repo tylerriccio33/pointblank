@@ -10015,9 +10015,9 @@ class Validate:
                         name="_row_num_", order_by=first_col
                     )
 
-                validation_extract_nw = validation_extract_nw.filter(
-                    ~nw.col("pb_is_good_")
-                ).drop("pb_is_good_")  # noqa
+                validation_extract_nw = validation_extract_nw.filter(~nw.col("pb_is_good_")).drop(
+                    "pb_is_good_"
+                )  # noqa
 
                 # Add 1 to the row numbers to make them 1-indexed
                 validation_extract_nw = validation_extract_nw.with_columns(nw.col("_row_num_") + 1)
