@@ -2614,23 +2614,18 @@ def get_column_count(data: FrameT | Any) -> int:
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
 
-    if "ibis.expr.types.relations.Table" in str(type(data)):
-        return len(data.columns)
+    # Use Narwhals to handle all DataFrame types (including Ibis) uniformly
+    try:
+        import narwhals as nw
 
-    elif "polars" in str(type(data)):
-        return len(data.columns)
-
-    elif "pandas" in str(type(data)):
-        return data.shape[1]
-
-    elif "pyspark" in str(type(data)):
-        return len(data.columns)
-
-    elif "narwhals" in str(type(data)):
-        return len(data.columns)
-
-    else:
-        raise ValueError("The input table type supplied in `data=` is not supported.")
+        df_nw = nw.from_native(data)
+        return len(df_nw.columns)
+    except Exception:
+        # Fallback for unsupported types
+        if "pandas" in str(type(data)):
+            return data.shape[1]
+        else:
+            raise ValueError("The input table type supplied in `data=` is not supported.")
 
 
 def get_row_count(data: FrameT | Any) -> int:
@@ -2786,33 +2781,29 @@ def get_row_count(data: FrameT | Any) -> int:
         # Handle list of file paths (likely Parquet files)
         data = _process_parquet_input(data)
 
-    if "ibis.expr.types.relations.Table" in str(type(data)):
-        # Determine whether Pandas or Polars is available to get the row count
-        _check_any_df_lib(method_used="get_row_count")
+    # Use Narwhals to handle all DataFrame types (including Ibis) uniformly
+    try:
+        import narwhals as nw
 
-        # Select the DataFrame library to use for displaying the Ibis table
-        df_lib = _select_df_lib(preference="polars")
-        df_lib_name = df_lib.__name__
-
-        if df_lib_name == "pandas":
-            return int(data.count().to_pandas())
+        df_nw = nw.from_native(data)
+        # Handle LazyFrames by collecting them first
+        if hasattr(df_nw, "collect"):
+            df_nw = df_nw.collect()
+        # Try different ways to get row count
+        if hasattr(df_nw, "shape"):
+            return df_nw.shape[0]
+        elif hasattr(df_nw, "height"):
+            return df_nw.height
         else:
-            return int(data.count().to_polars())
-
-    elif "polars" in str(type(data)):
-        return int(data.height)
-
-    elif "pandas" in str(type(data)):
-        return data.shape[0]
-
-    elif "pyspark" in str(type(data)):
-        return data.count()
-
-    elif "narwhals" in str(type(data)):
-        return data.shape[0]
-
-    else:
-        raise ValueError("The input table type supplied in `data=` is not supported.")
+            raise ValueError("Unable to determine row count from Narwhals DataFrame")
+    except Exception:
+        # Fallback for types that don't work with Narwhals
+        if "pandas" in str(type(data)):
+            return data.shape[0]
+        elif "pyspark" in str(type(data)):
+            return data.count()
+        else:
+            raise ValueError("The input table type supplied in `data=` is not supported.")
 
 
 @dataclass
