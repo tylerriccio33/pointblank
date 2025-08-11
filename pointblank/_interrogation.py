@@ -308,47 +308,7 @@ class Interrogator:
             return tbl.drop("pb_is_good_1", "pb_is_good_2", "pb_is_good_3").to_native()
 
     def ne(self) -> FrameT | Any:
-        # Ibis backends ---------------------------------------------
-
-        if self.tbl_type in IBIS_BACKENDS:
-            import ibis
-
-            if isinstance(self.compare, Column):
-                #
-                # Ibis column-to-column comparison
-                #
-
-                tbl = self.x.mutate(
-                    pb_is_good_1=(self.x[self.column].isnull() | self.x[self.compare.name].isnull())
-                    & ibis.literal(self.na_pass),
-                    pb_is_good_2=self.x[self.column] != self.x[self.compare.name],
-                )
-
-                tbl = tbl.mutate(
-                    pb_is_good_2=ibis.ifelse(tbl.pb_is_good_2.notnull(), tbl.pb_is_good_2, False)
-                )
-
-                return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                    "pb_is_good_1", "pb_is_good_2"
-                )
-
-            #
-            # Ibis column-to-literal comparison
-            #
-            tbl = self.x.mutate(
-                pb_is_good_1=self.x[self.column].isnull() & ibis.literal(self.na_pass),
-                pb_is_good_2=ibis.ifelse(
-                    self.x[self.column].notnull(),
-                    self.x[self.column] != ibis.literal(self.compare),
-                    ibis.literal(False),
-                ),
-            )
-
-            return tbl.mutate(pb_is_good_=tbl.pb_is_good_1 | tbl.pb_is_good_2).drop(
-                "pb_is_good_1", "pb_is_good_2"
-            )
-
-        # Local backends (Narwhals) ---------------------------------
+        # All backends now use Narwhals (including former Ibis tables) ---------
 
         # Determine if the reference and comparison columns have any null values
         ref_col_has_null_vals = _column_has_null_values(table=self.x, column=self.column)
@@ -807,28 +767,14 @@ class Interrogator:
         )
 
     def null(self) -> FrameT | Any:
-        # Ibis backends ---------------------------------------------
-
-        if self.tbl_type in IBIS_BACKENDS:
-            return self.x.mutate(
-                pb_is_good_=self.x[self.column].isnull(),
-            )
-
-        # Local backends (Narwhals) ---------------------------------
+        # All backends now use Narwhals (including former Ibis tables) ---------
 
         return self.x.with_columns(
             pb_is_good_=nw.col(self.column).is_null(),
         ).to_native()
 
     def not_null(self) -> FrameT | Any:
-        # Ibis backends ---------------------------------------------
-
-        if self.tbl_type in IBIS_BACKENDS:
-            return self.x.mutate(
-                pb_is_good_=~self.x[self.column].isnull(),
-            )
-
-        # Local backends (Narwhals) ---------------------------------
+        # All backends now use Narwhals (including former Ibis tables) ---------
 
         return self.x.with_columns(
             pb_is_good_=~nw.col(self.column).is_null(),
@@ -923,10 +869,8 @@ class ColValsCompareOne:
             tbl = _column_test_prep(
                 df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
-
-        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
-        #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
@@ -1081,7 +1025,8 @@ class ColValsCompareTwo:
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
@@ -1174,10 +1119,8 @@ class ColValsCompareSet:
             tbl = _column_test_prep(
                 df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
-
-        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
-        #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
@@ -1251,10 +1194,8 @@ class ColValsRegex:
             tbl = _column_test_prep(
                 df=self.data_tbl, column=self.column, allowed_types=self.allowed_types
             )
-
-        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
-        #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
@@ -1382,11 +1323,9 @@ class ColExistsHasType:
             #  - check if the `column=` exists
             #  - check if the `column=` type is compatible with the test
             tbl = _convert_to_narwhals(df=self.data_tbl)
-
-        # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
-        #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
-            tbl = self.data_tbl
+        else:
+            # For remote backends (Ibis), pass the table as is since Narwhals can handle it
+            tbl = _convert_to_narwhals(df=self.data_tbl)
 
         if self.assertion_method == "exists":
             res = int(self.column in tbl.columns)
@@ -1434,7 +1373,8 @@ class RowsDistinct:
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
@@ -1486,7 +1426,8 @@ class RowsComplete:
 
         # TODO: For Ibis backends, check if the column exists and if the column type is compatible;
         #       for now, just pass the table as is
-        if self.tbl_type in IBIS_BACKENDS:
+        else:
+            # For remote backends (Ibis), pass the table as is since Interrogator now handles Ibis through Narwhals
             tbl = self.data_tbl
 
         # Collect results for the test units; the results are a list of booleans where
