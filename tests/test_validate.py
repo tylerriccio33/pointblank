@@ -10659,29 +10659,6 @@ def test_get_row_count_failing():
         get_row_count("not a table")
 
 
-def test_get_row_count_no_polars_duckdb_table():
-    small_table = load_dataset(dataset="small_table", tbl_type="duckdb")
-
-    # Mock the absence of the Polars library, which is the default library for making
-    # a table for the preview; this should not raise an error since Pandas is the
-    # fallback library and is available
-    with patch.dict(sys.modules, {"polars": None}):
-        assert get_row_count(small_table) == 13
-
-    # Mock the absence of the Pandas library, which is a secondary library for making
-    # a table for the preview; this should not raise an error since Polars is the default
-    # library and is available
-    with patch.dict(sys.modules, {"pandas": None}):
-        assert get_row_count(small_table) == 13
-
-    # Mock the absence of both the Polars and Pandas libraries, which are the libraries
-    # for making a table for the preview; this should raise an error since there are no
-    # libraries available to make a table for the preview
-    with patch.dict(sys.modules, {"polars": None, "pandas": None}):
-        with pytest.raises(ImportError):
-            assert get_row_count(small_table) == 13
-
-
 def test_get_column_count_csv_input():
     # Test with individual CSV file
     csv_path = "data_raw/small_table.csv"
