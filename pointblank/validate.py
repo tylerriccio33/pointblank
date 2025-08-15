@@ -3811,7 +3811,7 @@ class Validate:
         import pointblank as pb
         pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
         ```
-        Let's create a validation plan with one table and then apply it to a different table:
+        We will first create two similar tables for our future validation plans.
 
         ```{python}
         import pointblank as pb
@@ -3831,7 +3831,7 @@ class Validate:
         })
         ```
 
-        Create a validation plan with the first table
+        Create a validation plan with the first table.
 
         ```{python}
         validation_table_1 = (
@@ -3843,8 +3843,11 @@ class Validate:
             .col_vals_gt(columns="x", value=0)
             .col_vals_lt(columns="y", value=10)
         )
+        ```
 
-        # Apply the same validation plan to the second table
+        Now apply the same validation plan to the second table.
+
+        ```{python}
         validation_table_2 = (
             validation_table_1
             .set_tbl(
@@ -3854,7 +3857,7 @@ class Validate:
             )
         )
 
-        Now let's interrogate the first table:
+        Here is the interrogation of the first table:
 
         ```{python}
         validation_table_1.interrogate()
