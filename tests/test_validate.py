@@ -6,7 +6,7 @@ import pprint
 import sys
 import re
 import os
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 import pytest
 import random
 import itertools
@@ -18,7 +18,6 @@ import contextlib
 import datetime
 
 import pandas as pd
-
 import polars as pl
 import ibis
 
@@ -9221,7 +9220,6 @@ def test_dataframe_library_selection_integration():
     result = validator.col_vals_gt(columns="values", value=5000).interrogate()
 
     # Mock the formatting functions to verify they receive the correct df_lib parameter
-    from unittest.mock import patch, MagicMock
 
     original_transform_test_units = __import__(
         "pointblank.validate", fromlist=["_transform_test_units"]
@@ -14271,8 +14269,6 @@ def test_polars_only_environment_scenario():
 
 
 def test_both_libraries_environment_scenario():
-    import pandas as pd
-    import polars as pl
     import pointblank as pb
 
     # Test data for both DataFrame types
@@ -14326,8 +14322,6 @@ def test_both_libraries_environment_scenario():
 
 
 def test_dataframe_library_formatting_consistency_across_scenarios():
-    import pandas as pd
-    import polars as pl
     from pointblank.validate import (
         _format_single_number_with_gt,
         _format_single_float_with_gt,
@@ -14366,8 +14360,6 @@ def test_dataframe_library_formatting_consistency_across_scenarios():
 
 
 def test_scenario_integration_with_large_datasets():
-    import polars as pl
-    import pandas as pd
     import pointblank as pb
 
     # Create large dataset that will trigger number formatting in various functions
@@ -14427,8 +14419,6 @@ def test_scenario_integration_with_large_datasets():
 
 
 def test_scenario_edge_cases_and_error_handling():
-    import polars as pl
-    import pandas as pd
     import pointblank as pb
     from pointblank.validate import _format_single_number_with_gt
 
@@ -14473,3 +14463,435 @@ def test_scenario_edge_cases_and_error_handling():
         # Adding validation steps to empty data should work
         validation = validation.col_vals_gt(columns="values", value=0)
         assert len(validation.validation_info) == 1
+
+
+def test_set_tbl_basic_functionality():
+    """Test basic `set_tbl()` functionality with different table types."""
+
+    # Create test tables
+    table1_pl = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    table2_pl = pl.DataFrame({"a": [7, 8, 9], "b": [10, 11, 12]})
+    table1_pd = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    table2_pd = pd.DataFrame({"a": [7, 8, 9], "b": [10, 11, 12]})
+
+    # Test with Polars
+    validation1 = Validate(data=table1_pl, tbl_name="Table 1").col_vals_gt(columns="a", value=0)
+    validation2 = validation1.set_tbl(tbl=table2_pl, tbl_name="Table 2", label="New label")
+
+    # Verify original is unchanged
+    assert validation1.tbl_name == "Table 1"
+    assert validation1.label is None
+    assert validation1 is not validation2
+
+    # Verify new validation has updated properties
+    assert validation2.tbl_name == "Table 2"
+    assert validation2.label == "New label"
+    assert len(validation1.validation_info) == len(validation2.validation_info)
+
+    # Test with Pandas
+    validation1_pd = Validate(data=table1_pd, tbl_name="PD Table 1").col_vals_gt(
+        columns="a", value=0
+    )
+    validation2_pd = validation1_pd.set_tbl(tbl=table2_pd, tbl_name="PD Table 2")
+
+    assert validation1_pd.tbl_name == "PD Table 1"
+    assert validation2_pd.tbl_name == "PD Table 2"
+
+
+def test_set_tbl_preserves_validation_steps():
+    """Test that `set_tbl()` preserves all validation step configurations."""
+
+    table1 = pl.DataFrame(
+        {"x": [1, 2, 3, 4, 5], "y": [10, 20, 30, 40, 50], "z": ["a", "b", "c", "d", "e"]}
+    )
+    table2 = pl.DataFrame(
+        {"x": [6, 7, 8, 9, 10], "y": [60, 70, 80, 90, 100], "z": ["f", "g", "h", "i", "j"]}
+    )
+
+    # Create validation with multiple steps and various configurations
+    original = (
+        Validate(data=table1, thresholds=Thresholds(warning=0.1))
+        .col_vals_gt(columns="x", value=0, na_pass=True, brief="Check x > 0")
+        .col_vals_between(columns="y", left=5, right=200, brief="Check y range")
+        .col_exists(columns=["x", "y", "z"])
+        .col_vals_in_set(columns="z", set=["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"])
+    )
+
+    # Apply set_tbl
+    new_validation = original.set_tbl(table2)
+
+    # Verify same number of validation steps
+    assert len(original.validation_info) == len(new_validation.validation_info)
+
+    # Verify step configurations are preserved in detail
+    for orig_step, new_step in zip(original.validation_info, new_validation.validation_info):
+        assert orig_step.assertion_type == new_step.assertion_type
+        assert orig_step.column == new_step.column
+        assert orig_step.values == new_step.values
+        assert orig_step.brief == new_step.brief
+        assert orig_step.na_pass == new_step.na_pass
+        assert orig_step.thresholds == new_step.thresholds
+
+    # Verify global thresholds are preserved
+    assert original.thresholds.warning == new_validation.thresholds.warning
+
+    # Interrogate and verify results
+    result = new_validation.interrogate()
+    assert all(step.all_passed for step in result.validation_info)
+
+
+def test_set_tbl_before_and_after_interrogation():
+    """Test `set_tbl()` behavior before and after interrogation."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    table2 = pl.DataFrame({"a": [7, 8, 9], "b": [10, 11, 12]})
+
+    # Test set_tbl BEFORE interrogation
+    validation_before = (
+        Validate(data=table1).col_vals_gt(columns="a", value=0).col_exists(columns=["a", "b"])
+    )
+
+    # Should have validation_info but no interrogation results
+    assert len(validation_before.validation_info) == 3  # 1 + 2 (col_exists creates multiple steps)
+    assert validation_before.time_start is None
+    assert validation_before.time_end is None
+
+    # Apply set_tbl before interrogation
+    validation_before_new = validation_before.set_tbl(table2, tbl_name="Before Interrogation")
+    assert len(validation_before_new.validation_info) == 3
+    assert validation_before_new.time_start is None
+    assert validation_before_new.time_end is None
+
+    # Interrogate the new validation
+    result_before = validation_before_new.interrogate()
+    assert result_before.time_start is not None
+    assert result_before.time_end is not None
+    assert all(step.all_passed for step in result_before.validation_info)
+
+    # Test set_tbl AFTER interrogation
+    validation_after = (
+        Validate(data=table1)
+        .col_vals_gt(columns="a", value=0)
+        .col_exists(columns=["a", "b"])
+        .interrogate()
+    )
+
+    # Should have interrogation results
+    assert validation_after.time_start is not None
+    assert validation_after.time_end is not None
+
+    # Apply set_tbl after interrogation
+    validation_after_new = validation_after.set_tbl(table2, tbl_name="After Interrogation")
+
+    # Should reset interrogation state but preserve validation steps
+    assert len(validation_after_new.validation_info) == 3
+    assert validation_after_new.time_start is None  # Reset
+    assert validation_after_new.time_end is None  # Reset
+
+    # Re-interrogate
+    result_after = validation_after_new.interrogate()
+    assert result_after.time_start is not None
+    assert result_after.time_end is not None
+
+
+def test_set_tbl_deep_copy_behavior():
+    """Test that `set_tbl()` creates proper deep copies."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3]})
+    table2 = pl.DataFrame({"a": [4, 5, 6]})
+
+    original = Validate(data=table1, tbl_name="Original", label="Original Label")
+    copied = original.set_tbl(table2, tbl_name="Copied")
+
+    # Verify they are different objects
+    assert original is not copied
+    assert original.data is not copied.data
+    assert original.tbl_name != copied.tbl_name
+
+    # Verify modifying one doesn't affect the other
+    original.tbl_name = "Modified Original"
+    assert copied.tbl_name == "Copied"
+
+    # Test with complex validation plans
+    complex_original = Validate(data=table1, thresholds=Thresholds(warning=0.1)).col_vals_gt(
+        columns="a", value=0
+    )
+    complex_copied = complex_original.set_tbl(table2)
+
+    # Modify original validation info (should not affect copy)
+    complex_original.validation_info[0].brief = "Modified brief"
+    assert complex_copied.validation_info[0].brief != "Modified brief"
+
+
+def test_set_tbl_optional_parameters():
+    """Test `set_tbl()` with various combinations of optional parameters."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3]})
+    table2 = pl.DataFrame({"a": [4, 5, 6]})
+
+    original = Validate(data=table1, tbl_name="Original", label="Original Label")
+
+    # Test with only table (should preserve existing tbl_name and label)
+    copy1 = original.set_tbl(table2)
+    assert copy1.tbl_name == "Original"
+    assert copy1.label == "Original Label"
+
+    # Test with table and tbl_name only
+    copy2 = original.set_tbl(table2, tbl_name="New Name")
+    assert copy2.tbl_name == "New Name"
+    assert copy2.label == "Original Label"
+
+    # Test with table and label only
+    copy3 = original.set_tbl(table2, label="New Label")
+    assert copy3.tbl_name == "Original"
+    assert copy3.label == "New Label"
+
+    # Test with all parameters
+    copy4 = original.set_tbl(table2, tbl_name="New Name", label="New Label")
+    assert copy4.tbl_name == "New Name"
+    assert copy4.label == "New Label"
+
+    # Test with None values (should use defaults/existing values)
+    copy5 = original.set_tbl(table2, tbl_name=None, label=None)
+    assert copy5.tbl_name == "Original"
+    assert copy5.label == "Original Label"
+
+
+def test_set_tbl_with_complex_validations():
+    """Test `set_tbl()` with complex validation scenarios."""
+
+    # Create tables with different data patterns
+    table1 = pl.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "score": [85, 92, 78, 95, 88],
+            "category": ["A", "B", "A", "C", "B"],
+            "active": [True, True, False, True, True],
+        }
+    )
+
+    table2 = pl.DataFrame(
+        {
+            "id": [6, 7, 8, 9, 10],
+            "score": [76, 89, 91, 83, 96],
+            "category": ["C", "A", "B", "A", "C"],
+            "active": [True, False, True, True, False],
+        }
+    )
+
+    # Create complex validation with multiple types of validations
+    complex_validation = (
+        Validate(data=table1, thresholds=Thresholds(warning=0.2, error=0.5))
+        .col_exists(columns=["id", "score", "category", "active"])
+        .col_vals_not_null(columns=["id", "score"])
+        .col_vals_between(columns="score", left=0, right=100)
+        .col_vals_in_set(columns="category", set=["A", "B", "C"])
+        .col_vals_gt(columns="id", value=0)
+        .rows_distinct()
+    )
+
+    # Apply to new table
+    new_validation = complex_validation.set_tbl(table2, tbl_name="Complex Test")
+
+    # Verify all validation steps are preserved
+    assert len(complex_validation.validation_info) == len(new_validation.validation_info)
+
+    # Interrogate and verify results
+    result = new_validation.interrogate()
+    assert all(step.all_passed for step in result.validation_info)
+    assert result.tbl_name == "Complex Test"
+
+
+def test_set_tbl_with_segments_and_preprocessing():
+    """Test `set_tbl()` with segmented validations and preprocessing."""
+
+    table1 = pl.DataFrame(
+        {
+            "region": ["North", "South", "North", "South"],
+            "sales": [100, 200, 150, 180],
+            "quarter": ["Q1", "Q1", "Q2", "Q2"],
+        }
+    )
+
+    table2 = pl.DataFrame(
+        {
+            "region": ["East", "West", "East", "West"],
+            "sales": [120, 220, 160, 190],
+            "quarter": ["Q3", "Q3", "Q4", "Q4"],
+        }
+    )
+
+    # Create validation with preprocessing and segments
+    segmented_validation = Validate(data=table1).col_vals_gt(
+        columns="sales",
+        value=50,
+        pre=lambda df: df.filter(pl.col("sales") > 0),  # Preprocessing
+        segments="region",  # Segmentation
+    )
+
+    # Apply set_tbl
+    new_segmented = segmented_validation.set_tbl(table2, tbl_name="Segmented Test")
+
+    # Verify segmentation and preprocessing are preserved
+    result = new_segmented.interrogate()
+    assert result.tbl_name == "Segmented Test"
+    # Should have multiple validation steps due to segmentation
+    assert len(result.validation_info) > 1
+
+
+def test_set_tbl_error_handling():
+    """Test error handling and edge cases for `set_tbl()`."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3]})
+    table2 = pl.DataFrame({"b": [4, 5, 6]})  # Different column structure
+
+    validation = Validate(data=table1).col_vals_gt(columns="a", value=0)
+
+    # Test with incompatible table structure
+    # set_tbl should work but interrogation might fail
+    incompatible_validation = validation.set_tbl(table2)
+    assert incompatible_validation is not None
+
+    # Test that interrogation fails gracefully with incompatible structure
+    with pytest.raises(Exception):  # Should raise an error during interrogation
+        incompatible_validation.interrogate()
+
+
+def test_set_tbl_with_different_dataframe_libraries():
+    """Test `set_tbl()` across different DataFrame libraries."""
+
+    # Create tables in different formats
+    polars_table = pl.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+    pandas_table = pd.DataFrame({"x": [7, 8, 9], "y": [10, 11, 12]})
+
+    # Test Polars -> Pandas
+    polars_validation = Validate(data=polars_table).col_vals_gt(columns="x", value=0)
+    pandas_from_polars = polars_validation.set_tbl(pandas_table, tbl_name="Pandas from Polars")
+
+    result1 = pandas_from_polars.interrogate()
+    assert result1.tbl_name == "Pandas from Polars"
+    assert all(step.all_passed for step in result1.validation_info)
+
+    # Test Pandas -> Polars
+    pandas_validation = Validate(data=pandas_table).col_vals_gt(columns="x", value=0)
+    polars_from_pandas = pandas_validation.set_tbl(polars_table, tbl_name="Polars from Pandas")
+
+    result2 = polars_from_pandas.interrogate()
+    assert result2.tbl_name == "Polars from Pandas"
+    assert all(step.all_passed for step in result2.validation_info)
+
+
+def test_set_tbl_preserves_thresholds_and_actions():
+    """Test that `set_tbl()` preserves thresholds and actions."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3]})
+    table2 = pl.DataFrame({"a": [4, 5, 6]})
+
+    # Create validation with thresholds and actions
+    action_calls = []
+
+    def test_action():
+        action_calls.append("action_called")
+
+    validation_with_config = Validate(
+        data=table1,
+        thresholds=Thresholds(warning=0.1, error=0.5),
+        actions=Actions(warning=test_action),
+    ).col_vals_gt(columns="a", value=0)
+
+    # Apply `set_tbl()`
+    new_validation = validation_with_config.set_tbl(table2, tbl_name="With Config")
+
+    # Verify thresholds are preserved
+    assert new_validation.thresholds.warning == 0.1
+    assert new_validation.thresholds.error == 0.5
+
+    # Verify actions are preserved
+    assert new_validation.actions is not None
+    assert new_validation.actions.warning is not None
+
+    # Interrogate (should not trigger warning since data passes)
+    result = new_validation.interrogate()
+    assert all(step.all_passed for step in result.validation_info)
+
+
+def test_set_tbl_with_string_and_path_inputs():
+    """Test `set_tbl()` with CSV file paths and dataset names."""
+    import tempfile
+    import os
+
+    # Create validation with built-in dataset
+    dataset_validation = (
+        Validate(data="small_table")
+        .col_exists(columns=["a", "b"])
+        .col_vals_gt(columns="a", value=0)
+    )
+
+    # Test set_tbl with different DataFrame that has compatible columns
+    compatible_df = pl.DataFrame({"a": [10, 20, 30], "b": [40, 50, 60], "c": [70, 80, 90]})
+    compatible_validation = dataset_validation.set_tbl(compatible_df, tbl_name="Compatible Data")
+
+    # Verify the dataset was changed
+    assert compatible_validation.tbl_name == "Compatible Data"
+    # Note: col_exists may generate multiple validation steps (one per column)
+    assert len(compatible_validation.validation_info) >= 2  # Original validations preserved
+
+    # Test interrogate should work with compatible DataFrame
+    result = compatible_validation.interrogate()
+    assert result.tbl_name == "Compatible Data"
+    assert all(step.all_passed for step in result.validation_info)
+
+    # Test with CSV file
+    test_data = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        test_data.write_csv(f.name)
+        csv_path = f.name
+
+    try:
+        csv_validation = dataset_validation.set_tbl(csv_path, tbl_name="CSV Data")
+
+        # Verify CSV was loaded
+        assert csv_validation.tbl_name == "CSV Data"
+        assert len(csv_validation.validation_info) >= 2
+
+        # Test interrogation with CSV data
+        result_csv = csv_validation.interrogate()
+        assert result_csv.tbl_name == "CSV Data"
+        assert all(step.all_passed for step in result_csv.validation_info)
+    finally:
+        os.unlink(csv_path)
+
+
+def test_set_tbl_interrogation_state_management():
+    """Test that `set_tbl()` properly manages interrogation state."""
+
+    table1 = pl.DataFrame({"a": [1, 2, 3]})
+    table2 = pl.DataFrame({"a": [4, 5, 6]})
+
+    # Create and interrogate original validation
+    original = (
+        Validate(data=table1, tbl_name="Original").col_vals_gt(columns="a", value=0).interrogate()
+    )
+
+    # Verify original has interrogation state
+    assert original.time_start is not None
+    assert original.time_end is not None
+    assert len(original.validation_info) > 0
+    assert all(hasattr(step, "all_passed") for step in original.validation_info)
+
+    # Apply set_tbl (should reset interrogation state)
+    new_validation = original.set_tbl(table2, tbl_name="New")
+
+    # Verify interrogation state is reset
+    assert new_validation.time_start is None
+    assert new_validation.time_end is None
+
+    # Verify validation steps are preserved but not yet executed
+    assert len(new_validation.validation_info) == len(original.validation_info)
+
+    # Re-interrogate
+    new_result = new_validation.interrogate()
+    assert new_result.time_start is not None
+    assert new_result.time_end is not None
+    assert new_result.tbl_name == "New"
