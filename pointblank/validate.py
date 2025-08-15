@@ -3758,6 +3758,137 @@ class Validate:
 
         self.validation_info = []
 
+    def set_tbl(
+        self,
+        tbl: FrameT | Any,
+        tbl_name: str | None = None,
+        label: str | None = None,
+    ) -> Validate:
+        """
+        Set or replace the table associated with the Validate object.
+
+        This method allows you to replace the table associated with a Validate object with a
+        different (but presumably similar) table. This is useful when you want to apply the same
+        validation plan to multiple tables or when you have a validation workflow defined but want
+        to swap in a different data source.
+
+        Parameters
+        ----------
+        tbl
+            The table to replace the existing table with. This can be any supported table type
+            including DataFrame objects, Ibis table objects, CSV file paths, Parquet file paths,
+            GitHub URLs, or database connection strings. The same table type constraints apply as in
+            the `Validate` constructor.
+        tbl_name
+            An optional name to assign to the new input table object. If no value is provided, the
+            existing table name will be retained.
+        label
+            An optional label for the validation plan. If no value is provided, the existing label
+            will be retained.
+
+        Returns
+        -------
+        Validate
+            A new `Validate` object with the replacement table.
+
+        When to Use
+        -----------
+        The `set_tbl()` method is particularly useful in scenarios where you have:
+
+        - multiple similar tables that need the same validation checks
+        - a template validation workflow that should be applied to different data sources
+        - YAML-defined validations where you want to override the table specified in the YAML
+
+        The `set_tbl()` method creates a copy of the validation object with the new table, so the
+        original validation object remains unchanged. This allows you to reuse validation plans
+        across multiple tables without interference.
+
+        Examples
+        --------
+        ```{python}
+        #| echo: false
+        #| output: false
+        import pointblank as pb
+        pb.config(report_incl_header=False, report_incl_footer=False, preview_incl_header=False)
+        ```
+        Let's create a validation plan with one table and then apply it to a different table:
+
+        ```{python}
+        import pointblank as pb
+        import polars as pl
+
+        # Create two similar tables
+        table_1 = pl.DataFrame({
+            "x": [1, 2, 3, 4, 5],
+            "y": [5, 4, 3, 2, 1],
+            "z": ["a", "b", "c", "d", "e"]
+        })
+
+        table_2 = pl.DataFrame({
+            "x": [2, 4, 6, 8, 10],
+            "y": [10, 8, 6, 4, 2],
+            "z": ["f", "g", "h", "i", "j"]
+        })
+        ```
+
+        Create a validation plan with the first table
+
+        ```{python}
+        validation_table_1 = (
+            pb.Validate(
+                data=table_1,
+                tbl_name="Table 1",
+                label="Validation applied to the first table"
+            )
+            .col_vals_gt(columns="x", value=0)
+            .col_vals_lt(columns="y", value=10)
+        )
+
+        # Apply the same validation plan to the second table
+        validation_table_2 = (
+            validation_table_1
+            .set_tbl(
+                tbl=table_2,
+                tbl_name="Table 2",
+                label="Validation applied to the second table"
+            )
+        )
+
+        Now let's interrogate the first table:
+
+        ```{python}
+        validation_table_1.interrogate()
+        ```
+
+        And the second table:
+
+        ```{python}
+        validation_table_2.interrogate()
+        ```
+        """
+        from copy import deepcopy
+
+        # Create a deep copy of the current Validate object
+        new_validate = deepcopy(self)
+
+        # Process the new table through the centralized data processing pipeline
+        new_validate.data = _process_data(tbl)
+
+        # Update table name if provided, otherwise keep existing
+        if tbl_name is not None:
+            new_validate.tbl_name = tbl_name
+
+        # Update label if provided, otherwise keep existing
+        if label is not None:
+            new_validate.label = label
+
+        # Reset interrogation state since we have a new table, but preserve validation steps
+        new_validate.time_start = None
+        new_validate.time_end = None
+        # Note: We keep validation_info as it contains the defined validation steps
+
+        return new_validate
+
     def _repr_html_(self) -> str:
         return self.get_tabular_report()._repr_html_()  # pragma: no cover
 
