@@ -3856,6 +3856,7 @@ class Validate:
                 label="Validation applied to the second table"
             )
         )
+        ```
 
         Here is the interrogation of the first table:
 
