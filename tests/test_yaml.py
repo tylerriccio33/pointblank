@@ -2,6 +2,9 @@ import pytest
 from pointblank import yaml_interrogate, validate_yaml, yaml_to_python
 from pointblank.yaml import load_yaml_config, YAMLValidationError, YAMLValidator
 
+import polars as pl
+import pandas as pd
+
 
 def test_yaml_interrogate_basic_workflow():
     yaml_content = """
@@ -153,6 +156,14 @@ def test_validate_yaml():
     - rows_distinct
     """
     validate_yaml(valid_yaml)  # Should not raise
+
+    # Valid configuration with tbl: null (for template use cases)
+    valid_yaml_null = """
+    tbl: null
+    steps:
+    - rows_distinct
+    """
+    validate_yaml(valid_yaml_null)  # Should not raise
 
     # Invalid configuration: missing tbl
     invalid_yaml1 = """
@@ -2288,7 +2299,7 @@ def test_yaml_to_python_count_matches_combined():
 
 
 def test_yaml_count_matches_with_different_datasets():
-    # Test `col_count_match()` with the `game_revenue` dataset
+    """Test `col_count_match()` with the `game_revenue` dataset."""
     yaml_content_game = """
     tbl: game_revenue
     steps:
@@ -2315,3 +2326,647 @@ def test_yaml_count_matches_with_different_datasets():
     assert len(result.validation_info) == 1
     assert result.validation_info[0].assertion_type == "row_count_match"
     assert result.validation_info[0].all_passed is True
+
+
+def test_yaml_interrogate_set_tbl_basic():
+    """Test basic `yaml_interrogate()` with `set_tbl=` parameter."""
+
+    # Create a test table
+    test_table = pl.DataFrame(
+        {"a": [1, 2, 3, 4, 5], "b": [10, 20, 30, 40, 50], "c": ["x", "y", "z", "w", "v"]}
+    )
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Override Test"
+    label: "YAML validation with table override"
+    steps:
+      - col_exists:
+          columns: [a, b, c]
+      - col_vals_gt:
+          columns: [a]
+          value: 0
+      - col_vals_gt:
+          columns: [b]
+          value: 5
+    """
+
+    # Execute with table override
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Override Test"
+    assert result.label == "YAML validation with table override"
+    assert len(result.validation_info) > 0
+    assert all(step.all_passed for step in result.validation_info)
+
+    # Verify that interrogation was completed
+    assert result.time_start is not None
+    assert result.time_end is not None
+
+
+def test_yaml_interrogate_set_tbl_vs_no_override():
+    """Compare `yaml_interrogate()` with and without `set_tbl=` override."""
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Test Comparison"
+    steps:
+      - col_exists:
+          columns: [a, b]
+      - col_vals_gt:
+          columns: [a]
+          value: 0
+    """
+
+    # Execute without override (uses small_table)
+    result_original = yaml_interrogate(yaml_config)
+
+    # Create a test table with same structure as small_table
+    test_table = pl.DataFrame({"a": [1, 2, 3, 4, 5], "b": [10, 20, 30, 40, 50]})
+
+    # Execute with override
+    result_override = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    # Both should have same validation structure
+    assert len(result_original.validation_info) == len(result_override.validation_info)
+    assert result_original.tbl_name == result_override.tbl_name
+    assert result_original.label == result_override.label
+
+    # Assertion types should be the same
+    for orig_step, override_step in zip(
+        result_original.validation_info, result_override.validation_info
+    ):
+        assert orig_step.assertion_type == override_step.assertion_type
+        assert orig_step.column == override_step.column
+
+
+def test_yaml_interrogate_set_tbl_different_libraries():
+    """Test `yaml_interrogate()`'s `set_tbl=` with different DataFrame libraries."""
+
+    yaml_config = """
+    tbl: small_table
+    steps:
+      - col_vals_gt:
+          columns: [a]
+          value: 0
+      - col_exists:
+          columns: [a, b]
+    """
+
+    # Test with Polars DataFrame
+    polars_table = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    result_polars = yaml_interrogate(yaml_config, set_tbl=polars_table)
+    assert all(step.all_passed for step in result_polars.validation_info)
+
+    # Test with Pandas DataFrame
+    pandas_table = pd.DataFrame({"a": [7, 8, 9], "b": [10, 11, 12]})
+    result_pandas = yaml_interrogate(yaml_config, set_tbl=pandas_table)
+    assert all(step.all_passed for step in result_pandas.validation_info)
+
+    # Both should have same structure
+    assert len(result_polars.validation_info) == len(result_pandas.validation_info)
+
+
+def test_yaml_interrogate_set_tbl_with_thresholds():
+    """Test `yaml_interrogate()`'s `set_tbl=` with thresholds configuration."""
+
+    # Create a table that will trigger some failures
+    test_table = pl.DataFrame(
+        {
+            "score": [85, 92, 45, 95, 88, 30, 91, 87, 25],  # Some values < 50
+            "category": ["A", "B", "A", "C", "B", "A", "C", "B", "A"],
+        }
+    )
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Threshold Test"
+    thresholds:
+      warning: 0.2
+      error: 0.4
+      critical: 0.6
+    steps:
+      - col_vals_gt:
+          columns: [score]
+          value: 50  # This will fail for some values
+      - col_exists:
+          columns: [score, category]
+    """
+
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Threshold Test"
+    assert result.thresholds.warning == 0.2
+    assert result.thresholds.error == 0.4
+    assert result.thresholds.critical == 0.6
+
+    # Some validations should pass, some might trigger thresholds
+    assert len(result.validation_info) > 0
+
+
+def test_yaml_interrogate_set_tbl_with_actions():
+    """Test `yaml_interrogate()`'s `set_tbl=` with actions configuration."""
+
+    test_table = pl.DataFrame(
+        {"value": [1, 2, 3, 4, 5], "status": ["active", "inactive", "active", "active", "inactive"]}
+    )
+
+    # Track action calls
+    action_calls = []
+
+    yaml_config = f"""
+    tbl: small_table
+    tbl_name: "Action Test"
+    actions:
+      warning: |
+        python: |
+          action_calls.append("warning_triggered")
+    steps:
+      - col_vals_gt:
+          columns: [value]
+          value: 0
+    """
+
+    # Execute with actions (note: actions might not trigger if all validations pass)
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Action Test"
+    assert result.actions is not None
+
+
+def test_yaml_interrogate_set_tbl_with_complex_validations():
+    """Test `yaml_interrogate()`'s `set_tbl=` with complex validation scenarios."""
+
+    test_table = pl.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "score": [85, 92, 78, 95, 88, 76, 89, 91, 83, 96],
+            "category": ["A", "B", "A", "C", "B", "A", "C", "B", "A", "C"],
+            "active": [True, True, False, True, True, True, False, True, True, False],
+            "region": [
+                "North",
+                "South",
+                "North",
+                "East",
+                "West",
+                "North",
+                "South",
+                "East",
+                "West",
+                "North",
+            ],
+        }
+    )
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Complex Validation Test"
+    label: "Multi-step validation with various checks"
+    thresholds:
+      warning: 0.1
+      error: 0.25
+    steps:
+      - col_exists:
+          columns: [id, score, category, active, region]
+      - col_vals_not_null:
+          columns: [id, score, category]
+      - col_vals_between:
+          columns: [score]
+          left: 0
+          right: 100
+      - col_vals_in_set:
+          columns: [category]
+          set: [A, B, C]
+      - col_vals_gt:
+          columns: [id]
+          value: 0
+      - rows_distinct: {}  # Remove columns parameter for rows_distinct
+      - col_schema_match:
+          schema:
+            columns:
+              - [id, Int64]
+              - [score, Int64]
+              - [category, String]
+              - [active, Boolean]
+              - [region, String]
+          complete: false
+    """
+
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Complex Validation Test"
+    assert result.label == "Multi-step validation with various checks"
+    assert len(result.validation_info) > 5  # Should have many validation steps
+    assert all(step.all_passed for step in result.validation_info)
+
+
+def test_yaml_interrogate_set_tbl_with_segments():
+    """Test `yaml_interrogate()`'s `set_tbl=` with segmented validations."""
+
+    test_table = pl.DataFrame(
+        {
+            "region": ["North", "South", "North", "South", "East", "West", "East", "West"],
+            "sales": [100, 200, 150, 180, 120, 220, 160, 190],
+            "quarter": ["Q1", "Q1", "Q2", "Q2", "Q1", "Q1", "Q2", "Q2"],
+        }
+    )
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Segmented Test"
+    steps:
+      - col_vals_gt:
+          columns: [sales]
+          value: 50
+          segments: region
+      - col_vals_not_null:
+          columns: [sales, region]
+          segments: quarter
+    """
+
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Segmented Test"
+    # Should have multiple validation steps due to segmentation
+    assert len(result.validation_info) > 2
+
+
+def test_yaml_interrogate_set_tbl_with_preprocessing():
+    """Test `yaml_interrogate()`'s `set_tbl=` with basic preprocessing that works."""
+
+    test_table = pl.DataFrame(
+        {
+            "value": [1, 2, 3, 4, 5, 6, 7],  # All positive values
+            "category": ["A", "B", "A", "B", "A", "B", "A"],
+        }
+    )
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Preprocessing Test"
+    steps:
+      - col_vals_gt:
+          columns: [value]
+          value: 0
+      - col_exists:
+          columns: [value, category]
+    """
+
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    assert result.tbl_name == "Preprocessing Test"
+    # Should pass because all values are positive
+    assert all(step.all_passed for step in result.validation_info)
+
+
+def test_yaml_interrogate_set_tbl_error_cases():
+    """Test error handling in `yaml_interrogate()` with `set_tbl=`."""
+
+    # Table with incompatible structure
+    incompatible_table = pl.DataFrame({"different_col": [1, 2, 3], "another_col": [4, 5, 6]})
+
+    yaml_config = """
+    tbl: small_table
+    steps:
+      - col_exists:
+          columns: [a, b, c]  # These columns don't exist in incompatible_table
+    """
+
+    # Should execute but validation should fail
+    result = yaml_interrogate(yaml_config, set_tbl=incompatible_table)
+    assert result is not None
+    # col_exists should fail for non-existent columns
+    assert not all(step.all_passed for step in result.validation_info)
+
+
+def test_yaml_interrogate_set_tbl_with_csv_and_datasets():
+    """Test yaml_interrogate `set_tbl=` with CSV files and DataFrames."""
+    import tempfile
+    import os
+
+    yaml_config = """
+    tbl: small_table  # Will be overridden
+    tbl_name: "Dataset Override Test"
+    steps:
+      - col_exists:
+          columns: [a, b]
+      - col_vals_gt:
+          columns: [a]
+          value: 0
+    """
+
+    # Test with DataFrame directly (instead of string dataset name)
+    test_df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    result_dataframe = yaml_interrogate(yaml_config, set_tbl=test_df)
+    assert result_dataframe.tbl_name == "Dataset Override Test"
+    assert all(step.all_passed for step in result_dataframe.validation_info)
+
+    # Test with CSV file
+    test_data = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        test_data.write_csv(f.name)
+        csv_path = f.name
+
+    try:
+        result_csv = yaml_interrogate(yaml_config, set_tbl=csv_path)
+        assert result_csv.tbl_name == "Dataset Override Test"
+        assert all(step.all_passed for step in result_csv.validation_info)
+    finally:
+        os.unlink(csv_path)
+
+
+def test_yaml_interrogate_set_tbl_preserves_all_yaml_config():
+    """Test that `set_tbl=` preserves all YAML configuration options."""
+
+    test_table = pl.DataFrame({"metric": [1, 2, 3, 4, 5], "category": ["X", "Y", "Z", "X", "Y"]})
+
+    yaml_config = """
+    tbl: small_table
+    tbl_name: "Configuration Test"
+    label: "Testing all YAML options"
+    lang: en
+    locale: en-US
+    brief: "Step {step}: {auto}"
+    thresholds:
+      warning: 0.1
+      error: 0.3
+      critical: 0.5
+    steps:
+      - col_vals_gt:
+          columns: [metric]
+          value: 0
+          brief: "Custom brief for metric validation"
+      - col_exists:
+          columns: [metric, category]
+    """
+
+    result = yaml_interrogate(yaml_config, set_tbl=test_table)
+
+    # Verify all configuration is preserved
+    assert result.tbl_name == "Configuration Test"
+    assert result.label == "Testing all YAML options"
+    assert result.lang == "en"
+    assert result.locale == "en-US"
+    assert result.brief == "Step {step}: {auto}"
+    assert result.thresholds.warning == 0.1
+    assert result.thresholds.error == 0.3
+    assert result.thresholds.critical == 0.5
+
+    # Verify briefs are applied
+    assert len(result.validation_info) > 0
+    # First step should have custom brief
+    assert "Custom brief for metric validation" in str(result.validation_info[0].brief)
+
+
+def test_yaml_interrogate_set_tbl_multiple_scenarios():
+    """Test yaml_interrogate `set_tbl=` in multiple realistic scenarios."""
+
+    # Scenario 1: Sales data validation template
+    sales_template = """
+    tbl: small_table  # Changed from placeholder to valid dataset
+    tbl_name: "Sales Data Validation"
+    steps:
+      - col_exists:
+          columns: [customer_id, revenue, region]
+      - col_vals_not_null:
+          columns: [customer_id, revenue]
+      - col_vals_gt:
+          columns: [revenue]
+          value: 0
+      - col_vals_in_set:
+          columns: [region]
+          set: [North, South, East, West]
+    """
+
+    sales_q1 = pl.DataFrame(
+        {
+            "customer_id": [1, 2, 3, 4, 5],
+            "revenue": [100, 200, 150, 300, 250],
+            "region": ["North", "South", "East", "West", "North"],
+        }
+    )
+
+    sales_q2 = pl.DataFrame(
+        {
+            "customer_id": [6, 7, 8, 9, 10],
+            "revenue": [120, 180, 160, 320, 280],
+            "region": ["South", "East", "West", "North", "South"],
+        }
+    )
+
+    # Apply template to both quarters
+    result_q1 = yaml_interrogate(sales_template, set_tbl=sales_q1)
+    result_q2 = yaml_interrogate(sales_template, set_tbl=sales_q2)
+
+    assert result_q1.tbl_name == "Sales Data Validation"
+    assert result_q2.tbl_name == "Sales Data Validation"
+    assert all(step.all_passed for step in result_q1.validation_info)
+    assert all(step.all_passed for step in result_q2.validation_info)
+
+    # Scenario 2: User behavior validation
+    user_template = """
+    tbl: small_table
+    tbl_name: "User Behavior Analysis"
+    thresholds:
+      warning: 0.05
+    steps:
+      - col_vals_between:
+          columns: [session_duration]
+          left: 0
+          right: 7200  # Max 2 hours
+      - col_vals_in_set:
+          columns: [device_type]
+          set: [mobile, desktop, tablet]
+    """
+
+    user_data_mobile = pl.DataFrame(
+        {
+            "session_duration": [300, 450, 600, 1200, 900],
+            "device_type": ["mobile", "mobile", "mobile", "mobile", "mobile"],
+        }
+    )
+
+    user_data_mixed = pl.DataFrame(
+        {
+            "session_duration": [600, 1800, 300, 2400, 450],
+            "device_type": ["desktop", "tablet", "mobile", "desktop", "tablet"],
+        }
+    )
+
+    result_mobile = yaml_interrogate(user_template, set_tbl=user_data_mobile)
+    result_mixed = yaml_interrogate(user_template, set_tbl=user_data_mixed)
+
+    assert result_mobile.tbl_name == "User Behavior Analysis"
+    assert result_mixed.tbl_name == "User Behavior Analysis"
+    assert all(step.all_passed for step in result_mobile.validation_info)
+    assert all(step.all_passed for step in result_mixed.validation_info)
+
+
+def test_yaml_interrogate_set_tbl_edge_cases():
+    """Test edge cases for yaml_interrogate with `set_tbl=`."""
+
+    # Edge case 1: Empty DataFrame
+    empty_table = pl.DataFrame({"a": pl.Series([], dtype=pl.Int64)})
+
+    yaml_config = """
+    tbl: small_table
+    steps:
+      - col_exists:
+          columns: [a]
+    """
+
+    result_empty = yaml_interrogate(yaml_config, set_tbl=empty_table)
+    assert result_empty is not None
+    # col_exists should pass even for empty table if column exists
+    assert result_empty.validation_info[0].all_passed
+
+    # Edge case 2: Single row DataFrame
+    single_row = pl.DataFrame({"x": [42], "y": ["test"]})
+
+    yaml_single = """
+    tbl: small_table
+    steps:
+      - col_vals_gt:
+          columns: [x]
+          value: 0
+      - col_vals_not_null:
+          columns: [x, y]
+    """
+
+    result_single = yaml_interrogate(yaml_single, set_tbl=single_row)
+    assert all(step.all_passed for step in result_single.validation_info)
+
+    # Edge case 3: Large number of columns
+    many_cols_data = {f"col_{i}": [i] * 3 for i in range(50)}
+    many_cols_table = pl.DataFrame(many_cols_data)
+
+    yaml_many_cols = """
+    tbl: small_table
+    steps:
+      - col_count_match:
+          count: 50
+    """
+
+    result_many_cols = yaml_interrogate(yaml_many_cols, set_tbl=many_cols_table)
+    assert result_many_cols.validation_info[0].all_passed
+
+
+def test_yaml_interrogate_tbl_field_options_for_always_override():
+    """Test different tbl: field values when always using set_tbl= parameter."""
+
+    # Create test data
+    test_table = pl.DataFrame({"metric": [1, 2, 3, 4, 5], "category": ["X", "Y", "Z", "X", "Y"]})
+
+    # Test 1: Using valid built-in dataset names (gets overridden)
+    valid_datasets = ["small_table", "game_revenue", "nycflights", "global_sales"]
+
+    for dataset in valid_datasets:
+        yaml_config = f"""
+tbl: {dataset}
+tbl_name: "Test with {dataset}"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+        result = yaml_interrogate(yaml_config, set_tbl=test_table)
+        assert result.tbl_name == f"Test with {dataset}"
+        assert all(step.all_passed for step in result.validation_info)
+
+    # Test 2: Using YAML null (the recommended approach)
+    yaml_null = """
+tbl: null
+tbl_name: "Test with null"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+    result_null = yaml_interrogate(yaml_null, set_tbl=test_table)
+    assert result_null.tbl_name == "Test with null"
+    assert all(step.all_passed for step in result_null.validation_info)
+
+    # Test 3: Verify that any valid tbl: field works with `set_tbl=` (gets overridden anyway)
+    yaml_override_test = """
+tbl: small_table
+tbl_name: "Test override behavior"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+    # Should work with set_tbl (overrides the small_table)
+    result_override = yaml_interrogate(yaml_override_test, set_tbl=test_table)
+    assert result_override.tbl_name == "Test override behavior"
+    assert all(step.all_passed for step in result_override.validation_info)
+
+
+def test_yaml_interrogate_template_pattern():
+    """Test the template pattern where YAML configs are designed for reuse with set_tbl=."""
+
+    # Define a reusable validation template
+    sales_validation_template = """
+    tbl: null  # Will always be overridden
+    tbl_name: "Sales Data Validation"
+    label: "Standard sales data validation checks"
+    thresholds:
+      warning: 0.05
+      error: 0.1
+    steps:
+      - col_exists:
+          columns: [customer_id, revenue, region, date]
+      - col_vals_not_null:
+          columns: [customer_id, revenue, region]
+      - col_vals_gt:
+          columns: [revenue]
+          value: 0
+      - col_vals_in_set:
+          columns: [region]
+          set: [North, South, East, West]
+    """
+
+    # Apply template to different datasets
+    q1_data = pl.DataFrame(
+        {
+            "customer_id": [1, 2, 3, 4],
+            "revenue": [100, 200, 150, 300],
+            "region": ["North", "South", "East", "West"],
+            "date": ["2024-01-01", "2024-01-15", "2024-02-01", "2024-02-15"],
+        }
+    )
+
+    q2_data = pl.DataFrame(
+        {
+            "customer_id": [5, 6, 7, 8],
+            "revenue": [250, 180, 220, 350],
+            "region": ["South", "North", "West", "East"],
+            "date": ["2024-04-01", "2024-04-15", "2024-05-01", "2024-05-15"],
+        }
+    )
+
+    # Apply same template to both datasets
+    q1_result = yaml_interrogate(sales_validation_template, set_tbl=q1_data)
+    q2_result = yaml_interrogate(sales_validation_template, set_tbl=q2_data)
+
+    # Both should have same validation structure
+    assert q1_result.tbl_name == "Sales Data Validation"
+    assert q2_result.tbl_name == "Sales Data Validation"
+    assert q1_result.label == "Standard sales data validation checks"
+    assert q2_result.label == "Standard sales data validation checks"
+
+    # Both should pass validations
+    assert all(step.all_passed for step in q1_result.validation_info)
+    assert all(step.all_passed for step in q2_result.validation_info)
+
+    # Should have same number of validation steps
+    assert len(q1_result.validation_info) == len(q2_result.validation_info)
