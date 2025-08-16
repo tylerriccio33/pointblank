@@ -157,6 +157,14 @@ def test_validate_yaml():
     """
     validate_yaml(valid_yaml)  # Should not raise
 
+    # Valid configuration with tbl: null (for template use cases)
+    valid_yaml_null = """
+    tbl: null
+    steps:
+    - rows_distinct
+    """
+    validate_yaml(valid_yaml_null)  # Should not raise
+
     # Invalid configuration: missing tbl
     invalid_yaml1 = """
     steps:
