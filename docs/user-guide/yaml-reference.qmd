@@ -68,9 +68,6 @@ tbl: small_table  # Will be ignored when `set_tbl=` is used
 
 # Option 2: Use YAML null (clearest semantic intent)
 tbl: null  # Indicates table will be provided via `set_tbl=`
-
-# Option 3: Use empty string
-tbl: ""  # Empty, will be overridden by `set_tbl=`
 ```
 
 When using `yaml_interrogate()` with `set_tbl=`, the validation template becomes fully reusable:
