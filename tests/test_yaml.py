@@ -2842,3 +2842,139 @@ def test_yaml_interrogate_set_tbl_edge_cases():
 
     result_many_cols = yaml_interrogate(yaml_many_cols, set_tbl=many_cols_table)
     assert result_many_cols.validation_info[0].all_passed
+
+
+def test_yaml_interrogate_tbl_field_options_for_always_override():
+    """Test different tbl: field values when always using set_tbl= parameter."""
+
+    # Create test data
+    test_table = pl.DataFrame({"metric": [1, 2, 3, 4, 5], "category": ["X", "Y", "Z", "X", "Y"]})
+
+    # Test 1: Using valid built-in dataset names (gets overridden)
+    valid_datasets = ["small_table", "game_revenue", "nycflights", "global_sales"]
+
+    for dataset in valid_datasets:
+        yaml_config = f"""
+tbl: {dataset}
+tbl_name: "Test with {dataset}"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+        result = yaml_interrogate(yaml_config, set_tbl=test_table)
+        assert result.tbl_name == f"Test with {dataset}"
+        assert all(step.all_passed for step in result.validation_info)
+
+    # Test 2: Using YAML null (recommended approach)
+    yaml_null = """
+tbl: null
+tbl_name: "Test with null"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+    result_null = yaml_interrogate(yaml_null, set_tbl=test_table)
+    assert result_null.tbl_name == "Test with null"
+    assert all(step.all_passed for step in result_null.validation_info)
+
+    # Test 3: Using empty string
+    yaml_empty = """
+tbl: ""
+tbl_name: "Test with empty string"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+    result_empty = yaml_interrogate(yaml_empty, set_tbl=test_table)
+    assert result_empty.tbl_name == "Test with empty string"
+    assert all(step.all_passed for step in result_empty.validation_info)
+
+    # Test 4: Verify that any valid tbl: field works with set_tbl= (gets overridden anyway)
+    yaml_override_test = """
+tbl: small_table
+tbl_name: "Test override behavior"
+steps:
+  - col_exists:
+      columns: [metric, category]
+  - col_vals_gt:
+      columns: [metric]
+      value: 0
+"""
+
+    # Should work with set_tbl (overrides the small_table)
+    result_override = yaml_interrogate(yaml_override_test, set_tbl=test_table)
+    assert result_override.tbl_name == "Test override behavior"
+    assert all(step.all_passed for step in result_override.validation_info)
+
+
+def test_yaml_interrogate_template_pattern():
+    """Test the template pattern where YAML configs are designed for reuse with set_tbl=."""
+
+    # Define a reusable validation template
+    sales_validation_template = """
+    tbl: null  # Will always be overridden
+    tbl_name: "Sales Data Validation"
+    label: "Standard sales data validation checks"
+    thresholds:
+      warning: 0.05
+      error: 0.1
+    steps:
+      - col_exists:
+          columns: [customer_id, revenue, region, date]
+      - col_vals_not_null:
+          columns: [customer_id, revenue, region]
+      - col_vals_gt:
+          columns: [revenue]
+          value: 0
+      - col_vals_in_set:
+          columns: [region]
+          set: [North, South, East, West]
+    """
+
+    # Apply template to different datasets
+    q1_data = pl.DataFrame(
+        {
+            "customer_id": [1, 2, 3, 4],
+            "revenue": [100, 200, 150, 300],
+            "region": ["North", "South", "East", "West"],
+            "date": ["2024-01-01", "2024-01-15", "2024-02-01", "2024-02-15"],
+        }
+    )
+
+    q2_data = pl.DataFrame(
+        {
+            "customer_id": [5, 6, 7, 8],
+            "revenue": [250, 180, 220, 350],
+            "region": ["South", "North", "West", "East"],
+            "date": ["2024-04-01", "2024-04-15", "2024-05-01", "2024-05-15"],
+        }
+    )
+
+    # Apply same template to both datasets
+    q1_result = yaml_interrogate(sales_validation_template, set_tbl=q1_data)
+    q2_result = yaml_interrogate(sales_validation_template, set_tbl=q2_data)
+
+    # Both should have same validation structure
+    assert q1_result.tbl_name == "Sales Data Validation"
+    assert q2_result.tbl_name == "Sales Data Validation"
+    assert q1_result.label == "Standard sales data validation checks"
+    assert q2_result.label == "Standard sales data validation checks"
+
+    # Both should pass validations
+    assert all(step.all_passed for step in q1_result.validation_info)
+    assert all(step.all_passed for step in q2_result.validation_info)
+
+    # Should have same number of validation steps
+    assert len(q1_result.validation_info) == len(q2_result.validation_info)
