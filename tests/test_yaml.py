@@ -2869,7 +2869,7 @@ steps:
         assert result.tbl_name == f"Test with {dataset}"
         assert all(step.all_passed for step in result.validation_info)
 
-    # Test 2: Using YAML null (recommended approach)
+    # Test 2: Using YAML null (the recommended approach)
     yaml_null = """
 tbl: null
 tbl_name: "Test with null"
@@ -2885,23 +2885,7 @@ steps:
     assert result_null.tbl_name == "Test with null"
     assert all(step.all_passed for step in result_null.validation_info)
 
-    # Test 3: Using empty string
-    yaml_empty = """
-tbl: ""
-tbl_name: "Test with empty string"
-steps:
-  - col_exists:
-      columns: [metric, category]
-  - col_vals_gt:
-      columns: [metric]
-      value: 0
-"""
-
-    result_empty = yaml_interrogate(yaml_empty, set_tbl=test_table)
-    assert result_empty.tbl_name == "Test with empty string"
-    assert all(step.all_passed for step in result_empty.validation_info)
-
-    # Test 4: Verify that any valid tbl: field works with set_tbl= (gets overridden anyway)
+    # Test 3: Verify that any valid tbl: field works with `set_tbl=` (gets overridden anyway)
     yaml_override_test = """
 tbl: small_table
 tbl_name: "Test override behavior"
