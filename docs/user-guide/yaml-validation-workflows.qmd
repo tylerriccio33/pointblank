@@ -197,6 +197,9 @@ steps:
 
 ### Applying Templates to Multiple Datasets
 
+Here's a practical example showing how to apply the same validation template to multiple quarterly
+datasets, demonstrating the power of reusable YAML configurations:
+
 ```{python}
 import pointblank as pb
 import polars as pl
